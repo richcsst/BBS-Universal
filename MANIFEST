@@ -1,0 +1,15 @@
+Changes
+ignore.txt
+lib/BBS/Universal.pm
+lib/BBS/Universal/ASCII.pm
+lib/BBS/Universal/ATASCII.pm
+lib/BBS/Universal/File-Transfer.pm
+lib/BBS/Universal/Messages.pm
+lib/BBS/Universal/PETSCII.pm
+lib/BBS/Universal/SysOp.pm
+lib/BBS/Universal/Users.pm
+lib/BBS/Universal/VT-102.pm
+LICENSE
+Makefile.PL
+MANIFEST			This list of files
+README.md
