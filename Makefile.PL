@@ -34,7 +34,7 @@ if (WriteMakefile(
 		'Text::SimpleTable::AutoWidth' => '0.09',
     },
     dist  => {COMPRESS => 'gzip -9f', SUFFIX => 'gz',},
-    clean => {FILES    => 'BBS-Universal-* _build*'},
+    clean => {FILES    => 'BBS-Universal-* _build* *bak *old'},
 )) {
     exit(0);
 }
