@@ -25,12 +25,13 @@ use Text::SimpleTable::AutoWidth;
 use Sys::CPU;
 use DBI;
 use DBD::mysql;
+use Debug::Easy;
 
-use BBS::Universal::ASCII;
+use BBS::Universal::ASCII;   # Subs will have mode names as a prefix, so they can all be imported
 use BBS::Universal::ATASCII;
 use BBS::Universal::PETSCII;
 use BBS::Universal::VT102;
-use BBS::universal::Messages;
+use BBS::Universal::Messages;
 use BBS::Universal::SysOp;
 use BBS::Universal::File-Transfer;
 use BBS::Universal::Users;
@@ -58,11 +59,15 @@ my $suffixes     : shared = { # File types by suffix, kind of "MIME"ish
     'PETSCII' => 'PET',
     'VT102'   => 'VT',
 };
+my $speeds : shared = { # delays for simulating baud rates
+    'FULL'  => 0,
+    '300'   => 0.2,
+    '1200'  => 0.05,
+    '2400'  => 0.025,
+    '9600'  => 0.00625,
+    '19200' => 0.003125,
+};
 my @translations = keys %{$suffixes};
-
-my $CORES     = Sys::CPU::cpu_count();
-my $CPU_SPEED = Sys::CPU::cpu_clock();
-my $CPU_TYPE  = SYS::CPU::cpu_type();
 
 my $DSN = "DBI:mysql:database=BBSUniversal;host=$DBHOST";
 
@@ -71,69 +76,28 @@ sub DESTROY {
     $self->{'dbh'}->disconnect();
 }
 
-## Tables
-# config - These are file names
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    bbs_name VARCHAR(255) DEFAULT 'BBS Universal'
-#    greeting VARCHAR(255)
-#    logout VARCHAR(255)
-#    sys_info VARCHAR(255)
-#    policy VARCHAR(255)
-#    threads SMALLINT UNSIGNED DEFAULT 2
-#    connect_mode VARCHAR(8) DEFAULT 'ASCII'
-# users -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    username VARCHAR(255)
-#    password PASSWORD
-#    given VARCHAR(255)
-#    family VARCHAR(255)
-#    permissions UNSIGNED INTEGER
-# messages -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    from_id INTEGRER UNSIGNED INTEGER NOT NULL
-#    title VARCHAR(255)
-#    message TEXT
-#    created TIMESTAMP
-# message categories -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    name VARCHAR(255) NOT NULL
-#    description VARCHAR(255) # file
-# file_categories -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    name VARCHAR(255)
-#    description VARCHAR(255)
-# permissions -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    view_files BOOLEAN DEFAULT 0
-#    post_files BOOLEAN DEFAULT 0
-#    download_files BOOLEAN DEFAULT 0
-#    remove_files BOOLEAN DEFAULT 0
-#    read_message BOOLEAN DEFAULT 0
-#    post_message BOOLEAN DEFAULT 0
-#    remove_message BOOLEAN DEFAULT 0
-#    sysop BOOLEAN DEFAULT 0
-#    timeout INT UNSIGNED DEFAULT 10
-# files -
-#    id INTEGER UNSIGNED AUTOINCREMENT NOT NULL
-#    filename VARCHAR(255)
-#    title VARCHAR(255)
-#    category INTEGER UNSIGNED NOT NULL
-#    description TEXT
-#    size BIGINTEGER UNSIGNED NOT NULL
-#    uploaded TIMESTAMP
-#    endorsement INTEGER UNSIGNED NOT NULL
-
 sub new {
     my $class = shift;
 
-    my $self = {
-        'dbh' => DBI->connect($DSN,$DBUSER,$DBPASS),
+    my $self ={};
+    bless($self,$class);
+
+    $self = {
+        'dbh'          => DBI->connect($DSN,$DBUSER,$DBPASS),
+        'cpu'          => Sys::CPU::cpu_count(),
+        'cpu_clock'    => Sys::CPU::cpu_clock(),
+        'cpu_type'     => Sys::CPU::cpu_type(),
+        'os'           => chomp(`/usr/bin/uname -a`),
+        'perl_version' => $OLD_PERL_VERSION,
+        'bbs_name'     => $self->configuration('bbs_name'),
+        'bbs_version'  => "BBS Universal - Version $VERSION",
     };
-    bless($self, $class);
+
     return($self);
 }
 
 sub configuration {
+    my $self  = shift;
     my $count = scalar(@_);
     if ($count == 1) { # Get single value
         my $name = shift;
@@ -163,6 +127,53 @@ sub categories_menu { # Handle categories menu
 
 sub get_key {
     my $self = shift;
+    my $key;
+
+    return($key);
 }
+
+sub get_line {
+    my $self = shift;
+    my $line;
+
+    return($line);
+}
+
+sub detokenize_text {
+    # Detokenize text markup
+    my $self = shift;
+    my $text = shift;
+
+    my $tokens = {
+        'AUTHOR'             => 'Richard Kelsch',
+        'SYSOP'              => $self->{'sysop'},
+        'CPU'                => $self->{'cpu'},
+        'CPU CORES'          => $self->{'cpu_count'},
+        'CPU SPEED'          => $self->{'cpu_clock'},
+        'CPU TYPE'           => $self->{'cpu_type'},
+        'OS'                 => $self->{'os'},
+        'UPTIME'             => split(chomp(`/usr/bin/uptime`),' ',1),
+        'PERL VERSION'       => $self->{'perl_version'},
+        'BBS NAME'           => $self->{'bbs_name'},
+        'BBS VERSION'        => $self->{'bbs_version'},
+        'USER ID'            => $self->{'user_id'},
+        'USERNAME'           => $self->{'username'},
+        'USER GIVEN'         => $self->{'user_given'},
+        'USER FAMILY'        => $self->{'user_family'},
+        'USER LOCATION'      => $self->{'user_location'},
+        'USER BIRTHDAY'      => $self->{'user_birthday'},
+        'USER RETRO SYSTEMS' => $self->{'user_retro_systems'},
+        'USER LOGIN TIME'    => $self->{'user_login_time'},
+        'USER TEXT MODE'     => $self->{'user_mode'},
+        'USER PERMISSIONS'   => $self->{'user_permissions'},
+        'BAUD RATE'          => $self->{'baud_rate'},
+    };
+
+    foreach my $key (keys %$tokens) {
+        $text =~ s/\[\% $key \%\]/$tokens->{$key}/g;
+    }
+    return($text);
+}
+
 
 1;
