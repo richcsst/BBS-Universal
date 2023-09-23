@@ -61,11 +61,11 @@ my $suffixes     : shared = { # File types by suffix, kind of "MIME"ish
 };
 my $speeds : shared = { # delays for simulating baud rates
     'FULL'  => 0,
-    '300'   => 0.2,
-    '1200'  => 0.05,
-    '2400'  => 0.025,
-    '9600'  => 0.00625,
-    '19200' => 0.003125,
+    '300'   => 0.02,
+    '1200'  => 0.005,
+    '2400'  => 0.0025,
+    '9600'  => 0.000625,
+    '19200' => 0.0003125,
 };
 my @translations = keys %{$suffixes};
 
