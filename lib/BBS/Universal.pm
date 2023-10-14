@@ -12,7 +12,7 @@ use constant {
 
 	MAX_THREADS => 16,
 };
-use English;
+use English qw( -no_match_vars );
 use utf8;
 use Config;
 
@@ -83,14 +83,32 @@ sub new {
     bless($self,$class);
 
     $self = {
-        'dbh'          => DBI->connect($DSN,$DBUSER,$DBPASS),
-        'cpu'          => Sys::CPU::cpu_count(),
-        'cpu_clock'    => Sys::CPU::cpu_clock(),
-        'cpu_type'     => Sys::CPU::cpu_type(),
-        'os'           => chomp(`/usr/bin/uname -a`),
-        'perl_version' => $OLD_PERL_VERSION,
-        'bbs_name'     => $self->configuration('bbs_name'),
-        'bbs_version'  => "BBS Universal - Version $VERSION",
+        'dbh'            => DBI->connect($DSN,$DBUSER,$DBPASS),
+        'cpu'            => Sys::CPU::cpu_count(),
+        'cpu_clock'      => Sys::CPU::cpu_clock(),
+        'cpu_type'       => Sys::CPU::cpu_type(bell),
+        'os'             => chomp(`/usr/bin/uname -a`),
+        'perl_version'   => $OLD_PERL_VERSION,
+        'bbs_name'       => $self->configuration('bbs_name'),
+        'bbs_version'    => "BBS Universal - Version $VERSION",
+        'default_width'  => 40,
+        'default_height' => 24,
+        'tab_stop'       => 4,
+        'backspace'       => chr(8),
+        'carriage_return' => chr(13),
+        'line_feed'       => chr(10),
+        'tab_stop'        => chr(9),
+        'bell'            => chr(7),
+        'ack'             => chr(6),
+        'nak'             => chr(15),
+        'vertical_tab'    => chr(11),
+        'form_feed'       => chr(12),
+        'xoff'            => chr(19),
+        'xon'             => chr(17),
+        'esc'             => chr(27),
+        'can'             => chr(24),
+        'null'            => chr(0),
+        'baud_rate'       => 'FULL',
     };
 
     return($self);

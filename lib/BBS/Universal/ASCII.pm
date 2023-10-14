@@ -8,18 +8,15 @@ use constant {
 
 use DateTime;
 use Time::HiRes qw(time sleep);
-use File::Basename;
-use Config;
-use Text::SimpleTable::AutoWidth;
-use threads;
-use threads::shared;
 
 BEGIN {
 	require Exporter;
 
 	our $VERSION   = '0.01';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
+	our @EXPORT    = qw(
+        ascii_output
+    );
 	our @EXPORT_OK = qw();
 }
 
@@ -33,6 +30,13 @@ sub new {
 	my $self = {};
 	bless($self, $class);
 	return($self);
+}
+
+sub ascii_output {
+    my $self = shift;
+    my $string = shift;
+
+    
 }
 
 1;

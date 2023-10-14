@@ -18,7 +18,12 @@ BEGIN {
 
 	our $VERSION   = '0.01';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
+	our @EXPORT    = qw(
+        load_file
+        save_file
+        send_file
+        receive_file
+    );
 	our @EXPORT_OK = qw();
 }
 
@@ -32,6 +37,22 @@ sub new {
     my $self = {};
     bless($self, $class);
     return($self);
+}
+
+sub load_file {
+    my $self = shift;
+}
+
+sub save_file {
+    my $self = shift;
+}
+
+sub receive_file {
+    my $self = shift;
+}
+
+sub send_file {
+    my $self = shift;
 }
 
 1;

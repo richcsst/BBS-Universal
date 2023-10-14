@@ -18,7 +18,13 @@ BEGIN {
 
 	our $VERSION   = '0.01';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
+	our @EXPORT    = qw(
+        list_sections
+        list_messages
+        read_message
+        edit_message
+        delete_message
+    );
 	our @EXPORT_OK = qw();
 }
 
@@ -32,6 +38,26 @@ sub new {
     my $self = {};
     bless($self, $class);
     return($self);
+}
+
+sub list_sections {
+    my $self = shift;
+}
+
+sub list_messages {
+    my $self = shift;
+}
+
+sub read_message {
+    my $self = shift;
+}
+
+sub edit_message {
+    my $self = shift;
+}
+
+sub delete_message {
+    my $self = shift;
 }
 
 1;

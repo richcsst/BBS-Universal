@@ -18,7 +18,13 @@ BEGIN {
 
 	our $VERSION   = '0.01';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
+	our @EXPORT    = qw(
+        users_list
+        user_add
+        user_edit
+        user_delete
+        user_find
+    );
 	our @EXPORT_OK = qw();
 }
 
@@ -33,5 +39,26 @@ sub new {
     bless($self, $class);
     return($self);
 }
+
+sub users_list {
+    my $self = shift;
+}
+
+sub user_add {
+    my $self = shift;
+}
+
+sub user_edit {
+    my $self = shift;
+}
+
+sub user_delete {
+    my $self = shift;
+}
+
+sub user_find {
+    my $self = shift;
+}
+
 
 1;

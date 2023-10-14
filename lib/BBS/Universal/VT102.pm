@@ -19,7 +19,9 @@ BEGIN {
 
 	our $VERSION   = '0.01';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
+	our @EXPORT    = qw(
+        vt102_output
+    );
 	our @EXPORT_OK = qw();
 }
 
@@ -33,6 +35,10 @@ sub new {
     my $self = {};
     bless($self, $class);
     return($self);
+}
+
+sub vt102_output {
+    my $self = shift;
 }
 
 1;
