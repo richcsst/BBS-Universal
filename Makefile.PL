@@ -8,16 +8,20 @@ use Config;
 use Term::ANSIColor;
 use Time::HiRes qw(sleep);
 
+# It's nolstalgia folks
+
 $|=1;
 system('clear');
+print "Retro-Terminal Hayes modem ready\n";
 sleep 1;
 baud_print('> ');
 sleep 1;
 baud_print("ATDT BBS::Universal\n\n");
+print chr(7);
 sleep 2;
 baud_print('Connected ');
 sleep 0.5;
-baud_print("300 baud...\n\n");
+baud_print("1200 baud...\n\n");
 sleep 1;
 
 baud_print('==============================================================================' . "\n");
@@ -55,7 +59,7 @@ if (WriteMakefile(
     PREREQ_FATAL   => 1,
     PREREQ_PM      => {
         'Time::HiRes'                  => '1.9715',
-		'Text::Format'                 => '0.62',
+		'Text::Format'                 => '0.50',
         'Term::ANSIColor'              => '4.00',
 		'Term::ANSIScreen'             => '1.50',
         'DateTime'                     => '1.18',
@@ -71,7 +75,7 @@ if (WriteMakefile(
     sleep 1;
     baud_print("Disconnecting...");
     sleep 1;
-    print "\n\n";
+    print chr(7),"\n\n";
 
     exit(0);
 }
@@ -84,6 +88,6 @@ sub baud_print {
     my $l = length($text) - 1;
     foreach my $c (0 .. $l) {
         print substr($text,$c,1);
-        sleep(0.02);
+        sleep(0.005); # 1200 baud
     }
 }
