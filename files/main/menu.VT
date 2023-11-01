@@ -1,0 +1,6 @@
+[% RED %]A[% RESET %]> Go To Forums
+[% YELLOW %]B[% RESET %]> Go To Files
+[% GREEN %]C[% RESET %]> Systen News
+[% CYAN %]D[% RESET %]> About [% BBS NAME %]
+
+[% YELLOW %][% B_RED %]X[% RESET %]> Disconnect

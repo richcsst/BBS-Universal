@@ -10,20 +10,21 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
-$|=1;
+$|=1; # Turn off buffering
 system('clear');
-print "Retro-Terminal Hayes modem ready\n";
+print "WORP Retro-Terminal.  Hayes modem ready 8/N/1 1200 bps\n";
 sleep 1;
 baud_print('> ');
 sleep 1;
 baud_print("ATDT BBS::Universal\n\n");
 print chr(7);
 sleep 2;
-baud_print('Connected ');
-sleep 0.5;
+baud_print('Connected ... ');
+sleep 1;
 baud_print("1200 baud...\n\n");
 sleep 1;
-
+baud_print("Welcome to...\n\n");
+sleep 1;
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
 baud_print('        ____  ____ ____    _   _       _                          _' . "\n");
@@ -39,7 +40,7 @@ baud_print(color('reset'));
 baud_print("==============================================================================\n\n");
 
 baud_print('TCP/IP ' . colored(['red'],'R') . colored(['yellow'],'e') . colored(['green'],'t') . colored(['magenta'],'r') . colored(['bright_blue'],'o') . 
-  " BBS software for your modern computer\n\n");
+  " BBS software for your modern computer, written in Perl\n\n");
 
 print color('cyan');
 if (WriteMakefile(
@@ -81,7 +82,7 @@ if (WriteMakefile(
 }
 
 print color('reset');
-exit(1);
+exit(0);
 
 sub baud_print {
     my $text = shift;

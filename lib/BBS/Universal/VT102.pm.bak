@@ -105,10 +105,6 @@ sub vt102_output {
     my $self = shift;
     my $text = shift;
 
-	foreach my $string (keys %{$sequences}) {
-		$text =~ s/\[\% $string \%\]/$sequences->{$string}/g;
-	}
-	return($text);
 }
 
 1;
