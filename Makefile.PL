@@ -10,21 +10,22 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
+my $fast = (scalar(@ARGV)) ? 1 : 0;
+
 $|=1; # Turn off buffering
-system('clear');
+print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
 print "WORP Retro-Terminal.  Hayes modem ready 8/N/1 1200 bps\n";
-sleep 1;
+sleep 1 unless($fast);
 baud_print('> ');
-sleep 1;
+sleep 1 unless($fast);
 baud_print("ATDT BBS::Universal\n\n");
-print chr(7);
-sleep 2;
+sleep 2 unless($fast);
 baud_print('Connected ... ');
-sleep 1;
+sleep 1 unless($fast);
 baud_print("1200 baud...\n\n");
-sleep 1;
+sleep 1 unless($fast);
 baud_print("Welcome to...\n\n");
-sleep 1;
+sleep 1 unless($fast);
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
 baud_print('        ____  ____ ____    _   _       _                          _' . "\n");
@@ -42,7 +43,6 @@ baud_print("====================================================================
 baud_print('TCP/IP ' . colored(['red'],'R') . colored(['yellow'],'e') . colored(['green'],'t') . colored(['magenta'],'r') . colored(['bright_blue'],'o') . 
   " BBS software for your modern computer, written in Perl\n\n");
 
-print color('cyan');
 if (WriteMakefile(
     NAME               => 'BBS::Universal',
     AUTHOR             => q{Richard Kelsch <rich@rk-internet.com>},
@@ -70,13 +70,13 @@ if (WriteMakefile(
     dist  => {COMPRESS => 'gzip -9f', SUFFIX => 'gz',},
     clean => {FILES    => 'BBS-Universal-* _build* *bak *old'},
 )) {
-    print color('reset');
-    sleep 1;
+    print chr(27) . '[0m', color('reset');
+    sleep 1 unless($fast);
     baud_print("\nProcess complete\n\n");
-    sleep 1;
+    sleep 1 unless($fast);
     baud_print("Disconnecting...");
-    sleep 1;
-    print chr(7),"\n\n";
+    sleep 1 unless($fast);
+    print "\n\n";
 
     exit(0);
 }
@@ -86,9 +86,13 @@ exit(0);
 
 sub baud_print {
     my $text = shift;
-    my $l = length($text) - 1;
-    foreach my $c (0 .. $l) {
-        print substr($text,$c,1);
-        sleep(0.005); # 1200 baud
-    }
+	if ($fast) {
+		print $text;
+	} else {
+		my $l = length($text) - 1;
+		foreach my $c (0 .. $l) {
+			print substr($text,$c,1);
+			sleep(0.005); # 1200 baud
+		}
+	}
 }

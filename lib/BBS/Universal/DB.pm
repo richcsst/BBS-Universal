@@ -1,4 +1,4 @@
-package BBS::Universal::ASCII;
+package BBS::Universal::DB;
 
 use strict;
 use constant {
@@ -6,17 +6,21 @@ use constant {
 	FALSE => 0
 };
 
+use threads;
+use threads::shared;
 use DateTime;
 use Time::HiRes qw(time sleep);
+use File::Basename;
+use Config;
+use DBI;
+use DBD::mysql;
 
 BEGIN {
 	require Exporter;
 
 	our $VERSION   = '0.001';
 	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw(
-        ascii_output
-    );
+	our @EXPORT    = qw();
 	our @EXPORT_OK = qw();
 }
 
@@ -27,16 +31,9 @@ sub DESTROY {
 sub new {
     my $class = shift;
 
-	my $self = {};
-	bless($self, $class);
-	return($self);
-}
-
-sub ascii_output {
-    my $self = shift;
-    my $string = shift;
-
-    return($string);
+    my $self = {};
+    bless($self, $class);
+    return($self);
 }
 
 1;

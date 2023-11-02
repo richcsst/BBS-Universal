@@ -17,7 +17,7 @@ use threads::shared;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.01';
+    our $VERSION = '0.001';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
       vt102_output
@@ -27,6 +27,7 @@ BEGIN {
 
 my $esc       = chr(27) . '[';
 my $sequences = {
+	'CLEAR'            => $esc . '2J',
     'UP'               => $esc . 'A',
     'DOWN'             => $esc . 'B',
     'RIGHT'            => $esc . 'C',

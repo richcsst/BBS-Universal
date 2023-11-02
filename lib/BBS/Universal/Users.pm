@@ -16,7 +16,7 @@ use threads::shared;
 BEGIN {
 	require Exporter;
 
-	our $VERSION   = '0.01';
+	our $VERSION   = '0.001';
 	our @ISA       = qw(Exporter);
 	our @EXPORT    = qw(
         users_list

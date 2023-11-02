@@ -1,4 +1,4 @@
-package BBS::Universal::File-Transfer;
+package BBS::Universal::FileTransfer;
 
 use strict;
 use constant {
@@ -16,7 +16,7 @@ use threads::shared;
 BEGIN {
 	require Exporter;
 
-	our $VERSION   = '0.01';
+	our $VERSION   = '0.001';
 	our @ISA       = qw(Exporter);
 	our @EXPORT    = qw(
         load_file

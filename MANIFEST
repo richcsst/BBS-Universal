@@ -24,6 +24,10 @@ files/files/user_info.ASC
 files/files/user_info.ATA
 files/files/user_info.PET
 files/files/user_info.VT
+files/main/banner.ASC
+files/main/banner.ATA
+files/main/banner.PET
+files/main/banner.VT
 files/main/menu.ASC
 files/main/menu.ATA
 files/main/menu.PET
@@ -36,7 +40,9 @@ ignore.txt
 lib/BBS/Universal.pm
 lib/BBS/Universal/ASCII.pm
 lib/BBS/Universal/ATASCII.pm
+lib/BBS/Universal/DB.pm
 lib/BBS/Universal/File-Transfer.pm
+lib/BBS/Universal/FileTransfer.pm
 lib/BBS/Universal/Messages.pm
 lib/BBS/Universal/PETSCII.pm
 lib/BBS/Universal/SysOp.pm
@@ -46,3 +52,4 @@ LICENSE
 Makefile.PL
 MANIFEST			This list of files
 README.md
+t/01-tests.t

@@ -16,7 +16,7 @@ use threads::shared;
 BEGIN {
 	require Exporter;
 
-	our $VERSION   = '0.01';
+	our $VERSION   = '0.001';
 	our @ISA       = qw(Exporter);
 	our @EXPORT    = qw(
         petscii_output
@@ -37,7 +37,10 @@ sub new {
 }
 
 sub petscii_output {
-    my $self = shift;
+    my $self   = shift;
+	my $string = shift;
+
+	return($string);
 }
 
 1;
