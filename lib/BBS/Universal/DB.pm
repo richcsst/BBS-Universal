@@ -2,38 +2,53 @@ package BBS::Universal::DB;
 
 use strict;
 use constant {
-	TRUE  => 1,
-	FALSE => 0
+    TRUE  => 1,
+    FALSE => 0
 };
 
-use threads;
-use threads::shared;
-use DateTime;
-use Time::HiRes qw(time sleep);
-use File::Basename;
-use Config;
 use DBI;
 use DBD::mysql;
 
 BEGIN {
-	require Exporter;
+    require Exporter;
 
-	our $VERSION   = '0.001';
-	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw();
-	our @EXPORT_OK = qw();
+    our $VERSION = '0.001';
+    our @ISA     = qw(Exporter);
+    our @EXPORT  = qw(
+      db_connect
+      db_disconnect
+      db_query
+      db_insert
+    );
+    our @EXPORT_OK = qw();
+} ## end BEGIN
+
+sub db_connect {
+    my $self = shift;
+
+    return (TRUE);
 }
 
-sub DESTROY {
-	my $self = shift;
+sub db_disconnect {
+    my $self = shift;
+
+    return (TRUE);
 }
 
-sub new {
-    my $class = shift;
+sub db_query {
+    my $self  = shift;
+    my $table = shift;
+    my @names = @_;
 
-    my $self = {};
-    bless($self, $class);
-    return($self);
-}
+    return (TRUE);
+} ## end sub db_query
+
+sub db_insert {
+    my $self  = shift;
+    my $table = shift;
+    my $hash  = shift;
+
+    return (TRUE);
+} ## end sub db_insert
 
 1;

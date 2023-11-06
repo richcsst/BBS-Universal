@@ -6,14 +6,6 @@ use constant {
     FALSE => 0
 };
 
-use DateTime;
-use Time::HiRes qw(time sleep);
-use File::Basename;
-use Config;
-use Text::SimpleTable::AutoWidth;
-use threads;
-use threads::shared;
-
 BEGIN {
     require Exporter;
 
@@ -27,7 +19,7 @@ BEGIN {
 
 my $esc       = chr(27) . '[';
 my $sequences = {
-	'CLEAR'            => $esc . '2J',
+    'CLEAR'            => $esc . '2J',
     'UP'               => $esc . 'A',
     'DOWN'             => $esc . 'B',
     'RIGHT'            => $esc . 'C',
@@ -90,26 +82,18 @@ my $sequences = {
     'BRIGHT B_WHITE'   => $esc . '107m',
 };
 
-sub DESTROY {
-    my $self = shift;
-}
-
-sub new {
-    my $class = shift;
-
-    my $self = {};
-    bless($self, $class);
-    return ($self);
-} ## end sub new
-
 sub vt102_output {
     my $self = shift;
     my $text = shift;
 
-	foreach my $string (keys %{$sequences}) {
-		$text =~ s/\[\% $string \%\]/$sequences->{$string}/g;
-	}
-	return($text);
-}
+    foreach my $string (keys %{$sequences}) {
+        $text =~ s/\[\% $string \%\]/$sequences->{$string}/gi;
+    }
+    my $s_len = length($text);
+    foreach my $count (0 .. $s_len) {
+        $self->send_char(substr($text, $count, 1));
+    }
+    return (TRUE);
+} ## end sub vt102_output
 
 1;

@@ -6,13 +6,6 @@ use constant {
 	FALSE => 0
 };
 
-use DateTime;
-use Time::HiRes qw(time sleep);
-use File::Basename;
-use Config;
-use threads;
-use threads::shared;
-
 BEGIN {
 	require Exporter;
 
@@ -26,18 +19,6 @@ BEGIN {
         delete_message
     );
 	our @EXPORT_OK = qw();
-}
-
-sub DESTROY {
-	my $self = shift;
-}
-
-sub new {
-    my $class = shift;
-
-    my $self = {};
-    bless($self, $class);
-    return($self);
 }
 
 sub list_sections {

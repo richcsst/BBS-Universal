@@ -2,42 +2,25 @@ package BBS::Universal::FileTransfer;
 
 use strict;
 use constant {
-	TRUE  => 1,
-	FALSE => 0
+    TRUE  => 1,
+    FALSE => 0
 };
 
-use DateTime;
-use Time::HiRes qw(time sleep);
 use File::Basename;
-use Config;
-use threads;
-use threads::shared;
 
 BEGIN {
-	require Exporter;
+    require Exporter;
 
-	our $VERSION   = '0.001';
-	our @ISA       = qw(Exporter);
-	our @EXPORT    = qw(
-        load_file
-        save_file
-        send_file
-        receive_file
+    our $VERSION = '0.001';
+    our @ISA     = qw(Exporter);
+    our @EXPORT  = qw(
+      load_file
+      save_file
+      send_file
+      receive_file
     );
-	our @EXPORT_OK = qw();
-}
-
-sub DESTROY {
-	my $self = shift;
-}
-
-sub new {
-    my $class = shift;
-
-    my $self = {};
-    bless($self, $class);
-    return($self);
-}
+    our @EXPORT_OK = qw();
+} ## end BEGIN
 
 sub load_file {
     my $self = shift;
