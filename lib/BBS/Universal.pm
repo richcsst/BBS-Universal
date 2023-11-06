@@ -32,7 +32,8 @@ use Text::SimpleTable::AutoWidth;
 use Sys::CPU;
 use IO::Socket;
 use IO::Socket::INET;
-use Debug::Easy; our $debug = Debug::Easy->new( 'LogLevel' => 'ERROR', 'Color' => 1 );
+use Debug::Easy;
+our $debug = Debug::Easy->new('LogLevel' => 'ERROR', 'Color' => 1);
 
 use BBS::Universal::ASCII;    # Subs will have mode names as a prefix, so they can all be imported
 use BBS::Universal::ATASCII;
@@ -52,54 +53,54 @@ BEGIN {
     our @ISA       = qw(Exporter);
     our @EXPORT    = qw();
     our @EXPORT_OK = qw(
-		$suffixes
-		$speeds
-	);
-	$ENV{'PATH'}   = '/usr/bin;/usr/local/bin'; # Taint mode requires this (for test scripts)
+      $suffixes
+      $speeds
+    );
+    $ENV{'PATH'} = '/usr/bin;/usr/local/bin';    # Taint mode requires this (for test scripts)
 } ## end BEGIN
 
-my $suffixes    = {          # File types by suffix, kind of "MIME"ish
+my $suffixes = {                                 # File types by suffix, kind of "MIME"ish
     'ASCII'   => 'ASC',
     'ATASCII' => 'ATA',
     'PETSCII' => 'PET',
     'VT102'   => 'VT',
 };
-my $speeds = {               # delays for simulating baud rates (not 100% accurate, but close enough)
+my $speeds = {                                   # delays for simulating baud rates (not 100% accurate, but close enough)
     'FULL'  => 0,
     '300'   => 0.02,
     '1200'  => 0.005,
     '2400'  => 0.0025,
     '9600'  => 0.000625,
-    '19200' => 0.0003125,    # Is Time::HiRes even this granular?
+    '19200' => 0.0003125,                        # Is Time::HiRes even this granular?
 };
-my $RUNNING : shared = TRUE; # Thread keep running flag
+my $RUNNING : shared = TRUE;                     # Thread keep running flag
 
 sub DESTROY {
     my $self = shift;
     $self->{'dbh'}->disconnect();
 }
 
-sub new { # Always call with the socket as a parameter
-    my $class  = shift;
-	my $socket = shift;
-	my $cl_socket = shift;
-	my $dbg    = shift;
+sub new {    # Always call with the socket as a parameter
+    my $class     = shift;
+    my $socket    = shift;
+    my $cl_socket = shift;
+    my $dbg       = shift;
 
     my $self = {};
 
-	my $os = `/usr/bin/uname -a`;
+    my $os = `/usr/bin/uname -a`;
     $self = {
-		'debug'        => $dbg,
-		'socket'       => $socket,
-		'cl_socket'    => $cl_socket,
-		'peerhost'     => $cl_socket->peerhost(),
-		'peerport'     => $cl_socket->peerport(),
-        'cpu'          => Sys::CPU::cpu_count(),
-        'cpu_clock'    => Sys::CPU::cpu_clock(),
-        'cpu_type'     => Sys::CPU::cpu_type(),
-        'os'           => $os,
-        'versions'     => {
-			'perl'         => "Perl - Version $OLD_PERL_VERSION",
+        'debug'     => $dbg,
+        'socket'    => $socket,
+        'cl_socket' => $cl_socket,
+        'peerhost'  => $cl_socket->peerhost(),
+        'peerport'  => $cl_socket->peerport(),
+        'cpu'       => Sys::CPU::cpu_count(),
+        'cpu_clock' => Sys::CPU::cpu_clock(),
+        'cpu_type'  => Sys::CPU::cpu_type(),
+        'os'        => $os,
+        'versions'  => {
+            'perl'         => "Perl - Version $OLD_PERL_VERSION",
             'bbs'          => "BBS::Universal - Version $BBS::Universal::VERSION",
             'ascii'        => "BBS::Universal::ASCII - Version $BBS::Universal::ASCII::VERSION",
             'atascii'      => "BBS::Universal::ATASCII - Version $BBS::Universal::ATASCII::VERSION",
@@ -111,8 +112,8 @@ sub new { # Always call with the socket as a parameter
             'users'        => "BBS::Universal::Users - Version $BBS::Universal::Users::VERSION",
             'db'           => "BBS::Universal::DB - Version $BBS::Universal::DB::VERSION",
         },
-		'suffixes'        => $suffixes,
-		'speeds'          => $speeds,
+        'suffixes'        => $suffixes,
+        'speeds'          => $speeds,
         'width'           => 40,
         'height'          => 24,
         'tab_stop'        => 4,
@@ -130,89 +131,92 @@ sub new { # Always call with the socket as a parameter
         'esc'             => chr(27),
         'can'             => chr(24),
         'null'            => chr(0),
-		'mode'            => 'ASCII', # Default mode
-		'bbs_name'        => undef, # These are pulled in from the configuration or connection
-		'baud_rate'       => undef,
-		'user'            => undef,
+        'mode'            => 'ASCII',     # Default mode
+        'bbs_name'        => undef,       # These are pulled in from the configuration or connection
+        'baud_rate'       => undef,
+        'user'            => undef,
     };
     bless($self, $class);
-	$self->{'bbs_name'}  = $self->configuration('bbs_name');
-	$self->{'baud_rate'} = $self->configuration('baud_rate');
+    $self->{'bbs_name'}  = $self->configuration('bbs_name');
+    $self->{'baud_rate'} = $self->configuration('baud_rate');
 
-	$debug->DEBUG("Socket connected from $self->{peerport} on port $self->{peerport}");
-	my ($user,$error) = $self->run(); # BBS proper runs here.  New doesn't actually return an object
-	shutdown($cl_socket,1);
-	$socket->close();
-    return ($user,$error);
+    $debug->DEBUG("Socket connected from $self->{peerport} on port $self->{peerport}");
+    my ($user, $error) = $self->run();    # BBS proper runs here.  New doesn't actually return an object
+    shutdown($cl_socket, 1);
+    $socket->close();
+    return ($user, $error);
 } ## end sub new
 
 sub run {
-	my $self = shift;
+    my $self = shift;
 
-	my $error;
+    my $error;
 
-	if ($self->greeting()) { # Greeting also logs in
-		$self->main_menu();
-	}
-	$self->disconnect();
-	return($self->{'user'},$error);
-}
+    if ($self->greeting()) {              # Greeting also logs in
+        $self->main_menu();
+    }
+    $self->disconnect();
+    return ($self->{'user'}, $error);
+} ## end sub run
 
 sub greeting {
-	my $self = shift;
-	# Load and print greetings message here
-	my $text = $self->file_load('greetings');
-	$self->output($text);
-	return($self->login()); # Login will also create new users
-}
+    my $self = shift;
+
+    # Load and print greetings message here
+    my $text = $self->file_load('greetings');
+    $self->output($text);
+    return ($self->login());    # Login will also create new users
+} ## end sub greeting
 
 sub login {
-	my $self = shift;
+    my $self = shift;
 
-	my $valid = FALSE;
-	# Login stuff here
-	return($valid);
-}
+    my $valid = FALSE;
+
+    # Login stuff here
+    return ($valid);
+} ## end sub login
 
 sub main_menu {
-	my $self = shift;
+    my $self = shift;
 
-	my $disconnect = FALSE;
-	do {
-		my $text = $self->file_load('main_menu');
-		$self->output($text);
-		my $cmd = $self->get_key(TRUE); # Wait for character
-		if (defined($cmd) && length($cmd) == 1) { # Sanity
-		}
-	} until($disconnect);
-}
+    my $disconnect = FALSE;
+    do {
+        my $text = $self->file_load('main_menu');
+        $self->output($text);
+        my $cmd = $self->get_key(TRUE);              # Wait for character
+        if (defined($cmd) && length($cmd) == 1) {    # Sanity
+        }
+    } until ($disconnect);
+} ## end sub main_menu
 
 sub disconnect {
-	my $self = shift;
-	# Load and print disconnect message here
-	my $text = $self->file_load('disconnect');
-	$self->output($text);
-}
+    my $self = shift;
+
+    # Load and print disconnect message here
+    my $text = $self->file_load('disconnect');
+    $self->output($text);
+} ## end sub disconnect
 
 sub configuration {
     my $self  = shift;
     my $count = scalar(@_);
     if ($count == 1) {    # Get single value
         my $name = shift;
-		$debug->DEBUG("Configuration query for $name");
+        $debug->DEBUG("Configuration query for $name");
         my $result;
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name  = shift;
         my $value = shift;
-		$debug->DEBUG("Configuration set $name = $value");
+        $debug->DEBUG("Configuration set $name = $value");
         return (TRUE);
     } else {                   # Get entire configuration
         my $results;
-		$debug->DEBUG('Configuration query for all');
-		$debug->DEBUGMAX($results);
+        $debug->DEBUG('Configuration query for all');
+        $debug->DEBUGMAX($results);
         return ($results);
-    }
+    } ## end else [ if ($count == 1) ]
 } ## end sub configuration
 
 sub categories_menu {    # Handle categories menu
@@ -220,19 +224,19 @@ sub categories_menu {    # Handle categories menu
 }
 
 sub get_key {
-    my $self = shift;
-	my $echo = shift || FALSE;
-	my $blocking = shift || FALSE;
+    my $self     = shift;
+    my $echo     = shift || FALSE;
+    my $blocking = shift || FALSE;
 
     my $key;
-	if ($blocking) {
-		$self->{'cl_socket'}->recv($key,1,MSG_WAITALL);
-	} else {
-		$self->{'cl_socket'}->recv($key,1,MSG_DONTWAIT);
-	}
+    if ($blocking) {
+        $self->{'cl_socket'}->recv($key, 1, MSG_WAITALL);
+    } else {
+        $self->{'cl_socket'}->recv($key, 1, MSG_DONTWAIT);
+    }
 
-	$self->output($key) if ($echo && defined($key));
-    return($key);
+    $self->output($key) if ($echo && defined($key));
+    return ($key);
 } ## end sub get_key
 
 sub get_line {
@@ -257,7 +261,7 @@ sub detokenize_text {
         'CPU TYPE'           => $self->{'cpu_type'},
         'OS'                 => $self->{'os'},
         'UPTIME'             => split(`/usr/bin/uptime`, ' ', 1),
-		'VERSIONS'           => 'placeholder',
+        'VERSIONS'           => 'placeholder',
         'PERL VERSION'       => $self->{'versions'}->{'perl'},
         'BBS NAME'           => $self->{'bbs_name'},
         'BBS VERSION'        => $self->{'versions'}->{'bbs'},
@@ -275,105 +279,106 @@ sub detokenize_text {
     };
 
     foreach my $key (keys %$tokens) {
-		if ($key eq 'VERSIONS' && $text =~ /$key/i) {
-			my $versions = '';
-			foreach my $names (sort(keys %{$self->{'versions'}})) {
-				$versions .= $self->{'versions'}->{$names} . "\n";
-			}
-			$text =~ s/\[\% $key \%\]/$versions/gi;
-		} else {
-			$text =~ s/\[\% $key \%\]/$tokens->{$key}/gi;
-		}
-    }
+        if ($key eq 'VERSIONS' && $text =~ /$key/i) {
+            my $versions = '';
+            foreach my $names (sort(keys %{ $self->{'versions'} })) {
+                $versions .= $self->{'versions'}->{$names} . "\n";
+            }
+            $text =~ s/\[\% $key \%\]/$versions/gi;
+        } else {
+            $text =~ s/\[\% $key \%\]/$tokens->{$key}/gi;
+        }
+    } ## end foreach my $key (keys %$tokens)
     return ($text);
 } ## end sub detokenize_text
 
 sub output {
-	my $self = shift;
-	my $text = $self->detokenize_text(shift);
+    my $self = shift;
+    my $text = $self->detokenize_text(shift);
 
-	my $mode = $self->{'MODE'};
-	if ($mode eq 'ATASCII') {
-		$self->atascii_output($text);
-	} elsif ($mode eq 'PETSCII') {
-		$self->petscii_output($text);
-	} elsif ($mode eq 'VT102') {
-		$self->vt102_output($text);
-	} else { # ASCII
-		$self->ascii_output($text);
-	}
-	return($text);
-}
+    my $mode = $self->{'MODE'};
+    if ($mode eq 'ATASCII') {
+        $self->atascii_output($text);
+    } elsif ($mode eq 'PETSCII') {
+        $self->petscii_output($text);
+    } elsif ($mode eq 'VT102') {
+        $self->vt102_output($text);
+    } else {    # ASCII
+        $self->ascii_output($text);
+    }
+    return ($text);
+} ## end sub output
 
 sub send_char {
-	my $self = shift;
-	my $char = shift;
+    my $self = shift;
+    my $char = shift;
 
-	# This sends one character at a time to the socket to simulate a retro BBS
-	$self->{'socket'}->send($char);
-	# Send at the chosen baud rate by delaying the output by a fraction of a second
-	# Only delay if the baud_rate is not FULL
-	sleep $self->{'speeds'}->{$self->{'baud_rate'}} if ($self->{'baud_rate'} ne 'FULL');
-}
+    # This sends one character at a time to the socket to simulate a retro BBS
+    $self->{'socket'}->send($char);
+
+    # Send at the chosen baud rate by delaying the output by a fraction of a second
+    # Only delay if the baud_rate is not FULL
+    sleep $self->{'speeds'}->{ $self->{'baud_rate'} } if ($self->{'baud_rate'} ne 'FULL');
+} ## end sub send_char
 
 sub _server {    # Main connection loop
-	my $host = shift;
-    my $port = shift;
-	my $socket = IO::Socket::INET->new(
-		'LocalHost' => $host,
-		'LocalPort' => $port,
-		'Proto'     => 'tcp',
-		'Listen'    => MAX_THREADS,
-		'ReuseAddr' => FALSE,
-		'Timeout'   => 30,
-		'Blocking'  => TRUE,
-	);
+    my $host   = shift;
+    my $port   = shift;
+    my $socket = IO::Socket::INET->new(
+        'LocalHost' => $host,
+        'LocalPort' => $port,
+        'Proto'     => 'tcp',
+        'Listen'    => MAX_THREADS,
+        'ReuseAddr' => FALSE,
+        'Timeout'   => 30,
+        'Blocking'  => TRUE,
+    );
 
-	my $error;
-	$error = "Cannot create socket $!n" unless($socket);
-	$socket->autoflush();
-	$debug->DEBUG("Server started");
-	while($RUNNING && ! defined($error)) {
-		my $client_socket  = $socket->accept(); # Blocking until connection received
-		# we ALWAYS limit connections to avoid an attack
-		{
-			my @THREADS = threads->list(threads::running);
-			if (scalar(@THREADS) < MAX_THREADS) {
-				my $thr = threads->create(\&BBS::Universal::new,$socket,$client_socket,$debug);
-			} else {
-				$client_socket->send("\n\nSorry, too many users.  Please try later\n\n");
-				shutdown($client_socket,1);
-				$socket->close();
-			}
-			$socket = IO::Socket::INET->new(
-				'LocalHost' => $host,
-				'LocalPort' => $port,
-				'Proto'     => 'tcp',
-				'Listen'    => MAX_THREADS,
-				'ReuseAddr' => FALSE,
-				'Timeout'   => 30,
-				'Blocking'  => TRUE,
-			);
-			$error = "Cannot create socket $!n" unless($socket);
-		}
-		_clean_joinable();
-	}
-	$RUNNING = FALSE; # Just in case this was a socket error
-	$debug->DEBUG('Shutdown...');
-	while(threads->list(threads::running)) { # Make sure everyone got the shutdown message first
-		threads->yield();
-	}
-	_clean_joinable();
-}
+    my $error;
+    $error = "Cannot create socket $!n" unless ($socket);
+    $socket->autoflush();
+    $debug->DEBUG("Server started");
+    while ($RUNNING && !defined($error)) {
+        my $client_socket = $socket->accept();    # Blocking until connection received
+                                                  # we ALWAYS limit connections to avoid an attack
+        {
+            my @THREADS = threads->list(threads::running);
+            if (scalar(@THREADS) < MAX_THREADS) {
+                my $thr = threads->create(\&BBS::Universal::new, $socket, $client_socket, $debug);
+            } else {
+                $client_socket->send("\n\nSorry, too many users.  Please try later\n\n");
+                shutdown($client_socket, 1);
+                $socket->close();
+            }
+            $socket = IO::Socket::INET->new(
+                'LocalHost' => $host,
+                'LocalPort' => $port,
+                'Proto'     => 'tcp',
+                'Listen'    => MAX_THREADS,
+                'ReuseAddr' => FALSE,
+                'Timeout'   => 30,
+                'Blocking'  => TRUE,
+            );
+            $error = "Cannot create socket $!n" unless ($socket);
+        }
+        _clean_joinable();
+    } ## end while ($RUNNING && !defined...)
+    $RUNNING = FALSE;    # Just in case this was a socket error
+    $debug->DEBUG('Shutdown...');
+    while (threads->list(threads::running)) {    # Make sure everyone got the shutdown message first
+        threads->yield();
+    }
+    _clean_joinable();
+} ## end sub _server
 
 sub _clean_joinable {
-	my @joinable = threads->list(threads::joinable);
-	foreach my $thread (@joinable) {
-		my ($user,$error) = $thread->join() if ($thread->is_joinable); # A bit of a sanity check before actually joining
+    my @joinable = threads->list(threads::joinable);
+    foreach my $thread (@joinable) {
+        my ($user, $error) = $thread->join() if ($thread->is_joinable);    # A bit of a sanity check before actually joining
 
-		$debug->ERROR($error) if (defined($error));
-		$debug->DEBUGMAX($user);
-	}
-}
+        $debug->ERROR($error) if (defined($error));
+        $debug->DEBUGMAX($user);
+    } ## end foreach my $thread (@joinable)
+} ## end sub _clean_joinable
 
 1;
