@@ -123,6 +123,8 @@ INSERT INTO file_types (type, extension) VALUES ('Hypter-Text Markup Language','
 INSERT INTO file_types (type, extension) VALUES ('Hypter-Text Markup Language','HTML');
 INSERT INTO file_types (type, extension) VALUES ('Javascript','JS');
 INSERT INTO file_types (type, extension) VALUES ('Java Source','JAVA');
+INSERT INTO file_types (type, extension) VALUES ('Information File','INF');
+INSERT INTO file_types (type, extension) VALUES ('Macintosh File Descriptor','DS');
 
 INSERT INTO file_types (type, extension) VALUES ('Portable Network Graphics Image','PNG');
 INSERT INTO file_types (type, extension) VALUES ('JPEG Image','JPG');
@@ -130,18 +132,20 @@ INSERT INTO file_types (type, extension) VALUES ('CompuServe Graphics Interchang
 INSERT INTO file_types (type, extension) VALUES ('JPEG Image','JPEG');
 INSERT INTO file_types (type, extension) VALUES ('Tagged Image File Format Image','TIFF');
 INSERT INTO file_types (type, extension) VALUES ('Targa Image','TGA');
-INSERT INTO file_types (type, extension) VALUES ('Image','WEBP');
+INSERT INTO file_types (type, extension) VALUES ('Web Image','WEBP');
+INSERT INTO file_types (type, extension) VALUES ('Icon','ICO');
 
 INSERT INTO file_types (type, extension) VALUES ('MPEG 4 Video','MP4');
 INSERT INTO file_types (type, extension) VALUES ('Matroska Packaged Video','MKV');
 INSERT INTO file_types (type, extension) VALUES ('Audio Video Interchange Video','AVI');
 INSERT INTO file_types (type, extension) VALUES ('MPEG 4 Video','MPV');
-INSERT INTO file_types (type, extension) VALUES ('MPEG Video','MPG');
+INSERT INTO file_types (type, extension) VALUES ('MPEG 2 Video','MPG');
 INSERT INTO file_types (type, extension) VALUES ('Motion JPEG Video','MJPG');
 
 INSERT INTO file_types (type, extension) VALUES ('MPEG 2 Layer 3 Audio','MP3');
 INSERT INTO file_types (type, extension) VALUES ('Advanced Audio Coding Audio','AAC');
 INSERT INTO file_types (type, extension) VALUES ('Windows Audio','WAV');
+INSERT INTO file_types (type, extension) VALUES ('Windows Media Audio','WMA');
 INSERT INTO file_types (type, extension) VALUES ('Free Lossless Audio Compression Audio','FLAC');
 INSERT INTO file_types (type, extension) VALUES ('Musical Instrument Digital Interface Audio','MID');
 INSERT INTO file_types (type, extension) VALUES ('Tracker Audio','TRK');
@@ -152,15 +156,21 @@ INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon GEM Pro
 INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon TOS Program','TOS');
 INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon TOS Takes Parameters Program','TTP');
 INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon Desk Accessory','ACC');
-INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon Extenable Desk Accessory','CPX');
+INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon Extendable Desk Accessory','CPX');
+INSERT INTO file_types (type, extension) VALUES ('Atari ST/STE/TT/Falcon Menu Resource','RSC');
 
-INSERT INTO file_types (type, extension) VALUES ('7Zip Compressed','7Z');
+INSERT INTO file_types (type, extension) VALUES ('7-Zip Compressed','7Z');
 INSERT INTO file_types (type, extension) VALUES ('Zip Compressed','ZIP');
 INSERT INTO file_types (type, extension) VALUES ('RAR Compressed','RAR');
 INSERT INTO file_types (type, extension) VALUES ('Compressed Archive','ARC');
 INSERT INTO file_types (type, extension) VALUES ('TAR Archive Compressed','TGZ');
 INSERT INTO file_types (type, extension) VALUES ('TAR Archive','TAR');
+INSERT INTO file_types (type, extension) VALUES ('GZip Compressed','GZ');
 
 INSERT INTO file_types (type, extension) VALUES ('Excel','XLS');
-INSERT INTO file_types (type, extension) VALUES ('XML','XML');
+INSERT INTO file_types (type, extension) VALUES ('eXtensibe Markup Language','XML');
+
+INSERT INTO file_types (type, extension) VALUES ('MS-DOS Command Executable','COM');
+INSERT INTO file_types (type, extension) VALUES ('MS-DOS Batch','BAT');
+INSERT INTO file_types (type, extension) VALUES ('MS-DOS/Windows Executable','EXE');
 

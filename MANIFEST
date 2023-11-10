@@ -1,4 +1,5 @@
 bin/database_setup
+bin/bbs.pl
 Changes
 files/categories/menu.ASC
 files/categories/menu.ATA
