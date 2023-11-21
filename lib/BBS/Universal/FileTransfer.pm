@@ -1,10 +1,9 @@
 package BBS::Universal::FileTransfer;
 
+use parent qw( BBS::Universal );
+
 use strict;
-use constant {
-    TRUE  => 1,
-    FALSE => 0
-};
+no strict qw( subs refs );
 
 use File::Basename;
 
@@ -24,10 +23,19 @@ BEGIN {
 
 sub load_file {
     my $self = shift;
+	my $file = shift;
+
+	my $filename = sprintf('%s.%s',$file,$self->{'suffixes'}->[$self->{'mode'}]);
+	open(my $FILE,'<', $filename);
+	my @text = <$FILE>;
+	close($FILE);
+	chomp(@text);
+	return(join("\n",@text));
 }
 
 sub save_file {
     my $self = shift;
+	return(TRUE);
 }
 
 sub receive_file {
@@ -36,6 +44,8 @@ sub receive_file {
 
 sub send_file {
     my $self = shift;
+	return(TRUE);
 }
+
 
 1;

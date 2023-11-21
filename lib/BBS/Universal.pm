@@ -3,6 +3,7 @@ package BBS::Universal;
 # Pragmas
 use strict;
 no strict 'subs';
+
 use constant {
     TRUE  => 1,
     FALSE => 0,
@@ -11,8 +12,6 @@ use constant {
     ATASCII => 1,
     PETSCII => 2,
     VT102   => 3,
-
-    MAX_THREADS => 16,
 };
 use English qw( -no_match_vars );
 use Config;
@@ -51,28 +50,14 @@ BEGIN {
 		PETSCII
 		VT102
 		_configuration
+		%suffixes
+		%speeds
+		@modes
 	);
-    our @EXPORT_OK = qw(
-      $suffixes
-      $speeds
-    );
+    our @EXPORT_OK = qw();
     $ENV{'PATH'} = '/usr/bin;/usr/local/bin';    # Taint mode requires this (for test scripts)
 } ## end BEGIN
 
-my $suffixes = {                                 # File types by suffix, kind of "MIME"ish
-    'ASCII'   => 'ASC',
-    'ATASCII' => 'ATA',
-    'PETSCII' => 'PET',
-    'VT102'   => 'VT',
-};
-my $speeds = {                                   # delays for simulating baud rates (not 100% accurate, but close enough)
-    'FULL'  => 0,
-    '300'   => 0.02,
-    '1200'  => 0.005,
-    '2400'  => 0.0025,
-    '9600'  => 0.000625,
-    '19200' => 0.0003125,                        # Is Time::HiRes even this granular?
-};
 my $RUNNING : shared = TRUE;                     # Thread keep running flag
 
 sub DESTROY {
@@ -96,9 +81,9 @@ sub new {    # Always call with the socket as a parameter
     $self = {
         'debug'     => $debug,
         'socket'    => $socket,
-        'cl_socket' => $cl_socket,,
-        'peerhost'  => $cl_socket->peerhost(),
-        'peerport'  => $cl_socket->peerport(),
+        'cl_socket' => $cl_socket,
+        'peerhost'  => (defined($socket)) ? $cl_socket->peerhost() : undef,
+        'peerport'  => (defined($socket)) ? $cl_socket->peerport() : undef,
         'cpu'       => Sys::CPU::cpu_count(),
         'cpu_clock' => Sys::CPU::cpu_clock(),
         'cpu_type'  => Sys::CPU::cpu_type(),
@@ -116,8 +101,6 @@ sub new {    # Always call with the socket as a parameter
             'users'        => "BBS::Universal::Users - Version $BBS::Universal::Users::VERSION",
             'db'           => "BBS::Universal::DB - Version $BBS::Universal::DB::VERSION",
         },
-        'suffixes'        => $suffixes,
-        'speeds'          => $speeds,
         'width'           => 40,
         'height'          => 24,
         'tab_stop'        => 4,
@@ -135,6 +118,15 @@ sub new {    # Always call with the socket as a parameter
         'esc'             => chr(27),
         'can'             => chr(24),
         'null'            => chr(0),
+		'suffixes'        => qw( ASC ATA PET VT ),
+		'speeds'          => {
+			'FULL'  => 0,
+			'300'   => 0.02,
+			'1200'  => 0.005,
+			'2400'  => 0.0025,
+			'9600'  => 0.000625,
+			'19200' => 0.0003125,                        # Is Time::HiRes even this granular?
+		},
         'mode'            => ASCII,     # Default mode
         'bbs_name'        => undef,       # These are pulled in from the configuration or connection
         'baud_rate'       => undef,
@@ -152,6 +144,7 @@ sub new {    # Always call with the socket as a parameter
     $self->{'baud_rate'} = $self->configuration('baud_rate');
 	$self->{'db'}        = $db_handle;
 
+#	$self->{'debug'}->DEBUGMAX($self);
     return ($self);
 } ## end sub new
 
@@ -172,7 +165,7 @@ sub greeting {
 
 	$self->{'debug'}->DEBUG('Sending greeting');
     # Load and print greetings message here
-    my $text = $self->file_load('greetings');
+    my $text = $self->load_file('greetings');
     $self->output($text);
 	$self->{'debug'}->DEBUG('Greeting sent');
     return ($self->login());    # Login will also create new users
@@ -196,7 +189,7 @@ sub main_menu {
     my $disconnect = FALSE;
 	$self->{'debug'}->DEBUG('Main Menu loop start');
     do {
-        my $text = $self->file_load('main_menu');
+        my $text = $self->load_file('main_menu');
         $self->output($text);
         my $cmd = $self->get_key(TRUE);              # Wait for character
         if (defined($cmd) && length($cmd) == 1) {    # Sanity
@@ -210,7 +203,7 @@ sub disconnect {
 
     # Load and print disconnect message here
 	$self->{'debug'}->DEBUG('Send Disconnect message');
-    my $text = $self->file_load('disconnect');
+    my $text = $self->load_file('disconnect');
     $self->output($text);
 	$self->{'debug'}->DEBUG('Disconnect message sent');
 	return(TRUE);
@@ -345,7 +338,10 @@ sub _configuration {
         my $value = shift;
         return (TRUE);
     } else {                   # Get entire configuration
-        my $results;
+        my $results = {
+			'HOST' => '192.168.1.100',
+			'PORT' => 9999,
+		};
         return ($results);
     } ## end else [ if ($count == 1) ]
 }

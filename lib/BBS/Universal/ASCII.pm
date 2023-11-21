@@ -1,13 +1,12 @@
 package BBS::Universal::ASCII;
 
+use base qw( BBS::Universal );
+
 # Pragmas
 use strict;
-use constant {
-    TRUE  => 1,
-    FALSE => 0
-};
+no strict 'subs';
 
-BEGIN {
+ BEGIN {
     require Exporter;
 
     our $VERSION = '0.001';

@@ -1,10 +1,9 @@
 package BBS::Universal::ATASCII;
 
+use parent qw( BBS::Universal );
+
 use strict;
-use constant {
-    TRUE  => 1,
-    FALSE => 0
-};
+no strict 'subs';
 
 BEGIN {
     require Exporter;
