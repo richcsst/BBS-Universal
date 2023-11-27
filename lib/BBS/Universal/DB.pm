@@ -1,10 +1,9 @@
 package BBS::Universal::DB;
 
-use parent qw( BBS::Universal );
-
 use strict;
 no strict 'subs';
 
+use Debug::Easy;
 use DBI;
 use DBD::mysql;
 

@@ -1,5 +1,374 @@
 #!/usr/bin/env perl
 
+# =============================================================
+#  ____  ____ ____    _   _       _                          _
+# | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |
+# |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |
+# | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |
+# |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|
+#
+# =============================================================
+
+use strict;
+use English qw( -no_match_vars );
+use Config;
+use constant {    # Others are imported
+    MAX_THREADS => 30,
+};
+
+## Imported:
+#
+# TRUE, FALSE, ASCII, ATASCII, PETSCII, VT102, _configuration
+
+use threads (
+    'yield',
+    'exit' => 'threads_only',
+    'stringify',
+);
+use threads::shared;
+
+use Cwd;
+use DateTime;
+use Time::HiRes qw(time sleep);
+use IO::Socket::INET;
+use Debug::Easy;
+use Getopt::Long;
+use Term::ReadKey;
+use Term::ANSIColor;
+use Term::ANSIScreen qw( :cursor :screen );
+use Text::SimpleTable::AutoWidth;
+
+use BBS::Universal;
+use BBS::Universal::ASCII;
+use BBS::Universal::ATASCII;
+use BBS::Universal::PETSCII;
+use BBS::Universal::VT102;
+use BBS::Universal::Messages;
+use BBS::Universal::SysOp;
+use BBS::Universal::FileTransfer;
+use BBS::Universal::Users;
+use BBS::Universal::DB;
+
+BEGIN {
+    our $VERSION = '0.001';
+}
+
+# Shared with threads
+our $RUNNING : shared = TRUE;
+our $TEST : shared    = FALSE;
+our @SERVER_STATUS : shared = ();
+our $UPDATE : shared = TRUE;
+
+my $OLDDIR         = getcwd;
+my $LEVEL          = 'ERROR';
+my $SERVER_THREADS = {};
+my $START_ROW      = 14;
+my $ROW_ADJUST     = 0;
+
+GetOptions(
+    'test'    => \$TEST,
+    'debug=s' => \$LEVEL,
+);
+
+my $DEBUG = Debug::Easy->new(
+    'LogLevel' => $LEVEL,
+    'Color'    => TRUE,
+);
+
+$SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = \&hard_finish;
+
+############## BBS Core ###################
+
+my $CONF = _configuration();
+chdir($CONF->{'bbs_root'});
+
+main();
+
+###########################################
+
+sub main {
+    $DEBUG->DEBUG(['Main beginning']);
+    my $key = '';
+
+    print cls, locate;
+    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+
+    print colored(['on_white'], ' ' x $wsize), "\n";
+    print color('red');
+    print center(' ____  ____ ____    _   _       _                          _ ', $wsize) . "\n";
+    print color('yellow');
+    print center('| __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |', $wsize) . "\n";
+    print color('green');
+    print center(q{|  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}, $wsize) . "\n";
+    print color('magenta');
+    print center('| |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |', $wsize) . "\n";
+    print color('bright_blue');
+    print center('|____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|', $wsize) . "\n\n";
+    print color('reset');
+    print center(sprintf('Version %.03f', $BBS::Universal::VERSION), $wsize), "\n";
+    print center('Written By Richard Kelsch',                        $wsize), "\n";
+    print center('Copyright © 2023 Richard Kelsch',                  $wsize), "\n";
+    print center('Licensed under the GNU Public License Version 3',  $wsize), "\n\n";
+    print colored(['on_white'], ' ' x $wsize), "\n\n";
+    print locate(14, 1), cldown, 'Loading Threads...';
+    # Spawn server threads
+    my $socket;
+    unless ($TEST) {
+        $socket = IO::Socket::INET->new(
+            'LocalHost' => $CONF->{'host'},
+            'LocalPort' => $CONF->{'port'},
+            'Proto'     => 'tcp',
+            'Listen'    => 5,
+            'ReuseAddr' => FALSE,
+            'Timeout'   => 5,
+            'Blocking'  => TRUE,
+        );
+        my $error = undef;
+        $error = "Cannot create socket for $!n" unless ($socket);
+        $DEBUG->DEBUG(["Waiting for a connection for $CONF->{host} : $CONF->{port}"]);
+        foreach my $thread (1 .. MAX_THREADS) {
+			{
+				lock(@SERVER_STATUS);
+				$SERVER_STATUS[$thread] = FALSE;
+			}
+            my $name = sprintf('SERVER %02d', $thread);
+            $DEBUG->DEBUG(["$name Ready"]);
+            $SERVER_THREADS->{$name} = threads->create(\&run_bbs,
+				{
+					'thread_number' => $thread,
+					'thread_name' => $name,
+					'socket' => $socket,
+					'debuglevel' => $LEVEL
+				}
+			);
+        }
+        $DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
+		$SIG{'ALRM'} = \&servers_status;
+		servers_status();
+    } ## end unless ($TEST)
+	print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
+	print locate(($START_ROW + $ROW_ADJUST), 1), cldown;
+	print colored(['on_white'],' ' x $wsize), "\n\n";
+
+    while ($RUNNING) {
+        my $command = _sysop_parse_menu($DEBUG);
+		print "$command\n";
+        if ($command eq 'SHUTDOWN') {
+            print "\n\nShutting down threads\n";
+            {
+                lock($RUNNING);
+                $RUNNING = FALSE;
+            }
+        } elsif ($command eq 'SYSOP') {
+            run_bbs_sysop(TRUE);
+        } elsif ($command eq 'LOGIN') {
+            run_bbs_sysop(FALSE);
+        }
+        threads->yield();
+    } ## end while ($RUNNING)
+    $socket->close() if (defined($socket));
+    finish();
+    $DEBUG->DEBUG(['Main End']);
+	print "Thank you for using BBS Universal\n\n";
+} ## end sub main
+
+sub center {
+    my $text  = shift;
+    my $width = shift;
+
+    my $size = length($text);
+    return ($text) unless (defined($text) && $size > 0);
+    my $padding = int(($width - $size) / 2);
+    return (($padding > 0) ? ' ' x $padding . $text : $text);
+} ## end sub center
+
+sub servers_status {
+	if ($UPDATE) {
+		alarm(0);
+		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+		my $stp = int($wsize / 24);
+		my $steps = $stp;
+		my @row = ();
+		my $table = Text::SimpleTable::AutoWidth->new(
+			max_width => $wsize,
+		);
+		my $count = 1;
+		$ROW_ADJUST = 2;
+		foreach my $name (sort(keys %{$SERVER_THREADS})) {
+			my $status = '';
+			if ($SERVER_STATUS[$count] == TRUE) {
+				$status = 'CONNECTED';
+			} elsif ($SERVER_STATUS[$count] == FALSE) {
+				$status = 'IDLE';
+			} else {
+				$status = 'FINISHED';
+			}
+			push(@row,"$name -> $status");
+			$steps--;
+			if ($steps == 1) {
+				$steps = $stp;
+				$table->row(@row);
+				@row = ();
+				$ROW_ADJUST++;
+			}
+			$count++;
+			threads->yield();
+		}
+		if (scalar(@row)) {
+			while ($steps >= 1) {
+				push(@row,' ');
+				$steps--;
+				threads->yield();
+			}
+			$ROW_ADJUST++;
+			$table->row(@row);
+			lock($UPDATE);
+			$UPDATE = FALSE;
+		}
+		my $tbl = $table->draw();
+		my $cn = colored(['green'],'CONNECTED');
+		my $idl = colored(['magenta'],'IDLE');
+		my $fn = colored(['red'],'FINISHED');
+		$tbl =~ s/CONNECTED/$cn/g;
+		$tbl =~ s/IDLE/$idl/g;
+		$tbl =~ s/FINISHED/$fn/g;
+		print savepos, chr(27),'[?25l',locate(14,1), $tbl, loadpos, chr(27), '[?25h';
+		$SIG{ALRM} = \&servers_status;
+		alarm(1);
+	}
+	return(TRUE);
+}
+
+sub run_bbs {
+    # Only allow the main program to respond to signals, not the threads
+    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = $SIG{'ALRM'} = undef;
+    my $params      = shift;
+    my $thread_name = $params->{'thread_name'};
+	my $thread_number = $params->{'thread_number'};
+    my $socket      = $params->{'socket'};
+    my $debug       = Debug::Easy->new(
+        'LogLevel'        => $params->{'debuglevel'},
+        'Color'           => TRUE,
+        'Prefix'          => '%Date% %Time% %Benchmark% %Loglevel% ' . $thread_name . ' [%Subroutine%][%Lastline%] ',
+        'DEBUGMAX-Prefix' => '%Date% %Time% %Benchmark% %Loglevel% ' . $thread_name . ' [%Module%][%Lines%] ',
+    );
+    $debug->DEBUG(["BBS Server Thread $thread_name Started"]);
+    $debug->DEBUGMAX([$params]);
+
+    while ($RUNNING) {
+        {
+            my $client_socket = $socket->accept();
+            if (defined($client_socket)) {
+				{
+					lock(@SERVER_STATUS);
+					$SERVER_STATUS[$thread_number] = TRUE;
+					lock($UPDATE);
+					$UPDATE = TRUE;
+				}
+				$debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
+                my $bbs = BBS::Universal->new(
+                    {
+                        'thread_name'   => $thread_name . 'socket' => $socket,
+                        'client_socket' => $client_socket,
+                        'debug'         => $debug,
+                        'debuglevel'    => $params->{'debuglevel'},
+                    }
+                );
+                $bbs->run();
+                shutdown($client_socket, 1);    # Hang up
+				{
+					lock(@SERVER_STATUS);
+					$SERVER_STATUS[$thread_number] = FALSE;
+					lock($UPDATE);
+					$UPDATE = TRUE;
+				}
+            } ## end if (defined($client_socket...))
+        }
+		threads->yield();
+    } ## end while ($RUNNING)
+	{
+		lock(@SERVER_STATUS);
+		$SERVER_STATUS[$thread_number] = -1;
+	}
+    $debug->INFO(["Thread $thread_name shutting down"]);
+} ## end sub run_bbs
+
+sub run_bbs_sysop {
+    # Only allow the main program to respond to signals, not the threads
+    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
+    my $sysop = shift;
+    while ($RUNNING) {
+        if ($sysop) {
+            my $bbs = BBS::Universal->new(
+                {
+                    'thread_name' => 'CONSOLE',
+                    'debug'       => $DEBUG,
+                }
+            );
+            $bbs->run($sysop);
+        } ## end if ($sysop)
+        threads->yield() if (!$TEST);    # Be friendly
+    } ## end while ($RUNNING)
+} ## end sub run_bbs_sysop
+
+sub clean_joinable {
+	alarm(0);
+    foreach my $thread (sort(keys %{$SERVER_THREADS})) {
+		{
+			lock($UPDATE);
+			$UPDATE = TRUE;
+		}
+        $DEBUG->INFO(["Shutting Down Thread $thread"]);
+        $SERVER_THREADS->{$thread}->join();
+		servers_status();
+		alarm(0);
+    }
+    foreach my $thrd (threads->list(threads::running)) {
+        $thrd->join();
+		servers_status();
+		alarm(0);
+    }
+} ## end sub clean_joinable
+
+sub finish {
+    {
+        lock($RUNNING);
+        $RUNNING = FALSE;
+    }
+    $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
+    clean_joinable();
+    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+    print setscroll(1, $hsize), color('reset'), cls;
+    $DEBUG->INFO(['Shutdown Complete']);
+    chdir($OLDDIR);
+	alarm(0);
+} ## end sub finish
+
+sub hard_finish {
+
+    # Force a hard finish.
+    #
+    # It unceremoniously kills all threads (and disconnects anyone connected to them)
+
+    {    # Always use semaphores when writing to a shared variable
+        lock($RUNNING);
+        $RUNNING = FALSE;
+    }
+    $DEBUG->WARNING(['Forcing Shutdown...']);
+    sleep 2;
+    foreach my $thread (threads::running) {
+        $thread->kill('KILL');
+    }
+    clean_joinable();
+    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+    print setscroll(1, $hsize), color('reset'), cls;
+    $DEBUG->INFO(['Hard Shutdown Complete']);
+    chdir($OLDDIR);
+	alarm(0);
+} ## end sub hard_finish
+
+__END__
+
 =pod
 =encoding utf8
 
@@ -49,178 +418,3 @@ It has color, graphics characters and cursor movement.  Typically used on Termin
 =back
 
 =cut
-
-use strict;
-use English qw( -no_match_vars );
-use Config;
-use constant {    # Others are imported
-    MAX_THREADS => 16,
-};
-
-## Imported from above:
-#
-# TRUE, FALSE, ASCII, ATASCII, PETSCII, VT102, _configuration
-
-use threads (
-    'yield',
-    'exit' => 'threads_only',
-    'stringify',
-);
-use threads::shared;
-
-use DateTime;
-use Time::HiRes qw(time sleep);
-use Term::ANSIScreen;
-use Sys::CPU;
-use IO::Socket::INET;
-use Debug::Easy;
-use Getopt::Long;
-
-use BBS::Universal;
-
-BEGIN {
-    our $VERSION = '0.001';
-} ## end BEGIN
-
-my $RUNNING : shared = TRUE;
-my $SYSOP : shared   = FALSE;
-my $TEST : shared    = FALSE;
-my $LEVEL = 'ERROR';
-my $SERVER_THREADS = {};
-
-GetOptions(
-    'test'  => \$TEST,
-    'sysop' => \$SYSOP,
-	'debug=s' => \$LEVEL,
-);
-
-our $DEBUG = Debug::Easy->new(
-	'LogLevel' => $LEVEL,
-	'Color'    => TRUE,
-);
-
-$SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = \&hard_finish;
-
-############## BBS Core ###################
-
-my $CONF = _configuration();
-$DEBUG->DEBUG(['Loading configuration hash into memory']);
-
-main();
-
-###########################################
-
-sub finish {
-    $RUNNING = FALSE;
-    $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
-    clean_joinable();
-    $DEBUG->INFO(['Shutdown Complete']);
-} ## end sub finish
-
-sub hard_finish {
-    # Force a hard finish.
-    #
-    # It unceremoniously kills all threads (and disconnects anyone connected to them)
-
-    $RUNNING = FALSE;
-    $DEBUG->WARNING(['Forcing Shutdown...']);
-    sleep 2;
-    foreach my $thread (threads::running) {
-        $thread->kill('KILL');
-    }
-    clean_joinable();
-    $DEBUG->INFO(['Shutdown Complete']);
-} ## end sub hard_finish
-
-sub main {
-	$DEBUG->DEBUG(['Main beginning']);
-    my $key = '';
-
-	if ($TEST) {
-		run_bbs_sysop();
-	} else {
-		$SERVER_THREADS->{'MASTER'} = threads->create(\&run_bbs_sysop);
-		foreach my $thread (1 .. MAX_THREADS) {
-			my $name = sprintf('SERVER %02d',$thread);
-			$SERVER_THREADS->{$name} = threads->create(\&run_bbs, $name);
-		}
-		$DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
-		while ($RUNNING) {
-			# SysOp stuff here
-			threads->yield();
-		}
-	}
-    finish();
-	$DEBUG->DEBUG(['Main End']);
-} ## end sub main
-
-sub run_bbs {
-	local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
-	my $thread_name = shift;
-    my $host = $CONF->{'HOST'};
-    my $port = $CONF->{'PORT'};
-
-    while ($RUNNING) {
-        $DEBUG->DEBUG(["$thread_name - Waiting for a connection for $host : $port"]);
-        {
-            my $socket = IO::Socket::INET->new(
-                'LocalHost' => $host,
-                'LocalPort' => $port,
-                'Proto'     => 'tcp',
-                'Listen'    => 5,
-                'ReuseAddr' => FALSE,
-                'Timeout'   => 15,
-                'Blocking'  => TRUE,
-            );
-            my $error = undef;
-            $error = "Cannot create socket for $!n" unless ($socket);
-            if (defined($error)) {
-                $DEBUG->ERROR([$error]);
-                sleep 15;
-            } else {
-                $socket->autoflush();
-                $DEBUG->DEBUG(['BBS Server Started']);
-                my $client_socket = $socket->accept();
-                my $bbs           = BBS::Universal->new(
-                    {
-                        'socket'        => $socket,
-                        'client_socket' => $client_socket,
-                        'debug'         => $DEBUG,
-                    }
-                );
-                $bbs->run();
-                shutdown($client_socket, 1);    # Hang up
-                $socket->close();
-            } ## end else [ if (defined($error)) ]
-        }
-    } ## end while ($RUNNING)
-} ## end sub run_bbs
-
-sub run_bbs_sysop {
-	local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
-    while ($RUNNING) {
-        if ($SYSOP || $TEST) {
-            $DEBUG->DEBUG(['BBS Server Started']);
-            my $bbs = BBS::Universal->new(
-                {
-                    'socket'        => undef,
-                    'client_socket' => undef,
-                    'debug'         => $DEBUG,
-                }
-            );
-            $bbs->run();
-            $SYSOP = FALSE;
-			$RUNNING = FALSE if ($TEST);
-        } ## end if ($SYSOP)
-        threads->yield() if (! $TEST);    # Be friendly
-    } ## end while ($RUNNING)
-} ## end sub run_bbs_sysop
-
-sub clean_joinable {
-    my @joinable = threads->list(threads::joinable);
-    foreach my $thread (@joinable) {
-        $thread->join() if ($thread->is_joinable);    # Sanity checks always
-    }
-} ## end sub clean_joinable
-
-__END__

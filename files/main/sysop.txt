@@ -1,0 +1,5 @@
+X|SHUTDOWN|Shutdown BBS
+S|SYSOP|Connect as user SysOp
+C|LOGIN|Connect as another user
+---
+Main BBS System Menu

@@ -1,10 +1,9 @@
 package BBS::Universal::FileTransfer;
 
-use parent qw( BBS::Universal );
-
 use strict;
 no strict qw( subs refs );
 
+use Debug::Easy;
 use File::Basename;
 
 BEGIN {

@@ -1,8 +1,8 @@
 package BBS::Universal::Messages;
 
-use parent qw( BBS::Universal );
-
 use strict;
+
+use Debug::Easy;
 
 BEGIN {
     require Exporter;

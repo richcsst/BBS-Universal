@@ -1,9 +1,9 @@
 package BBS::Universal::VT102;
 
-use parent qw( BBS::Universal );
-
 use strict;
 no strict 'subs';
+
+use Debug::Easy;
 
 BEGIN {
     require Exporter;
@@ -16,8 +16,8 @@ BEGIN {
     our @EXPORT_OK = qw();
 } ## end BEGIN
 
-my $esc       = chr(27) . '[';
-my $sequences = {
+my $esc             = chr(27) . '[';
+my $vt102_sequences = {
     'CLEAR'            => $esc . '2J',
     'UP'               => $esc . 'A',
     'DOWN'             => $esc . 'B',
@@ -85,8 +85,8 @@ sub vt102_output {
     my $self = shift;
     my $text = shift;
 
-    foreach my $string (keys %{$sequences}) {
-        $text =~ s/\[\% $string \%\]/$sequences->{$string}/gi;
+    foreach my $string (keys %{$vt102_sequences}) {
+        $text =~ s/\[\% $string \%\]/$vt102_sequences->{$string}/gi;
     }
     my $s_len = length($text);
     foreach my $count (0 .. $s_len) {

@@ -1,9 +1,9 @@
 package BBS::Universal::ATASCII;
 
-use parent qw( BBS::Universal );
-
 use strict;
 no strict 'subs';
+
+use Debug::Easy;
 
 BEGIN {
     require Exporter;
