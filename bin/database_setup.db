@@ -3,18 +3,13 @@ CREATE DATABASE IF NOT EXISTS BBSUniversal CHARACTER SET utf8;
 
 CREATE TABLE IF NOT EXISTS config (
 	id INTEGER UNSIGNED AUTOINCREMENT PRIMARY KEY,
-	absolute_path VARCHAR(255) DEFAULT '.',
-	bbs_name VARCHAR(255) DEFAULT 'files/bbs_name',
-	greeting VARCHAR(255) DEFAULT 'files/greeting',
-	logout VARCHAR(255) DEFAULT 'files/logout',
-	sys_info VARCHAR(255) DEFAULT 'files/sys_info',
-	policy VARCHAR(255) DEFAULT 'files/policy',
-	main_menu VARCHAR(255) DEFAULT 'files/main',
-	user_info VARCHAR(255) DEFAULT 'files/user_info',
-	threads SMALLINT UNSIGNED DEFAULT 2,
-	timeout SMALLINT UNSIGNED DEFAULT 10,
-	connect_mode TINYINT NOT NULL,
+	config_name VARCHAR(255),
+	config_value VARCHAR(255),
 );
+
+INSERT INTO config (config_name, config_value) VALUES ('HOST','0.0.0.0');
+INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal');
+INSERT INTO config (config_name, config_value) VALUES ('PORT','9999');
 
 CREATE TABLE IF NOT EXISTS modes (
     id TINYINT UNSIGNED AUTOINCREMENT PRIMARY KEY,

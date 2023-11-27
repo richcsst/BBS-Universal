@@ -14,7 +14,7 @@ my $fast = (scalar(@ARGV)) ? 1 : 0;
 
 $| = 1;    # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
-print "WORP Retro-Terminal.  Hayes modem ready 8/N/1 1200 bps\n";
+print "WORP Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
 sleep 1 unless ($fast);
 baud_print('> ');
 sleep 1 unless ($fast);
@@ -22,7 +22,7 @@ baud_print("ATDT BBS::Universal\n\n");
 sleep 2 unless ($fast);
 baud_print('Connected ... ');
 sleep 1 unless ($fast);
-baud_print("1200 baud...\n\n");
+baud_print("2400 baud...\n\n");
 sleep 1 unless ($fast);
 baud_print("Welcome to...\n\n");
 sleep 1 unless ($fast);
@@ -67,6 +67,7 @@ if (
             'File::Basename'               => 0,
             'Text::SimpleTable::AutoWidth' => '0.09',
         },
+		EXE_FILES => ['bin/bbs.pl'],
         dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
         clean => { FILES    => 'BBS-Universal-* _build* *bak *old' },
     )
@@ -93,7 +94,7 @@ sub baud_print {
         my $l = length($text) - 1;
         foreach my $c (0 .. $l) {
             print substr($text, $c, 1);
-            sleep(0.005);    # 1200 baud
+            sleep(0.0025);    # 2400 baud
         }
     } ## end else [ if ($fast) ]
 } ## end sub baud_print

@@ -1,6 +1,7 @@
 Makefile
 Makefile.old
 Makefile.pl
+methods.pl
 Build
 Build.bat
 META.*
