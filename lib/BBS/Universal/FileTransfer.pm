@@ -22,19 +22,19 @@ BEGIN {
 
 sub load_file {
     my $self = shift;
-	my $file = shift;
+    my $file = shift;
 
-	my $filename = sprintf('%s.%s',$file,$self->{'suffixes'}->[$self->{'mode'}]);
-	open(my $FILE,'<', $filename);
-	my @text = <$FILE>;
-	close($FILE);
-	chomp(@text);
-	return(join("\n",@text));
-}
+    my $filename = sprintf('%s.%s', $file, $self->{'suffixes'}->[$self->{'mode'}]);
+    open(my $FILE, '<', $filename);
+    my @text = <$FILE>;
+    close($FILE);
+    chomp(@text);
+    return (join("\n", @text));
+} ## end sub load_file
 
 sub save_file {
     my $self = shift;
-	return(TRUE);
+    return (TRUE);
 }
 
 sub receive_file {
@@ -43,8 +43,7 @@ sub receive_file {
 
 sub send_file {
     my $self = shift;
-	return(TRUE);
+    return (TRUE);
 }
-
 
 1;

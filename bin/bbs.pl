@@ -86,14 +86,12 @@ main();
 
 ###########################################
 
-sub main {
-    $DEBUG->DEBUG(['Main beginning']);
-    my $key = '';
-
-    print cls, locate;
+sub logo {
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-    print colored(['on_white'], ' ' x $wsize), "\n";
+	$ROW_ADJUST = 0;
+
+    print setscroll(1,$hsize), cls, locate(1,1),colored(['on_white'], ' ' x $wsize), "\n";
     print color('red');
     print center(' ____  ____ ____    _   _       _                          _ ', $wsize) . "\n";
     print color('yellow');
@@ -110,13 +108,23 @@ sub main {
     print center('Copyright © 2023 Richard Kelsch',                  $wsize), "\n";
     print center('Licensed under the GNU Public License Version 3',  $wsize), "\n\n";
     print colored(['on_white'], ' ' x $wsize), "\n\n";
-    print locate(14, 1), cldown, 'Loading Threads...';
-    # Spawn server threads
+	return($wsize,$hsize,$wpixels,$hpixels);
+}
+
+sub main {
+    $DEBUG->DEBUG(['Main beginning']);
+    my $key = '';
+
+    my ($wsize, $hsize, $wpixels, $hpixels) = logo();
+
+	my ($width,$height) = ($wsize,$hsize);
+    print locate(14, 1), cldown, 'Loading ' . MAX_THREADS . ' Threads ...';
+
     my $socket;
     unless ($TEST) {
         $socket = IO::Socket::INET->new(
-            'LocalHost' => $CONF->{'host'},
-            'LocalPort' => $CONF->{'port'},
+            'LocalHost' => $CONF->{'HOST'},
+            'LocalPort' => $CONF->{'PORT'},
             'Proto'     => 'tcp',
             'Listen'    => 5,
             'ReuseAddr' => FALSE,
@@ -125,45 +133,78 @@ sub main {
         );
         my $error = undef;
         $error = "Cannot create socket for $!n" unless ($socket);
-        $DEBUG->DEBUG(["Waiting for a connection for $CONF->{host} : $CONF->{port}"]);
-        foreach my $thread (1 .. MAX_THREADS) {
-			{
-				lock(@SERVER_STATUS);
-				$SERVER_STATUS[$thread] = FALSE;
-			}
-            my $name = sprintf('SERVER %02d', $thread);
-            $DEBUG->DEBUG(["$name Ready"]);
-            $SERVER_THREADS->{$name} = threads->create(\&run_bbs,
+		if (defined($error)) {
+			$DEBUG->ERROR([$error,'Local Mode Only']);
+			sleep 5;
+		} else {
+			$DEBUG->DEBUG(["Waiting for a connection for $CONF->{host} : $CONF->{port}"]);
+			foreach my $thread (1 .. MAX_THREADS) {
 				{
-					'thread_number' => $thread,
-					'thread_name' => $name,
-					'socket' => $socket,
-					'debuglevel' => $LEVEL
+					lock(@SERVER_STATUS);
+					$SERVER_STATUS[$thread] = FALSE;
 				}
-			);
-        }
-        $DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
-		$SIG{'ALRM'} = \&servers_status;
-		servers_status();
+				my $name = sprintf('SERVER %02d', $thread);
+				$DEBUG->DEBUG(["$name Ready"]);
+				$SERVER_THREADS->{$name} = threads->create(\&run_bbs,
+					{
+						'thread_number' => $thread,
+					  'thread_name' => $name,
+					  'socket' => $socket,
+					  'debuglevel' => $LEVEL
+					}
+				);
+				{
+					lock($UPDATE);
+					$UPDATE = TRUE;
+				}
+				servers_status(FALSE);
+			}
+			$DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
+			$SIG{'ALRM'} = \&servers_status;
+			{
+				lock($UPDATE);
+				$UPDATE = TRUE;
+			}
+			servers_status(TRUE);
+		}
     } ## end unless ($TEST)
 	print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
 	print locate(($START_ROW + $ROW_ADJUST), 1), cldown;
 	print colored(['on_white'],' ' x $wsize), "\n\n";
 
+	my $cmds = {
+		'SHUTDOWN'   => sub {
+			print "\n\nShutting down threads\n";
+			{
+				lock($RUNNING);
+				$RUNNING = FALSE;
+			}
+		},
+		'SYSOP'      => sub {
+			run_bbs_sysop(TRUE);
+		},
+		'LOGIN'      => sub {
+			run_bbs_sysop(FALSE);
+		},
+		'STATISTICS' => sub {
+			statistics();
+		},
+		'USERS'      => sub {
+			users_edit();
+		},
+	};
     while ($RUNNING) {
-        my $command = _sysop_parse_menu($DEBUG);
+		($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+		if ($wsize != $width || $hsize != $height) {
+			alarm(0);
+			($wsize, $hsize, $wpixels, $hpixels) = logo();
+			($width,$height) = ($wsize,$hsize);
+			servers_status(TRUE);
+		}
+        my $command = _sysop_parse_menu($DEBUG,($START_ROW + $ROW_ADJUST + 2));
 		print "$command\n";
-        if ($command eq 'SHUTDOWN') {
-            print "\n\nShutting down threads\n";
-            {
-                lock($RUNNING);
-                $RUNNING = FALSE;
-            }
-        } elsif ($command eq 'SYSOP') {
-            run_bbs_sysop(TRUE);
-        } elsif ($command eq 'LOGIN') {
-            run_bbs_sysop(FALSE);
-        }
+
+		$cmds->{$command}->();
         threads->yield();
     } ## end while ($RUNNING)
     $socket->close() if (defined($socket));
@@ -171,6 +212,11 @@ sub main {
     $DEBUG->DEBUG(['Main End']);
 	print "Thank you for using BBS Universal\n\n";
 } ## end sub main
+
+sub statistics {
+	return(TRUE);
+}
+
 
 sub center {
     my $text  = shift;
@@ -183,6 +229,10 @@ sub center {
 } ## end sub center
 
 sub servers_status {
+	my $show_alarm = TRUE;
+	if (scalar(@_)) {
+		$show_alarm = shift;
+	}
 	if ($UPDATE) {
 		alarm(0);
 		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -232,9 +282,13 @@ sub servers_status {
 		$tbl =~ s/CONNECTED/$cn/g;
 		$tbl =~ s/IDLE/$idl/g;
 		$tbl =~ s/FINISHED/$fn/g;
-		print savepos, chr(27),'[?25l',locate(14,1), $tbl, loadpos, chr(27), '[?25h';
-		$SIG{ALRM} = \&servers_status;
-		alarm(1);
+		if ($show_alarm) {
+			print savepos, chr(27),'[?25l',locate(14,1), $tbl, loadpos, chr(27), '[?25h';
+			$SIG{ALRM} = \&servers_status;
+			alarm(1);
+		} else {
+			print locate(14,1), $tbl;
+		}
 	}
 	return(TRUE);
 }
@@ -320,14 +374,19 @@ sub clean_joinable {
 		}
         $DEBUG->INFO(["Shutting Down Thread $thread"]);
         $SERVER_THREADS->{$thread}->join();
-		servers_status();
+		servers_status(FALSE);
 		alarm(0);
     }
     foreach my $thrd (threads->list(threads::running)) {
         $thrd->join();
-		servers_status();
+		{
+			lock($UPDATE);
+			$UPDATE = TRUE;
+		}
+		servers_status(FALSE);
 		alarm(0);
     }
+	sleep 0.5;
 } ## end sub clean_joinable
 
 sub finish {

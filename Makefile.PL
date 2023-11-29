@@ -1,4 +1,4 @@
-package BBS::Universal;
+#!/usr/bin/env perl
 
 use 5.006;
 use strict;
@@ -14,7 +14,7 @@ my $fast = (scalar(@ARGV)) ? 1 : 0;
 
 $| = 1;    # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
-print "WORP Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
+print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
 sleep 1 unless ($fast);
 baud_print('> ');
 sleep 1 unless ($fast);
@@ -51,8 +51,9 @@ if (
         PL_FILES           => {},
         MIN_PERL_VERSION   => 5.006001,
         CONFIGURE_REQUIRES => {
-            'ExtUtils::MakeMaker' => 0,
-            'Time::HiRes'         => 0,
+            'ExtUtils::MakeMaker' => '7.62',
+            'Time::HiRes'         => '1.9767',
+            'Term::ANSIColor'     => '5.01',
         },
         BUILD_REQUIRES => {
             'Test::More' => '0.44',
@@ -64,12 +65,20 @@ if (
             'Term::ANSIColor'              => '4.00',
             'Term::ANSIScreen'             => '1.50',
             'DateTime'                     => '1.18',
-            'File::Basename'               => 0,
+            'File::Basename'               => '2.85',
             'Text::SimpleTable::AutoWidth' => '0.09',
+            'DBI'                          => '1.643',
+            'DBD::mysql'                   => '4.050',
+            'Term::ReadKey'                => '2.38',
+            'Term::ANSIScreen'             => '1.50',
+            'IO::Socket::INET'             => '1.46',
+            'Debug::Easy'                  => '2.11',
         },
-		EXE_FILES => ['bin/bbs.pl'],
-        dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-        clean => { FILES    => 'BBS-Universal-* _build* *bak *old' },
+
+        #		EXE_FILES => ['bin/bbs.pl'],
+        dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+        clean   => { FILES    => 'BBS-Universal-* _build* *bak *old' },
+        license => ['gpl_3'], # GNU Public License Version 3
     )
 ) {
     print chr(27) . '[0m', color('reset');

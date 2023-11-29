@@ -1,5 +1,7 @@
 X|SHUTDOWN|Shutdown BBS
 S|SYSOP|Connect as user SysOp
 C|LOGIN|Connect as another user
+D|STATISTICS|Display Statistics
+U|USERS|User Manager
 ---
 Main BBS System Menu

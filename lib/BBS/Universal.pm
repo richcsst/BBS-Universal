@@ -26,7 +26,8 @@ use Term::ANSIScreen;
 use Text::Format;
 use Text::SimpleTable::AutoWidth;
 use IO::Socket::INET;
-use Sys::CPU;    # Apparently this was removed from CPAN (why?)
+use Sys::Info;
+use Sys::Info::Constants qw( :device_cpu );
 
 use BBS::Universal::ASCII;    # Subs will have mode names as a prefix, so they can all be imported
 use BBS::Universal::ATASCII;
@@ -52,7 +53,7 @@ BEGIN {
       PETSCII
       VT102
       _configuration
-	  _sysop_parse_menu
+      _sysop_parse_menu
     );
     our @EXPORT_OK = qw();
     $ENV{'PATH'} = '/usr/bin;/usr/local/bin';    # Taint mode requires this (for test scripts)
@@ -69,24 +70,25 @@ sub new {    # Always call with the socket as a parameter
     my $params    = shift;
     my $socket    = (exists($params->{'socket'}))        ? $params->{'socket'}        : undef;
     my $cl_socket = (exists($params->{'client_socket'})) ? $params->{'client_socket'} : undef;
-	my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
+    my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
 
     my $db_handle = db_connect();
 
     my $os   = `/usr/bin/uname -a`;
+	my $cpu = _cpu_info();
     my $self = {
-		'local_mode' => $lmode,
+        'local_mode' => $lmode,
         'debuglevel' => $params->{'debuglevel'},
-		'debug'      => $params->{'debug'},
-        'socket'    => $socket,
-        'cl_socket' => $cl_socket,
-        'peerhost'  => (defined($cl_socket)) ? $cl_socket->peerhost() : undef,
-        'peerport'  => (defined($cl_socket)) ? $cl_socket->peerport() : undef,
-        'cpu'       => eval { Sys::CPU::cpu_count() } || 1,
-        'cpu_clock' => eval { Sys::CPU::cpu_clock() } || 'Unknown',
-        'cpu_type'  => eval { Sys::CPU::cpu_type() }  || 'Unknown',
-        'os'        => $os,
-        'versions'  => {
+        'debug'      => $params->{'debug'},
+        'socket'     => $socket,
+        'cl_socket'  => $cl_socket,
+        'peerhost'   => (defined($cl_socket)) ? $cl_socket->peerhost() : undef,
+        'peerport'   => (defined($cl_socket)) ? $cl_socket->peerport() : undef,
+        'cpu'        => $cpu->{'cpu_cores'},
+        'cpu_clock'  => $cpu->{'cpu_speed'},
+        'cpu_type'   => $cpu->{'cpu_identity'},
+        'os'         => $os,
+        'versions'   => {
             'perl'         => "Perl - Version $OLD_PERL_VERSION",
             'bbs'          => "BBS::Universal - Version $BBS::Universal::VERSION",
             'ascii'        => "BBS::Universal::ASCII - Version $BBS::Universal::ASCII::VERSION",
@@ -222,17 +224,17 @@ sub get_key {
     my $blocking = shift || FALSE;
 
     my $key = undef;
-	if ($self->{'local_mode'}) {
-		$key = ($blocking) ? ReadKey(0) : ReadKey(-1);
-	} else {
-		if ($blocking) {
-			$self->{'debug'}->DEBUG(['Get key - blocking']);
-			$self->{'cl_socket'}->recv($key, 1, MSG_WAITALL);
-		} else {
-			$self->{'debug'}->DEBUGMAX(['Get key - non-blocking']);    # could swamp debug logging if DEBUG
-			$self->{'cl_socket'}->recv($key, 1, MSG_DONTWAIT);
-		}
-	}
+    if ($self->{'local_mode'}) {
+        $key = ($blocking) ? ReadKey(0) : ReadKey(-1);
+    } else {
+        if ($blocking) {
+            $self->{'debug'}->DEBUG(['Get key - blocking']);
+            $self->{'cl_socket'}->recv($key, 1, MSG_WAITALL);
+        } else {
+            $self->{'debug'}->DEBUGMAX(['Get key - non-blocking']);    # could swamp debug logging if DEBUG
+            $self->{'cl_socket'}->recv($key, 1, MSG_DONTWAIT);
+        }
+    } ## end else [ if ($self->{'local_mode'...})]
     $self->{'debug'}->DEBUG(["Key pressed - $key"]);
     $self->output($key) if ($echo && defined($key));
     return ($key);
@@ -318,7 +320,7 @@ sub send_char {
     my $char = shift;
 
     # This sends one character at a time to the socket to simulate a retro BBS
-    if ($self->{'local_mode'} || ! defined($self->{'cl_socket'})) {
+    if ($self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print $char;
     } else {
         $self->{'cl_socket'}->send($char);
@@ -346,13 +348,26 @@ sub _configuration {
                                # Placeholder code for testing before DB code is ready
         ######################################################
         my $results = {
-            'host' => '192.168.1.100',
-            'port' => 9999,
-			'bbs_root' => '/home/rich/source/github/BBS-Universal',
+            'HOST'     => '0.0.0.0',
+            'PORT'     => 9999,
+            'BBS ROOT' => '/home/rich/source/github/BBS-Universal',
         };
         ######################################################
         return ($results);
     } ## end else [ if ($count == 1) ]
 } ## end sub _configuration
+
+sub _cpu_info {
+	my $info = Sys::Info->new();
+	my $cpu = $info->device('CPU');
+	my $response = {
+		'cpu_identity' => $cpu->identity(),
+		'cpu_speed' => $cpu->speed(),
+		'cpu_cores' => $cpu->count(),
+		'cpu_threads' => $cpu->ht(),
+		'cpu_bits' => $cpu->bitness(),
+	};
+	return($response);
+}
 
 1;
