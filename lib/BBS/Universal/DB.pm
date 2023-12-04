@@ -1,25 +1,12 @@
 package BBS::Universal::DB;
+BEGIN { our $VERSION = '0.001'; }
 
-use strict;
-no strict 'subs';
+sub db_initialize {
+    my $self = shift;
 
-use Debug::Easy;
-use DBI;
-use DBD::mysql;
-
-BEGIN {
-    require Exporter;
-
-    our $VERSION = '0.001';
-    our @ISA     = qw(Exporter);
-    our @EXPORT  = qw(
-      db_connect
-      db_disconnect
-      db_query
-      db_insert
-    );
-    our @EXPORT_OK = qw();
-} ## end BEGIN
+    $self->{'debug'}->DEBUG(['Initialized DB']);
+    return ($self);
+} ## end sub db_initialize
 
 sub db_connect {
     my $self = shift;
@@ -48,5 +35,4 @@ sub db_insert {
 
     return (TRUE);
 } ## end sub db_insert
-
 1;

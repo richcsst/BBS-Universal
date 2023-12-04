@@ -42,6 +42,14 @@ baud_print("====================================================================
 
 baud_print('TCP/IP ' . colored(['red'], 'R') . colored(['yellow'], 'e') . colored(['green'], 't') . colored(['magenta'], 'r') . colored(['bright_blue'], 'o') . " BBS software for your modern computer, written in Perl\n\n");
 
+# Merge files because you tick me off Perl
+
+baud_print("Creating a proper Universal.pm ... ");
+merge();
+baud_print(colored(['green'],"Done\n\n"));
+
+#
+
 if (
     WriteMakefile(
         NAME               => 'BBS::Universal',
@@ -66,19 +74,20 @@ if (
             'Term::ANSIScreen'             => '1.50',
             'DateTime'                     => '1.18',
             'File::Basename'               => '2.85',
-            'Text::SimpleTable::AutoWidth' => '0.09',
+            'Text::SimpleTable'            => '2.07',
             'DBI'                          => '1.643',
             'DBD::mysql'                   => '4.050',
             'Term::ReadKey'                => '2.38',
-            'Term::ANSIScreen'             => '1.50',
             'IO::Socket::INET'             => '1.46',
             'Debug::Easy'                  => '2.11',
+			'List::Util'                   => '1.60',
+			'utf8'                         => 0,
         },
 
-        #		EXE_FILES => ['bin/bbs.pl'],
+		EXE_FILES => ['bin/bbs.pl'],
         dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
         clean   => { FILES    => 'BBS-Universal-* _build* *bak *old' },
-        license => ['gpl_3'], # GNU Public License Version 3
+#        license => ['gpl_3'], # GNU Public License Version 3
     )
 ) {
     print chr(27) . '[0m', color('reset');
@@ -107,3 +116,50 @@ sub baud_print {
         }
     } ## end else [ if ($fast) ]
 } ## end sub baud_print
+
+sub merge {
+	my @dir;
+	opendir(my $DIR,'lib/BBS/Universal/');
+	chomp(@dir = readdir($DIR));
+	closedir($DIR);
+
+	my $master = slurp_file('src/Universal.pm.template');
+	foreach my $file (sort(@dir)) {
+		next if ($file !~ /\.pm$/);
+		my $shortfile = "$file";
+		$shortfile =~ s/\.pm//;
+		$shortfile = uc($shortfile) . '_VERSION';
+		open(my $FILE,"lib/BBS/Universal/$file");
+		chomp(my @lines = <$FILE>);
+		close($FILE);
+		my $text = '';
+		foreach my $line (@lines) {
+			$line =~ s/^1\;//;
+			$line =~ s/^package/\# package/;
+			if ($line =~ /^BEGIN/) {
+				$line =~ s/BEGIN \{ //;
+				$line =~ s/ \}//;
+				$line =~ s/\$VERSION/\$$shortfile/;
+				$master =~ s/BEGIN \{(.*?)\} \#/BEGIN \{$1    $line\n\} #/s;
+			} else {
+				$text .= "$line\n";
+			}
+		}
+		$master =~ s/\# MANUAL IMPORT HERE #/$text \n\n\# MANUAL IMPORT HERE \#/;
+	}
+	$master =~ s/\# MANUAL IMPORT HERE \#//;
+	while($master =~ /\n\n\n+/s) {
+		$master =~ s/\n\n\n+/\n\n/gs;
+	}
+	open(my $OUT,'>','lib/BBS/Universal.pm');
+	print $OUT $master;
+	close($OUT);
+}
+
+sub slurp_file {
+	my $file = shift;
+	return( do { local (@ARGV, $/) = $file; <> } );
+}
+
+__END__
+

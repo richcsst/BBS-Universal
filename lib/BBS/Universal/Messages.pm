@@ -1,23 +1,12 @@
 package BBS::Universal::Messages;
+BEGIN { our $VERSION = '0.001'; }
 
-use strict;
+sub messages_initialize {
+    my $self = shift;
 
-use Debug::Easy;
-
-BEGIN {
-    require Exporter;
-
-    our $VERSION = '0.001';
-    our @ISA     = qw(Exporter);
-    our @EXPORT  = qw(
-      list_sections
-      list_messages
-      read_message
-      edit_message
-      delete_message
-    );
-    our @EXPORT_OK = qw();
-} ## end BEGIN
+    $self->{'debug'}->DEBUG(['Initialized Messages']);
+    return ($self);
+} ## end sub messages_initialize
 
 sub list_sections {
     my $self = shift;
@@ -38,5 +27,4 @@ sub edit_message {
 sub delete_message {
     my $self = shift;
 }
-
 1;

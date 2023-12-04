@@ -1,0 +1,442 @@
+package BBS::Universal;
+
+# Pragmas
+use strict;
+no strict 'subs';
+use utf8;
+use constant {
+    TRUE  => 1,
+    FALSE => 0,
+
+    ASCII   => 0,
+    ATASCII => 1,
+    PETSCII => 2,
+    VT102   => 3,
+};
+use English qw( -no_match_vars );
+use Config;
+use open qw(:std :utf8);
+
+# Modules
+use Debug::Easy;
+use DateTime;
+use DBI;
+use DBD::mysql;
+use File::Basename;
+use Time::HiRes qw(time sleep);
+use Term::ReadKey;
+use Term::ANSIScreen qw( :color :cursor :screen );
+use Text::Format;
+use Text::SimpleTable::AutoWidth;
+use IO::Socket::INET;
+use Sys::Info;
+use Sys::Info::Constants qw( :device_cpu );
+
+# use Data::Dumper::Simple;
+
+BEGIN {
+    require Exporter;
+
+    # Due to Perl being a royal pain in the ass to coerce into inheriting methods, this is a sledge hammer approach
+
+    our $VERSION = '0.001';
+    our @ISA     = qw(Exporter);
+    our @EXPORT  = qw(
+      TRUE
+      FALSE
+      ASCII
+      ATASCII
+      PETSCII
+      VT102
+    );
+    our @EXPORT_OK = qw();
+    binmode(STDOUT, ":encoding(UTF-8)");
+} ## end BEGIN
+
+sub DESTROY {
+    my $self = shift;
+    $self->{'dbh'}->disconnect();
+}
+
+sub small_new {
+    my $class = shift;
+    my $self  = shift;
+
+    bless($self, $class);
+    $self->{'CPU'}  = $self->cpu_info();
+    $self->{'CONF'} = $self->configuration();
+    $self->ascii_initialize()->atascii_initialize()->petscii_initialize()->vt102_initialize()->filetransfer_initialize()->messages_initialize()->sysop_initialize()->users_initialize()->db_initialize();
+    $self->{'debug'}->DEBUGMAX([$self]);
+
+    return ($self);
+} ## end sub small_new
+
+sub new {    # Always call with the socket as a parameter
+    my $class = shift;
+
+    my $params    = shift;
+    my $socket    = (exists($params->{'socket'}))        ? $params->{'socket'}        : undef;
+    my $cl_socket = (exists($params->{'client_socket'})) ? $params->{'client_socket'} : undef;
+    my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
+
+    my $os   = `/usr/bin/uname -a`;
+    my $self = {
+        'local_mode'      => $lmode,
+        'debuglevel'      => $params->{'debuglevel'},
+        'debug'           => $params->{'debug'},
+        'socket'          => $socket,
+        'cl_socket'       => $cl_socket,
+        'peerhost'        => (defined($cl_socket)) ? $cl_socket->peerhost() : undef,
+        'peerport'        => (defined($cl_socket)) ? $cl_socket->peerport() : undef,
+        'os'              => $os,
+        'width'           => 40,
+        'height'          => 24,
+        'tab_stop'        => 4,
+        'backspace'       => chr(8),
+        'carriage_return' => chr(13),
+        'line_feed'       => chr(10),
+        'tab_stop'        => chr(9),
+        'bell'            => chr(7),
+        'ack'             => chr(6),
+        'nak'             => chr(15),
+        'vertical_tab'    => chr(11),
+        'form_feed'       => chr(12),
+        'xoff'            => chr(19),
+        'xon'             => chr(17),
+        'esc'             => chr(27),
+        'can'             => chr(24),
+        'null'            => chr(0),
+        'suffixes'        => qw( ASC ATA PET VT ),
+        'speeds'          => {                       # This depends on the granularity of Time::HiRes
+            'FULL'  => 0,
+            '300'   => 0.02,
+            '1200'  => 0.005,
+            '2400'  => 0.0025,
+            '9600'  => 0.000625,
+            '19200' => 0.0003125,
+        },
+        'mode'      => ASCII,                        # Default mode
+        'bbs_name'  => undef,                        # These are pulled in from the configuration or connection
+        'baud_rate' => undef,
+        'user'      => undef,
+        'host'      => undef,
+        'port'      => undef,
+    };
+
+    bless($self, $class);
+    $self->{'baud_rate'} = $self->configuration('BAUD RATE');
+    $self->{'CPU'}       = $self->cpu_info();
+    $self->{'CONF'}      = $self->configuration();
+    $self->ascii_initialize()->atascii_initialize()->petscii_initialize()->vt102_initialize()->filetransfer_initialize()->messages_initialize()->sysop_initialize()->users_initialize()->db_initialize();
+    $self->{'debug'}->DEBUGMAX([$self]);
+
+    return ($self);
+} ## end sub new
+
+sub run {
+    my $self = shift;
+
+    $self->{'ERROR'} = undef;
+
+    if ($self->greeting()) {    # Greeting also logs in
+        $self->main_menu();
+    }
+    $self->disconnect();
+    return (defined($self->{'ERROR'}));
+} ## end sub run
+
+sub greeting {
+    my $self = shift;
+
+    $self->{'debug'}->DEBUG(['Sending greeting']);
+
+    # Load and print greetings message here
+    my $text = $self->load_file('greetings');
+    $self->output($text);
+    $self->{'debug'}->DEBUG(['Greeting sent']);
+    return ($self->login());    # Login will also create new users
+} ## end sub greeting
+
+sub login {
+    my $self = shift;
+
+    $self->{'debug'}->DEBUG(['Attempting login']);
+    my $valid = FALSE;
+
+    # Login stuff here
+
+    #
+    return ($valid);
+} ## end sub login
+
+sub main_menu {
+    my $self = shift;
+
+    my $disconnect = FALSE;
+    $self->{'debug'}->DEBUG(['Main Menu loop start']);
+    do {
+        my $text = $self->load_file('main_menu');
+        $self->output($text);
+        my $cmd = $self->get_key(TRUE);              # Wait for character
+        if (defined($cmd) && length($cmd) == 1) {    # Sanity
+        }
+    } until ($disconnect);
+    $self->{'debug'}->DEBUG(['Main Menu loop end']);
+} ## end sub main_menu
+
+sub disconnect {
+    my $self = shift;
+
+    # Load and print disconnect message here
+    $self->{'debug'}->DEBUG(['Send Disconnect message']);
+    my $text = $self->load_file('disconnect');
+    $self->output($text);
+    $self->{'debug'}->DEBUG(['Disconnect message sent']);
+    return (TRUE);
+} ## end sub disconnect
+
+sub categories_menu {    # Handle categories menu
+    my $self = shift;
+
+    $self->{'debug'}->DEBUG(['List Categories']);
+    return (TRUE);
+} ## end sub categories_menu
+
+sub get_key {
+    my $self     = shift;
+    my $echo     = shift || FALSE;
+    my $blocking = shift || FALSE;
+
+    my $key = undef;
+    if ($self->{'local_mode'}) {
+        $key = ($blocking) ? ReadKey(0) : ReadKey(-1);
+    } else {
+        if ($blocking) {
+            $self->{'debug'}->DEBUG(['Get key - blocking']);
+            $self->{'cl_socket'}->recv($key, 1, MSG_WAITALL);
+        } else {
+            $self->{'debug'}->DEBUGMAX(['Get key - non-blocking']);    # could swamp debug logging if DEBUG
+            $self->{'cl_socket'}->recv($key, 1, MSG_DONTWAIT);
+        }
+    } ## end else [ if ($self->{'local_mode'...})]
+    $self->{'debug'}->DEBUG(["Key pressed - $key"]);
+    $self->output($key) if ($echo && defined($key));
+    return ($key);
+} ## end sub get_key
+
+sub get_line {
+    my $self = shift;
+    my $line;
+
+    return ($line);
+} ## end sub get_line
+
+sub detokenize_text {    # Detokenize text markup
+    my $self = shift;
+    my $text = shift;
+
+    $self->{'debug'}->DEBUG(['Detokenizing text']);
+    my $tokens = {
+        'AUTHOR'             => 'Richard Kelsch',
+        'SYSOP'              => $self->{'sysop'},
+        'CPU IDENTITY'       => $self->{'cpu_identity'},
+        'CPU CORES'          => $self->{'cpu_count'},
+        'CPU SPEED'          => $self->{'cpu_clock'},
+        'CPU THREADS'        => $self->{'cpu_threads'},
+        'OS'                 => $self->{'os'},
+        'UPTIME'             => split(`/usr/bin/uptime`, ' ', 1),
+        'VERSIONS'           => 'placeholder',
+        'PERL VERSION'       => $self->{'versions'}->{'perl'},
+        'BBS NAME'           => $self->{'bbs_name'},
+        'BBS VERSION'        => $self->{'versions'}->{'bbs'},
+        'USER ID'            => $self->{'user_id'},
+        'USERNAME'           => $self->{'username'},
+        'USER GIVEN'         => $self->{'user_given'},
+        'USER FAMILY'        => $self->{'user_family'},
+        'USER LOCATION'      => $self->{'user_location'},
+        'USER BIRTHDAY'      => $self->{'user_birthday'},
+        'USER RETRO SYSTEMS' => $self->{'user_retro_systems'},
+        'USER LOGIN TIME'    => $self->{'user_login_time'},
+        'USER TEXT MODE'     => $self->{'user_mode'},
+        'USER PERMISSIONS'   => $self->{'user_permissions'},
+        'BAUD RATE'          => $self->{'baud_rate'},
+    };
+
+    $self->{'debug'}->DEBUGMAX([$text]);    # Before
+    foreach my $key (keys %$tokens) {
+        if ($key eq 'VERSIONS' && $text =~ /$key/i) {
+            my $versions = '';
+            foreach my $names (qw( perl bbs db filetransfer messages sysop users ascii atascii petscii vt102)) {
+                $versions .= $self->{'versions'}->{$names} . "\n";
+            }
+            $text =~ s/\[\% $key \%\]/$versions/gi;
+        } else {
+            $text =~ s/\[\% $key \%\]/$tokens->{$key}/gi;
+        }
+    } ## end foreach my $key (keys %$tokens)
+    $self->{'debug'}->DEBUGMAX([$text]);    # After
+    return ($text);
+} ## end sub detokenize_text
+
+sub output {
+    my $self = shift;
+    my $text = $self->detokenize_text(shift);
+
+    my $mode = $self->{'mode'};
+    if ($mode == ATASCII) {
+        $self->{'debug'}->DEBUG(['Send ATASCII']);
+        $self->atascii_output($text);
+    } elsif ($mode == PETSCII) {
+        $self->{'debug'}->DEBUG(['Send PETSCII']);
+        $self->petscii_output($text);
+    } elsif ($mode == VT102) {
+        $self->{'debug'}->DEBUG(['Send VT-102']);
+        $self->vt102_output($text);
+    } else {    # ASCII (always the default)
+        $self->{'debug'}->DEBUG(['Send ASCII']);
+        $self->ascii_output($text);
+    }
+    return (TRUE);
+} ## end sub output
+
+sub send_char {
+    my $self = shift;
+    my $char = shift;
+
+    # This sends one character at a time to the socket to simulate a retro BBS
+    if ($self->{'local_mode'} || !defined($self->{'cl_socket'})) {
+        print $char;
+    } else {
+        $self->{'cl_socket'}->send($char);
+    }
+
+    # Send at the chosen baud rate by delaying the output by a fraction of a second
+    # Only delay if the baud_rate is not FULL
+    sleep $self->{'speeds'}->{ $self->{'baud_rate'} } if ($self->{'baud_rate'} ne 'FULL');
+    return (TRUE);
+} ## end sub send_char
+
+# Typical subroutines, not objects
+
+sub configuration {
+    my $self = shift;
+
+    # Placeholder code for testing before DB code is ready
+    ######################################################
+    my $temp = {
+        'HOST'              => '0.0.0.0',
+        'PORT'              => 9999,
+        'BBS ROOT'          => '/home/rich/source/github/BBS-Universal',
+        'THREAD MULTIPLIER' => 8,
+        'BBS NAME'          => 'The Looney Bin!',
+        'BAUD RATE'         => 2400,
+        'VERSIONS'          => $self->parse_versions(),
+    };
+    #######################################################
+    my $count = scalar(@_);
+    if ($count == 1) {    # Get single value
+        my $name = shift;
+
+        # Placeholder code for testing before DB code is ready
+        ######################################################
+        my $result = $temp->{$name};
+        ######################################################
+        return ($result);
+    } elsif ($count == 2) {    # Set a single value
+        my $name  = shift;
+        my $value = shift;
+        return (TRUE);
+    } else {                   # Get entire configuration
+                               # Placeholder code for testing before DB code is ready
+        ######################################################
+        my $results = $temp;
+        ######################################################
+        return ($results);
+    } ## end else [ if ($count == 1) ]
+} ## end sub configuration
+
+sub parse_versions {
+    my $self = shift;
+
+    my $versions = {
+        'perl'         => "Perl                          $OLD_PERL_VERSION",
+        'bbs'          => "BBS::Universal                $BBS::Universal::VERSION",
+        'ascii'        => "BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
+        'atascii'      => "BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
+        'petscii'      => "BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
+        'vt102'        => "BBS::Universal::VT102         $BBS::Universal::VT102_VERSION",
+        'messages'     => "BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
+        'sysop'        => "BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
+        'filetransfer' => "BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
+        'users'        => "BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
+        'db'           => "BBS::Universal::DB            $BBS::Universal::DB_VERSION",
+    };
+    return ($versions);
+} ## end sub parse_versions
+
+sub cpu_info {
+    my $self = shift;
+
+    my $info     = Sys::Info->new();
+    my $cpu      = $info->device('CPU');
+    my $identity = $cpu->identify();
+    $identity =~ s/^\d+ x //;    # Strip off the multiplier.  We already get that elsewhere
+    my $speed = $cpu->speed();
+    if ($speed > 999.999) {      # GHz
+        $speed = sprintf('%.02f GHz', ($speed / 1000));
+    } else {                     # MHz
+        $speed = sprintf('%.02f MHz', $speed);
+    }
+    my $response = {
+        'CPU IDENTITY' => $identity,
+        'CPU SPEED'    => $speed,
+        'CPU CORES'    => $cpu->count(),
+        'CPU THREADS'  => $cpu->ht(),
+        'CPU BITS'     => $cpu->bitness(),
+    };
+    $self->{'debug'}->DEBUGMAX([$response]);
+    return ($response);
+} ## end sub cpu_info
+
+sub get_uptime {
+    my $self = shift;
+    chomp(my $uptime = `uptime -p`);
+    return (ucfirst($uptime));
+}
+
+sub pad_center {
+    my $self  = shift;
+    my $text  = shift;
+    my $width = shift;
+
+    if (defined($text) && $text ne '') {
+        my $size    = length($text);
+        my $padding = int(($width - $size) / 2);
+        if ($padding > 0) {
+            $text = ' ' x $padding . $text;
+        }
+    } ## end if (defined($text) && ...)
+    return ($text);
+} ## end sub pad_center
+
+sub center {
+    my $self  = shift;
+    my $text  = shift;
+    my $width = shift;
+
+    return ($text) unless (defined($text) && $text ne '');
+    if ($text =~ /\n/s) {
+        chomp(my @lines = split(/\n/, $text));
+        $text = '';
+        foreach my $line (@lines) {
+            $text .= $self->pad_center($line, $width) . "\n";
+        }
+        return ($text);
+    } else {
+        return ($self->pad_center($text, $width));
+    }
+} ## end sub center
+
+# MANUAL IMPORT HERE #
+
+1;

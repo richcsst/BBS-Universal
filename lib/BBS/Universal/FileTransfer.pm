@@ -1,24 +1,12 @@
 package BBS::Universal::FileTransfer;
+BEGIN { our $VERSION = '0.001'; }
 
-use strict;
-no strict qw( subs refs );
+sub filetransfer_initialize {
+    my $self = shift;
 
-use Debug::Easy;
-use File::Basename;
-
-BEGIN {
-    require Exporter;
-
-    our $VERSION = '0.001';
-    our @ISA     = qw(Exporter);
-    our @EXPORT  = qw(
-      load_file
-      save_file
-      send_file
-      receive_file
-    );
-    our @EXPORT_OK = qw();
-} ## end BEGIN
+    $self->{'debug'}->DEBUG(['FileTransfer initialized']);
+    return ($self);
+} ## end sub filetransfer_initialize
 
 sub load_file {
     my $self = shift;
@@ -45,5 +33,4 @@ sub send_file {
     my $self = shift;
     return (TRUE);
 }
-
 1;

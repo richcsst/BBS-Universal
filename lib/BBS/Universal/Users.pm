@@ -1,43 +1,35 @@
 package BBS::Universal::Users;
+BEGIN { our $VERSION = '0.001'; }
 
-use parent qw( BBS::Universal );
+sub users_initialize {
+    my $self = shift;
 
-use strict;
-no strict 'subs';
-
-BEGIN {
-    require Exporter;
-
-    our $VERSION = '0.001';
-    our @ISA     = qw(Exporter);
-    our @EXPORT  = qw(
-      users_list
-      user_add
-      user_edit
-      user_delete
-      user_find
-    );
-    our @EXPORT_OK = qw();
-} ## end BEGIN
+    $self->{'debug'}->DEBUG(['Users initialized']);
+    return ($self);
+} ## end sub users_initialize
 
 sub users_list {
     my $self = shift;
 }
 
-sub user_add {
+sub users_add {
     my $self = shift;
 }
 
-sub user_edit {
+sub users_edit {
     my $self = shift;
 }
 
-sub user_delete {
+sub users_delete {
     my $self = shift;
 }
 
-sub user_find {
+sub users_find {
     my $self = shift;
 }
 
+sub users_count {
+    my $self = shift;
+    return (0);
+}
 1;
