@@ -20,3 +20,4 @@ BBS-Universal-*
 BBS-Universal-*.tar.gz
 test
 .gitignore
+src/*.pm

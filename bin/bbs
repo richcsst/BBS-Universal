@@ -27,6 +27,8 @@ use threads (
 );
 use threads::shared;
 
+use DBI;
+use DBD::mysql;
 use Cwd;
 use DateTime;
 use Time::HiRes qw(time sleep);
@@ -38,6 +40,7 @@ use Term::ANSIColor;
 use Term::ANSIScreen qw( :cursor :screen );
 use Text::SimpleTable;
 use List::Util qw(min max);
+use Memory::Usage;
 
 use BBS::Universal;
 
@@ -68,7 +71,10 @@ my $DEBUG = Debug::Easy->new(
 );
 
 ############## BBS Core ###################
-my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
+
+my $MEMORY = Memory::Usage->new();
+$MEMORY->record('Begin Script');
+my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'memory' => $MEMORY });
 
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
@@ -77,6 +83,31 @@ my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}-
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
 my $COMMANDS = {
+	'LIST USERS SHORT' => sub {
+		my $self = shift;
+		$self->sysop_list_users(FALSE);
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+	},
+	'LIST USERS TALL' => sub {
+		my $self = shift;
+		$self->sysop_list_users(TRUE);
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+	},
+	'EDIT USER' => sub {
+		my $self = shift;
+		sleep 1;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+	},
+	'ADD USER' => sub {
+		my $self = shift;
+		sleep 1;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+	},
+	'DELETE USER' => sub {
+		my $self = shift;
+		sleep 1;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+	},
     'SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
         {
@@ -91,25 +122,54 @@ my $COMMANDS = {
         run_bbs_sysop(shift, FALSE);
     },
     'STATISTICS' => sub {
-        my $bbs_obj = shift;
-        $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/statistics.txt');
+        my $self = shift;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/statistics.VT'));
     },
-    'BACK' => sub {
+    'BACK' => sub { # Dummy placeholder
     },
-    'EDIT USERS' => sub {
-        my $bbs_obj = shift;
-        $bbs_obj->users_edit();
+    'USER MANAGER' => sub {
+        my $self = shift;
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
     },
+	'SETTINGS' => sub {
+		my $self = shift;
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+	},
+	'FIRST TIME SETUP' => sub {
+		my $self = shift;
+		print "\nThis is for first time setup, if you do this on an already configured system,\nit will wipe everything clean.  Are you sure you want to do this [Y/N]?  ";
+		if ($self->sysop_decision()) {
+			$self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST + 1));
+		}
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+	},
+	'VIEW CONFIGURATION' => sub {
+		my $self = shift;
+		$self->sysop_view_configuration(TRUE);
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+	},
+	'EDIT CONFIGURATION' => sub {
+		my $self = shift;
+		$self->sysop_edit_configuration();
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+	},
 };
 
-binmode(STDOUT, ":encoding(UTF-8)");
+binmode(STDOUT, ":encoding(UTF-8)"); # Make sure the screen knows it is UTF-8
 system_menu($BBS_OBJ);
 
 chdir($OLDDIR);
-
 exit(0);
 
 ###########################################
+
+sub shutdown_message {
+	logo();
+	print q{
+ ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
+ ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
+ ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸},"\n\n";
+}
 
 sub logo {
     my $bbs_obj = shift;
@@ -211,15 +271,19 @@ sub system_menu {
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
-        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/sysop.txt');
+        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/sysop.VT');
 
-        $COMMANDS->{$command}->($bbs_obj);
-        threads->yield();
+		while($command !~ /BACK/ && $RUNNING) {
+			$DEBUG->DEBUG(["Running command $command"]);
+			$command = $COMMANDS->{$command}->($bbs_obj);
+			threads->yield();
+		}
+#		$DEBUG->DEBUG(["Running command $command"]) if ($RUNNING && ! ref($command) !~ /CODE|HASH|ARRAY/);
     } ## end while ($RUNNING)
     $socket->close() if (defined($socket));
     finish($bbs_obj);
     $DEBUG->DEBUG(['Main End']);
-    print "Thank you for using BBS Universal\n\n";
+	shutdown_message();
 } ## end sub system_menu
 
 sub servers_status {
@@ -228,7 +292,7 @@ sub servers_status {
     if ($UPDATE) {
         alarm(0);
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-        my $stp   = int($wsize / 24);
+        my $stp   = int($wsize / 26);
         my $steps = $stp;
         my @row   = ();
         my @sizes;
@@ -236,7 +300,6 @@ sub servers_status {
             push(@sizes, 22);
         }
 
-        #		$DEBUG->ERROR(\@sizes);exit;
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
         $ROW_ADJUST = 2;
@@ -370,26 +433,29 @@ sub run_bbs_sysop {
 sub clean_joinable {
     my $bbs_obj = shift;
     alarm(0);
-    foreach my $thread (sort(keys %{$SERVER_THREADS})) {
-        {
-            lock($UPDATE);
-            $UPDATE = TRUE;
-        }
-        $DEBUG->INFO(["Shutting Down Thread $thread"]);
-        $SERVER_THREADS->{$thread}->join();
-        servers_status($bbs_obj, FALSE);
-        alarm(0);
-    } ## end foreach my $thread (sort(keys...))
-    foreach my $thrd (threads->list(threads::running)) {
-        $thrd->join();
-        {
-            lock($UPDATE);
-            $UPDATE = TRUE;
-        }
-        servers_status(FALSE);
-        alarm(0);
-    } ## end foreach my $thrd (threads->...)
-    sleep 0.5;
+	while(threads->list(threads::running)) {
+		foreach my $thread (threads->list(threads::joinable)) {
+			$thread->join();
+			{
+				lock($UPDATE);
+				$UPDATE = TRUE;
+			}
+			servers_status($bbs_obj,FALSE);
+			alarm 0;
+			threads->yield();
+		}
+		threads->yield();
+	}
+	foreach my $thread (threads->list(threads::joinable)) {
+		$thread->join();
+		{
+			lock($UPDATE);
+			$UPDATE = TRUE;
+		}
+		servers_status($bbs_obj,FALSE);
+		alarm 0;
+		threads->yield();
+	}
 } ## end sub clean_joinable
 
 sub finish {

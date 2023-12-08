@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
 
-use 5.006;
+use 5.020;
 use strict;
 use warnings FATAL => 'all';
 use ExtUtils::MakeMaker;
@@ -10,7 +10,8 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
-my $fast = (scalar(@ARGV)) ? 1 : 0;
+my $fast = (scalar(@ARGV)) ? 1 : 0; # Pass anything and it means Fast
+my $speed = 0.0025; # For sleep to simulate 2400 baud
 
 $| = 1;    # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
@@ -53,11 +54,11 @@ baud_print(colored(['green'],"Done\n\n"));
 if (
     WriteMakefile(
         NAME               => 'BBS::Universal',
-        AUTHOR             => q{Richard Kelsch <rich@rk-internet.com>},
+        AUTHOR             => q{Richard Kelsch <rkelsch@cpan.org>},
         VERSION_FROM       => 'lib/BBS/Universal.pm',
         ABSTRACT           => 'Universal BBS Server',
         PL_FILES           => {},
-        MIN_PERL_VERSION   => 5.006001,
+        MIN_PERL_VERSION   => 5.020000,
         CONFIGURE_REQUIRES => {
             'ExtUtils::MakeMaker' => '7.62',
             'Time::HiRes'         => '1.9767',
@@ -66,7 +67,6 @@ if (
         BUILD_REQUIRES => {
             'Test::More' => '0.44',
         },
-        PREREQ_FATAL => 1,
         PREREQ_PM    => {
             'Time::HiRes'                  => '1.9715',
             'Text::Format'                 => '0.50',
@@ -81,13 +81,13 @@ if (
             'IO::Socket::INET'             => '1.46',
             'Debug::Easy'                  => '2.11',
 			'List::Util'                   => '1.60',
-			'utf8'                         => 0,
+			'Memory::Usage'                => 0,
         },
 
-		EXE_FILES => ['bin/bbs.pl'],
+		EXE_FILES => ['bin/bbs'],
         dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
         clean   => { FILES    => 'BBS-Universal-* _build* *bak *old' },
-#        license => ['gpl_3'], # GNU Public License Version 3
+        LICENSE => 'gpl_3', # GNU Public License Version 3
     )
 ) {
     print chr(27) . '[0m', color('reset');
@@ -112,12 +112,12 @@ sub baud_print {
         my $l = length($text) - 1;
         foreach my $c (0 .. $l) {
             print substr($text, $c, 1);
-            sleep(0.0025);    # 2400 baud
+            sleep($speed);
         }
     } ## end else [ if ($fast) ]
 } ## end sub baud_print
 
-sub merge {
+sub merge { # Perl is a pain in the ...
 	my @dir;
 	opendir(my $DIR,'lib/BBS/Universal/');
 	chomp(@dir = readdir($DIR));

@@ -1,0 +1,13 @@
+# Key | Command | Color | Description
+1|VIEW CONFIGURATION|GREEN|View The System Configuration
+2|EDIT CONFIGURATION|MAGENTA|Edit The System Configuration
+O|FIRST TIME SETUP|CYAN|Setup BBS (First Time Setup)
+S|BACK|WHITE|Return to System Menu
+---
+[% RED     %]     #[% RESET %][% RED %]  ____       _   _   _                 
+[% YELLOW  %]    ##[% RESET %][% RED %] / ___|  ___| |_| |_(_)_ __   __ _ ___ 
+[% GREEN   %]   ###[% RESET %][% RED %] \___ \ / _ \ __| __| | '_ \ / _` / __|
+[% MAGENTA %]  ####[% RESET %][% RED %]  ___) |  __/ |_| |_| | | | | (_| \__ \
+[% BLUE    %] #####[% RESET %][% RED %] |____/ \___|\__|\__|_|_| |_|\__, |___/
+[% CYAN    %]######[% RESET %][% RED %]                            |___/
+[% RESET %]

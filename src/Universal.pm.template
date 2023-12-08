@@ -27,10 +27,11 @@ use Time::HiRes qw(time sleep);
 use Term::ReadKey;
 use Term::ANSIScreen qw( :color :cursor :screen );
 use Text::Format;
-use Text::SimpleTable::AutoWidth;
+use Text::SimpleTable;
 use IO::Socket::INET;
 use Sys::Info;
 use Sys::Info::Constants qw( :device_cpu );
+use List::Util qw(min max);
 
 # use Data::Dumper::Simple;
 
@@ -65,7 +66,16 @@ sub small_new {
     bless($self, $class);
     $self->{'CPU'}  = $self->cpu_info();
     $self->{'CONF'} = $self->configuration();
-    $self->ascii_initialize()->atascii_initialize()->petscii_initialize()->vt102_initialize()->filetransfer_initialize()->messages_initialize()->sysop_initialize()->users_initialize()->db_initialize();
+	$self->{'VERSIONS'} = $self->parse_versions();
+	$self->db_initialize();
+	$self->ascii_initialize();
+	$self->atascii_initialize();
+	$self->petscii_initialize();
+	$self->vt102_initialize();
+	$self->filetransfer_initialize();
+	$self->messages_initialize();
+	$self->users_initialize();
+    $self->sysop_initialize();
     $self->{'debug'}->DEBUGMAX([$self]);
 
     return ($self);
@@ -112,6 +122,7 @@ sub new {    # Always call with the socket as a parameter
             '300'   => 0.02,
             '1200'  => 0.005,
             '2400'  => 0.0025,
+			'4800'  => 0.00125,
             '9600'  => 0.000625,
             '19200' => 0.0003125,
         },
@@ -127,7 +138,15 @@ sub new {    # Always call with the socket as a parameter
     $self->{'baud_rate'} = $self->configuration('BAUD RATE');
     $self->{'CPU'}       = $self->cpu_info();
     $self->{'CONF'}      = $self->configuration();
-    $self->ascii_initialize()->atascii_initialize()->petscii_initialize()->vt102_initialize()->filetransfer_initialize()->messages_initialize()->sysop_initialize()->users_initialize()->db_initialize();
+	$self->db_initialize();
+	$self->ascii_initialize();
+	$self->atascii_initialize();
+	$self->petscii_initialize();
+	$self->vt102_initialize();
+	$self->filetransfer_initialize();
+	$self->messages_initialize();
+	$self->users_initialize();
+    $self->sysop_initialize();
     $self->{'debug'}->DEBUGMAX([$self]);
 
     return ($self);
@@ -266,8 +285,8 @@ sub detokenize_text {    # Detokenize text markup
     foreach my $key (keys %$tokens) {
         if ($key eq 'VERSIONS' && $text =~ /$key/i) {
             my $versions = '';
-            foreach my $names (qw( perl bbs db filetransfer messages sysop users ascii atascii petscii vt102)) {
-                $versions .= $self->{'versions'}->{$names} . "\n";
+            foreach my $names (@{$self->{'VERSIONS'}}) {
+                $versions .= $names . "\n";
             }
             $text =~ s/\[\% $key \%\]/$versions/gi;
         } else {
@@ -318,59 +337,111 @@ sub send_char {
 
 # Typical subroutines, not objects
 
+sub static_configuration {
+	my $self = shift;
+	my $file = shift;
+
+	$self->{'debug'}->DEBUG(['Getting static configuration']);
+	if (-e $file) {
+		open(my $CFG,'<',$file) or die "$file missing!";
+		chomp(my @lines=<$CFG>);
+		close($CFG);
+		foreach my $line (@lines) {
+			next if ($line eq '' || $line =~ /^\#/);
+			my ($name,$val) = split(/\s+=\s+/,$line);
+			$self->{'CONF'}->{'STATIC'}->{$name} = $val;
+			$self->{'debug'}->DEBUGMAX([$name,$val]);
+		}
+	}
+}
+
 sub configuration {
     my $self = shift;
 
-    # Placeholder code for testing before DB code is ready
-    ######################################################
-    my $temp = {
-        'HOST'              => '0.0.0.0',
-        'PORT'              => 9999,
-        'BBS ROOT'          => '/home/rich/source/github/BBS-Universal',
-        'THREAD MULTIPLIER' => 8,
-        'BBS NAME'          => 'The Looney Bin!',
-        'BAUD RATE'         => 2400,
-        'VERSIONS'          => $self->parse_versions(),
-    };
+	unless(exists($self->{'CONF'}->{'STATIC'})) {
+		my @static_file = ('./conf/bbs.rc','~/.bbs_universal/bbs.rc','/etc/bbs.rc');
+		my $found = FALSE;
+		foreach my $file (@static_file) {
+			if (-e $file) {
+				$self->{'debug'}->DEBUG(["$file found"]);
+				$found = TRUE;
+				$self->static_configuration($file);
+				last;
+			} else {
+				$self->{'debug'}->WARNING(["$file not found, trying the next file in the list"]);
+			}
+		}
+		unless($found) {
+			$self->{'debug'}->ERROR(['BBS Static Configuration file not found',join("\n",@static_file)]);
+			exit(1);
+		}
+		$self->db_connect();
+	}
     #######################################################
     my $count = scalar(@_);
     if ($count == 1) {    # Get single value
         my $name = shift;
+		$self->{'debug'}->DEBUG(["Get configuration value for $name"]);
 
-        # Placeholder code for testing before DB code is ready
-        ######################################################
-        my $result = $temp->{$name};
-        ######################################################
+        my $sth = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
+		my $result = $sth->execute($name);
+		$sth->finish();
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name  = shift;
-        my $value = shift;
-        return (TRUE);
-    } else {                   # Get entire configuration
-                               # Placeholder code for testing before DB code is ready
-        ######################################################
-        my $results = $temp;
-        ######################################################
-        return ($results);
+        my $fval  = shift;
+		$self->{'debug'}->DEBUG(["Set configuration value for $name = $fval",'Preparing']);
+		my $sth = $self->{'dbh'}->prepare('UPDATE config SET config_value=? WHERE config_name=?');
+		$self->{'debug'}->DEBUG(['Executing']);
+		my $result = $sth->execute($fval,$name);
+		$sth->finish();
+		$self->{'debug'}->DEBUG(['Updated in DB']);
+		$self->{'CONF'}->{$name} = $fval;
+        return(TRUE);
+    } elsif ($count == 0) { # Get entire configuration forces a reload into CONF
+		$self->{'debug'}->DEBUG(['Query entire configurion']);
+		$self->db_connect() unless(exists($self->{'dbh'}));
+        my $sth = $self->{'dbh'}->prepare('SELECT config_name,config_value FROM config');
+		my $results = {};
+		$sth->execute();
+		while(my @row = $sth->fetchrow_array()) {
+			$results->{$row[0]} = $row[1];
+			$self->{'CONF'}->{$row[0]} = $row[1];
+		}
+		$sth->finish();
+
+        return($results);
     } ## end else [ if ($count == 1) ]
 } ## end sub configuration
 
 sub parse_versions {
     my $self = shift;
 
-    my $versions = {
-        'perl'         => "Perl                          $OLD_PERL_VERSION",
-        'bbs'          => "BBS::Universal                $BBS::Universal::VERSION",
-        'ascii'        => "BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
-        'atascii'      => "BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
-        'petscii'      => "BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
-        'vt102'        => "BBS::Universal::VT102         $BBS::Universal::VT102_VERSION",
-        'messages'     => "BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
-        'sysop'        => "BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
-        'filetransfer' => "BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
-        'users'        => "BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
-        'db'           => "BBS::Universal::DB            $BBS::Universal::DB_VERSION",
-    };
+    my $versions = [
+		"Perl                          $OLD_PERL_VERSION",
+		"BBS::Universal                $BBS::Universal::VERSION",
+		"BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
+		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
+		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
+		"BBS::Universal::VT102         $BBS::Universal::VT102_VERSION",
+		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
+		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
+		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
+		"BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
+		"BBS::Universal::DB            $BBS::Universal::DB_VERSION",
+		"DBI                           $DBI::VERSION",
+		"DBD::mysql                    $DBD::mysql::VERSION",
+		"DateTime                      $DateTime::VERSION",
+		"Debug::Easy                   $Debug::Easy::VERSION",
+		"File::Basename                $File::Basename::VERSION",
+		"Time::HiRes                   $Time::HiRes::VERSION",
+		"Term::ReadKey                 $Term::ReadKey::VERSION",
+		"Term::ANSIScreen              $Term::ANSIScreen::VERSION",
+		"Text::Format                  $Text::Format::VERSION",
+		"Text::SimpleTable             $Text::SimpleTable::VERSION",
+		"IO::Socket::INET              $IO::Socket::INET::VERSION",
+		"Sys::Info                     $Sys::Info::VERSION",
+    ];
     return ($versions);
 } ## end sub parse_versions
 
@@ -379,24 +450,44 @@ sub cpu_info {
 
     my $info     = Sys::Info->new();
     my $cpu      = $info->device('CPU');
+
     my $identity = $cpu->identify();
     $identity =~ s/^\d+ x //;    # Strip off the multiplier.  We already get that elsewhere
     my $speed = $cpu->speed();
     if ($speed > 999.999) {      # GHz
         $speed = sprintf('%.02f GHz', ($speed / 1000));
-    } else {                     # MHz
+    } elsif ($speed > 0) {                     # MHz
         $speed = sprintf('%.02f MHz', $speed);
-    }
+    } else {
+		$speed = 'Unknown';
+	}
     my $response = {
         'CPU IDENTITY' => $identity,
         'CPU SPEED'    => $speed,
-        'CPU CORES'    => $cpu->count(),
-        'CPU THREADS'  => $cpu->ht(),
+        'CPU CORES'    => sprintf('%02d',$cpu->count()),
+        'CPU THREADS'  => $cpu->hyper_threading(),
         'CPU BITS'     => $cpu->bitness(),
+		'CPU LOAD'     => $cpu->load(DCPU_LOAD_LAST_01),
+		'HARDWARE'     => $self->hardware(),
     };
     $self->{'debug'}->DEBUGMAX([$response]);
+
     return ($response);
 } ## end sub cpu_info
+
+sub hardware {
+	my $self = shift;
+
+	open(my $FILE,'<','/proc/cpuinfo');
+	chomp(my @cpuinfo = <$FILE>);
+	close($FILE);
+	my $hardware = 'Unknown';
+	foreach my $line (@cpuinfo) {
+		next unless($line =~ /^Hardware\s+\:\s+(.*)/);
+		$hardware = $1;
+	}
+	return($hardware);
+}
 
 sub get_uptime {
     my $self = shift;

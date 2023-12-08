@@ -1,0 +1,15 @@
+# Key | Command | Color | Description
+1|LIST USERS SHORT|WHITE|List Users (Short)
+2|LIST USERS TALL|WHITE|List Users (Long)
+3|EDIT USER|BLUE|Edit User
+4|ADD USER|YELLOW|Add New User
+5|DELETE USER|RED|Remove a User
+S|BACK|WHITE|Return to System Menu
+---
+[% RED     %]     # [% CYAN %] _   _                 __  __                                   
+[% YELLOW  %]    ## [% CYAN %]| | | |___  ___ _ __  |  \/  | __ _ _ __   __ _  __ _  ___ _ __ 
+[% GREEN   %]   ### [% CYAN %]| | | / __|/ _ \ '__| | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|
+[% MAGENTA %]  #### [% CYAN %]| |_| \__ \  __/ |    | |  | | (_| | | | | (_| | (_| |  __/ |   
+[% BLUE    %] ##### [% CYAN %] \___/|___/\___|_|    |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|   
+[% CYAN    %]###### [% CYAN %]                                                |___/
+[% RESET %]

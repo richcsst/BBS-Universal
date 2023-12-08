@@ -8,7 +8,11 @@ sub vt102_initialize {
 
     $self->{'vt_prefix'}       = $esc;
     $self->{'vt102_sequences'} = {
-        'CLEAR' => $esc . '2J',
+        'CLEAR'      => cls,
+		'CLS'        => cls,
+		'CLEAR LINE' => clline,
+		'CLEAR DOWN' => cldown,
+		'CLEAR UP'   => clup,
 
         # Cursor
         'UP'          => $esc . 'A',
@@ -79,6 +83,15 @@ sub vt102_initialize {
         'BRIGHT B_MAGENTA' => $esc . '105m',
         'BRIGHT B_CYAN'    => $esc . '106m',
         'BRIGHT B_WHITE'   => $esc . '107m',
+
+		# Special
+		'HORIZONTAL RULE RED'     => "\r" . $esc . '41m' . clline . $esc . '0m',
+		'HORIZONTAL RULE GREEN'   => "\r" . $esc . '42m' . clline . $esc . '0m',
+		'HORIZONTAL RULE YELLOW'  => "\r" . $esc . '43m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BLUE'    => "\r" . $esc . '44m' . clline . $esc . '0m',
+		'HORIZONTAL RULE MAGENTA' => "\r" . $esc . '45m' . clline . $esc . '0m',
+		'HORIZONTAL RULE CYAN'    => "\r" . $esc . '46m' . clline . $esc . '0m',
+		'HORIZONTAL RULE WHITE'   => "\r" . $esc . '47m' . clline . $esc . '0m',
     };
 
     $self->{'debug'}->DEBUG(['Initialized VT102']);
