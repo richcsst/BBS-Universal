@@ -7,6 +7,8 @@ use utf8;
 use constant {
     TRUE  => 1,
     FALSE => 0,
+	YES   => 1,
+	NO    => 0,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -37,8 +39,6 @@ use List::Util qw(min max);
 
 BEGIN {
     require Exporter;
-
-    # Due to Perl being a royal pain in the ass to coerce into inheriting methods, this is a sledge hammer approach
 
     our $VERSION = '0.001';
     our @ISA     = qw(Exporter);

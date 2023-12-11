@@ -21,3 +21,5 @@ BBS-Universal-*.tar.gz
 test
 .gitignore
 src/*.pm
+build.sh
+out.txt

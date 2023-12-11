@@ -6,5 +6,5 @@ DATABASE NAME     = BBSUniversal
 DATABASE TYPE     = mysql
 DATABASE USERNAME = bbssystem
 DATABASE PASSWORD = ChangeThisPassword
-DATABASE HOSTNAME = localhost,odroid
+DATABASE HOSTNAME = odroid,localhost
 DATABASE PORT     = 3306

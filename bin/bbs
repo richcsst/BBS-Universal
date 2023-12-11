@@ -71,7 +71,7 @@ my $DEBUG = Debug::Easy->new(
 );
 
 ############## BBS Core ###################
-
+print cls;
 my $MEMORY = Memory::Usage->new();
 $MEMORY->record('Begin Script');
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'memory' => $MEMORY });
@@ -83,30 +83,40 @@ my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}-
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
 my $COMMANDS = {
-	'LIST USERS SHORT' => sub {
+	'LIST USERS VERTICAL ABBREVIATED' => sub {
 		my $self = shift;
-		$self->sysop_list_users(FALSE);
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+		$self->sysop_list_users('VERTICAL ABBREVIATED');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
 	},
-	'LIST USERS TALL' => sub {
+	'LIST USERS HORIZONTAL ABBREVIATED' => sub {
 		my $self = shift;
-		$self->sysop_list_users(TRUE);
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+		$self->sysop_list_users('HORIZONTAL ABBREVIATED');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+	},
+	'LIST USERS VERTICAL DETAILED' => sub {
+		my $self = shift;
+		$self->sysop_list_users('VERTICAL DETAILED');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+	},
+	'LIST USERS HORIZONTAL DETAILED' => sub {
+		my $self = shift;
+		$self->sysop_list_users('HORIZONTAL DETAILED');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
 	},
 	'EDIT USER' => sub {
 		my $self = shift;
-		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+		$self->sysop_user_edit();
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
 	},
 	'ADD USER' => sub {
 		my $self = shift;
 		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
 	},
 	'DELETE USER' => sub {
 		my $self = shift;
 		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
 	},
     'SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
@@ -123,35 +133,35 @@ my $COMMANDS = {
     },
     'STATISTICS' => sub {
         my $self = shift;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/statistics.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/statistics.VT'));
     },
     'BACK' => sub { # Dummy placeholder
     },
     'USER MANAGER' => sub {
         my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/usermanager.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
     },
 	'SETTINGS' => sub {
 		my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
 	},
 	'FIRST TIME SETUP' => sub {
 		my $self = shift;
 		print "\nThis is for first time setup, if you do this on an already configured system,\nit will wipe everything clean.  Are you sure you want to do this [Y/N]?  ";
 		if ($self->sysop_decision()) {
-			$self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST + 1));
+			$self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST));
 		}
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
 	},
 	'VIEW CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_view_configuration(TRUE);
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
 	},
 	'EDIT CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_edit_configuration();
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
 	},
 };
 
@@ -177,25 +187,17 @@ sub logo {
 
     $ROW_ADJUST = 0;
 
-    print setscroll(1, $hsize), locate(1, 1), cldown, colored(['on_white'], clline), "\n";
-    print color('red');
-    print '  ____  ____ ____    _   _       _                          _  ' . "\n";
-    print color('yellow');
-    print ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |' . "\n";
-    print color('green');
-    print q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |} . "\n";
-    print color('magenta');
-    print ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |' . "\n";
-    print color('bright_blue');
-    print ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|' . "\n";
-    print color('reset');
-    print locate(3, 65),         sprintf('Version %.03f', $BBS::Universal::VERSION), "\n";
-    print locate(4, 65),         'Written By Richard Kelsch',                       clline;
-    print locate(4, 65),         'Copyright © 2023 Richard Kelsch',                 clline;
-    print locate(5, 65),         'All Rights Reserved',                             clline;
-    print locate(6, 65),         'Licensed under the GNU Public License Version 3', clline;
-    print locate($START_ROW, 1), cldown, "\n";
+    print setscroll(1, $hsize), locate(1, 1);
+    print colored(['red'],         '  ____  ____ ____    _   _       _                          _ ') .  sprintf(' │ Version %.03f', $BBS::Universal::VERSION), "\n";;
+    print colored(['yellow'],      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |'),' │ Written By Richard Kelsch', clline, "\n";
+    print colored(['green'],      q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}),' │ Copyright © 2023 Richard Kelsch', clline, "\n";
+    print colored(['magenta'],     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |'),' │ All Rights Reserved', clline, "\n";
+    print colored(['bright_blue'], ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|'),' │ Licensed under the GNU Public License Version 3', clline, "\n";
+    print locate(6, 1), '━' x $wsize;
+	print locate(6, 64),'┷';
+	print locate($START_ROW, 1),cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
+	# U2537
 } ## end sub logo
 
 sub system_menu {
@@ -207,10 +209,11 @@ sub system_menu {
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
 
     my ($width, $height) = ($wsize, $hsize);
-    print locate($START_ROW, 1), cldown, 'Loading ' . $MAX_THREADS . ' Threads ...';
+    print locate($START_ROW, 1), cldown;
 
     my $socket;
     unless ($TEST) {
+		print 'Loading ' . $MAX_THREADS . ' Threads ...';
         $socket = IO::Socket::INET->new(
             'LocalHost' => $bbs_obj->{'CONF'}->{'HOST'},
             'LocalPort' => $bbs_obj->{'CONF'}->{'PORT'},
@@ -260,8 +263,7 @@ sub system_menu {
         } ## end else [ if (defined($error)) ]
     } ## end unless ($TEST)
     print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
-    print locate(($START_ROW + $ROW_ADJUST), 1), cldown;
-    print colored(['on_white'], ' ' x $wsize), "\n\n";
+    print locate(($START_ROW + $ROW_ADJUST),1), cldown;
 
     while ($RUNNING) {
         ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -271,7 +273,7 @@ sub system_menu {
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
-        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST + 1), 'files/main/sysop.VT');
+        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/sysop.VT');
 
 		while($command !~ /BACK/ && $RUNNING) {
 			$DEBUG->DEBUG(["Running command $command"]);

@@ -7,6 +7,8 @@ use utf8;
 use constant {
     TRUE  => 1,
     FALSE => 0,
+	YES   => 1,
+	NO    => 0,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -37,8 +39,6 @@ use List::Util qw(min max);
 
 BEGIN {
     require Exporter;
-
-    # Due to Perl being a royal pain in the ass to coerce into inheriting methods, this is a sledge hammer approach
 
     our $VERSION = '0.001';
     our @ISA     = qw(Exporter);
@@ -852,7 +852,7 @@ sub sysop_initialize {
         }
     } ## end else [ if ($wsize > 120) ]
 
-    $self->{'sysop_special_characters'} = {
+    $self->{'sysop_tokens'} = {
         'EURO'                             => chr(128),
         'ELIPSIS'                          => chr(133),
         'BULLET DOT'                       => chr(149),
@@ -1058,7 +1058,71 @@ sub sysop_initialize {
         'DISK FREE SPACE' => $self->sysop_disk_free(),
         'MEMORY'          => $self->sysop_memory(),
     };
-
+	$self->{'SYSOP ORDER DETAILED'} = [qw(
+		    id
+			username
+			fullname
+			given
+			family
+			nickname
+			birthday
+			location
+			baud_rate
+			text_mode
+			suffix
+			timeout
+			retro_systems
+			accomplishments
+			prefer_nickname
+			view_files
+			upload_files
+			download_files
+			remove_files
+			read_message
+			post_message
+			remove_message
+			sysop
+			page_sysop
+			login_time
+			logout_time
+	)];
+	$self->{'SYSOP ORDER ABBREVIATED'} = [qw(
+			id
+			username
+			fullname
+			given
+			family
+			nickname
+			text_mode
+	)];
+	$self->{'SYSOP HEADING WIDTHS'} = {
+			'id' => 2,
+			'username' => 16,
+			'fullname' => 20,
+			'given' => 12,
+			'family' => 12,
+			'nickname' => 8,
+			'birthday' => 10,
+			'location' => 20,
+			'baud_rate' => 4,
+			'login_time' => 10,
+			'logout_time' => 10,
+			'text_mode' => 9,
+			'suffix' => 3,
+			'timeout' => 5,
+			'retro_systems' => 20,
+			'accomplishments' => 20,
+			'prefer_nickname' => 2,
+			'view_files' => 2,
+			'upload_files' => 2,
+			'download_files' => 2,
+			'remove_files' => 2,
+			'read_message' => 2,
+			'post_message' => 2,
+			'remove_message' => 2,
+			'sysop' => 2,
+			'page_sysop' => 2,
+	};
     #$self->{'debug'}->ERROR($self);exit;
     $self->{'debug'}->DEBUG(['Initialized SysOp object']);
     return ($self);
@@ -1147,12 +1211,14 @@ sub sysop_parse_menu {
     $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     my $keys = '';
+	print $self->sysop_menu_choice('TOP','','');
     foreach my $kmenu (sort(keys %{$mapping})) {
         next if ($kmenu eq 'TEXT');
-        print sprintf('%s%s%s%s %s %s', color("bold $mapping->{$kmenu}->{'color'}"), $self->{'sysop_special_characters'}->{'WEDGE TOP LEFT'}, colored(['reverse'], uc($kmenu)), colored(["bold $mapping->{$kmenu}->{'color'}"], $self->{'sysop_special_characters'}->{'WEDGE BOTTOM RIGHT'}), colored(["bold $mapping->{$kmenu}->{'color'}"], $self->{'sysop_special_characters'}->{'BIG BULLET RIGHT'}), $mapping->{$kmenu}->{'text'}), "\n\n";
+        print $self->sysop_menu_choice($kmenu,$mapping->{$kmenu}->{'color'},$mapping->{$kmenu}->{'text'});
         $keys .= $kmenu;
     }
-    print "\nChoose> ";
+	print $self->sysop_menu_choice('BOTTOM','','');
+    print "\n",$self->sysop_prompt('Choose');
     my $key;
     do {
         $key = uc($self->sysop_keypress());
@@ -1247,97 +1313,134 @@ sub sysop_true_false {
 
 sub sysop_list_users {
 	my $self = shift;
-	my $tall = shift || FALSE;
+	my $list_mode = shift;;
 
 	my $table;
-	$self->{'debug'}->DEBUG(['Determine table cell widths']);
+	$self->{'debug'}->DEBUG($list_mode);
+	my $date_format = $self->configuration('SHORT DATE FORMAT');
 	my $name_width = 15;
 	my $value_width = 60;
 	my $sth;
 	my @order;
-	if ($tall) {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM users_view');
-		@order = qw(
-			id
-			username
-			fullname
-			given
-			family
-			nickname
-			birthday
-			location
-			baud_rate
-			login_time
-			logout_time
-			text_mode
-			suffix
-			timeout
-			retro_systems
-			accomplishments
-			prefer_nickname
-			view_files
-			upload_files
-			download_files
-			remove_files
-			read_message
-			post_message
-			remove_message
-			sysop
-			page_sysop
-		);
+	my $sql;
+	if ($list_mode =~ /DETAILED/) {
+		$sql = q{
+            SELECT
+                id,
+                username,
+                fullname,
+                given,
+                family,
+                nickname,
+                DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
+                location,
+                baud_rate,
+                DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
+                DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
+                text_mode,
+                suffix,
+                timeout,
+                retro_systems,
+                accomplishments,
+                prefer_nickname,
+                view_files,
+                upload_files,
+                download_files,
+                remove_files,
+                read_message,
+                post_message,
+                remove_message,
+                sysop,
+                page_sysop
+            FROM
+                users_view };
+		$sth = $self->{'dbh'}->prepare($sql);
+		@order = @{$self->{'SYSOP ORDER DETAILED'}};
 	} else {
-		@order = qw(
-			id
-			username
-			fullname
-			given
-			family
-			nickname
-			text_mode
-		);
-		$sth = $self->{'dbh'}->prepare('SELECT id,username,fullname,given,family,nickname,text_mode FROM users_view');
+		@order = @{$self->{'SYSOP ORDER ABBREVIATED'}};
+		$sql = 'SELECT id,username,fullname,given,family,nickname,text_mode FROM users_view';
+		$sth = $self->{'dbh'}->prepare($sql);
 	}
 	$sth->execute();
-	while(my $row = $sth->fetchrow_hashref()) {
-		foreach my $name (@order) {
-			next if ($name =~ /retro_systems|accomplishments/);
-			if ($name ne 'id' && $row->{$name} =~ /^(0|1)$/) {
-				$row->{$name} = $self->sysop_true_false($row->{$name},'YN');
+	if ($list_mode =~ /VERTICAL/) {
+		while(my $row = $sth->fetchrow_hashref()) {
+			foreach my $name (@order) {
+				next if ($name =~ /retro_systems|accomplishments/);
+				if ($name ne 'id' && $row->{$name} =~ /^(0|1)$/) {
+					$row->{$name} = $self->sysop_true_false($row->{$name},'YN');
+				}
+				$value_width = max(length($row->{$name}),$value_width);
+				$self->{'debug'}->DEBUGMAX([$row,$name_width,$value_width]);
 			}
-			$value_width = max(length($row->{$name}),$value_width);
-			$self->{'debug'}->DEBUGMAX([$row,$name_width,$value_width]);
 		}
-	}
-	$sth->finish();
-	$self->{'debug'}->DEBUG(['Populate the table']);
-	if ($tall) {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM users_view');
-	} else {
-		$sth = $self->{'dbh'}->prepare('SELECT id,username,fullname,given,family,nickname,text_mode FROM users_view');
-	}
-	$sth->execute();
-	$table = Text::SimpleTable->new($name_width,$value_width);
-	$table->row('NAME','VALUE');
-	$table->hr();
-	while(my $Row = $sth->fetchrow_hashref()) {
-		foreach my $name (@order) {
-			if ($name ne 'id' && $Row->{$name} =~ /^(0|1)$/) {
-				$Row->{$name} = $self->sysop_true_false($Row->{$name},'YN');
-			} elsif ($name eq 'timeout') {
-				$Row->{$name} = $Row->{$name} . ' Minutes'
+		$sth->finish();
+		$self->{'debug'}->DEBUG(['Populate the table']);
+		$sth = $self->{'dbh'}->prepare($sql);
+		$sth->execute();
+		$table = Text::SimpleTable->new($name_width,$value_width);
+		$table->row('NAME','VALUE');
+		$table->hr();
+		while(my $Row = $sth->fetchrow_hashref()) {
+			foreach my $name (@order) {
+				if ($name ne 'id' && $Row->{$name} =~ /^(0|1)$/) {
+					$Row->{$name} = $self->sysop_true_false($Row->{$name},'YN');
+				} elsif ($name eq 'timeout') {
+					$Row->{$name} = $Row->{$name} . ' Minutes'
+				}
+				$self->{'debug'}->DEBUGMAX([$name,$Row->{$name}]);
+				$table->row($name . '',$Row->{$name} . '');
 			}
-			$self->{'debug'}->DEBUGMAX([$name,$Row->{$name}]);
-			$table->row($name . '',$Row->{$name} . '');
 		}
+		$sth->finish();
+		$self->{'debug'}->DEBUG(['Show table']);
+		my $string = $table->boxes->draw();
+		$self->{'debug'}->DEBUGMAX(\$string);
+		print "$string\n";
+	} else { # Horizontal
+		my @hw;
+		foreach my $name (@order) {
+			push(@hw,$self->{'SYSOP HEADING WIDTHS'}->{$name});
+		}
+		$self->{'debug'}->DEBUGMAX(\@hw);
+		$table = Text::SimpleTable->new(@hw);
+		if ($list_mode =~ /ABBREVIATED/) {
+			$table->row(@order);
+		} else {
+			my @title = ();
+			foreach my $heading (@order) {
+				push(@title,$self->sysop_vertical_heading($heading));
+			}
+			$table->row(@title);
+		}
+		$table->hr();
+		while(my $row = $sth->fetchrow_hashref()) {
+			my @vals = ();
+			foreach my $name (@order) {
+				push(@vals,$row->{$name} . '');
+				$self->{'debug'}->DEBUGMAX([$name,$row->{$name}]);
+			}
+			$table->row(@vals);
+		}
+		$sth->finish();
+		$self->{'debug'}->DEBUG(['Show table']);
+		my $string = $table->boxes->draw();
+		$self->{'debug'}->DEBUGMAX(\$string);
+		print "$string\n";
 	}
-	$sth->finish();
-	$self->{'debug'}->DEBUG(['Show table']);
-	my $string = $table->boxes->draw();
-	$self->{'debug'}->DEBUGMAX(\$string);
-	print "$string\n";
 	print 'Press a key to continue ... ';
 	return ($self->sysop_keypress(TRUE));
 	return(TRUE);
+}
+
+sub sysop_vertical_heading {
+	my $self = shift;
+	my $text = shift;
+
+	my $heading = '';
+	for (my $count = 0;$count < length($text);$count++) {
+		$heading .= substr($text,$count,1) . "\n";
+	}
+	return($heading);
 }
 
 sub sysop_view_configuration {
@@ -1345,7 +1448,7 @@ sub sysop_view_configuration {
     my $view = shift;
 
     # Get maximum widths
-    my $name_width  = 1;
+    my $name_width  = 6;
     my $value_width = 1;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
@@ -1361,7 +1464,7 @@ sub sysop_view_configuration {
     $self->{'debug'}->DEBUGMAX([$name_width, $value_width]);
 
     # Assemble table
-    my $table = ($view) ? Text::SimpleTable->new($name_width, $value_width) : Text::SimpleTable->new(2, $name_width, $value_width);
+    my $table = ($view) ? Text::SimpleTable->new($name_width, $value_width) : Text::SimpleTable->new(6, $name_width, $value_width);
     if ($view) {
         $table->row('STATIC NAME', 'STATIC VALUE');
     } else {
@@ -1380,7 +1483,7 @@ sub sysop_view_configuration {
     if ($view) {
         $table->row('NAME IN DB', 'VALUE IN DB');
     } else {
-        $table->row('ID', 'NAME IN DB', 'VALUE IN DB');
+        $table->row('CHOICE', 'NAME IN DB', 'VALUE IN DB');
     }
     $table->hr();
     my $count = 0;
@@ -1409,7 +1512,10 @@ sub sysop_view_configuration {
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
     } else {
-        print 'Which number to edit (S to return to Settings)?  ';
+		print $self->sysop_menu_choice('TOP','','');
+		print $self->sysop_menu_choice('S','RED','Return to Settings Menu');
+		print $self->sysop_menu_choice('BOTTOM','','');
+		print $self->sysop_prompt('Choose');
         return ($self->sysop_keypress(TRUE));
     }
 } ## end sub sysop_view_configuration
@@ -1427,7 +1533,7 @@ sub sysop_edit_configuration {
 	}
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
     $self->{'debug'}->DEBUGMAX(["Choice $choice $conf[$choice]"]);
-    print '(Edit) ', $conf[$choice], ' ', $self->{'sysop_special_characters'}->{'BIG BULLET RIGHT'}, '  ';
+    print '(Edit) ', $conf[$choice], ' ', $self->{'sysop_tokens'}->{'BIG BULLET RIGHT'}, '  ';
     my $sizes = {
         'BAUD RATE'         => 4,
         'BBS NAME'          => 50,
@@ -1457,7 +1563,59 @@ sub sysop_user_edit {
     my $self = shift;
 
 	$self->{'debug'}->DEBUG(['Begin user Edit']);
+	my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R T U V W X Y Z );
+	my $key;
+	do {
+		print $self->sysop_prompt('Please enter the username or account number') .
+		  $self->{'vt102_sequences'}->{'DOWN'},
+		  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 16,
+		  $self->{'vt102_sequences'}->{'UP'},
+		  $self->{'vt102_sequences'}->{'LEFT'} x 16;
+		chomp(my $search = <STDIN>);
+		return(FALSE) if ($search eq '');
+		my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
+		$sth->execute($search,$search);
+		my $user_row = $sth->fetchrow_hashref();
+		$sth->finish();
+		if (defined($user_row)) {
+			$self->{'debug'}->DEBUGMAX($user_row);
+			my $table = Text::SimpleTable->new(6,16,60);
+			$table->row('CHOICE','FIELD','VALUE');
+			$table->hr();
+			my $count = 0;
+			$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
+			my %choice;
+			foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
+				if ($field =~ /_time|fullname/) {
+					$table->row(' ',$field,$user_row->{$field});
+				} else {
+					$table->row($choices[$count],$field,$user_row->{$field});
+					$choice{$choices[$count]} = $field;
+					$count++;
+				}
+			}
+			print $table->boxes->draw(),"\n";
+			print $self->sysop_menu_choice('TOP','','');
+			print $self->sysop_menu_choice('S','CYAN','Return to Users Edit Menu');
+			print $self->sysop_menu_choice('BOTTOM','','');
+		    print "\n",$self->sysop_prompt('Choose');
+			$key = uc($self->sysop_keypress());
+		} else {
+			print "User not found!\n\n";
+		}
+	} until($key eq 'S');
     return (TRUE);
+}
+
+sub sysop_prompt {
+	my $self = shift;
+	my $text = shift;
+	my $response =
+	  $text .
+	  ' ' .
+	  $self->{'sysop_tokens'}->{'BIG BULLET RIGHT'} .
+	  ' ';
+	return($response);
 }
 
 sub sysop_detokenize {
@@ -1465,9 +1623,9 @@ sub sysop_detokenize {
     my $text = shift;
 
     $self->{'debug'}->DEBUGMAX([$text]);    # Before
-    foreach my $key (keys %{ $self->{'sysop_special_characters'} }) {
+    foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
-        $ch = $self->{'sysop_special_characters'}->{$key};
+        $ch = $self->{'sysop_tokens'}->{$key};
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     }
     foreach my $name (keys %{ $self->{'vt102_sequences'} }) {
@@ -1478,6 +1636,39 @@ sub sysop_detokenize {
 
     return ($text);
 } ## end sub sysop_detokenize
+
+sub sysop_menu_choice {
+	my $self   = shift;
+	my $choice = shift;
+	my $color  = shift;
+	my $desc   = shift;
+
+	my $response;
+	if ($choice eq 'TOP') {
+		$response =
+		  $self->{'sysop_tokens'}->{'TOP LEFT ROUNDED'} .
+		  $self->{'sysop_tokens'}->{'THIN HORIZONTAL BAR'} .
+		  $self->{'sysop_tokens'}->{'TOP RIGHT ROUNDED'} .
+		  "\n";
+	} elsif ($choice eq 'BOTTOM') {
+		$response =
+		  $self->{'sysop_tokens'}->{'BOTTOM LEFT ROUNDED'} .
+		  $self->{'sysop_tokens'}->{'THIN HORIZONTAL BAR'} .
+		  $self->{'sysop_tokens'}->{'BOTTOM RIGHT ROUNDED'} .
+		  "\n";
+	} else {
+		$response =
+		  $self->{'sysop_tokens'}->{'THIN VERTICAL BAR'} .
+		  colored(["BOLD $color"],$choice) .
+		  $self->{'sysop_tokens'}->{'THIN VERTICAL BAR'} .
+		  ' ' .
+		  colored([$color],$self->{'sysop_tokens'}->{'BIG BULLET RIGHT'}) .
+		  ' ' .
+		  $desc .
+		  "\n";
+	}
+	return($response);
+}
 
  
 

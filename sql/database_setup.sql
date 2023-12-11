@@ -101,6 +101,7 @@ INSERT INTO config (config_name, config_value) VALUES ('BAUD RATE','2400');
 INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
 INSERT INTO config (config_name, config_value) VALUES ('AUTHOR NAME','Richard Kelsch');
 INSERT INTO config (config_name, config_value) VALUES ('AUTHOR EMAIL','rkelsch@cpan.org');
+INSERT INTO config (config_name, config_value) VALUES ('SHORT DATE FORMAT','%m/%d/%Y');
 
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ASCII','ASC');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');

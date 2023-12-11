@@ -1,9 +1,11 @@
 # Key | Command | Color | Description
-1|LIST USERS SHORT|WHITE|List Users (Short)
-2|LIST USERS TALL|WHITE|List Users (Long)
-3|EDIT USER|BLUE|Edit User
-4|ADD USER|YELLOW|Add New User
-5|DELETE USER|RED|Remove a User
+1|LIST USERS VERTICAL ABBREVIATED|CYAN|List Users Vertically With Just The Essentials
+2|LIST USERS HORIZONTAL ABBREVIATED|CYAN|List Users Horizontally With Just The Essentials
+3|LIST USERS VERTICAL DETAILED|CYAN|List Users Vertically With All Details
+4|LIST USERS HORIZONTAL DETAILED|CYAN|List Users Horizontally With All Details
+5|EDIT USER|BLUE|Edit User
+6|ADD USER|YELLOW|Add New User
+7|DELETE USER|RED|Remove a User
 S|BACK|WHITE|Return to System Menu
 ---
 [% RED     %]     # [% CYAN %] _   _                 __  __                                   
