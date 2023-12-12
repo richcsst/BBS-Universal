@@ -207,30 +207,53 @@ sub sysop_initialize {
         'MIDDLE VERTICAL RULE MAGENTA'     => $self->sysop_locate_middle('B_MAGENTA'),
         'MIDDLE VERTICAL RULE CYAN'        => $self->sysop_locate_middle('B_CYAN'),
         'MIDDLE VERTICAL RULE WHITE'       => $self->sysop_locate_middle('B_WHITE'),
-        'HORIZONTAL RULE RED'              => "\r" . $self->{'vt102_sequences'}->{'B_RED'} . clline . $self->{'vt102_sequences'}->{'RESET'},        # Needs color defined before actual use
-        'HORIZONTAL RULE GREEN'            => "\r" . $self->{'vt102_sequences'}->{'B_GREEN'} . clline . $self->{'vt102_sequences'}->{'RESET'},      # Needs color defined before actual use
-        'HORIZONTAL RULE YELLOW'           => "\r" . $self->{'vt102_sequences'}->{'B_YELLOW'} . clline . $self->{'vt102_sequences'}->{'RESET'},     # Needs color defined before actual use
-        'HORIZONTAL RULE BLUE'             => "\r" . $self->{'vt102_sequences'}->{'B_BLUE'} . clline . $self->{'vt102_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE MAGENTA'          => "\r" . $self->{'vt102_sequences'}->{'B_MAGENTA'} . clline . $self->{'vt102_sequences'}->{'RESET'},    # Needs color defined before actual use
-        'HORIZONTAL RULE CYAN'             => "\r" . $self->{'vt102_sequences'}->{'B_CYAN'} . clline . $self->{'vt102_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE WHITE'            => "\r" . $self->{'vt102_sequences'}->{'B_WHITE'} . clline . $self->{'vt102_sequences'}->{'RESET'},      # Needs color defined before actual use
+        'HORIZONTAL RULE RED'              => "\r" . $self->{'ansi_sequences'}->{'B_RED'} . clline . $self->{'ansi_sequences'}->{'RESET'},        # Needs color defined before actual use
+        'HORIZONTAL RULE GREEN'            => "\r" . $self->{'ansi_sequences'}->{'B_GREEN'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
+        'HORIZONTAL RULE YELLOW'           => "\r" . $self->{'ansi_sequences'}->{'B_YELLOW'} . clline . $self->{'ansi_sequences'}->{'RESET'},     # Needs color defined before actual use
+        'HORIZONTAL RULE BLUE'             => "\r" . $self->{'ansi_sequences'}->{'B_BLUE'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
+        'HORIZONTAL RULE MAGENTA'          => "\r" . $self->{'ansi_sequences'}->{'B_MAGENTA'} . clline . $self->{'ansi_sequences'}->{'RESET'},    # Needs color defined before actual use
+        'HORIZONTAL RULE CYAN'             => "\r" . $self->{'ansi_sequences'}->{'B_CYAN'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
+        'HORIZONTAL RULE WHITE'            => "\r" . $self->{'ansi_sequences'}->{'B_WHITE'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
 
         # Tokens
         'HOSTNAME'        => $self->sysop_hostname,
         'IP ADDRESS'      => $self->sysop_ip_address(),
         'CPU CORES'       => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'       => $self->{'CPU'}->{'CPU SPEED'},
-        'CPU LOAD'        => $self->cpu_info->{'CPU LOAD'},
         'CPU IDENTITY'    => $self->{'CPU'}->{'CPU IDENTITY'},
         'CPU THREADS'     => $self->{'CPU'}->{'CPU THREADS'},
-        'HARDWARE'        => $self->hardware(),
-        'UPTIME'          => $self->get_uptime(),
+        'HARDWARE'        => $self->{'CPU'}->{'HARDWARE'},
         'VERSIONS'        => $versions,
         'BBS NAME'        => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
-        'USERS COUNT'     => $self->db_count_users(),
-        'THREADS COUNT'   => int($self->{'CPU'}->{'CPU CORES'} * $self->{'CONF'}->{'THREAD MULTIPLIER'}),
-        'DISK FREE SPACE' => $self->sysop_disk_free(),
-        'MEMORY'          => $self->sysop_memory(),
+		# Non-static
+        'THREADS COUNT'   => sub {
+			my $self = shift;
+			return($THREADS_RUNNING);
+		},
+        'USERS COUNT'     => sub {
+			my $self = shift;
+			return($self->db_count_users());
+		},
+        'UPTIME'          => sub {
+			my $self = shift;
+			return($self->get_uptime());
+		},
+        'DISK FREE SPACE' => sub {
+			my $self = shift;
+			return($self->sysop_disk_free());
+		},
+        'MEMORY'          => sub {
+			my $self = shift;
+			return($self->sysop_memory());
+		},
+		'ONLINE'          => sub {
+			my $self = shift;
+			return($self->sysop_online_count());
+		},
+        'CPU LOAD'        => sub {
+			my $self = shift;
+			return($self->cpu_info->{'CPU LOAD'});
+		},
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
 		    id
@@ -301,6 +324,12 @@ sub sysop_initialize {
     $self->{'debug'}->DEBUG(['Initialized SysOp object']);
     return ($self);
 } ## end sub sysop_initialize
+
+sub sysop_online_count {
+	my $self = shift;
+
+	return($ONLINE);
+}
 
 sub sysop_disk_free {
     my $self = shift;
@@ -448,7 +477,7 @@ sub sysop_locate_middle {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $middle = int($wsize / 2);
-    my $string = "\r" . $self->{'vt102_sequences'}->{'RIGHT'} x $middle . $self->{'vt102_sequences'}->{$color} . ' ' . $self->{'vt102_sequences'}->{'RESET'};
+    my $string = "\r" . $self->{'ansi_sequences'}->{'RIGHT'} x $middle . $self->{'ansi_sequences'}->{$color} . ' ' . $self->{'ansi_sequences'}->{'RESET'};
     return ($string);
 } ## end sub sysop_locate_middle
 
@@ -623,7 +652,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 1;
+    my $value_width = 50;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -645,7 +674,7 @@ sub sysop_view_configuration {
         $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
     }
     $table->hr();
-    foreach my $conf (keys %{ $self->{'CONF'}->{'STATIC'} }) {
+    foreach my $conf (sort(keys %{ $self->{'CONF'}->{'STATIC'} })) {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
@@ -675,13 +704,13 @@ sub sysop_view_configuration {
         } ## end else [ if ($view) ]
     } ## end foreach my $conf (sort(keys...))
     my $output = $table->boxes->draw();
-    foreach my $change ('STATIC NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME') {
+    foreach my $change ('AUTHOR EMAIL','AUTHOR LOCATION','AUTHOR NAME','STATIC NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME') {
         if ($output =~ /($change)/) {
             my $ch = colored(['yellow'], $1);
             $output =~ s/$1/$ch/gs;
         }
     } ## end foreach my $change ('STATIC NAME'...)
-    print "$output\n";
+    print $output;
     if ($view) {
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
@@ -690,18 +719,19 @@ sub sysop_view_configuration {
 		print $self->sysop_menu_choice('S','RED','Return to Settings Menu');
 		print $self->sysop_menu_choice('BOTTOM','','');
 		print $self->sysop_prompt('Choose');
-        return ($self->sysop_keypress(TRUE));
+        return (TRUE);
     }
 } ## end sub sysop_view_configuration
 
 sub sysop_edit_configuration {
     my $self = shift;
 
-    my $choice;
+	$self->sysop_view_configuration(FALSE);
+	my $choice;
     do {
-        $choice = ($self->sysop_view_configuration(FALSE));
+		$choice = $self->sysop_keypress(TRUE);
     } until ($choice =~ /\d|S/i);
-	if ($choice =~ /s/i) {
+	if ($choice !~ /\d/i) {
 		print "BACK\n";
 		return (FALSE);
 	}
@@ -741,10 +771,10 @@ sub sysop_user_edit {
 	my $key;
 	do {
 		print $self->sysop_prompt('Please enter the username or account number') .
-		  $self->{'vt102_sequences'}->{'DOWN'},
+		  $self->{'ansi_sequences'}->{'DOWN'},
 		  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 16,
-		  $self->{'vt102_sequences'}->{'UP'},
-		  $self->{'vt102_sequences'}->{'LEFT'} x 16;
+		  $self->{'ansi_sequences'}->{'UP'},
+		  $self->{'ansi_sequences'}->{'LEFT'} x 16;
 		chomp(my $search = <STDIN>);
 		return(FALSE) if ($search eq '');
 		my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
@@ -760,10 +790,15 @@ sub sysop_user_edit {
 			$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
 			my %choice;
 			foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
-				if ($field =~ /_time|fullname/) {
+				if ($field =~ /_time|fullname|id/) {
 					$table->row(' ',$field,$user_row->{$field});
 				} else {
-					$table->row($choices[$count],$field,$user_row->{$field});
+					if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
+						$user_row->{$field} = $self->sysop_true_false($user_row->{$field},'YN');
+					} elsif ($name eq 'timeout') {
+						$user_row->{$field} = $user_row->{$field} . ' Minutes'
+					}
+					$table->row($choices[$count],$field,$user_row->{$field} . '');
 					$choice{$choices[$count]} = $field;
 					$count++;
 				}
@@ -799,11 +834,15 @@ sub sysop_detokenize {
     $self->{'debug'}->DEBUGMAX([$text]);    # Before
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
-        $ch = $self->{'sysop_tokens'}->{$key};
+		if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
+			$ch = $self->{'sysop_tokens'}->{$key}->($self);
+		} else {
+			$ch = $self->{'sysop_tokens'}->{$key};
+		}
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     }
-    foreach my $name (keys %{ $self->{'vt102_sequences'} }) {
-        my $ch = $self->{'vt102_sequences'}->{$name};
+    foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
+        my $ch = $self->{'ansi_sequences'}->{$name};
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/gi;
     }
     $self->{'debug'}->DEBUGMAX([$text]);    # After

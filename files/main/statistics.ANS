@@ -12,7 +12,7 @@ Hardware          ▰▰▰   [% HARDWARE     %][% MIDDLE VERTICAL RULE MAGENTA 
 CPU Type          ▰▰▰   [% CPU IDENTITY %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Speed         ▰▰▰  [% CPU SPEED %]
 CPU Cores         ▰▰▰   [% CPU CORES    %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Load          ▰▰▰  [% CPU LOAD %]
 CPU Threads       ▰▰▰   [% CPU THREADS  %][% MIDDLE VERTICAL RULE MAGENTA %]  Servers Running   ▰▰▰  [% THREADS COUNT %]
-IP Address        ▰▰▰   [% IP ADDRESS   %][% MIDDLE VERTICAL RULE MAGENTA %]  User Count        ▰▰▰  [% USERS COUNT %] users
+IP Address        ▰▰▰   [% IP ADDRESS   %][% MIDDLE VERTICAL RULE MAGENTA %]  User Count        ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
 Memory            ▰▰▰  [% MEMORY %]
 Versions          ▰▰▰ [% VERSIONS %]
 Disk Free         ▰▰▰ [% DISK FREE SPACE %]

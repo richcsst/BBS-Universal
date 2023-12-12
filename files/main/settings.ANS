@@ -9,5 +9,5 @@ S|BACK|WHITE|Return to System Menu
 [% GREEN   %]   ###[% RESET %][% RED %] \___ \ / _ \ __| __| | '_ \ / _` / __|
 [% MAGENTA %]  ####[% RESET %][% RED %]  ___) |  __/ |_| |_| | | | | (_| \__ \
 [% BLUE    %] #####[% RESET %][% RED %] |____/ \___|\__|\__|_|_| |_|\__, |___/
-[% CYAN    %]######[% RESET %][% RED %]                            |___/
+[% CYAN    %]######[% RESET %][% RED %]                             |___/
 [% RESET %]

@@ -117,7 +117,7 @@ sub baud_print {
     } ## end else [ if ($fast) ]
 } ## end sub baud_print
 
-sub merge { # Perl is a pain in the ...
+sub merge { # Perl sometimes is a pain in the ...
 	my @dir;
 	opendir(my $DIR,'lib/BBS/Universal/');
 	chomp(@dir = readdir($DIR));

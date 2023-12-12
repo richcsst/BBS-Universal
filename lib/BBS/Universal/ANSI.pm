@@ -1,13 +1,13 @@
-package BBS::Universal::VT102;
+package BBS::Universal::ANSI;
 BEGIN { our $VERSION = '0.001'; }
 
-sub vt102_initialize {
+sub ansi_initialize {
     my $self = shift;
 
     my $esc = chr(27) . '[';
 
-    $self->{'vt_prefix'}       = $esc;
-    $self->{'vt102_sequences'} = {
+    $self->{'ansi_prefix'}       = $esc;
+    $self->{'ansi_sequences'} = {
         'CLEAR'      => cls,
 		'CLS'        => cls,
 		'CLEAR LINE' => clline,
@@ -96,20 +96,20 @@ sub vt102_initialize {
 
     $self->{'debug'}->DEBUG(['Initialized VT102']);
     return ($self);
-} ## end sub vt102_initialize
+}
 
-sub vt102_output {
+sub ansi_output {
     my $self = shift;
     my $text = shift;
 
-    $self->{'debug'}->DEBUG(['Send VT102 text']);
-    foreach my $string (keys %{ $self->{'vt102_sequences'} }) {
-        $text =~ s/\[\% $string \%\]/$self->{'vt102_sequences'}->{$string}/gi;
+    $self->{'debug'}->DEBUG(['Send ANSI text']);
+    foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
+        $text =~ s/\[\% $string \%\]/$self->{'ansi_sequences'}->{$string}/gi;
     }
     my $s_len = length($text);
     foreach my $count (0 .. $s_len) {
         $self->send_char(substr($text, $count, 1));
     }
     return (TRUE);
-} ## end sub vt102_output
+}
 1;

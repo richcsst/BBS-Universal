@@ -13,7 +13,7 @@ use constant {
     ASCII   => 0,
     ATASCII => 1,
     PETSCII => 2,
-    VT102   => 3,
+    ANSI    => 3,
 };
 use English qw( -no_match_vars );
 use Config;
@@ -31,11 +31,7 @@ use Term::ANSIScreen qw( :color :cursor :screen );
 use Text::Format;
 use Text::SimpleTable;
 use IO::Socket::INET;
-use Sys::Info;
-use Sys::Info::Constants qw( :device_cpu );
 use List::Util qw(min max);
-
-# use Data::Dumper::Simple;
 
 BEGIN {
     require Exporter;
@@ -45,13 +41,16 @@ BEGIN {
     our @EXPORT  = qw(
       TRUE
       FALSE
+	  YES
+	  NO
       ASCII
       ATASCII
       PETSCII
-      VT102
+      ANSI
     );
     our @EXPORT_OK = qw();
     binmode(STDOUT, ":encoding(UTF-8)");
+    our $ANSI_VERSION = '0.001';
     our $ASCII_VERSION = '0.001';
     our $ATASCII_VERSION = '0.001';
     our $DB_VERSION = '0.001';
@@ -60,8 +59,9 @@ BEGIN {
     our $PETSCII_VERSION = '0.001';
     our $SYSOP_VERSION = '0.001';
     our $USERS_VERSION = '0.001';
-    our $VT102_VERSION = '0.001';
 } ## end BEGIN
+our $ONLINE  = 0;
+our $THREADS_RUNNING = 0;
 
 sub DESTROY {
     my $self = shift;
@@ -80,7 +80,7 @@ sub small_new {
 	$self->ascii_initialize();
 	$self->atascii_initialize();
 	$self->petscii_initialize();
-	$self->vt102_initialize();
+	$self->ansi_initialize();
 	$self->filetransfer_initialize();
 	$self->messages_initialize();
 	$self->users_initialize();
@@ -125,7 +125,7 @@ sub new {    # Always call with the socket as a parameter
         'esc'             => chr(27),
         'can'             => chr(24),
         'null'            => chr(0),
-        'suffixes'        => qw( ASC ATA PET VT ),
+        'suffixes'        => qw( ASC ATA PET ANS ),
         'speeds'          => {                       # This depends on the granularity of Time::HiRes
             'FULL'  => 0,
             '300'   => 0.02,
@@ -151,7 +151,7 @@ sub new {    # Always call with the socket as a parameter
 	$self->ascii_initialize();
 	$self->atascii_initialize();
 	$self->petscii_initialize();
-	$self->vt102_initialize();
+	$self->ansi_initialize();
 	$self->filetransfer_initialize();
 	$self->messages_initialize();
 	$self->users_initialize();
@@ -317,9 +317,9 @@ sub output {
     } elsif ($mode == PETSCII) {
         $self->{'debug'}->DEBUG(['Send PETSCII']);
         $self->petscii_output($text);
-    } elsif ($mode == VT102) {
-        $self->{'debug'}->DEBUG(['Send VT-102']);
-        $self->vt102_output($text);
+    } elsif ($mode == ANSI) {
+        $self->{'debug'}->DEBUG(['Send ANSI']);
+        $self->ansi_output($text);
     } else {    # ASCII (always the default)
         $self->{'debug'}->DEBUG(['Send ASCII']);
         $self->ascii_output($text);
@@ -351,6 +351,9 @@ sub static_configuration {
 	my $file = shift;
 
 	$self->{'debug'}->DEBUG(['Getting static configuration']);
+	$self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'} = 'Richard Kelsch';
+	$self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'} = 'Richard Kelsch <rich@rk-internet.com>';
+	$self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Southern Utah - USA';
 	if (-e $file) {
 		open(my $CFG,'<',$file) or die "$file missing!";
 		chomp(my @lines=<$CFG>);
@@ -432,7 +435,7 @@ sub parse_versions {
 		"BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
 		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
 		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
-		"BBS::Universal::VT102         $BBS::Universal::VT102_VERSION",
+		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
 		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
 		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
 		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
@@ -454,15 +457,68 @@ sub parse_versions {
     return ($versions);
 } ## end sub parse_versions
 
+sub cpu_identify {
+	my $self = shift;
+
+	return($self->{'CPUINFO'}) if (exists($self->{'CPUINFO'}));
+	open(my $CPU,'<','/proc/cpuinfo');
+	chomp(my @cpuinfo = <$CPU>);
+	close($CPU);
+	$self->{'CPUINFO'} = \@cpuinfo;
+
+	my $cpu_identity;
+	my $index = 0;
+	chomp(my $bits = `getconf LONG_BIT`);
+	my $hardware = { 'Hardware' => 'Unknown', 'Bits' => $bits };
+	foreach my $line (@cpuinfo) {
+		if ($line ne '') {
+			my ($name,$val) = split(/: /,$line);
+			$name = $self->trim($name);
+			if ($name =~ /^(Hardware|Revision|Serial)/i) {
+				$hardware->{$name} = $val;
+			} else {
+				if ($name eq 'processor') {
+					$index = $val;
+				} else {
+					$cpu_identity->[$index]->{$name} = $val;
+				}
+			}
+		}
+	}
+	my $response = {
+		'CPU'      => $cpu_identity,
+		'HARDWARE' => $hardware,
+	};
+	if (-e '/usr/bin/lscpu' || -e 'usr/local/bin/lscpu') {
+		my $lscpu_short = `lscpu --extended=cpu,core,online,minmhz,maxmhz,mhz`;
+		chomp(my $lscpu_version = `lscpu -V`);
+		$lscpu_version =~ s/^lscpu from util-linux (\d+)\.(\d+)\.(\d+)/$1.$2/;
+		my $lscpu_long = ($lscpu_version >= 2.38) ? `lscpu --hierarchic` : `lscpu`;
+		$response->{'lscpu'}->{'short'} = $lscpu_short;
+		$response->{'lscpu'}->{'long'} = $lscpu_long;
+	}
+	$self->{'debug'}->DEBUGMAX($response);
+	$self->{'CPUINFO'} = $response; # Cache this stuff
+	return($response);
+}
+
 sub cpu_info {
     my $self = shift;
 
-    my $info     = Sys::Info->new();
-    my $cpu      = $info->device('CPU');
+	my $cpu = $self->cpu_identify();
+	my $cpu_cores = scalar(@{$cpu->{'CPU'}});
+	my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 1;
+	my $cpu_bits = $cpu->{'HARDWARE'}->{'Bits'} + 0;
+	chomp(my $load_average = `cat /proc/loadavg`);
+    my $identity = $cpu->{'CPU'}->[0]->{'model name'};
 
-    my $identity = $cpu->identify();
-    $identity =~ s/^\d+ x //;    # Strip off the multiplier.  We already get that elsewhere
-    my $speed = $cpu->speed();
+    my $speed = $cpu->{'CPU'}->[0]->{'cpu MHz'} if (exists($cpu->{'CPU'}->[0]->{'cpu MHz'}));
+
+	unless(defined($speed)) {
+		chomp($speed = `cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq`);
+		$speed /= 1000;
+	}
+
     if ($speed > 999.999) {      # GHz
         $speed = sprintf('%.02f GHz', ($speed / 1000));
     } elsif ($speed > 0) {                     # MHz
@@ -473,30 +529,16 @@ sub cpu_info {
     my $response = {
         'CPU IDENTITY' => $identity,
         'CPU SPEED'    => $speed,
-        'CPU CORES'    => sprintf('%02d',$cpu->count()),
-        'CPU THREADS'  => $cpu->hyper_threading(),
-        'CPU BITS'     => $cpu->bitness(),
-		'CPU LOAD'     => $cpu->load(DCPU_LOAD_LAST_01),
-		'HARDWARE'     => $self->hardware(),
+        'CPU CORES'    => $cpu_cores,
+        'CPU THREADS'  => $cpu_threads,
+        'CPU BITS'     => $cpu_bits,
+		'CPU LOAD'     => $load_average,
+		'HARDWARE'     => $cpu->{'HARDWARE'}->{'Hardware'},
     };
     $self->{'debug'}->DEBUGMAX([$response]);
 
     return ($response);
 } ## end sub cpu_info
-
-sub hardware {
-	my $self = shift;
-
-	open(my $FILE,'<','/proc/cpuinfo');
-	chomp(my @cpuinfo = <$FILE>);
-	close($FILE);
-	my $hardware = 'Unknown';
-	foreach my $line (@cpuinfo) {
-		next unless($line =~ /^Hardware\s+\:\s+(.*)/);
-		$hardware = $1;
-	}
-	return($hardware);
-}
 
 sub get_uptime {
     my $self = shift;
@@ -536,6 +578,131 @@ sub center {
         return ($self->pad_center($text, $width));
     }
 } ## end sub center
+
+sub trim {
+	my $self = shift;
+	my $text = shift;
+
+	$text =~ s/^\s+//;
+	$text =~ s/\s+$//;
+	return($text);
+}
+
+# package BBS::Universal::ANSI;
+
+sub ansi_initialize {
+    my $self = shift;
+
+    my $esc = chr(27) . '[';
+
+    $self->{'ansi_prefix'}       = $esc;
+    $self->{'ansi_sequences'} = {
+        'CLEAR'      => cls,
+		'CLS'        => cls,
+		'CLEAR LINE' => clline,
+		'CLEAR DOWN' => cldown,
+		'CLEAR UP'   => clup,
+
+        # Cursor
+        'UP'          => $esc . 'A',
+        'DOWN'        => $esc . 'B',
+        'RIGHT'       => $esc . 'C',
+        'LEFT'        => $esc . 'D',
+        'SAVE'        => $esc . 's',
+        'RESTORE'     => $esc . 'u',
+        'RESET'       => $esc . '0m',
+        'BOLD'        => $esc . '1m',
+        'FAINT'       => $esc . '2m',
+        'ITALIC'      => $esc . '3m',
+        'UNDERLINE'   => $esc . '4m',
+        'SLOW BLINK'  => $esc . '5m',
+        'RAPID BLINK' => $esc . '6m',
+
+        # Attributes
+        'INVERT'       => $esc . '7m',
+        'CROSSED OUT'  => $esc . '9m',
+        'DEFAULT FONT' => $esc . '10m',
+        'FONT1'        => $esc . '11m',
+        'FONT2'        => $esc . '12m',
+        'FONT3'        => $esc . '13m',
+        'FONT4'        => $esc . '14m',
+        'FONT5'        => $esc . '15m',
+        'FONT6'        => $esc . '16m',
+        'FONT7'        => $esc . '17m',
+        'FONT8'        => $esc . '18m',
+        'FONT9'        => $esc . '19m',
+
+        # Color
+        'NORMAL' => $esc . '21m',
+
+        # Foreground color
+        'BLACK'          => $esc . '30m',
+        'RED'            => $esc . '31m',
+        'GREEN'          => $esc . '32m',
+        'YELLOW'         => $esc . '33m',
+        'BLUE'           => $esc . '34m',
+        'MAGENTA'        => $esc . '35m',
+        'CYAN'           => $esc . '36m',
+        'WHITE'          => $esc . '37m',
+        'DEFAULT'        => $esc . '39m',
+        'BRIGHT BLACK'   => $esc . '90m',
+        'BRIGHT RED'     => $esc . '91m',
+        'BRIGHT GREEN'   => $esc . '92m',
+        'BRIGHT YELLOW'  => $esc . '93m',
+        'BRIGHT BLUE'    => $esc . '94m',
+        'BRIGHT MAGENTA' => $esc . '95m',
+        'BRIGHT CYAN'    => $esc . '96m',
+        'BRIGHT WHITE'   => $esc . '97m',
+
+        # Background color
+        'B_BLACK'          => $esc . '40m',
+        'B_RED'            => $esc . '41m',
+        'B_GREEN'          => $esc . '42m',
+        'B_YELLOW'         => $esc . '43m',
+        'B_BLUE'           => $esc . '44m',
+        'B_MAGENTA'        => $esc . '45m',
+        'B_CYAN'           => $esc . '46m',
+        'B_WHITE'          => $esc . '47m',
+        'B_DEFAULT'        => $esc . '49m',
+        'BRIGHT B_BLACK'   => $esc . '100m',
+        'BRIGHT B_RED'     => $esc . '101m',
+        'BRIGHT B_GREEN'   => $esc . '102m',
+        'BRIGHT B_YELLOW'  => $esc . '103m',
+        'BRIGHT B_BLUE'    => $esc . '104m',
+        'BRIGHT B_MAGENTA' => $esc . '105m',
+        'BRIGHT B_CYAN'    => $esc . '106m',
+        'BRIGHT B_WHITE'   => $esc . '107m',
+
+		# Special
+		'HORIZONTAL RULE RED'     => "\r" . $esc . '41m' . clline . $esc . '0m',
+		'HORIZONTAL RULE GREEN'   => "\r" . $esc . '42m' . clline . $esc . '0m',
+		'HORIZONTAL RULE YELLOW'  => "\r" . $esc . '43m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BLUE'    => "\r" . $esc . '44m' . clline . $esc . '0m',
+		'HORIZONTAL RULE MAGENTA' => "\r" . $esc . '45m' . clline . $esc . '0m',
+		'HORIZONTAL RULE CYAN'    => "\r" . $esc . '46m' . clline . $esc . '0m',
+		'HORIZONTAL RULE WHITE'   => "\r" . $esc . '47m' . clline . $esc . '0m',
+    };
+
+    $self->{'debug'}->DEBUG(['Initialized VT102']);
+    return ($self);
+}
+
+sub ansi_output {
+    my $self = shift;
+    my $text = shift;
+
+    $self->{'debug'}->DEBUG(['Send ANSI text']);
+    foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
+        $text =~ s/\[\% $string \%\]/$self->{'ansi_sequences'}->{$string}/gi;
+    }
+    my $s_len = length($text);
+    foreach my $count (0 .. $s_len) {
+        $self->send_char(substr($text, $count, 1));
+    }
+    return (TRUE);
+}
+
+ 
 
 # package BBS::Universal::ASCII;
 
@@ -1033,30 +1200,53 @@ sub sysop_initialize {
         'MIDDLE VERTICAL RULE MAGENTA'     => $self->sysop_locate_middle('B_MAGENTA'),
         'MIDDLE VERTICAL RULE CYAN'        => $self->sysop_locate_middle('B_CYAN'),
         'MIDDLE VERTICAL RULE WHITE'       => $self->sysop_locate_middle('B_WHITE'),
-        'HORIZONTAL RULE RED'              => "\r" . $self->{'vt102_sequences'}->{'B_RED'} . clline . $self->{'vt102_sequences'}->{'RESET'},        # Needs color defined before actual use
-        'HORIZONTAL RULE GREEN'            => "\r" . $self->{'vt102_sequences'}->{'B_GREEN'} . clline . $self->{'vt102_sequences'}->{'RESET'},      # Needs color defined before actual use
-        'HORIZONTAL RULE YELLOW'           => "\r" . $self->{'vt102_sequences'}->{'B_YELLOW'} . clline . $self->{'vt102_sequences'}->{'RESET'},     # Needs color defined before actual use
-        'HORIZONTAL RULE BLUE'             => "\r" . $self->{'vt102_sequences'}->{'B_BLUE'} . clline . $self->{'vt102_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE MAGENTA'          => "\r" . $self->{'vt102_sequences'}->{'B_MAGENTA'} . clline . $self->{'vt102_sequences'}->{'RESET'},    # Needs color defined before actual use
-        'HORIZONTAL RULE CYAN'             => "\r" . $self->{'vt102_sequences'}->{'B_CYAN'} . clline . $self->{'vt102_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE WHITE'            => "\r" . $self->{'vt102_sequences'}->{'B_WHITE'} . clline . $self->{'vt102_sequences'}->{'RESET'},      # Needs color defined before actual use
+        'HORIZONTAL RULE RED'              => "\r" . $self->{'ansi_sequences'}->{'B_RED'} . clline . $self->{'ansi_sequences'}->{'RESET'},        # Needs color defined before actual use
+        'HORIZONTAL RULE GREEN'            => "\r" . $self->{'ansi_sequences'}->{'B_GREEN'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
+        'HORIZONTAL RULE YELLOW'           => "\r" . $self->{'ansi_sequences'}->{'B_YELLOW'} . clline . $self->{'ansi_sequences'}->{'RESET'},     # Needs color defined before actual use
+        'HORIZONTAL RULE BLUE'             => "\r" . $self->{'ansi_sequences'}->{'B_BLUE'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
+        'HORIZONTAL RULE MAGENTA'          => "\r" . $self->{'ansi_sequences'}->{'B_MAGENTA'} . clline . $self->{'ansi_sequences'}->{'RESET'},    # Needs color defined before actual use
+        'HORIZONTAL RULE CYAN'             => "\r" . $self->{'ansi_sequences'}->{'B_CYAN'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
+        'HORIZONTAL RULE WHITE'            => "\r" . $self->{'ansi_sequences'}->{'B_WHITE'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
 
         # Tokens
         'HOSTNAME'        => $self->sysop_hostname,
         'IP ADDRESS'      => $self->sysop_ip_address(),
         'CPU CORES'       => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'       => $self->{'CPU'}->{'CPU SPEED'},
-        'CPU LOAD'        => $self->cpu_info->{'CPU LOAD'},
         'CPU IDENTITY'    => $self->{'CPU'}->{'CPU IDENTITY'},
         'CPU THREADS'     => $self->{'CPU'}->{'CPU THREADS'},
-        'HARDWARE'        => $self->hardware(),
-        'UPTIME'          => $self->get_uptime(),
+        'HARDWARE'        => $self->{'CPU'}->{'HARDWARE'},
         'VERSIONS'        => $versions,
         'BBS NAME'        => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
-        'USERS COUNT'     => $self->db_count_users(),
-        'THREADS COUNT'   => int($self->{'CPU'}->{'CPU CORES'} * $self->{'CONF'}->{'THREAD MULTIPLIER'}),
-        'DISK FREE SPACE' => $self->sysop_disk_free(),
-        'MEMORY'          => $self->sysop_memory(),
+		# Non-static
+        'THREADS COUNT'   => sub {
+			my $self = shift;
+			return($THREADS_RUNNING);
+		},
+        'USERS COUNT'     => sub {
+			my $self = shift;
+			return($self->db_count_users());
+		},
+        'UPTIME'          => sub {
+			my $self = shift;
+			return($self->get_uptime());
+		},
+        'DISK FREE SPACE' => sub {
+			my $self = shift;
+			return($self->sysop_disk_free());
+		},
+        'MEMORY'          => sub {
+			my $self = shift;
+			return($self->sysop_memory());
+		},
+		'ONLINE'          => sub {
+			my $self = shift;
+			return($self->sysop_online_count());
+		},
+        'CPU LOAD'        => sub {
+			my $self = shift;
+			return($self->cpu_info->{'CPU LOAD'});
+		},
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
 		    id
@@ -1127,6 +1317,12 @@ sub sysop_initialize {
     $self->{'debug'}->DEBUG(['Initialized SysOp object']);
     return ($self);
 } ## end sub sysop_initialize
+
+sub sysop_online_count {
+	my $self = shift;
+
+	return($ONLINE);
+}
 
 sub sysop_disk_free {
     my $self = shift;
@@ -1274,7 +1470,7 @@ sub sysop_locate_middle {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $middle = int($wsize / 2);
-    my $string = "\r" . $self->{'vt102_sequences'}->{'RIGHT'} x $middle . $self->{'vt102_sequences'}->{$color} . ' ' . $self->{'vt102_sequences'}->{'RESET'};
+    my $string = "\r" . $self->{'ansi_sequences'}->{'RIGHT'} x $middle . $self->{'ansi_sequences'}->{$color} . ' ' . $self->{'ansi_sequences'}->{'RESET'};
     return ($string);
 } ## end sub sysop_locate_middle
 
@@ -1449,7 +1645,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 1;
+    my $value_width = 50;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -1471,7 +1667,7 @@ sub sysop_view_configuration {
         $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
     }
     $table->hr();
-    foreach my $conf (keys %{ $self->{'CONF'}->{'STATIC'} }) {
+    foreach my $conf (sort(keys %{ $self->{'CONF'}->{'STATIC'} })) {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
@@ -1501,13 +1697,13 @@ sub sysop_view_configuration {
         } ## end else [ if ($view) ]
     } ## end foreach my $conf (sort(keys...))
     my $output = $table->boxes->draw();
-    foreach my $change ('STATIC NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME') {
+    foreach my $change ('AUTHOR EMAIL','AUTHOR LOCATION','AUTHOR NAME','STATIC NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME') {
         if ($output =~ /($change)/) {
             my $ch = colored(['yellow'], $1);
             $output =~ s/$1/$ch/gs;
         }
     } ## end foreach my $change ('STATIC NAME'...)
-    print "$output\n";
+    print $output;
     if ($view) {
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
@@ -1516,18 +1712,19 @@ sub sysop_view_configuration {
 		print $self->sysop_menu_choice('S','RED','Return to Settings Menu');
 		print $self->sysop_menu_choice('BOTTOM','','');
 		print $self->sysop_prompt('Choose');
-        return ($self->sysop_keypress(TRUE));
+        return (TRUE);
     }
 } ## end sub sysop_view_configuration
 
 sub sysop_edit_configuration {
     my $self = shift;
 
-    my $choice;
+	$self->sysop_view_configuration(FALSE);
+	my $choice;
     do {
-        $choice = ($self->sysop_view_configuration(FALSE));
+		$choice = $self->sysop_keypress(TRUE);
     } until ($choice =~ /\d|S/i);
-	if ($choice =~ /s/i) {
+	if ($choice !~ /\d/i) {
 		print "BACK\n";
 		return (FALSE);
 	}
@@ -1567,10 +1764,10 @@ sub sysop_user_edit {
 	my $key;
 	do {
 		print $self->sysop_prompt('Please enter the username or account number') .
-		  $self->{'vt102_sequences'}->{'DOWN'},
+		  $self->{'ansi_sequences'}->{'DOWN'},
 		  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 16,
-		  $self->{'vt102_sequences'}->{'UP'},
-		  $self->{'vt102_sequences'}->{'LEFT'} x 16;
+		  $self->{'ansi_sequences'}->{'UP'},
+		  $self->{'ansi_sequences'}->{'LEFT'} x 16;
 		chomp(my $search = <STDIN>);
 		return(FALSE) if ($search eq '');
 		my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
@@ -1586,10 +1783,15 @@ sub sysop_user_edit {
 			$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
 			my %choice;
 			foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
-				if ($field =~ /_time|fullname/) {
+				if ($field =~ /_time|fullname|id/) {
 					$table->row(' ',$field,$user_row->{$field});
 				} else {
-					$table->row($choices[$count],$field,$user_row->{$field});
+					if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
+						$user_row->{$field} = $self->sysop_true_false($user_row->{$field},'YN');
+					} elsif ($name eq 'timeout') {
+						$user_row->{$field} = $user_row->{$field} . ' Minutes'
+					}
+					$table->row($choices[$count],$field,$user_row->{$field} . '');
 					$choice{$choices[$count]} = $field;
 					$count++;
 				}
@@ -1625,11 +1827,15 @@ sub sysop_detokenize {
     $self->{'debug'}->DEBUGMAX([$text]);    # Before
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
-        $ch = $self->{'sysop_tokens'}->{$key};
+		if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
+			$ch = $self->{'sysop_tokens'}->{$key}->($self);
+		} else {
+			$ch = $self->{'sysop_tokens'}->{$key};
+		}
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     }
-    foreach my $name (keys %{ $self->{'vt102_sequences'} }) {
-        my $ch = $self->{'vt102_sequences'}->{$name};
+    foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
+        my $ch = $self->{'ansi_sequences'}->{$name};
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/gi;
     }
     $self->{'debug'}->DEBUGMAX([$text]);    # After
@@ -1705,122 +1911,6 @@ sub users_count {
     my $self = shift;
     return (0);
 }
-
- 
-
-# package BBS::Universal::VT102;
-
-sub vt102_initialize {
-    my $self = shift;
-
-    my $esc = chr(27) . '[';
-
-    $self->{'vt_prefix'}       = $esc;
-    $self->{'vt102_sequences'} = {
-        'CLEAR'      => cls,
-		'CLS'        => cls,
-		'CLEAR LINE' => clline,
-		'CLEAR DOWN' => cldown,
-		'CLEAR UP'   => clup,
-
-        # Cursor
-        'UP'          => $esc . 'A',
-        'DOWN'        => $esc . 'B',
-        'RIGHT'       => $esc . 'C',
-        'LEFT'        => $esc . 'D',
-        'SAVE'        => $esc . 's',
-        'RESTORE'     => $esc . 'u',
-        'RESET'       => $esc . '0m',
-        'BOLD'        => $esc . '1m',
-        'FAINT'       => $esc . '2m',
-        'ITALIC'      => $esc . '3m',
-        'UNDERLINE'   => $esc . '4m',
-        'SLOW BLINK'  => $esc . '5m',
-        'RAPID BLINK' => $esc . '6m',
-
-        # Attributes
-        'INVERT'       => $esc . '7m',
-        'CROSSED OUT'  => $esc . '9m',
-        'DEFAULT FONT' => $esc . '10m',
-        'FONT1'        => $esc . '11m',
-        'FONT2'        => $esc . '12m',
-        'FONT3'        => $esc . '13m',
-        'FONT4'        => $esc . '14m',
-        'FONT5'        => $esc . '15m',
-        'FONT6'        => $esc . '16m',
-        'FONT7'        => $esc . '17m',
-        'FONT8'        => $esc . '18m',
-        'FONT9'        => $esc . '19m',
-
-        # Color
-        'NORMAL' => $esc . '21m',
-
-        # Foreground color
-        'BLACK'          => $esc . '30m',
-        'RED'            => $esc . '31m',
-        'GREEN'          => $esc . '32m',
-        'YELLOW'         => $esc . '33m',
-        'BLUE'           => $esc . '34m',
-        'MAGENTA'        => $esc . '35m',
-        'CYAN'           => $esc . '36m',
-        'WHITE'          => $esc . '37m',
-        'DEFAULT'        => $esc . '39m',
-        'BRIGHT BLACK'   => $esc . '90m',
-        'BRIGHT RED'     => $esc . '91m',
-        'BRIGHT GREEN'   => $esc . '92m',
-        'BRIGHT YELLOW'  => $esc . '93m',
-        'BRIGHT BLUE'    => $esc . '94m',
-        'BRIGHT MAGENTA' => $esc . '95m',
-        'BRIGHT CYAN'    => $esc . '96m',
-        'BRIGHT WHITE'   => $esc . '97m',
-
-        # Background color
-        'B_BLACK'          => $esc . '40m',
-        'B_RED'            => $esc . '41m',
-        'B_GREEN'          => $esc . '42m',
-        'B_YELLOW'         => $esc . '43m',
-        'B_BLUE'           => $esc . '44m',
-        'B_MAGENTA'        => $esc . '45m',
-        'B_CYAN'           => $esc . '46m',
-        'B_WHITE'          => $esc . '47m',
-        'B_DEFAULT'        => $esc . '49m',
-        'BRIGHT B_BLACK'   => $esc . '100m',
-        'BRIGHT B_RED'     => $esc . '101m',
-        'BRIGHT B_GREEN'   => $esc . '102m',
-        'BRIGHT B_YELLOW'  => $esc . '103m',
-        'BRIGHT B_BLUE'    => $esc . '104m',
-        'BRIGHT B_MAGENTA' => $esc . '105m',
-        'BRIGHT B_CYAN'    => $esc . '106m',
-        'BRIGHT B_WHITE'   => $esc . '107m',
-
-		# Special
-		'HORIZONTAL RULE RED'     => "\r" . $esc . '41m' . clline . $esc . '0m',
-		'HORIZONTAL RULE GREEN'   => "\r" . $esc . '42m' . clline . $esc . '0m',
-		'HORIZONTAL RULE YELLOW'  => "\r" . $esc . '43m' . clline . $esc . '0m',
-		'HORIZONTAL RULE BLUE'    => "\r" . $esc . '44m' . clline . $esc . '0m',
-		'HORIZONTAL RULE MAGENTA' => "\r" . $esc . '45m' . clline . $esc . '0m',
-		'HORIZONTAL RULE CYAN'    => "\r" . $esc . '46m' . clline . $esc . '0m',
-		'HORIZONTAL RULE WHITE'   => "\r" . $esc . '47m' . clline . $esc . '0m',
-    };
-
-    $self->{'debug'}->DEBUG(['Initialized VT102']);
-    return ($self);
-} ## end sub vt102_initialize
-
-sub vt102_output {
-    my $self = shift;
-    my $text = shift;
-
-    $self->{'debug'}->DEBUG(['Send VT102 text']);
-    foreach my $string (keys %{ $self->{'vt102_sequences'} }) {
-        $text =~ s/\[\% $string \%\]/$self->{'vt102_sequences'}->{$string}/gi;
-    }
-    my $s_len = length($text);
-    foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
-    }
-    return (TRUE);
-} ## end sub vt102_output
 
  
 

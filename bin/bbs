@@ -65,6 +65,7 @@ GetOptions(
     'debug=s' => \$LEVEL,
 );
 
+$LEVEL = uc($LEVEL);
 my $DEBUG = Debug::Easy->new(
     'LogLevel' => $LEVEL,
     'Color'    => TRUE,
@@ -86,37 +87,37 @@ my $COMMANDS = {
 	'LIST USERS VERTICAL ABBREVIATED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('VERTICAL ABBREVIATED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'LIST USERS HORIZONTAL ABBREVIATED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('HORIZONTAL ABBREVIATED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'LIST USERS VERTICAL DETAILED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('VERTICAL DETAILED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'LIST USERS HORIZONTAL DETAILED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('HORIZONTAL DETAILED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'EDIT USER' => sub {
 		my $self = shift;
 		$self->sysop_user_edit();
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'ADD USER' => sub {
 		my $self = shift;
 		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
 	'DELETE USER' => sub {
 		my $self = shift;
 		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
 	},
     'SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
@@ -133,17 +134,17 @@ my $COMMANDS = {
     },
     'STATISTICS' => sub {
         my $self = shift;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/statistics.VT'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/statistics.ANS'));
     },
     'BACK' => sub { # Dummy placeholder
     },
     'USER MANAGER' => sub {
         my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
     },
 	'SETTINGS' => sub {
 		my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
 	},
 	'FIRST TIME SETUP' => sub {
 		my $self = shift;
@@ -151,23 +152,24 @@ my $COMMANDS = {
 		if ($self->sysop_decision()) {
 			$self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST));
 		}
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
 	},
 	'VIEW CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_view_configuration(TRUE);
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
 	},
 	'EDIT CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_edit_configuration();
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.VT'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
 	},
 };
 
 binmode(STDOUT, ":encoding(UTF-8)"); # Make sure the screen knows it is UTF-8
 system_menu($BBS_OBJ);
-
+$MEMORY->record('Shutting Down');
+$MEMORY->dump() if ($LEVEL eq 'DEBUGMAX');
 chdir($OLDDIR);
 exit(0);
 
@@ -265,6 +267,7 @@ sub system_menu {
     print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
     print locate(($START_ROW + $ROW_ADJUST),1), cldown;
 
+	$MEMORY->record('Initialized and running');
     while ($RUNNING) {
         ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         if ($wsize != $width || $hsize != $height) {
@@ -273,14 +276,13 @@ sub system_menu {
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
-        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/sysop.VT');
+        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/sysop.ANS');
 
 		while($command !~ /BACK/ && $RUNNING) {
 			$DEBUG->DEBUG(["Running command $command"]);
 			$command = $COMMANDS->{$command}->($bbs_obj);
 			threads->yield();
 		}
-#		$DEBUG->DEBUG(["Running command $command"]) if ($RUNNING && ! ref($command) !~ /CODE|HASH|ARRAY/);
     } ## end while ($RUNNING)
     $socket->close() if (defined($socket));
     finish($bbs_obj);
@@ -305,15 +307,20 @@ sub servers_status {
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
         $ROW_ADJUST = 2;
-
+		$BBS::Universal::ONLINE = 0;
+		$BBS::Universal::THREADS_RUNNING = 0;
         foreach my $name (sort(keys %{$SERVER_THREADS})) {
             my $status = '';
             if ($SERVER_STATUS[$count] == TRUE) {
                 $status = 'CONNECTED';
+				$BBS::Universal::ONLINE++;
+				$BBS::Universal::THREADS_RUNNING++;
             } elsif ($SERVER_STATUS[$count] == FALSE) {
                 $status = 'IDLE';
+				$BBS::Universal::THREADS_RUNNING++;
             } else {
                 $status = 'FINISHED';
+				$BBS::Universal::THREADS_RUNNING--;
             }
             push(@row, "$name -> $status");
             $steps--;
@@ -418,18 +425,16 @@ sub run_bbs_sysop {
     # Only allow the main program to respond to signals, not the threads
     local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
     my $sysop = shift;
-    while ($RUNNING) {
-        if ($sysop) {
-            my $bbs = BBS::Universal->new(
-                {
-                    'thread_name' => 'CONSOLE',
-                    'debug'       => $DEBUG,
-                }
-            );
-            $bbs->run($sysop);
-        } ## end if ($sysop)
-        threads->yield() if (!$TEST);    # Be friendly
-    } ## end while ($RUNNING)
+	if ($sysop) {
+		my $bbs = BBS::Universal->new(
+			{
+				'thread_name' => 'CONSOLE',
+				'debug'       => $DEBUG,
+			}
+		);
+		$bbs->run($sysop);
+	} ## end if ($sysop)
+	threads->yield() if (!$TEST);    # Be friendly
 } ## end sub run_bbs_sysop
 
 sub clean_joinable {
@@ -523,6 +528,8 @@ A Universal BBS that connects to TCP/IP instead of serial
 
 It works with a variety of text encoding formats
 
+NOTE:  The System Operator terminal MUST support UTF-8!  This gives graphics character support.
+
 =over 4
 
 =item B<ASCII>
@@ -541,9 +548,9 @@ Commodore 8 bit PETSCII
 
 It has color, graphics characters and cursor movement
 
-=item B<VT102>
+=item B<ANSI>
 
-DEC VT-102 encoded text
+ANSI encoded text
 
 It has color, graphics characters and cursor movement.  Typically used on Terminals and Unix/Linux/Windows/Mac consoles and terminal clients.
 

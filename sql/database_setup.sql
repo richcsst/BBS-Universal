@@ -14,8 +14,8 @@ CREATE TABLE config (
 
 CREATE TABLE text_modes (
     id        TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	text_mode VARCHAR(8) NOT NULL,
-	suffix    ENUM('ASC','ATA','PET','VT')
+	text_mode ENUM('ASCII','ATASCII','PETSCII','ANSI'),
+	suffix    ENUM('ASC','ATA','PET','ANS')
 );
 
 CREATE TABLE users (
@@ -97,18 +97,16 @@ INSERT INTO config (config_name, config_value) VALUES ('HOST','0.0.0.0');
 INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal');
 INSERT INTO config (config_name, config_value) VALUES ('PORT','9999');
 INSERT INTO config (config_name, config_value) VALUES ('BBS ROOT','.');
-INSERT INTO config (config_name, config_value) VALUES ('BAUD RATE','2400');
+INSERT INTO config (config_name, config_value) VALUES ('DEFAULT BAUD RATE','2400');
 INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
-INSERT INTO config (config_name, config_value) VALUES ('AUTHOR NAME','Richard Kelsch');
-INSERT INTO config (config_name, config_value) VALUES ('AUTHOR EMAIL','rkelsch@cpan.org');
 INSERT INTO config (config_name, config_value) VALUES ('SHORT DATE FORMAT','%m/%d/%Y');
 
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ASCII','ASC');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('PETSCII','PET');
-INSERT INTO text_modes (text_mode,suffix) VALUES ('VT102','VT');
+INSERT INTO text_modes (text_mode,suffix) VALUES ('ANSI','ANS');
 
-INSERT INTO users (username,nickname,password,given,family,mode,baud_rate,accomplishments) VALUES ('sysop','SysOp',SHA2('BBS::Universal',512),'System','Operator',(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='VT102'),'2400','I manage and maintain this system');
+INSERT INTO users (username,nickname,password,given,family,mode,baud_rate,accomplishments) VALUES ('sysop','SysOp',SHA2('BBS::Universal',512),'System','Operator',(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),'2400','I manage and maintain this system');
 
 INSERT INTO permissions (view_files,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES(true,true,true,true,true,true,true,true,65535);
@@ -122,6 +120,7 @@ INSERT INTO file_types (type, extension) VALUES ('ASCII Text','ASC');
 INSERT INTO file_types (type, extension) VALUES ('Atari ATASCII Text','ATA');
 INSERT INTO file_types (type, extension) VALUES ('Commodore PETSCII Text','PET');
 INSERT INTO file_types (type, extension) VALUES ('DEC VT-102 Text','VT');
+INSERT INTO file_types (type, extension) VALUES ('ANSI Text','ANS');
 INSERT INTO file_types (type, extension) VALUES ('GitHub Markdown Text','MD');
 INSERT INTO file_types (type, extension) VALUES ('Rich Text File','RTF');
 INSERT INTO file_types (type, extension) VALUES ('Information File','INF');
