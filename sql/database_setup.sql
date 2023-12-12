@@ -20,24 +20,23 @@ CREATE TABLE text_modes (
 
 CREATE TABLE users (
 	id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	username        VARCHAR(255) NOT NULL,
-	password        TEXT NOT NULL,
+	username        VARCHAR(32) NOT NULL,
+	password        CHAR(128) NOT NULL,
 	given           VARCHAR(255) NOT NULL,
 	family          VARCHAR(255) NOT NULL,
 	nickname        VARCHAR(255),
-	prefer_nickname BOOLEAN DEFAULT FALSE,
 	accomplishments TEXT,
 	retro_systems   TEXT,
 	birthday        DATE,
 	location        VARCHAR(255),
 	baud_rate       ENUM('FULL','19200','9600','4800','2400','1200','300') NOT NULL DEFAULT '2400',
-	login_time      TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	logout_time     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	mode            TINYINT UNSIGNED NOT NULL
+	login_time      TIMESTAMP,
+	logout_time     TIMESTAMP,
+	text_mode       TINYINT UNSIGNED NOT NULL
 );
 
 CREATE TABLE permissions (
-	id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+	id             INT UNSIGNED PRIMARY KEY,
 	view_files     BOOLEAN DEFAULT FALSE,
 	upload_files   BOOLEAN DEFAULT FALSE,
 	download_files BOOLEAN DEFAULT FALSE,
@@ -47,6 +46,7 @@ CREATE TABLE permissions (
 	remove_message BOOLEAN DEFAULT FALSE,
 	sysop          BOOLEAN DEFAULT FALSE,
 	page_sysop     BOOLEAN DEFAULT TRUE,
+	prefer_nickname BOOLEAN DEFAULT FALSE,
 	timeout        SMALLINT UNSIGNED DEFAULT 10
 );
 
@@ -100,18 +100,29 @@ INSERT INTO config (config_name, config_value) VALUES ('BBS ROOT','.');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT BAUD RATE','2400');
 INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
 INSERT INTO config (config_name, config_value) VALUES ('SHORT DATE FORMAT','%m/%d/%Y');
+INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TIMEOUT','10');
 
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ASCII','ASC');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('PETSCII','PET');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ANSI','ANS');
 
-INSERT INTO users (username,nickname,password,given,family,mode,baud_rate,accomplishments) VALUES ('sysop','SysOp',SHA2('BBS::Universal',512),'System','Operator',(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),'2400','I manage and maintain this system');
-
-INSERT INTO permissions (view_files,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
-    VALUES(true,true,true,true,true,true,true,true,65535);
+INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments)
+    VALUES ('sysop','SysOp',SHA2('BBS::Universal',512),'System','Operator',(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),'2400','I manage and maintain this system');
+INSERT INTO permissions (id,view_files,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
+    VALUES(LAST_INSERT_ID(),true,true,true,true,true,true,true,true,65535);
 
 INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Atari','Atari Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Commodore','Commodore Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair','Timex/Sinclair Discussion');
+INSERT INTO message_categories (name,description) VALUES ('TRS-80','TRS-80 Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Macintosh','Macinstosh Discussion');
+INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Windows','Windows Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discussion');
+INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Discussion');
+
 
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
 
@@ -200,38 +211,40 @@ INSERT INTO files (filename,path,title,category,file_type,description,file_size)
 CREATE VIEW users_view
  AS
  SELECT
-    users.id                   AS id,
-	users.username             AS username,
-	CONCAT(users.given,' ',users.family) AS fullname,
-	users.given                AS given,
-	users.family               AS family,
-	users.nickname             AS nickname,
-	users.birthday             AS birthday,
-	users.location             AS location,
-	users.baud_rate            AS baud_rate,
-	users.login_time           AS login_time,
-	users.logout_time          AS logout_time,
-	text_modes.text_mode       AS text_mode,
-	text_modes.suffix          AS suffix,
-	permissions.timeout        AS timeout,
-	users.retro_systems        AS retro_systems,
-	users.accomplishments      AS accomplishments,
-	users.prefer_nickname      AS prefer_nickname,
-	permissions.view_files     AS view_files,
-	permissions.upload_files   AS upload_files,
-	permissions.download_files AS download_files,
-	permissions.remove_files   AS remove_files,
-	permissions.read_message   AS read_message,
-	permissions.post_message   AS post_message,
-	permissions.remove_message AS remove_message,
-	permissions.sysop          AS sysop,
-	permissions.page_sysop     AS page_sysop
+    users.id                    AS id,
+	users.username              AS username,
+	CONCAT(users.given,' ',users.family)
+	                            AS fullname,
+	users.password              AS password,
+	users.given                 AS given,
+	users.family                AS family,
+	users.nickname              AS nickname,
+	users.birthday              AS birthday,
+	users.location              AS location,
+	users.baud_rate             AS baud_rate,
+	users.login_time            AS login_time,
+	users.logout_time           AS logout_time,
+	text_modes.text_mode        AS text_mode,
+	text_modes.suffix           AS suffix,
+	permissions.timeout         AS timeout,
+	users.retro_systems         AS retro_systems,
+	users.accomplishments       AS accomplishments,
+	permissions.prefer_nickname AS prefer_nickname,
+	permissions.view_files      AS view_files,
+	permissions.upload_files    AS upload_files,
+	permissions.download_files  AS download_files,
+	permissions.remove_files    AS remove_files,
+	permissions.read_message    AS read_message,
+	permissions.post_message    AS post_message,
+	permissions.remove_message  AS remove_message,
+	permissions.sysop           AS sysop,
+	permissions.page_sysop      AS page_sysop
  FROM
     users
  INNER JOIN
     permissions ON users.id=permissions.id
  INNER JOIN
-    text_modes ON text_modes.id=users.mode;
+    text_modes ON text_modes.id=users.text_mode;
 
 CREATE VIEW messages_view
  AS

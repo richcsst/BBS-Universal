@@ -257,8 +257,8 @@ sub sysop_initialize {
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
 		    id
-			username
 			fullname
+			username
 			given
 			family
 			nickname
@@ -285,8 +285,8 @@ sub sysop_initialize {
 	)];
 	$self->{'SYSOP ORDER ABBREVIATED'} = [qw(
 			id
-			username
 			fullname
+			username
 			given
 			family
 			nickname
@@ -319,6 +319,7 @@ sub sysop_initialize {
 			'remove_message' => 2,
 			'sysop' => 2,
 			'page_sysop' => 2,
+		    'password' => 64,
 	};
     #$self->{'debug'}->ERROR($self);exit;
     $self->{'debug'}->DEBUG(['Initialized SysOp object']);
@@ -414,13 +415,7 @@ sub sysop_parse_menu {
     $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     my $keys = '';
-	print $self->sysop_menu_choice('TOP','','');
-    foreach my $kmenu (sort(keys %{$mapping})) {
-        next if ($kmenu eq 'TEXT');
-        print $self->sysop_menu_choice($kmenu,$mapping->{$kmenu}->{'color'},$mapping->{$kmenu}->{'text'});
-        $keys .= $kmenu;
-    }
-	print $self->sysop_menu_choice('BOTTOM','','');
+	$self->sysop_show_choices($mapping);
     print "\n",$self->sysop_prompt('Choose');
     my $key;
     do {
@@ -716,7 +711,7 @@ sub sysop_view_configuration {
         return ($self->sysop_keypress(TRUE));
     } else {
 		print $self->sysop_menu_choice('TOP','','');
-		print $self->sysop_menu_choice('S','RED','Return to Settings Menu');
+		print $self->sysop_menu_choice('Z','RED','Return to Settings Menu');
 		print $self->sysop_menu_choice('BOTTOM','','');
 		print $self->sysop_prompt('Choose');
         return (TRUE);
@@ -730,7 +725,7 @@ sub sysop_edit_configuration {
 	my $choice;
     do {
 		$choice = $self->sysop_keypress(TRUE);
-    } until ($choice =~ /\d|S/i);
+    } until ($choice =~ /\d|Z/i);
 	if ($choice !~ /\d/i) {
 		print "BACK\n";
 		return (FALSE);
@@ -757,63 +752,295 @@ sub sysop_get_line {
     my $self  = shift;
     my $width = shift || 50;
 
-    print savepos, '_' x $width, loadpos;
-
+    print savepos,
+	  "\n",
+	  loadpos,
+	  $self->{'ansi_sequences'}->{'DOWN'},
+	  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x $width,
+	  loadpos;
+	chomp(my $response = <STDIN>);
     # TEMP
-    return (<STDIN>);
+    return ($response);
 } ## end sub sysop_get_line
 
 sub sysop_user_edit {
     my $self = shift;
+	my $row  = shift;
+	my $file = shift;
 
 	$self->{'debug'}->DEBUG(['Begin user Edit']);
-	my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R T U V W X Y Z );
+    my $mapping = $self->sysop_load_menu($row,$file);
+	$self->{'debug'}->DEBUGMAX([$mapping]);
+	print locate($row,1),cldown,$mapping->{'TEXT'};
+	delete($mapping->{'TEXT'});
+	my ($key_exit) = (keys %{$mapping});
+	my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y );
 	my $key;
-	do {
-		print $self->sysop_prompt('Please enter the username or account number') .
-		  $self->{'ansi_sequences'}->{'DOWN'},
-		  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 16,
-		  $self->{'ansi_sequences'}->{'UP'},
-		  $self->{'ansi_sequences'}->{'LEFT'} x 16;
-		chomp(my $search = <STDIN>);
-		return(FALSE) if ($search eq '');
-		my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
-		$sth->execute($search,$search);
-		my $user_row = $sth->fetchrow_hashref();
-		$sth->finish();
-		if (defined($user_row)) {
-			$self->{'debug'}->DEBUGMAX($user_row);
-			my $table = Text::SimpleTable->new(6,16,60);
-			$table->row('CHOICE','FIELD','VALUE');
-			$table->hr();
-			my $count = 0;
-			$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
-			my %choice;
-			foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
-				if ($field =~ /_time|fullname|id/) {
-					$table->row(' ',$field,$user_row->{$field});
-				} else {
-					if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
-						$user_row->{$field} = $self->sysop_true_false($user_row->{$field},'YN');
-					} elsif ($name eq 'timeout') {
-						$user_row->{$field} = $user_row->{$field} . ' Minutes'
-					}
-					$table->row($choices[$count],$field,$user_row->{$field} . '');
-					$choice{$choices[$count]} = $field;
-					$count++;
+	print $self->sysop_prompt('Please enter the username or account number');
+	my $search = $self->sysop_get_line(20);
+	return(FALSE) if ($search eq '');
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
+	$sth->execute($search,$search);
+	my $user_row = $sth->fetchrow_hashref();
+	$sth->finish();
+	if (defined($user_row)) {
+		$self->{'debug'}->DEBUGMAX($user_row);
+		my $table = Text::SimpleTable->new(6,16,60);
+		$table->row('CHOICE','FIELD','VALUE');
+		$table->hr();
+		my $count = 0;
+		$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
+		my %choice;
+		foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
+			if ($field =~ /_time|fullname|id/) {
+				$table->row(' ',$field,$user_row->{$field} . '');
+			} else {
+				if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
+					$user_row->{$field} = $self->sysop_true_false($user_row->{$field},'YN');
+				} elsif ($field eq 'timeout') {
+					$user_row->{$field} = $user_row->{$field} . ' Minutes'
 				}
+				$table->row($choices[$count],$field,$user_row->{$field} . '');
+				$choice{$choices[$count]} = $field;
+				$count++;
 			}
-			print $table->boxes->draw(),"\n";
-			print $self->sysop_menu_choice('TOP','','');
-			print $self->sysop_menu_choice('S','CYAN','Return to Users Edit Menu');
-			print $self->sysop_menu_choice('BOTTOM','','');
-		    print "\n",$self->sysop_prompt('Choose');
-			$key = uc($self->sysop_keypress());
-		} else {
-			print "User not found!\n\n";
 		}
-	} until($key eq 'S');
+		print $table->boxes->draw(),"\n";
+		$self->{'debug'}->DEBUGMAX([$mapping]);
+		$self->sysop_show_choices($mapping);
+		print "\n",$self->sysop_prompt('Choose');
+		do {
+			$key = uc($self->sysop_keypress());
+		} until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
+		if ($key !~ /$key_exit/i) {
+			print 'Edit > (', $choice{$key}, ' = ', $user_row->{$choice{$key}},') > ';
+			my $new = $self->sysop_get_line(1+$self->{'SYSOP HEADING WIDTHS'}->{$choice{$key}});
+			unless($new eq '') {
+				$new =~ s/^(Yes|On)$/1/i;
+				$new =~ s/^(No|Off)$/0/i;
+			}
+		}
+	} elsif ($search ne '') {
+		print "User not found!\n\n";
+	}
     return (TRUE);
+}
+
+sub sysop_user_add {
+	my $self = shift;
+	my $row  = shift;
+	my $file = shift;
+
+	my $flags_default = {
+		'prefer_nickname' => 'Yes',
+		'view_files' => 'Yes',
+		'upload_files' => 'No',
+		'download_files' => 'Yes',
+		'remove_files' => 'No',
+		'read_message' => 'Yes',
+		'post_message' => 'Yes',
+		'remove_message' => 'No',
+		'sysop' => 'No',
+		'page_sysop' => 'Yes',
+	};
+    my $mapping = $self->sysop_load_menu($row,$file);
+	$self->{'debug'}->DEBUGMAX([$mapping]);
+	print locate($row,1),cldown,$mapping->{'TEXT'};
+	my $table = Text::SimpleTable->new(15,80);
+	my $user_template;
+	push(@{$self->{'SYSOP ORDER DETAILED'}},'password');
+	foreach my $name (@{$self->{'SYSOP ORDER DETAILED'}}) {
+		next if ($name =~ /id|fullname|_time|suffix/);
+		if ($name eq 'timeout') {
+			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		} elsif ($name eq 'baud_rate') {
+			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		} elsif ($name =~ /username|given|family|password/) {
+			if ($name eq 'given') {
+				$table->row("$name (first)",' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+			} elsif ($name eq 'family') {
+				$table->row("$name (last)",' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+			} else {
+				$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+			}
+		} elsif ($name eq 'text_mode') {
+			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		} elsif ($name eq 'birthday') {
+			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		} elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/) {
+			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		} elsif ($name =~ /location|retro_systems|accomplishments/) {
+			$table->row($name,"\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
+		} else {
+			$table->row($name,"\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
+		}
+		$user_template->{$name} = undef;
+	}
+	print $table->boxes->draw();
+	$self->sysop_show_choices($mapping);
+	my $column = 21;
+	my $adjustment = 7;
+    foreach my $entry (@{$self->{'SYSOP ORDER DETAILED'}}) {
+		next if ($entry =~ /id|fullname|_time|suffix/);
+		do {
+			print locate($row + $adjustment,$column), ' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$entry}), locate($row + $adjustment,$column);
+			chomp($user_template->{$entry} = <STDIN>);
+			return('BACK') if ($user_template->{$entry} eq '<');
+			if ($entry =~ /text_mode|baud_rate|timeout|prefer|_files|_message|sysop|given|family/) {
+				if ($user_template->{$entry} eq '') {
+					if ($entry eq 'text_mode') {
+						$user_template->{$entry} = 'ASCII';
+					} elsif ($entry eq 'baud_rate') {
+						$user_template->{$entry} = 'FULL';
+					} elsif ($entry eq 'timeout') {
+						$user_template->{$entry} = $self->{'CONF'}->{'DEFAULT TIMEOUT'};
+					} elsif ($entry =~ /prefer|_files|_message|sysop/) {
+						$user_template->{$entry} = $flags_default->{$entry};
+					} else {
+						$user_template->{$entry} = uc($user_template->{$entry});
+					}
+				} elsif ($entry =~ /given|family/) {
+					my $ucuser = uc($user_template->{$entry});
+					if ($ucuser eq $user_template->{$entry}) {
+						$user_template->{$entry} = ucfirst(lc($user_template->{$entry}));
+					} else {
+						substr($user_template->{$entry},0,1) = uc(substr($user_template->{$entry},0,1));
+					}
+				}
+				print locate($row + $adjustment,$column), $user_template->{$entry};
+			} elsif ($entry =~ /prefer_|_files|_message|sysop/) {
+				$user_template->{$entry} = ucfirst($user_template->{$entry});
+				print locate($row + $adjustment,$column), $user_template->{$entry};
+			}
+		} until($self->sysop_validate_fields($entry,$user_template->{$entry},$row + $adjustment,$column));
+		$self->{'debug'}->DEBUGMAX([$entry,$user_template]);
+		if ($user_template->{$entry} =~ /^(yes|on|true)$/i) {
+			$user_template->{$entry} = TRUE;
+		} elsif ($user_template->{$entry} =~ /^(no|off|false)$/i) {
+			$user_template->{$entry} = FALSE;
+		}
+		$adjustment += 2;
+	}
+	pop(@{$self->{'SYSOP ORDER DETAILED'}});
+	$self->{'dbh'}->begin_work;
+	my $sth = $self->{'dbh'}->prepare(
+		q{
+			INSERT INTO users (
+				username,
+				given,
+				family,
+				nickname,
+				accomplishments,
+				retro_systems,
+				birthday,
+				location,
+				baud_rate,
+				text_mode,
+				password)
+			  VALUES (?,?,?,?,?,?,DATE(?),?,?,(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode=?),SHA2(?,512))
+		}
+	);
+	$self->{'debug'}->DEBUGMAX($user_template);
+	$sth->execute(
+		$user_template->{'username'},
+		$user_template->{'given'},
+		$user_template->{'family'},
+		$user_template->{'nickname'},
+		$user_template->{'accomplishments'},
+		$user_template->{'retro_systems'},
+		$user_template->{'birthday'},
+		$user_template->{'location'},
+		$user_template->{'baud_rate'},
+		$user_template->{'text_mode'},
+		$user_template->{'password'},
+	) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+	$sth = $self->{'dbh'}->prepare(
+		q{
+			INSERT INTO permissions (
+				id,
+				prefer_nickname,
+				view_files,
+				upload_files,
+				download_files,
+				remove_files,
+				read_message,
+				post_message,
+				remove_message,
+				sysop,
+				page_sysop,
+				timeout)
+			   VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
+		}
+	);
+	$sth->execute(
+		$user_template->{'prefer_nickname'},
+		$user_template->{'view_files'},
+		$user_template->{'upload_files'},
+		$user_template->{'download_files'},
+		$user_template->{'remove_files'},
+		$user_template->{'read_message'},
+		$user_template->{'post_message'},
+		$user_template->{'remove_message'},
+		$user_template->{'sysop'},
+		$user_template->{'page_sysop'},
+		$user_template->{'timeout'}
+	);
+	if ($self->{'dbh'}->errstr) {
+		$self->{'dbh'}->rollback;
+		$self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+	} else {
+		$self->{'dbh'}->commit;
+		print colored(['gtreen'],"\n\nSUCCESS!");
+		sleep(0.5);
+	}
+	$sth->finish();
+	exit;
+	return(TRUE);
+}
+
+sub sysop_show_choices {
+	my $self = shift;
+	my $mapping = shift;
+
+	print $self->sysop_menu_choice('TOP','','');
+	my $keys = '';
+	foreach my $kmenu (sort(keys %{$mapping})) {
+		next if ($kmenu eq 'TEXT');
+		print $self->sysop_menu_choice($kmenu,$mapping->{$kmenu}->{'color'},$mapping->{$kmenu}->{'text'});
+		$keys .= $kmenu;
+	}
+	print $self->sysop_menu_choice('BOTTOM','','');
+	return(TRUE);
+}
+
+sub sysop_validate_fields {
+	my $self   = shift;
+	my $name   = shift;
+	my $val    = shift;
+	my $row    = shift;
+	my $column = shift;
+
+	$self->{'debug'}->DEBUGMAX([$name,$val,$row,$column]);
+	if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') { # cannot be empty
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Cannot Be Empty'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name eq 'baud_rate' && $val !~ /^(300|1200|2400|4800|9600|FULL)$/i) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Only 300,1200,2400,4800,9600,FULL'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name eq 'timeout' && $val =~ /\D/) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Must be numeric'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name eq 'text_mode' && $val !~ /^(ASCII|ATASCII|PETSCII|ANSI)$/) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Only ASCII,ATASCII,PETSCII,ANSI'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/ && $val !~ /^(yes|no|true|false|on|off|0|1)$/i) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Only Yes/No or On/Off or 1/0'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name eq 'birthday' && $val ne '' && $val !~ /(\d\d\d\d)-(\d\d)-(\d\d)/) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' YEAR-MM-DD'),locate($row,$column);
+		return(FALSE);
+	}
+	return(TRUE);
 }
 
 sub sysop_prompt {

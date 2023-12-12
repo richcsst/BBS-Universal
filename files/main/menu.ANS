@@ -1,6 +1,7 @@
-[% RED %]A[% RESET %]> Go To Forums
-[% YELLOW %]B[% RESET %]> Go To Files
-[% GREEN %]C[% RESET %]> Systen News
-[% CYAN %]D[% RESET %]> About [% BBS NAME %]
-
-[% YELLOW %][% B_RED %]X[% RESET %]> Disconnect
+A|FORUMS|CYAN|Go To Forums
+B|FILES|YELLOW|Go To Files
+C|NEWS|MAGENTA|Systen News
+D|ABOUT|GREEN|About [% BBS NAME %]
+X|DISCONNECT|RED|Disconnect
+---
+Main Menu

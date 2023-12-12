@@ -61,7 +61,7 @@ my $START_ROW      = 7;
 my $ROW_ADJUST     = 0;
 
 GetOptions(
-    'test'    => \$TEST,
+    'test|sysop'    => \$TEST,
     'debug=s' => \$LEVEL,
 );
 
@@ -84,85 +84,92 @@ my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}-
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
 my $COMMANDS = {
-	'LIST USERS VERTICAL ABBREVIATED' => sub {
+	'SYSOP BBS LISTINGS MANAGER' => sub {
+		my $self = shift;
+		return('BACK');
+	},
+	'SYSOP FILE MANAGER' => sub {
+		my $self = shift;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+	},
+	'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('VERTICAL ABBREVIATED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'LIST USERS HORIZONTAL ABBREVIATED' => sub {
+	'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
 		my $self = shift;
-		$self->sysop_list_users('HORIZONTAL ABBREVIATED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+		$self->sysop_list_users('HORIZONTAL ABBREVIATED','files/sysop/edituser.ANS');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'LIST USERS VERTICAL DETAILED' => sub {
+	'SYSOP LIST USERS VERTICAL DETAILED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('VERTICAL DETAILED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'LIST USERS HORIZONTAL DETAILED' => sub {
+	'SYSOP LIST USERS HORIZONTAL DETAILED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('HORIZONTAL DETAILED');
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'EDIT USER' => sub {
+	'SYSOP EDIT USER' => sub {
 		my $self = shift;
-		$self->sysop_user_edit();
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+		$self->sysop_user_edit($START_ROW + $ROW_ADJUST,'files/sysop/edituser.ANS');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'ADD USER' => sub {
+	'SYSOP ADD USER' => sub {
 		my $self = shift;
-		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+		$self->sysop_user_add($START_ROW + $ROW_ADJUST,'files/sysop/adduser.ANS');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-	'DELETE USER' => sub {
+	'SYSOP DELETE USER' => sub {
 		my $self = shift;
-		sleep 1;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
 	},
-    'SHUTDOWN' => sub {
+    'SYSOP SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
         {
             lock($RUNNING);
             $RUNNING = FALSE;
         }
     },
-    'SYSOP' => sub {
+    'SYSOP LOGIN SYSOP' => sub {
         run_bbs_sysop(shift, TRUE);
     },
-    'LOGIN' => sub {
+    'SYSOP LOGIN' => sub {
         run_bbs_sysop(shift, FALSE);
     },
-    'STATISTICS' => sub {
+    'SYSOP STATISTICS' => sub {
         my $self = shift;
-        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/statistics.ANS'));
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/statistics.ANS'));
     },
     'BACK' => sub { # Dummy placeholder
     },
-    'USER MANAGER' => sub {
+    'SYSOP USER MANAGER' => sub {
         my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/usermanager.ANS'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
     },
-	'SETTINGS' => sub {
+	'SYSOP SETTINGS' => sub {
 		my $self = shift;
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
 	},
-	'FIRST TIME SETUP' => sub {
+	'SYSOP FIRST TIME SETUP' => sub {
 		my $self = shift;
 		print "\nThis is for first time setup, if you do this on an already configured system,\nit will wipe everything clean.  Are you sure you want to do this [Y/N]?  ";
 		if ($self->sysop_decision()) {
 			$self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST));
 		}
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
 	},
-	'VIEW CONFIGURATION' => sub {
+	'SYSOP VIEW CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_view_configuration(TRUE);
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
 	},
-	'EDIT CONFIGURATION' => sub {
+	'SYSOP EDIT CONFIGURATION' => sub {
 		my $self = shift;
 		$self->sysop_edit_configuration();
-		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/settings.ANS'));
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
 	},
 };
 
@@ -276,7 +283,7 @@ sub system_menu {
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
-        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/main/sysop.ANS');
+        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/sysop.ANS');
 
 		while($command !~ /BACK/ && $RUNNING) {
 			$DEBUG->DEBUG(["Running command $command"]);

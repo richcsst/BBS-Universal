@@ -1,10 +1,12 @@
 # Key | Command | Color | Description
-1|SYSOP|WHITE|Connect as user SysOp
-2|LOGIN|WHITE|Connect as another user
-3|STATISTICS|MAGENTA|Display Statistics
-4|USER MANAGER|CYAN|User Manager
-5|SETTINGS|RED|Change System Settings
-X|SHUTDOWN|WHITE|Shutdown BBS
+1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
+2|SYSOP LOGIN|WHITE|Connect as another user
+3|SYSOP STATISTICS|MAGENTA|Display Statistics
+4|SYSOP USER MANAGER|CYAN|User Manager
+5|SYSOP FILE MANAGER|YELLOW|File Manager
+6|SYSOP BBS LISTINGS MANAGER|BLUE|BBS Listings Manager
+6|SYSOP SETTINGS|RED|Change System Settings
+X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 ---
 [% RED     %]     #[% RESET %]  ____            _                   __  __
 [% YELLOW  %]    ##[% RESET %] / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _ 
