@@ -1,9 +1,0 @@
-This system is running BBS Universal [% BBS UNIVERSAL VERSION %]
-
-             CPU:  [% CPU %]
-       CPU CORES:  [% CPU CORES %]
-       CPU SPEED:  [% CPU SPEED %]
-OPERATING SYSTEM:  [% OS %]
-          UPTIME:  [% UPTIME %]
-    PERL VERSION:  [% PERL VERSION %]
-

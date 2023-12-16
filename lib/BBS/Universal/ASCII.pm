@@ -13,6 +13,7 @@ sub ascii_output {
     my $text = shift;
 
     $self->{'debug'}->DEBUG(['Send ASCII text']);
+    $self->{'debug'}->DEBUGMAX([$text]);
     my $s_len = length($text);
     foreach my $count (0 .. $s_len) {
         $self->send_char(substr($text, $count, 1));

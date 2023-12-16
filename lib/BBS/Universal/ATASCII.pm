@@ -5,6 +5,9 @@ sub atascii_initialize {
     my $self = shift;
 
     $self->{'atascii_sequences'} = {
+        'HEART'       => chr(0),
+        '0x01'        => chr(1),
+        
         'ESC'         => chr(27),
         'UP'          => chr(28),
         'DOWN'        => chr(29),

@@ -1,6 +1,11 @@
-A> Go To Forums
-B> Go To Files
-C> Systen News
-D> About [% BBS NAME %]
+O|FORUMS|WHITE|Go To Forums
+M|ACCOUNT MANAGER|WHITE|Manage Your Account
+F|FILES|WHITE|Go To Files
+N|NEWS|WHITE|System News
+A|ABOUT|WHITE|About This BBS
+X|DISCONNECT|WHITE|Disconnect
+---
 
-X> Disconnect
+|\/| _.o._  |\/| _ ._     
+|  |(_||| | |  |(/_| ||_|
+

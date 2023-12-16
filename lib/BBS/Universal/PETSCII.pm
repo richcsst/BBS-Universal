@@ -36,6 +36,20 @@ sub petscii_initialize {
         'LINE FEED'     => chr(hex('0x0A')),
         'TAB'           => chr(9),
         'BELL'          => chr(7),
+        'DOTTED CENTER' => chr(hex('0x7C')),
+        'PIPE'          => chr(hex('0x7D')),
+        'DOTTED RIGHT'  => chr(hex('0x7E')),
+        'LEFT ANGLED BARS' => chr(hex('0x7F')),
+        'LEFT HALF'     => chr(hex('0xA1')),
+        'BOTTOM HALF'   => chr(hex('0xA2')),
+        'OVERLINE'      => chr(hex('0xA3')),
+        'UNDERLINE'     => chr(hex('0xA4')),
+        'VERTICAL LEFT'  => chr(hex('0x45')),
+        'VERTICAL RIGHT' => chr(hex('0xA6')),
+        'DOTTED LEFT'    => chr(hex('0xA7')),
+        'DOTED BOTTOM'   => chr(hex('0xA8')),
+        'RIGHT ANGLED BARS' => chr(hex('0xA9')),
+        
     };
     $self->{'debug'}->DEBUG(['Initialized ASCII']);
     return ($self);

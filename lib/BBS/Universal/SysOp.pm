@@ -228,7 +228,7 @@ sub sysop_initialize {
 		# Non-static
         'THREADS COUNT'   => sub {
 			my $self = shift;
-			return($THREADS_RUNNING);
+			return($main::THREADS_RUNNING);
 		},
         'USERS COUNT'     => sub {
 			my $self = shift;
@@ -329,13 +329,13 @@ sub sysop_initialize {
 sub sysop_online_count {
 	my $self = shift;
 
-	return($ONLINE);
+	return($main::ONLINE);
 }
 
 sub sysop_disk_free {
     my $self = shift;
 
-    my @free     = split(/\n/, `nice df -h`);
+    my @free     = split(/\n/, `nice df -h -T`);
     my $diskfree = '';
     foreach my $line (@free) {
         next if ($line =~ /tmp|boot/);

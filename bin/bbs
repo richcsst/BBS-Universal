@@ -49,16 +49,18 @@ BEGIN {
 }
 
 # Shared with threads
-our $RUNNING : shared       = TRUE;
-our $TEST : shared          = FALSE;
-our @SERVER_STATUS : shared = ();
-our $UPDATE : shared        = TRUE;
+our $RUNNING : shared         = TRUE;
+our $TEST : shared            = FALSE;
+our @SERVER_STATUS : shared   = ();
+our $UPDATE : shared          = TRUE;
+our $ONLINE : shared          = 0;
+our $THREADS_RUNNING : shared = 0;
+our $START_ROW : shared       = 7;
+our $ROW_ADJUST : shared      = 0;
 
 my $OLDDIR         = getcwd;
 my $LEVEL          = 'ERROR';
 my $SERVER_THREADS = {};
-my $START_ROW      = 7;
-my $ROW_ADJUST     = 0;
 
 GetOptions(
     'test|sysop'    => \$TEST,
@@ -83,7 +85,7 @@ $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { h
 my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
-my $COMMANDS = {
+my $SYSOP_COMMANDS = {
 	'SYSOP BBS LISTINGS MANAGER' => sub {
 		my $self = shift;
 		return('BACK');
@@ -135,9 +137,11 @@ my $COMMANDS = {
     },
     'SYSOP LOGIN SYSOP' => sub {
         run_bbs_sysop(shift, TRUE);
+        return('BACK');
     },
     'SYSOP LOGIN' => sub {
         run_bbs_sysop(shift, FALSE);
+        return('BACK');
     },
     'SYSOP STATISTICS' => sub {
         my $self = shift;
@@ -284,10 +288,9 @@ sub system_menu {
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
         my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/sysop.ANS');
-
 		while($command !~ /BACK/ && $RUNNING) {
 			$DEBUG->DEBUG(["Running command $command"]);
-			$command = $COMMANDS->{$command}->($bbs_obj);
+			$command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
 			threads->yield();
 		}
     } ## end while ($RUNNING)
@@ -314,20 +317,28 @@ sub servers_status {
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
         $ROW_ADJUST = 2;
-		$BBS::Universal::ONLINE = 0;
-		$BBS::Universal::THREADS_RUNNING = 0;
+		{
+			lock($ONLINE);
+			$ONLINE = 0;
+			lock($THREADS_RUNNING);
+			$THREADS_RUNNING = 0;
+		}
         foreach my $name (sort(keys %{$SERVER_THREADS})) {
             my $status = '';
             if ($SERVER_STATUS[$count] == TRUE) {
                 $status = 'CONNECTED';
-				$BBS::Universal::ONLINE++;
-				$BBS::Universal::THREADS_RUNNING++;
+				lock($ONLINE);
+				$ONLINE++;
+				lock($THREADS_RUNNING);
+				$THREADS_RUNNING++;
             } elsif ($SERVER_STATUS[$count] == FALSE) {
                 $status = 'IDLE';
-				$BBS::Universal::THREADS_RUNNING++;
+				lock($THREADS_RUNNING);
+				$THREADS_RUNNING++;
             } else {
                 $status = 'FINISHED';
-				$BBS::Universal::THREADS_RUNNING--;
+				lock($THREADS_RUNNING);
+				$THREADS_RUNNING--;
             }
             push(@row, "$name -> $status");
             $steps--;
@@ -407,7 +418,7 @@ sub run_bbs {
                         'debuglevel'    => $params->{'debuglevel'},
                     }
                 );
-                $bbs->run();
+                $bbs->run(FALSE);
                 shutdown($client_socket, 1);    # Hang up
                 {
                     lock(@SERVER_STATUS);
@@ -428,19 +439,19 @@ sub run_bbs {
 
 sub run_bbs_sysop {
     my $bbs_obj = shift;
+    my $sysop = shift;
 
     # Only allow the main program to respond to signals, not the threads
-    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
-    my $sysop = shift;
-	if ($sysop) {
-		my $bbs = BBS::Universal->new(
-			{
-				'thread_name' => 'CONSOLE',
-				'debug'       => $DEBUG,
-			}
-		);
-		$bbs->run($sysop);
-	} ## end if ($sysop)
+#    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
+	print locate(($START_ROW + $ROW_ADJUST),1),cldown;
+	my $bbs = BBS::Universal->new(
+		{
+			'thread_name' => 'CONSOLE',
+			'debug'       => $DEBUG,
+	        'local_mode'  => TRUE,
+		}
+	);
+	$bbs->run($sysop);
 	threads->yield() if (!$TEST);    # Be friendly
 } ## end sub run_bbs_sysop
 

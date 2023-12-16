@@ -1,7 +1,13 @@
-A|FORUMS|CYAN|Go To Forums
-B|FILES|YELLOW|Go To Files
-C|NEWS|MAGENTA|Systen News
-D|ABOUT|GREEN|About [% BBS NAME %]
+O|GO TO FORUMS|MAGENTA|Go To Forums
+M|ACCOUNT MANAGER|WHITE|Manage Your Account
+F|VIEW FILES|GREEN|Go To Files
+N|VIEW NEWS|CYAN|System News
+A|ABOUT|YELLOW|About This BBS
 X|DISCONNECT|RED|Disconnect
 ---
-Main Menu
+[% CLS %]
+[% RED     %]  #[% RESET %]  __  __       _         __  __                   [% RED     %]#[% RESET %]
+[% YELLOW  %] ##[% RESET %] |  \/  | __ _(_)_ __   |  \/  | ___ _ __  _   _  [% YELLOW  %]##[% RESET %]
+[% GREEN   %]###[% RESET %] | |\/| |/ _` | | '_ \  | |\/| |/ _ \ '_ \| | | | [% GREEN   %]###[% RESET %]
+[% MAGENTA %] ##[% RESET %] | |  | | (_| | | | | | | |  | |  __/ | | | |_| | [% MAGENTA %]##[% RESET %]
+[% BLUE    %]  #[% RESET %] |_|  |_|\__,_|_|_| |_| |_|  |_|\___|_| |_|\__,_| [% BLUE    %]#[% RESET %]

@@ -12,7 +12,9 @@ sub load_file {
     my $self = shift;
     my $file = shift;
 
-    my $filename = sprintf('%s.%s', $file, $self->{'suffixes'}->[$self->{'mode'}]);
+    $self->{'debug'}->DEBUG(["Load $file"]);
+    my $filename = sprintf('%s.%s', $file, $self->{'USER'}->{'suffix'});
+    $self->{'debug'}->DEBUG(["Load actual $filename"]);
     open(my $FILE, '<', $filename);
     my @text = <$FILE>;
     close($FILE);

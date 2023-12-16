@@ -1,0 +1,19 @@
+Z|BACK|WHITE|Return to Main Menu
+---
+[% CLEAR %]
+This system is running on the
+"BBS::Universal" software written in
+Perl by [% AUTHOR NAME %].
+It is a multi-threaded system designed
+to accommodate internet connections by
+retro-computers and modern computers.
+It operates just like the BBS systems
+in the 1980s and 1990s.  The advantage
+to this system is it allows more than
+one user to connect at a time, so no
+waiting.
+
+The software supports ASCII, ATASCII,
+PETSCII and ANSI text formats, with the
+capability to add more.
+

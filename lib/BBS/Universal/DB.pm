@@ -45,7 +45,7 @@ sub db_connect {
 			$self->{'CONF'}->{'STATIC'}->{'DATABASE USERNAME'},
 			$self->{'CONF'}->{'STATIC'}->{'DATABASE PASSWORD'},
 			{
-				'PrintError' => TRUE,
+				'PrintError' => FALSE,
 				'AutoCommit' => TRUE
 			},
 		) or $errors = $DBI::errstr;
