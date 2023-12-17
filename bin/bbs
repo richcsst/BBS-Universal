@@ -36,10 +36,11 @@ use IO::Socket::INET;
 use Debug::Easy;
 use Getopt::Long;
 use Term::ReadKey;
-use Term::ANSIColor;
 use Term::ANSIScreen qw( :cursor :screen );
+use Term::ANSIColor;
 use Text::SimpleTable;
 use List::Util qw(min max);
+use Text::Format;
 use Memory::Usage;
 
 use BBS::Universal;
@@ -86,6 +87,13 @@ my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}-
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
 my $SYSOP_COMMANDS = {
+	'SYSOP SHOW ENVIRONMENT' => sub {
+		my $self = shift;
+		print $self->sysop_showenv();
+		print "\nPress a key to return to the main menu";
+		$self->sysop_keypress();
+		return('BACK');
+	},
 	'SYSOP BBS LISTINGS MANAGER' => sub {
 		my $self = shift;
 		return('BACK');

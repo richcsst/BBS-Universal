@@ -32,7 +32,8 @@ use DBD::mysql;
 use File::Basename;
 use Time::HiRes qw(time sleep);
 use Term::ReadKey;
-use Term::ANSIScreen qw( :color :cursor :screen );
+use Term::ANSIScreen qw( :cursor :screen );
+use Term::ANSIColor;
 use Text::Format;
 use Text::SimpleTable;
 use IO::Socket::INET;
@@ -452,7 +453,7 @@ sub main_menu {
     my $self  = shift;
 	my $file  = shift;
 
-    my $connected = TRUE;
+   my $connected = TRUE;
 	my $command = '';
     $self->{'debug'}->DEBUG(['Main Menu loop start']);
 	my $mapping = $self->load_menu($file);
@@ -585,6 +586,22 @@ sub output {
     my $self = shift;
     my $text = $self->detokenize_text(shift);
 
+	if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+		my $format = Text::Format->new(
+			'columns' => $self->{'USER'}->{'max_columns'} - 1,
+			'tabstop' => 4,
+			'extraSpace' => TRUE,
+			'firstIndent' => 0,
+		);
+ 		my $header;
+		($header,$text) = split(/\[\%\s+WRAP\s+\%\]/,$text);
+		if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+			$text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+			$format->justify(TRUE);
+		}
+		$text = $format->format($text);
+		$text = $header . $text;
+	}
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ATASCII') {
         $self->{'debug'}->DEBUG(['Send ATASCII']);
@@ -1748,70 +1765,74 @@ sub sysop_initialize {
 		},
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
-		    id
-			fullname
-			username
-			given
-			family
-			nickname
-			birthday
-			location
-			baud_rate
-			text_mode
-			suffix
-			timeout
-			retro_systems
-			accomplishments
-			prefer_nickname
-			view_files
-			upload_files
-			download_files
-			remove_files
-			read_message
-			post_message
-			remove_message
-			sysop
-			page_sysop
-			login_time
-			logout_time
+		id
+		fullname
+		username
+		given
+		family
+		nickname
+		birthday
+		location
+		baud_rate
+		text_mode
+		max_columns
+		max_rows
+		suffix
+		timeout
+		retro_systems
+		accomplishments
+		prefer_nickname
+		view_files
+		upload_files
+		download_files
+		remove_files
+		read_message
+		post_message
+		remove_message
+		sysop
+		page_sysop
+		login_time
+		logout_time
 	)];
 	$self->{'SYSOP ORDER ABBREVIATED'} = [qw(
-			id
-			fullname
-			username
-			given
-			family
-			nickname
-			text_mode
+		id
+		fullname
+		username
+		given
+		family
+		nickname
+		text_mode
 	)];
 	$self->{'SYSOP HEADING WIDTHS'} = {
-			'id' => 2,
-			'username' => 16,
-			'fullname' => 20,
-			'given' => 12,
-			'family' => 12,
-			'nickname' => 8,
-			'birthday' => 10,
-			'location' => 20,
-			'baud_rate' => 4,
-			'login_time' => 10,
-			'logout_time' => 10,
-			'text_mode' => 9,
-			'suffix' => 3,
-			'timeout' => 5,
-			'retro_systems' => 20,
-			'accomplishments' => 20,
-			'prefer_nickname' => 2,
-			'view_files' => 2,
-			'upload_files' => 2,
-			'download_files' => 2,
-			'remove_files' => 2,
-			'read_message' => 2,
-			'post_message' => 2,
-			'remove_message' => 2,
-			'sysop' => 2,
-			'page_sysop' => 2,
-		    'password' => 64,
+		'id' => 2,
+		'username' => 16,
+		'fullname' => 20,
+		'given' => 12,
+		'family' => 12,
+		'nickname' => 8,
+		'birthday' => 10,
+		'location' => 20,
+		'baud_rate' => 4,
+		'login_time' => 10,
+		'logout_time' => 10,
+		'text_mode' => 9,
+		'max_rows' => 5,
+		'max_columns' => 5,
+		'suffix' => 3,
+		'timeout' => 5,
+		'retro_systems' => 20,
+		'accomplishments' => 20,
+		'prefer_nickname' => 2,
+		'view_files' => 2,
+		'upload_files' => 2,
+		'download_files' => 2,
+		'remove_files' => 2,
+		'read_message' => 2,
+		'post_message' => 2,
+		'remove_message' => 2,
+		'sysop' => 2,
+		'page_sysop' => 2,
+		'password' => 64,
 	};
     #$self->{'debug'}->ERROR($self);exit;
     $self->{'debug'}->DEBUG(['Initialized SysOp object']);
@@ -2016,34 +2037,36 @@ sub sysop_list_users {
 	if ($list_mode =~ /DETAILED/) {
 		$sql = q{
             SELECT
-                id,
-                username,
-                fullname,
-                given,
-                family,
-                nickname,
-                DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
-                location,
-                baud_rate,
-                DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
-                DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
-                text_mode,
-                suffix,
-                timeout,
-                retro_systems,
-                accomplishments,
-                prefer_nickname,
-                view_files,
-                upload_files,
-                download_files,
-                remove_files,
-                read_message,
-                post_message,
-                remove_message,
-                sysop,
-                page_sysop
-            FROM
-                users_view };
+			  id,
+			  username,
+			  fullname,
+			  given,
+			  family,
+			  nickname,
+			  DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
+			  location,
+			  baud_rate,
+			  DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
+			  DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
+			  text_mode,
+			  max_columns,
+			  max_rows,
+			  suffix,
+			  timeout,
+			  retro_systems,
+			  accomplishments,
+			  prefer_nickname,
+			  view_files,
+			  upload_files,
+			  download_files,
+			  remove_files,
+			  read_message,
+			  post_message,
+			  remove_message,
+			  sysop,
+			  page_sysop
+			  FROM
+			  users_view };
 		$sth = $self->{'dbh'}->prepare($sql);
 		@order = @{$self->{'SYSOP ORDER DETAILED'}};
 	} else {
@@ -2292,6 +2315,7 @@ sub sysop_user_edit {
 				} elsif ($field eq 'timeout') {
 					$user_row->{$field} = $user_row->{$field} . ' Minutes'
 				}
+				$count++ if ($key_exit eq $choices[$count]);
 				$table->row($choices[$count],$field,$user_row->{$field} . '');
 				$choice{$choices[$count]} = $field;
 				$count++;
@@ -2310,6 +2334,15 @@ sub sysop_user_edit {
 			unless($new eq '') {
 				$new =~ s/^(Yes|On)$/1/i;
 				$new =~ s/^(No|Off)$/0/i;
+			}
+			if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
+				my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice{$key} . '=? WHERE id=?');
+				$sth->execute($new,$user_row->{'id'});
+				$sth->finish();
+			} else {
+				my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
+				$sth->execute($new,$user_row->{'id'});
+				$sth->finish();
 			}
 		}
 	} elsif ($search ne '') {
@@ -2342,7 +2375,7 @@ sub sysop_user_add {
 	my $user_template;
 	push(@{$self->{'SYSOP ORDER DETAILED'}},'password');
 	foreach my $name (@{$self->{'SYSOP ORDER DETAILED'}}) {
-		next if ($name =~ /id|fullname|_time|suffix/);
+		next if ($name =~ /id|fullname|_time|suffix|max_/);
 		if ($name eq 'timeout') {
 			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
 		} elsif ($name eq 'baud_rate') {
@@ -2461,7 +2494,7 @@ sub sysop_user_add {
 				sysop,
 				page_sysop,
 				timeout)
-			   VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
+			  VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
 		}
 	);
 	$sth->execute(
@@ -2518,6 +2551,9 @@ sub sysop_validate_fields {
 		return(FALSE);
 	} elsif ($name eq 'baud_rate' && $val !~ /^(300|1200|2400|4800|9600|FULL)$/i) {
 		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Only 300,1200,2400,4800,9600,FULL'),locate($row,$column);
+		return(FALSE);
+	} elsif ($name =~ /max_/ && $val =~ /\D/i) {
+		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Only Numeric Values'),locate($row,$column);
 		return(FALSE);
 	} elsif ($name eq 'timeout' && $val =~ /\D/) {
 		print locate($row,($column + max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}))),colored(['red'],' Must be numeric'),locate($row,$column);
@@ -2600,6 +2636,79 @@ sub sysop_menu_choice {
 		  "\n";
 	}
 	return($response);
+}
+
+sub sysop_showenv {
+	my $self = shift;
+	my $MAX = 0;
+
+	my $text = '';
+	foreach my $e (keys %ENV) {
+		$MAX = max(length($e),$MAX);
+	}
+
+	foreach my $env (sort(keys %ENV)) {
+		if ($ENV{$env} =~ /\n/g) {
+			my @in = split(/\n/,$ENV{$env});
+			my $indent = $MAX + 4;
+			$text .= sprintf("%${MAX}s = ---" . $env) . "\n";
+			foreach my $line (@in) {
+				if ($line =~ /\:/) {
+					my ($f,$l) = $line =~ /^(.*?):(.*)/;
+					chomp($l);
+					chomp($f);
+					$f = uc($f);
+					if ($f eq 'IP') {
+						$l = colored(['bright_green'], $l);
+						$f = 'IP ADDRESS';
+					}
+					my $le = 11 - length($f);
+					$f .= ' ' x $le;
+					$l = colored(['green'],uc($l)) if ($l =~ /^ok/i);
+					$l = colored(['bold red'],'U') . colored(['bold white'],'S') . colored(['bold blue'],'A') if ($l =~ /^us/i);
+					$text .= colored(['bold white'], sprintf("%${indent}s",$f)) . " = $l\n";
+				} else {
+				    $text .= "$line\n";
+				}
+			}
+		} elsif ($env eq 'SSH_CLIENT') {
+			my ($ip,$p1,$p2) = split(/ /,$ENV{$env});
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)),
+			  ' = ',
+			  colored(['bright_green'],$ip),
+			  ' ',
+			  colored(['cyan'],$p1),
+			  ' ',
+			  colored(['yellow'],$p2),
+			  "\n";
+		} elsif ($env eq 'SSH_CONNECTION') {
+			my ($ip1,$p1,$ip2,$p2) = split(/ /,$ENV{$env});
+			$text .=
+			  colored(['bold white'], sprintf("%${MAX}s",$env)) . ' = ' .
+			  colored(['bright_green'],$ip1) . ' ' .
+			  colored(['cyan'],$p1) . ' ' .
+			  colored(['bright_green'],$ip2) . ' ' .
+			  colored(['yellow'],$p2) . "\n";
+		} elsif ($env eq 'TERM') {
+			my $colorized =
+			  colored(['red'],'2') .
+			  colored(['green'],'5') .
+			  colored(['yellow'],'6') .
+			  colored(['cyan'],'c') .
+			  colored(['bright_blue'],'o') .
+			  colored(['magenta'],'l') .
+			  colored(['bright_green'],'o') .
+			  colored(['bright_blue'],'r');
+			my $line = $ENV{$env};
+			$line =~ s/256color/$colorized/;
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) . ' = ' . $line . "\n";
+		} elsif ($env eq 'WHATISMYIP') {
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) . ' = ' . colored(['bright_green'], $ENV{$env}) . "\n";
+		} else {
+			$text .= colored(['bold white'],sprintf("%${MAX}s",$env)) . ' = ' . $ENV{$env} . "\n";
+		}
+	}
+	return($text);
 }
 
  

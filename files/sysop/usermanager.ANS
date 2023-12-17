@@ -3,9 +3,9 @@
 2|SYSOP LIST USERS HORIZONTAL ABBREVIATED|CYAN|List Users Horizontally With Just The Essentials
 3|SYSOP LIST USERS VERTICAL DETAILED|CYAN|List Users Vertically With All Details
 4|SYSOP LIST USERS HORIZONTAL DETAILED|CYAN|List Users Horizontally With All Details
-5|SYSOP EDIT USER|BLUE|Edit User
-6|SYSOP ADD USER|YELLOW|Add New User
-7|SYSOP DELETE USER|RED|Remove a User
+E|SYSOP EDIT USER|BLUE|Edit User
+A|SYSOP ADD USER|YELLOW|Add New User
+R|SYSOP DELETE USER|RED|Remove a User
 Z|BACK|WHITE|Return to System Menu
 ---
 [% RED     %]     # [% CYAN %] _   _                 __  __                                   

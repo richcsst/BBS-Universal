@@ -32,7 +32,8 @@ use DBD::mysql;
 use File::Basename;
 use Time::HiRes qw(time sleep);
 use Term::ReadKey;
-use Term::ANSIScreen qw( :color :cursor :screen );
+use Term::ANSIScreen qw( :cursor :screen );
+use Term::ANSIColor;
 use Text::Format;
 use Text::SimpleTable;
 use IO::Socket::INET;
@@ -442,7 +443,7 @@ sub main_menu {
     my $self  = shift;
 	my $file  = shift;
 
-    my $connected = TRUE;
+   my $connected = TRUE;
 	my $command = '';
     $self->{'debug'}->DEBUG(['Main Menu loop start']);
 	my $mapping = $self->load_menu($file);
@@ -575,6 +576,22 @@ sub output {
     my $self = shift;
     my $text = $self->detokenize_text(shift);
 
+	if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+		my $format = Text::Format->new(
+			'columns' => $self->{'USER'}->{'max_columns'} - 1,
+			'tabstop' => 4,
+			'extraSpace' => TRUE,
+			'firstIndent' => 0,
+		);
+ 		my $header;
+		($header,$text) = split(/\[\%\s+WRAP\s+\%\]/,$text);
+		if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+			$text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+			$format->justify(TRUE);
+		}
+		$text = $format->format($text);
+		$text = $header . $text;
+	}
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ATASCII') {
         $self->{'debug'}->DEBUG(['Send ATASCII']);

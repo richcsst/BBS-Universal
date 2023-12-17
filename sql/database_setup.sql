@@ -25,7 +25,8 @@ CREATE TABLE users (
 	given           VARCHAR(255) NOT NULL,
 	family          VARCHAR(255) NOT NULL,
 	nickname        VARCHAR(255),
-    max_columns     SMALLINT UNSIGNED DEFAULT 40,
+    max_columns     SMALLINT UNSIGNED DEFAULT 80,
+	max_rows        SMALLINT UNSIGNED DEFAULT 25,
 	accomplishments TEXT,
 	retro_systems   TEXT,
 	birthday        DATE,
@@ -108,13 +109,12 @@ INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('PETSCII','PET');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ANSI','ANS');
 
-INSERT INTO users (username,nickname,password,given,family,max_columns,text_mode,baud_rate,accomplishments)
+INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments)
     VALUES (
 	    'sysop',
 		'SysOp',
 		SHA2('BBS::Universal',512),
 		'System','Operator',
-		80,
 		(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
 		'FULL',
 		'I manage and maintain this system'
@@ -241,6 +241,7 @@ CREATE VIEW users_view
 	users.family                AS family,
 	users.nickname              AS nickname,
 	users.max_columns           AS max_columns,
+	users.max_rows              AS max_rows,
 	users.birthday              AS birthday,
 	users.location              AS location,
 	users.baud_rate             AS baud_rate,
