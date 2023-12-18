@@ -8,6 +8,10 @@ sub ansi_initialize {
 
     $self->{'ansi_prefix'}       = $esc;
     $self->{'ansi_sequences'} = {
+		'RETURN'     => chr(13),
+		'LINEFEED'   => chr(10),
+		'NEWLINE'    => chr(13) . chr(10),
+
         'CLEAR'      => cls,
 		'CLS'        => cls,
 		'CLEAR LINE' => clline,
@@ -289,10 +293,11 @@ sub ansi_initialize {
 sub ansi_output {
     my $self = shift;
     my $text = shift;
-
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+	my $lines = $mlines;
     $self->{'debug'}->DEBUG(['Send ANSI text']);
     foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
-		if ($string =~ /CLEAR|CLS/i && $self->{'sysop'}) {
+		if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
 			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
 			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
 		} else {
@@ -300,8 +305,20 @@ sub ansi_output {
 		}
     }
     my $s_len = length($text);
+	my $nl = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
+		my $char = substr($text, $count, 1);
+        if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+		$self->send_char($char);
     }
     return (TRUE);
 }

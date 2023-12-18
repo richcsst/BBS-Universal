@@ -5,7 +5,11 @@ sub petscii_initialize {
     my $self = shift;
 
     $self->{'petscii_sequences'} = {
+		'RETURN'        => chr(13),
+		'LINEFEED'      => chr(10),
+		'NEWLINE'       => chr(13) . chr(10),
         'CLEAR'         => chr(hex('0x93')),
+        'CLS'           => chr(hex('0x93')),
         'WHITE'         => chr(5),
         'BLACK'         => chr(hex('0x90')),
         'RED'           => chr(hex('0x1C')),
@@ -59,14 +63,34 @@ sub petscii_output {
     my $self = shift;
     my $text = shift;
 
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3: 21;
+	my $lines = $mlines;
+
     $self->{'debug'}->DEBUG(['Send PETSCII text']);
     my $s_len = length($text);
     foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
-        $text =~ s/\[\% $string \%\]/$self->{'petscii_sequences'}->{$string}/gi;
+        if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
+			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+		} else {
+			$text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
+		}
     }
-    foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
-    }
-    return (TRUE);
+    my $nl = $self->{'petscii_sequences'}->{'NEWLINE'};
+	foreach my $count (0 .. $s_len) {
+		my $char = substr($text, $count, 1);
+		if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+		$self->send_char($char);
+	}
+	return (TRUE);
 } ## end sub petscii_output
 1;

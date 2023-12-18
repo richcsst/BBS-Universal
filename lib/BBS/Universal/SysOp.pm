@@ -6,25 +6,22 @@ sub sysop_initialize {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     #### Format Versions for display
-    my $versions;
-    if ($wsize > 120) {
-        $versions = "\t" . colored(['bold yellow on_red'], clline . " NAME                          VERSION\t\t NAME                          VERSION") . colored(['on_red'], clline) . "\n";
-        my $odd = FALSE;
-        foreach my $v (@{ $self->{'VERSIONS'} }) {
-            if ($odd) {
-                $versions .= "\t\t $v\n";
-            } else {
-                $versions .= "\t\t\t $v";
-            }
-            $odd = !$odd;
-        } ## end foreach my $v (@{ $self->{'VERSIONS'...}})
-        $versions .= "\n" if ($odd);
-    } else {
-        $versions = "\t" . colored(['bold yellow on_red'], clline . " NAME                          VERSION") . colored(['on_red'], clline) . "\n";
-        foreach my $v (@{ $self->{'VERSIONS'} }) {
-            $versions .= "\t\t\t $v\n";
-        }
-    } ## end else [ if ($wsize > 120) ]
+	my $sections;
+	if ($wsize <= 80) {
+		$sections = 1;
+	} elsif ($wsize <= 120) {
+		$sections = 2;
+	} elsif ($wsize <= 160) {
+		$sections = 3;
+	} elsif ($wsize <= 200) {
+		$sections = 4;
+	} elsif ($wsize <= 240) {
+		$sections = 5;
+	} elsif ($wsize >= 280) {
+		$sections = 6;
+	}
+    my $versions = $self->sysop_versions_format($sections,FALSE);
+    my $bbs_versions = $self->sysop_versions_format($sections,TRUE);
 
     $self->{'sysop_tokens'} = {
         'EURO'                             => chr(128),
@@ -224,6 +221,7 @@ sub sysop_initialize {
         'CPU THREADS'     => $self->{'CPU'}->{'CPU THREADS'},
         'HARDWARE'        => $self->{'CPU'}->{'HARDWARE'},
         'VERSIONS'        => $versions,
+		'BBS VERSIONS'    => $bbs_versions,
         'BBS NAME'        => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
 		# Non-static
         'THREADS COUNT'   => sub {
@@ -253,6 +251,10 @@ sub sysop_initialize {
         'CPU LOAD'        => sub {
 			my $self = shift;
 			return($self->cpu_info->{'CPU LOAD'});
+		},
+		'ENVIRONMENT'     => sub {
+			my $self = shift;
+			return($self->sysop_showenv());
 		},
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
@@ -336,15 +338,50 @@ sub sysop_online_count {
 	return($main::ONLINE);
 }
 
-sub sysop_disk_free {
+sub sysop_versions_format {
+	my $self     = shift;
+	my $sections = shift;
+	my $bbs_only = shift;
+
+	my $versions = "\n\t";
+	my $heading  = "\t";
+	my $counter  = $sections;
+
+	for(my $count = $sections - 1 ;$count > 0;$count--) {
+		$heading .= ' NAME                          VERSION ';
+		if ($count) {
+			$heading .= "\t\t";
+		} else {
+			$heading .= "\n";
+		}
+	}
+	$heading = colored(['yellow on_red'], $heading);
+	foreach my $v (@{ $self->{'VERSIONS'} }) {
+		next if ($bbs_only && $v !~ /^BBS/);
+		$versions .= "\t\t $v";
+		$counter--;
+		if ($counter <= 1) {
+			$counter = $sections;
+			$versions .= "\n\t";
+		}
+	}
+	chop($versions) if (substr($versions,-1,1) eq "\t");
+	return($heading . $versions . "\n");
+}
+
+sub sysop_disk_free { # Show the Disk Free portion of Statistics
     my $self = shift;
 
-    my @free     = split(/\n/, `nice df -h -T`);
+    my @free     = split(/\n/, `nice df -h -T`); # Get human readable disk free showing type
     my $diskfree = '';
+	my $width = 1;
+	foreach my $l (@free) {
+		$width = max(length($l),$width); # find the width of the widest line
+	}
     foreach my $line (@free) {
         next if ($line =~ /tmp|boot/);
         if ($line =~ /^Filesystem/) {
-            $diskfree .= "\t" . colored(['bold yellow on_blue'], " $line") . colored(['on_blue'], clline) . "\n";
+            $diskfree .= "\t" . colored(['bold yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n"; # Make the heading the right width
         } else {
             $diskfree .= "\t\t\t $line\n";
         }
@@ -398,6 +435,7 @@ sub sysop_load_menu {
                     'color'   => $color,
                     'text'    => $t,
                 };
+				$mapping->{$k}->{'color'} =~ s/(BRIGHT) /${1}_/; # Make it Term::ANSIColor friendly
             } else {
                 $mode = 0;
             }
@@ -485,7 +523,7 @@ sub sysop_memory {
 
     my $memory = `nice free`;
     my @mem    = split(/\n/, $memory);
-    my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ' . clline) . "\n";
+    my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ') . "\n";
     while (scalar(@mem)) {
         $output .= "\t\t\t" . shift(@mem) . "\n";
     }
@@ -1089,7 +1127,10 @@ sub sysop_detokenize {
     }
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
         my $ch = $self->{'ansi_sequences'}->{$name};
-        $text =~ s/\[\%\s+$name\s+\%\]/$ch/gi;
+		if ($name eq 'CLEAR') {
+			$ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
+		}
+		$text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
     }
     $self->{'debug'}->DEBUGMAX([$text]);    # After
 
@@ -1200,5 +1241,14 @@ sub sysop_showenv {
 		}
 	}
 	return($text);
+}
+sub sysop_scroll {
+	my $self = shift;
+	print "Scroll?  ";
+	if ($self->sysop_keypress(ECHO,BLOCKING) =~ /N/i) {
+		return(FALSE);
+	}
+	print "\r" . clline;
+	return(TRUE);
 }
 1;

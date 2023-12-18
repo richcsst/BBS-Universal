@@ -88,12 +88,21 @@ CREATE TABLE files (
 );
 
 CREATE TABLE file_types (
-    id        SMALLINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    id        SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 	type      VARCHAR(255),
 	extension VARCHAR(5)
 );
 
+CREATE TABLE bbs_listing (
+    id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	bbs_name     VARCHAR(255) NOT NULL,
+	bbs_hostname VARCHAR(255) NOT NULL,
+	bbs_port     SMALLINT UNSIGNED DEFAULT 9999
+);
+
 -- Inserts
+
+INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port) VALUES ('BBS Universal Sample','localhost',9999);
 
 INSERT INTO config (config_name, config_value) VALUES ('HOST','0.0.0.0');
 INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal');

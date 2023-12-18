@@ -180,6 +180,11 @@ sub populate_common {
 		'PERL VERSION'       => $self->{'VERSIONS'}->[0],
 		'BBS NAME'           => $self->{'CONF'}->{'BBS NAME'},
 		'BBS VERSION'        => $self->{'VERSIONS'}->[1],
+		'BANNER'             => sub {
+			my $self = shift;
+			my $banner = $self->load_file('files/main/banner');
+			return($banner);
+		},
 		'USER INFO'          => sub {
 			my $self = shift;
 			return($self->user_info());
@@ -278,7 +283,7 @@ sub run {
     my $self = shift;
 	my $sysop = shift;
 
-	$self->{'sysop'} = $self->{'local_mode'} = $sysop;
+	$self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
     if ($self->greeting()) {    # Greeting also logs in
@@ -319,6 +324,8 @@ sub login {
 		} until($username ne '' && $self->is_connected());
 		if (uc($username) eq 'NEW') {
 			$valid = $self->create_account();
+		} elsif ($username eq 'sysop' && ! $self->{'local_mode'}) {
+			$self->output("\n\nSysOp cannot connect remotely\n\n");
 		} else {
 			$self->output("\n\nPlease enter your password > ");
 			my $password = $self->get_line(PASSWORD,64);
@@ -623,7 +630,7 @@ sub send_char {
     my $self = shift;
     my $char = shift;
 
-    $self->{'debug'}->DEBUGMAX([$char]);
+#    $self->{'debug'}->DEBUGMAX([$char]);
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print $char;
@@ -636,6 +643,23 @@ sub send_char {
     sleep $self->{'SPEEDS'}->{ $self->{'baud_rate'} } if ($self->{'USER'}->{'baud_rate'} ne 'FULL');
     return (TRUE);
 } ## end sub send_char
+
+sub scroll {
+	my $self = shift;
+	my $nl   = shift;
+
+	my $string;
+	if ($self->{'local_mode'}) {
+		$string = "\n\nScroll?  ";
+	} else {
+		$string = "$nl$nl" . 'Scroll?  ';
+	}
+	$self->send_char($string);
+	if ($self->get_key(ECHO,BLOCKIMG) =~ /N/i) {
+		return(FALSE);
+	}
+	return(TRUE);
+}
 
 # Typical subroutines, not objects
 
@@ -746,7 +770,6 @@ sub parse_versions {
 		"Text::Format                  $Text::Format::VERSION",
 		"Text::SimpleTable             $Text::SimpleTable::VERSION",
 		"IO::Socket::INET              $IO::Socket::INET::VERSION",
-		"Sys::Info                     $Sys::Info::VERSION",
     ];
     return ($versions);
 } ## end sub parse_versions
@@ -808,6 +831,10 @@ sub ansi_initialize {
 
     $self->{'ansi_prefix'}       = $esc;
     $self->{'ansi_sequences'} = {
+		'RETURN'     => chr(13),
+		'LINEFEED'   => chr(10),
+		'NEWLINE'    => chr(13) . chr(10),
+
         'CLEAR'      => cls,
 		'CLS'        => cls,
 		'CLEAR LINE' => clline,
@@ -1089,10 +1116,11 @@ sub ansi_initialize {
 sub ansi_output {
     my $self = shift;
     my $text = shift;
-
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+	my $lines = $mlines;
     $self->{'debug'}->DEBUG(['Send ANSI text']);
     foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
-		if ($string =~ /CLEAR|CLS/i && $self->{'sysop'}) {
+		if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
 			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
 			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
 		} else {
@@ -1100,8 +1128,20 @@ sub ansi_output {
 		}
     }
     my $s_len = length($text);
+	my $nl = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
+		my $char = substr($text, $count, 1);
+        if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+		$self->send_char($char);
     }
     return (TRUE);
 }
@@ -1113,6 +1153,11 @@ sub ansi_output {
 sub ascii_initialize {
     my $self = shift;
 
+	$self->{'ascii_sequences'} = {
+		'RETURN'   => chr(13),
+		'LINEFEED' => chr(10),
+		'NEWLINE'  => chr(13) . chr(10),
+	};
     $self->{'debug'}->DEBUG(['ASCII Initialized']);
     return ($self);
 } ## end sub ascii_initialize
@@ -1120,12 +1165,26 @@ sub ascii_initialize {
 sub ascii_output {
     my $self = shift;
     my $text = shift;
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3: 21;
+	my $lines = $mlines;
 
     $self->{'debug'}->DEBUG(['Send ASCII text']);
     $self->{'debug'}->DEBUGMAX([$text]);
     my $s_len = length($text);
+	my $nl = $self->{'ascii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
+		my $char = substr($text, $count, 1);
+		if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+        $self->send_char($char);
     }
     return (TRUE);
 } ## end sub ascii_output
@@ -1140,7 +1199,10 @@ sub atascii_initialize {
     $self->{'atascii_sequences'} = {
         'HEART'       => chr(0),
         '0x01'        => chr(1),
-        
+
+        'RETURN'      => chr(13),
+		'LINEFEED'    => chr(10),
+		'NEWLINE'     => chr(13) . chr(10),
         'ESC'         => chr(27),
         'UP'          => chr(28),
         'DOWN'        => chr(29),
@@ -1163,14 +1225,34 @@ sub atascii_output {
     my $self = shift;
     my $text = shift;
 
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3: 21;
+	my $lines  = $mlines;
+
     $self->{'debug'}->DEBUG(['Send ATASCII text']);
     foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
-        $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
+		if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
+			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
+			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+		} else {
+			$text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
+		}
     }
     my $s_len = length($text);
-    foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
-    }
+    my $nl = $self->{'atascii_sequences'}->{'NEWLINE'};
+	foreach my $count (0 .. $s_len) {
+		my $char = substr($text, $count, 1);
+		if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+		$self->send_char($char);
+	}
     return (TRUE);
 } ## end sub atascii_output
 
@@ -1441,7 +1523,11 @@ sub petscii_initialize {
     my $self = shift;
 
     $self->{'petscii_sequences'} = {
+		'RETURN'        => chr(13),
+		'LINEFEED'      => chr(10),
+		'NEWLINE'       => chr(13) . chr(10),
         'CLEAR'         => chr(hex('0x93')),
+        'CLS'           => chr(hex('0x93')),
         'WHITE'         => chr(5),
         'BLACK'         => chr(hex('0x90')),
         'RED'           => chr(hex('0x1C')),
@@ -1495,15 +1581,35 @@ sub petscii_output {
     my $self = shift;
     my $text = shift;
 
+	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3: 21;
+	my $lines = $mlines;
+
     $self->{'debug'}->DEBUG(['Send PETSCII text']);
     my $s_len = length($text);
     foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
-        $text =~ s/\[\% $string \%\]/$self->{'petscii_sequences'}->{$string}/gi;
+        if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
+			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+		} else {
+			$text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
+		}
     }
-    foreach my $count (0 .. $s_len) {
-        $self->send_char(substr($text, $count, 1));
-    }
-    return (TRUE);
+    my $nl = $self->{'petscii_sequences'}->{'NEWLINE'};
+	foreach my $count (0 .. $s_len) {
+		my $char = substr($text, $count, 1);
+		if ($char eq "\n") {
+			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless($self->scroll($nl));
+			}
+		}
+		$self->send_char($char);
+	}
+	return (TRUE);
 } ## end sub petscii_output
 
  
@@ -1515,25 +1621,22 @@ sub sysop_initialize {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     #### Format Versions for display
-    my $versions;
-    if ($wsize > 120) {
-        $versions = "\t" . colored(['bold yellow on_red'], clline . " NAME                          VERSION\t\t NAME                          VERSION") . colored(['on_red'], clline) . "\n";
-        my $odd = FALSE;
-        foreach my $v (@{ $self->{'VERSIONS'} }) {
-            if ($odd) {
-                $versions .= "\t\t $v\n";
-            } else {
-                $versions .= "\t\t\t $v";
-            }
-            $odd = !$odd;
-        } ## end foreach my $v (@{ $self->{'VERSIONS'...}})
-        $versions .= "\n" if ($odd);
-    } else {
-        $versions = "\t" . colored(['bold yellow on_red'], clline . " NAME                          VERSION") . colored(['on_red'], clline) . "\n";
-        foreach my $v (@{ $self->{'VERSIONS'} }) {
-            $versions .= "\t\t\t $v\n";
-        }
-    } ## end else [ if ($wsize > 120) ]
+	my $sections;
+	if ($wsize <= 80) {
+		$sections = 1;
+	} elsif ($wsize <= 120) {
+		$sections = 2;
+	} elsif ($wsize <= 160) {
+		$sections = 3;
+	} elsif ($wsize <= 200) {
+		$sections = 4;
+	} elsif ($wsize <= 240) {
+		$sections = 5;
+	} elsif ($wsize >= 280) {
+		$sections = 6;
+	}
+    my $versions = $self->sysop_versions_format($sections,FALSE);
+    my $bbs_versions = $self->sysop_versions_format($sections,TRUE);
 
     $self->{'sysop_tokens'} = {
         'EURO'                             => chr(128),
@@ -1733,6 +1836,7 @@ sub sysop_initialize {
         'CPU THREADS'     => $self->{'CPU'}->{'CPU THREADS'},
         'HARDWARE'        => $self->{'CPU'}->{'HARDWARE'},
         'VERSIONS'        => $versions,
+		'BBS VERSIONS'    => $bbs_versions,
         'BBS NAME'        => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
 		# Non-static
         'THREADS COUNT'   => sub {
@@ -1762,6 +1866,10 @@ sub sysop_initialize {
         'CPU LOAD'        => sub {
 			my $self = shift;
 			return($self->cpu_info->{'CPU LOAD'});
+		},
+		'ENVIRONMENT'     => sub {
+			my $self = shift;
+			return($self->sysop_showenv());
 		},
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
@@ -1845,15 +1953,50 @@ sub sysop_online_count {
 	return($main::ONLINE);
 }
 
-sub sysop_disk_free {
+sub sysop_versions_format {
+	my $self     = shift;
+	my $sections = shift;
+	my $bbs_only = shift;
+
+	my $versions = "\n\t";
+	my $heading  = "\t";
+	my $counter  = $sections;
+
+	for(my $count = $sections - 1 ;$count > 0;$count--) {
+		$heading .= ' NAME                          VERSION ';
+		if ($count) {
+			$heading .= "\t\t";
+		} else {
+			$heading .= "\n";
+		}
+	}
+	$heading = colored(['yellow on_red'], $heading);
+	foreach my $v (@{ $self->{'VERSIONS'} }) {
+		next if ($bbs_only && $v !~ /^BBS/);
+		$versions .= "\t\t $v";
+		$counter--;
+		if ($counter <= 1) {
+			$counter = $sections;
+			$versions .= "\n\t";
+		}
+	}
+	chop($versions) if (substr($versions,-1,1) eq "\t");
+	return($heading . $versions . "\n");
+}
+
+sub sysop_disk_free { # Show the Disk Free portion of Statistics
     my $self = shift;
 
-    my @free     = split(/\n/, `nice df -h -T`);
+    my @free     = split(/\n/, `nice df -h -T`); # Get human readable disk free showing type
     my $diskfree = '';
+	my $width = 1;
+	foreach my $l (@free) {
+		$width = max(length($l),$width); # find the width of the widest line
+	}
     foreach my $line (@free) {
         next if ($line =~ /tmp|boot/);
         if ($line =~ /^Filesystem/) {
-            $diskfree .= "\t" . colored(['bold yellow on_blue'], " $line") . colored(['on_blue'], clline) . "\n";
+            $diskfree .= "\t" . colored(['bold yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n"; # Make the heading the right width
         } else {
             $diskfree .= "\t\t\t $line\n";
         }
@@ -1907,6 +2050,7 @@ sub sysop_load_menu {
                     'color'   => $color,
                     'text'    => $t,
                 };
+				$mapping->{$k}->{'color'} =~ s/(BRIGHT) /${1}_/; # Make it Term::ANSIColor friendly
             } else {
                 $mode = 0;
             }
@@ -1994,7 +2138,7 @@ sub sysop_memory {
 
     my $memory = `nice free`;
     my @mem    = split(/\n/, $memory);
-    my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ' . clline) . "\n";
+    my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ') . "\n";
     while (scalar(@mem)) {
         $output .= "\t\t\t" . shift(@mem) . "\n";
     }
@@ -2598,7 +2742,10 @@ sub sysop_detokenize {
     }
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
         my $ch = $self->{'ansi_sequences'}->{$name};
-        $text =~ s/\[\%\s+$name\s+\%\]/$ch/gi;
+		if ($name eq 'CLEAR') {
+			$ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
+		}
+		$text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
     }
     $self->{'debug'}->DEBUGMAX([$text]);    # After
 
@@ -2709,6 +2856,15 @@ sub sysop_showenv {
 		}
 	}
 	return($text);
+}
+sub sysop_scroll {
+	my $self = shift;
+	print "Scroll?  ";
+	if ($self->sysop_keypress(ECHO,BLOCKING) =~ /N/i) {
+		return(FALSE);
+	}
+	print "\r" . clline;
+	return(TRUE);
 }
 
  

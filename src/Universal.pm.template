@@ -170,6 +170,11 @@ sub populate_common {
 		'PERL VERSION'       => $self->{'VERSIONS'}->[0],
 		'BBS NAME'           => $self->{'CONF'}->{'BBS NAME'},
 		'BBS VERSION'        => $self->{'VERSIONS'}->[1],
+		'BANNER'             => sub {
+			my $self = shift;
+			my $banner = $self->load_file('files/main/banner');
+			return($banner);
+		},
 		'USER INFO'          => sub {
 			my $self = shift;
 			return($self->user_info());
@@ -268,7 +273,7 @@ sub run {
     my $self = shift;
 	my $sysop = shift;
 
-	$self->{'sysop'} = $self->{'local_mode'} = $sysop;
+	$self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
     if ($self->greeting()) {    # Greeting also logs in
@@ -309,6 +314,8 @@ sub login {
 		} until($username ne '' && $self->is_connected());
 		if (uc($username) eq 'NEW') {
 			$valid = $self->create_account();
+		} elsif ($username eq 'sysop' && ! $self->{'local_mode'}) {
+			$self->output("\n\nSysOp cannot connect remotely\n\n");
 		} else {
 			$self->output("\n\nPlease enter your password > ");
 			my $password = $self->get_line(PASSWORD,64);
@@ -613,7 +620,7 @@ sub send_char {
     my $self = shift;
     my $char = shift;
 
-    $self->{'debug'}->DEBUGMAX([$char]);
+#    $self->{'debug'}->DEBUGMAX([$char]);
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print $char;
@@ -626,6 +633,23 @@ sub send_char {
     sleep $self->{'SPEEDS'}->{ $self->{'baud_rate'} } if ($self->{'USER'}->{'baud_rate'} ne 'FULL');
     return (TRUE);
 } ## end sub send_char
+
+sub scroll {
+	my $self = shift;
+	my $nl   = shift;
+
+	my $string;
+	if ($self->{'local_mode'}) {
+		$string = "\n\nScroll?  ";
+	} else {
+		$string = "$nl$nl" . 'Scroll?  ';
+	}
+	$self->send_char($string);
+	if ($self->get_key(ECHO,BLOCKIMG) =~ /N/i) {
+		return(FALSE);
+	}
+	return(TRUE);
+}
 
 # Typical subroutines, not objects
 
@@ -736,7 +760,6 @@ sub parse_versions {
 		"Text::Format                  $Text::Format::VERSION",
 		"Text::SimpleTable             $Text::SimpleTable::VERSION",
 		"IO::Socket::INET              $IO::Socket::INET::VERSION",
-		"Sys::Info                     $Sys::Info::VERSION",
     ];
     return ($versions);
 } ## end sub parse_versions

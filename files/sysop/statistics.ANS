@@ -15,5 +15,5 @@ CPU Cores         ▰▰▰   [% CPU CORES    %][% MIDDLE VERTICAL RULE MAGENTA 
 CPU Threads       ▰▰▰   [% CPU THREADS  %][% MIDDLE VERTICAL RULE MAGENTA %]  Servers Running   ▰▰▰  [% THREADS COUNT %]
 IP Address        ▰▰▰   [% IP ADDRESS   %][% MIDDLE VERTICAL RULE MAGENTA %]  User Count        ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
 Memory            ▰▰▰  [% MEMORY %]
-Versions          ▰▰▰ [% VERSIONS %]
+Versions          ▰▰▰ [% BBS VERSIONS %]
 Disk Free         ▰▰▰ [% DISK FREE SPACE %]

@@ -56,8 +56,9 @@ our @SERVER_STATUS : shared   = ();
 our $UPDATE : shared          = TRUE;
 our $ONLINE : shared          = 0;
 our $THREADS_RUNNING : shared = 0;
-our $START_ROW : shared       = 7;
 our $ROW_ADJUST : shared      = 0;
+
+our $START_ROW     = 7;
 
 my $OLDDIR         = getcwd;
 my $LEVEL          = 'ERROR';
@@ -89,14 +90,42 @@ chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 my $SYSOP_COMMANDS = {
 	'SYSOP SHOW ENVIRONMENT' => sub {
 		my $self = shift;
-		print $self->sysop_showenv();
-		print "\nPress a key to return to the main menu";
-		$self->sysop_keypress();
+		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+		my $mapping = $self->sysop_load_menu(($START_ROW + $ROW_ADJUST),'files/sysop/environment.ANS');
+		my @lines = split(/\n/,$mapping->{'TEXT'} . $self->sysop_showenv());
+		my $size = (($hsize - ($START_ROW + $ROW_ADJUST)) - 1);
+		my $row = $size;
+		print locate(($START_ROW + $ROW_ADJUST),1),cldown; # CLS
+		my $scroll = TRUE;
+		foreach my $line (@lines) {
+			if (length($line) > $wsize) {
+				my $count = int(length($line) / $wsize) + 1;
+				$row -= $count;
+				if ($row < 0) {
+					$scroll = $self->sysop_scroll();
+					last unless($scroll);
+					$row = $size - $count;
+				}
+				print "$line\n";
+			} else {
+				print "$line\n";
+				$row--;
+			}
+			if ($row <= 0) {
+				$row = $size;
+				$scroll = $self->sysop_scroll();
+				last unless($scroll);
+			}
+		}
+		if ($scroll) {
+			print "\nPress a key to continue ";
+			$self->sysop_keypress();
+		}
 		return('BACK');
 	},
 	'SYSOP BBS LISTINGS MANAGER' => sub {
 		my $self = shift;
-		return('BACK');
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
 	},
 	'SYSOP FILE MANAGER' => sub {
 		my $self = shift;
@@ -206,7 +235,10 @@ sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-    $ROW_ADJUST = 0;
+	{
+		lock($ROW_ADJUST);
+		$ROW_ADJUST = 0;
+	}
 
     print setscroll(1, $hsize), locate(1, 1);
     print colored(['red'],         '  ____  ____ ____    _   _       _                          _ ') .  sprintf(' │ Version %.03f', $BBS::Universal::VERSION), "\n";;
@@ -324,10 +356,13 @@ sub servers_status {
 
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
-        $ROW_ADJUST = 2;
 		{
+			lock($ROW_ADJUST);
+			$ROW_ADJUST = 2;
+
 			lock($ONLINE);
 			$ONLINE = 0;
+
 			lock($THREADS_RUNNING);
 			$THREADS_RUNNING = 0;
 		}
@@ -354,7 +389,10 @@ sub servers_status {
                 $steps = $stp;
                 $table->row(@row);
                 @row = ();
-                $ROW_ADJUST++;
+				{
+					lock($ROW_ADJUST);
+					$ROW_ADJUST++;
+				}
             } ## end if ($steps == 0)
             $count++;
             threads->yield();
@@ -365,8 +403,9 @@ sub servers_status {
                 $steps--;
                 threads->yield();
             }
+			lock($ROW_ADJUST);
             $ROW_ADJUST++;
-            $table->row(@row);
+			$table->row(@row);
             lock($UPDATE);
             $UPDATE = FALSE;
         } ## end if (scalar(@row))
