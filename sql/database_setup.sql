@@ -94,15 +94,16 @@ CREATE TABLE file_types (
 );
 
 CREATE TABLE bbs_listing (
-    id           INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	bbs_name     VARCHAR(255) NOT NULL,
-	bbs_hostname VARCHAR(255) NOT NULL,
-	bbs_port     SMALLINT UNSIGNED DEFAULT 9999
+    bbs_id        INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	bbs_name      VARCHAR(255) NOT NULL,
+	bbs_hostname  VARCHAR(255) NOT NULL,
+	bbs_port      SMALLINT UNSIGNED DEFAULT 9999,
+    bbs_poster_id INT UNSIGNED NOT NULL
 );
 
 -- Inserts
 
-INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port) VALUES ('BBS Universal Sample','localhost',9999);
+INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES ('BBS Universal Sample','localhost',9999,1);
 
 INSERT INTO config (config_name, config_value) VALUES ('HOST','0.0.0.0');
 INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal');
@@ -315,5 +316,18 @@ INNER JOIN
     file_categories ON files.category=file_categories.id
 INNER JOIN
     file_types ON files.file_type=file_types.id;
+
+CREATE VIEW bbs_listing_view
+  AS
+  SELECT
+      bbs_id         AS bbs_id,
+      bbs_name       AS bbs_name,
+      bbs_hostname   AS bbs_hostname,
+      bbs_port       AS bbs_port,
+      users.username AS bbs_poster
+  FROM
+      bbs_listing
+  INNER JOIN
+      users ON users.id=bbs_listing.bbs_poster_id;
 
 -- End

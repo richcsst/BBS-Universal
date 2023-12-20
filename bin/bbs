@@ -127,6 +127,21 @@ my $SYSOP_COMMANDS = {
 		my $self = shift;
 		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
 	},
+	'SYSOP BBS EDIT' => sub {
+		my $self = shift;
+		$self->sysop_edit_bbs();
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
+	},
+	'SYSOP BBS ADD' => sub {
+		my $self = shift;
+		$self->sysop_add_bbs();
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
+	},
+	'SYSOP BBS LIST VIEW' => sub {
+		my $self = shift;
+		$self->sysop_list_bbs();
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
+	},
 	'SYSOP FILE MANAGER' => sub {
 		my $self = shift;
         return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
