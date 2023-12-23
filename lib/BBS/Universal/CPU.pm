@@ -11,7 +11,7 @@ sub cpu_info {
 
 	my $cpu = $self->cpu_identify();
 	my $cpu_cores = scalar(@{$cpu->{'CPU'}});
-	my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 1;
+	my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 'No Hyperthreading';
 	my $cpu_bits = $cpu->{'HARDWARE'}->{'Bits'} + 0;
 	chomp(my $load_average = `cat /proc/loadavg`);
 	my $identity = $cpu->{'CPU'}->[0]->{'model name'};
@@ -77,7 +77,7 @@ sub cpu_identify {
 		'HARDWARE' => $hardware,
 	};
 	if (-e '/usr/bin/lscpu' || -e 'usr/local/bin/lscpu') {
-		my $lscpu_short = `lscpu --extended=cpu,core,online,minmhz,maxmhz,mhz`;
+		my $lscpu_short = `lscpu --extended=cpu,core,online,minmhz,maxmhz`;
 		chomp(my $lscpu_version = `lscpu -V`);
 		$lscpu_version =~ s/^lscpu from util-linux (\d+)\.(\d+)\.(\d+)/$1.$2/;
 		my $lscpu_long = ($lscpu_version >= 2.38) ? `lscpu --hierarchic` : `lscpu`;

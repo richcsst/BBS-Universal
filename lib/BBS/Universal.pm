@@ -876,9 +876,12 @@ sub ansi_initialize {
         # Foreground color
         'BLACK'          => $esc . '30m',
         'RED'            => $esc . '31m',
+        'PINK'           => color('ANSI198'),
+        'ORANGE'         => color('ANSI202'),
         'GREEN'          => $esc . '32m',
         'YELLOW'         => $esc . '33m',
         'BLUE'           => $esc . '34m',
+        'NAVY'           => color('ANSI17'),
         'MAGENTA'        => $esc . '35m',
         'CYAN'           => $esc . '36m',
         'WHITE'          => $esc . '37m',
@@ -1108,7 +1111,9 @@ sub ansi_initialize {
         'HORIZONTAL RULE CYAN'             => "\r" . $self->{'ansi_sequences'}->{'B_CYAN'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
         'HORIZONTAL RULE WHITE'            => "\r" . $self->{'ansi_sequences'}->{'B_WHITE'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
     };
-
+    foreach my $count (0 .. 255) {
+        $self->{'ansi_sequences'}->{"ANSI$count"} = color("ANSI$count");
+    }
     $self->{'debug'}->DEBUG(['Initialized VT102']);
     return ($self);
 }
@@ -1270,7 +1275,7 @@ sub cpu_info {
 
 	my $cpu = $self->cpu_identify();
 	my $cpu_cores = scalar(@{$cpu->{'CPU'}});
-	my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 1;
+	my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 'No Hyperthreading';
 	my $cpu_bits = $cpu->{'HARDWARE'}->{'Bits'} + 0;
 	chomp(my $load_average = `cat /proc/loadavg`);
 	my $identity = $cpu->{'CPU'}->[0]->{'model name'};
@@ -1336,7 +1341,7 @@ sub cpu_identify {
 		'HARDWARE' => $hardware,
 	};
 	if (-e '/usr/bin/lscpu' || -e 'usr/local/bin/lscpu') {
-		my $lscpu_short = `lscpu --extended=cpu,core,online,minmhz,maxmhz,mhz`;
+		my $lscpu_short = `lscpu --extended=cpu,core,online,minmhz,maxmhz`;
 		chomp(my $lscpu_version = `lscpu -V`);
 		$lscpu_version =~ s/^lscpu from util-linux (\d+)\.(\d+)\.(\d+)/$1.$2/;
 		my $lscpu_long = ($lscpu_version >= 2.38) ? `lscpu --hierarchic` : `lscpu`;
@@ -1830,6 +1835,7 @@ sub sysop_initialize {
         # Tokens
         'HOSTNAME'        => $self->sysop_hostname,
         'IP ADDRESS'      => $self->sysop_ip_address(),
+        'CPU BITS'        => $self->{'CPU'}->{'CPU BITS'},
         'CPU CORES'       => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'       => $self->{'CPU'}->{'CPU SPEED'},
         'CPU IDENTITY'    => $self->{'CPU'}->{'CPU IDENTITY'},
@@ -1871,6 +1877,31 @@ sub sysop_initialize {
 			my $self = shift;
 			return($self->sysop_showenv());
 		},
+		'FILE CATEGORY' => sub {
+			my $self = shift;
+
+			my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
+			$sth->execute($self->{'USER'}->{'file_category'});
+			my ($result) = $sth->fetchrow_array();
+			return($result);
+		},
+        'COMMANDS REFERENCE' => sub {
+            my $self = shift;
+            my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+            my $table = Text::SimpleTable->new(40);
+            $table->row('SYSOP MENU COMMANDS');
+            $table->hr();
+            foreach my $sysop_names (sort(keys %{$main::SYSOP_COMMANDS})) {
+                $table->row($sysop_names);
+            }
+            $table->hr();
+            $table->row('USER MENU COMMANDS');
+            $table->hr();
+            foreach my $names (sort(keys %{$self->{'COMMANDS'}})) {
+                $table->row($names);
+            }
+            return($self->center($table->boxes->draw(),$wsize));
+        },
     };
 	$self->{'SYSOP ORDER DETAILED'} = [qw(
 		id
@@ -2062,6 +2093,39 @@ sub sysop_load_menu {
     return ($mapping);
 } ## end sub sysop_load_menu
 
+sub sysop_pager {
+    my $self = shift;
+    my $text = shift;
+    my $offset = shift;
+
+    my ($wsize,$hsize,$wpixels,$hpixels) = GetTerminalSize();
+    my @lines = split(/\n/,$text);
+    my $size = ($hsize - ($main::START_ROW + $main::ROW_ADJUST));
+    my $scroll = TRUE;
+    my $row = $size - $offset;
+    foreach my $line (@lines) {
+        if (length($line) > $wsize) {
+            my $count = int(length($line) / $wsize) + 1;
+            $row -= $count;
+            if ($row < 0) {
+                $scroll = $self->sysop_scroll();
+                last unless($scroll);
+                $row = $size - $count;
+            }
+            print "$line\n";
+        } else {
+            print "$line\n";
+            $row--;
+        }
+        if ($row <= 0) {
+            $row = $size;
+            $scroll = $self->sysop_scroll();
+            last unless($scroll);
+        }
+    }
+    return($scroll);
+}
+
 sub sysop_parse_menu {
     my $self = shift;
     my $row  = shift;
@@ -2070,8 +2134,10 @@ sub sysop_parse_menu {
     my $mapping = $self->sysop_load_menu($row, $file);
     $self->{'debug'}->DEBUG(['Loaded SysOp Menu']);
     $self->{'debug'}->DEBUGMAX([$mapping]);
-    print locate($row, 1), cldown, $mapping->{'TEXT'};
+    print locate($row, 1), cldown;
+    my $scroll = $self->sysop_pager($mapping->{'TEXT'},3);
     my $keys = '';
+    print "\r",cldown unless($scroll);
 	$self->sysop_show_choices($mapping);
     print "\n",$self->sysop_prompt('Choose');
     my $key;
@@ -2193,6 +2259,8 @@ sub sysop_list_users {
 			  DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
 			  DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
 			  text_mode,
+			  forum_category,
+			  file_category,
 			  max_columns,
 			  max_rows,
 			  suffix,
@@ -2451,7 +2519,7 @@ sub sysop_user_edit {
 		$self->{'debug'}->DEBUGMAX(['HERE',$self->{'SYSOP ORDER DETAILED'}]);
 		my %choice;
 		foreach my $field (@{$self->{'SYSOP ORDER DETAILED'}}) {
-			if ($field =~ /_time|fullname|id/) {
+			if ($field =~ /_time|fullname|_category|id/) {
 				$table->row(' ',$field,$user_row->{$field} . '');
 			} else {
 				if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
@@ -2519,7 +2587,7 @@ sub sysop_user_add {
 	my $user_template;
 	push(@{$self->{'SYSOP ORDER DETAILED'}},'password');
 	foreach my $name (@{$self->{'SYSOP ORDER DETAILED'}}) {
-		next if ($name =~ /id|fullname|_time|suffix|max_/);
+		next if ($name =~ /id|fullname|_time|suffix|max_|_category/);
 		if ($name eq 'timeout') {
 			$table->row($name,' ' x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" .  $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3,$self->{'SYSOP HEADING WIDTHS'}->{$name}));
 		} elsif ($name eq 'baud_rate') {
@@ -2820,13 +2888,13 @@ sub sysop_showenv {
 			}
 		} elsif ($env eq 'SSH_CLIENT') {
 			my ($ip,$p1,$p2) = split(/ /,$ENV{$env});
-			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)),
-			  ' = ',
-			  colored(['bright_green'],$ip),
-			  ' ',
-			  colored(['cyan'],$p1),
-			  ' ',
-			  colored(['yellow'],$p2),
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) .
+			  ' = ' .
+			  colored(['bright_green'],$ip) .
+			  ' ' .
+			  colored(['cyan'],$p1) .
+			  ' ' .
+			  colored(['yellow'],$p2) .
 			  "\n";
 		} elsif ($env eq 'SSH_CONNECTION') {
 			my ($ip1,$p1,$ip2,$p2) = split(/ /,$ENV{$env});
@@ -2835,7 +2903,8 @@ sub sysop_showenv {
 			  colored(['bright_green'],$ip1) . ' ' .
 			  colored(['cyan'],$p1) . ' ' .
 			  colored(['bright_green'],$ip2) . ' ' .
-			  colored(['yellow'],$p2) . "\n";
+			  colored(['yellow'],$p2) .
+              "\n";
 		} elsif ($env eq 'TERM') {
 			my $colorized =
 			  colored(['red'],'2') .
@@ -2848,11 +2917,20 @@ sub sysop_showenv {
 			  colored(['bright_blue'],'r');
 			my $line = $ENV{$env};
 			$line =~ s/256color/$colorized/;
-			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) . ' = ' . $line . "\n";
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) .
+              ' = ' .
+              $line .
+              "\n";
 		} elsif ($env eq 'WHATISMYIP') {
-			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) . ' = ' . colored(['bright_green'], $ENV{$env}) . "\n";
+			$text .= colored(['bold white'], sprintf("%${MAX}s",$env)) .
+              ' = ' .
+              colored(['bright_green'], $ENV{$env}) .
+              "\n";
 		} else {
-			$text .= colored(['bold white'],sprintf("%${MAX}s",$env)) . ' = ' . $ENV{$env} . "\n";
+			$text .= colored(['bold white'],sprintf("%${MAX}s",$env)) .
+              ' = ' .
+              $ENV{$env} .
+              "\n";
 		}
 	}
 	return($text);
@@ -2900,7 +2978,8 @@ sub sysop_edit_bbs {
 	my $search;
 	$search = $self->sysop_get_line(50);
 	return(FALSE) if ($search eq '');
-	my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
+    print "\r", cldown, "\n";
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
 	$sth->execute($search,$search,$search);
 	if ($sth->rows()) {
 		my $bbs = $sth->fetchrow_hashref();
@@ -2909,8 +2988,8 @@ sub sysop_edit_bbs {
 		my $index = 1;
 		$table->row('CHOICE','FIELD NAME','VALUE');
 		$table->hr();
-		foreach my $name (qw(bbs_id bbs_name bbs_hostname bbs_port)) {
-			if ($name eq 'bbs_id') {
+		foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
+			if ($name =~ /bbs_id|bbs_poster/) {
 				$table->row(' ',$name,$bbs->{$name});
 			} else {
 				$table->row($index,$name,$bbs->{$name});
@@ -2918,16 +2997,18 @@ sub sysop_edit_bbs {
 			}
 		}
 		print $table->boxes->draw();
-		print $self->prompt('Edit which field (choice)');
+		print $self->prompt('Edit which field (Z=Nevermind)');
 		my $choice;
 		do {
 			$choice = $self->sysop_keypress();
-		} until($choice =~ /1|2|3|Z/i);
+		} until($choice =~ /[1-3]|Z/i);
 		if ($choice =~ /\D/) {
+            print "BACK\n";
 			return(FALSE);
 		}
 		print "\n",$self->sysop_prompt($choices[$choice] . ' (' . $bbs->{$choices[$choice]} . ') ');
-		my $new = $self->sysop_get_line(50);
+        my $width = ($choices[$choice] eq 'bbs_port') ? 5 : 50;
+		my $new = $self->sysop_get_line($width);
 		return(FALSE) if ($new eq '');
 		$sth = $self->{'dbh'}->prepare('UPDATE bbs_listing SET ' . $choices[$choice] . '=? WHERE bbs_id=?');
 		$sth->execute($new,$bbs->{'bbs_id'});
@@ -2959,7 +3040,7 @@ sub sysop_add_bbs {
 			print $self->{'ansi_sequences'}->{'DOWN'} x 2,"\r",$self->{'ansi_sequences'}->{'RIGHT'} x 17;
 			$bbs->{'bbs_port'} = $self->sysop_get_line(5);
 			if ($self->{'bbs_port'} ne '' && $self->{'bbs_port'} =~ /^\d+$/) {
-				my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port) VALUES (?,?,?)');
+				my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
 				$sth->execute($bbs->{'bbs_name'},$self->{'bbs_hostname'},$self->{'bbs_port'});
 				$sth->finish();
 			} else {

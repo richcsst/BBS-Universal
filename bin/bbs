@@ -41,7 +41,6 @@ use Term::ANSIColor;
 use Text::SimpleTable;
 use List::Util qw(min max);
 use Text::Format;
-use Memory::Usage;
 
 use BBS::Universal;
 
@@ -77,9 +76,7 @@ my $DEBUG = Debug::Easy->new(
 
 ############## BBS Core ###################
 print cls;
-my $MEMORY = Memory::Usage->new();
-$MEMORY->record('Begin Script');
-my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'memory' => $MEMORY });
+my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
 
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
@@ -87,41 +84,10 @@ $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { h
 my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
-my $SYSOP_COMMANDS = {
+our $SYSOP_COMMANDS = {
 	'SYSOP SHOW ENVIRONMENT' => sub {
 		my $self = shift;
-		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-		my $mapping = $self->sysop_load_menu(($START_ROW + $ROW_ADJUST),'files/sysop/environment.ANS');
-		my @lines = split(/\n/,$mapping->{'TEXT'} . $self->sysop_showenv());
-		my $size = (($hsize - ($START_ROW + $ROW_ADJUST)) - 1);
-		my $row = $size;
-		print locate(($START_ROW + $ROW_ADJUST),1),cldown; # CLS
-		my $scroll = TRUE;
-		foreach my $line (@lines) {
-			if (length($line) > $wsize) {
-				my $count = int(length($line) / $wsize) + 1;
-				$row -= $count;
-				if ($row < 0) {
-					$scroll = $self->sysop_scroll();
-					last unless($scroll);
-					$row = $size - $count;
-				}
-				print "$line\n";
-			} else {
-				print "$line\n";
-				$row--;
-			}
-			if ($row <= 0) {
-				$row = $size;
-				$scroll = $self->sysop_scroll();
-				last unless($scroll);
-			}
-		}
-		if ($scroll) {
-			print "\nPress a key to continue ";
-			$self->sysop_keypress();
-		}
-		return('BACK');
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/environment.ANS'));
 	},
 	'SYSOP BBS LISTINGS MANAGER' => sub {
 		my $self = shift;
@@ -142,10 +108,82 @@ my $SYSOP_COMMANDS = {
 		$self->sysop_list_bbs();
 		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/bbs_listing_manager.ANS'));
 	},
+	'SYSOP EDIT FILE CATEGORIES' => sub {
+		my $self = shift;
+
+		my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+		$sth->execute();
+		my $table = Text::SimpleTable->new(3,30,50);
+		$table->row('ID','TITLE','DESCRIPTION');
+		$table->hr();
+		while(my $row = $sth->fetchrow_hashref()) {
+			$table->row($row->{'id'},$row->{'title'},$row->{'description'});
+		}
+		$sth->finish();
+		print $table->boxes->draw(),"\n",$self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
+		my $line;
+		do {
+			$line = uc($self->sysop_get_line(3));
+		} until($line =~ /^(\d+|A|\<)/i);
+		if ($line eq 'A') { # Add
+			print "\nADD NEW FILE CATEGORY\n";
+			$table = Text::SimpleTable->new(11,80);
+			$table->row('TITLE',"\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
+			$table->row('DESCRIPTION',"\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
+			print "\n",$table->boxes->draw();
+			print $self->{'ansi_sequences'}->{'UP'} x 5,$self->{'ansi_sequences'}->{'RIGHT'} x 16;
+			my $title = $self->sysop_get_line(80);
+			if ($title ne '') {
+				print "\r",$self->{'ansi_sequences'}->{'DOWN'},$self->{'ansi_sequences'}->{'RIGHT'} x 16;
+				my $description = $self->sysop_get_line(80);
+				if ($description ne '') {
+					$sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description) VALUES (?,?)');
+					$sth->execute($title,$description);
+					$sth->finish();
+					print "\n\nNew Entry Added\n";
+				} else {
+					print "\n\nNevermind\n";
+				}
+			} else {
+				print "\n\n\nNevermind\n";
+			}
+		} elsif ($line =~ /\d+/) { # Edit
+		}
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/filemanager.ANS'));
+	},
+	'SYSOP SELECT FILE CATEGORY' => sub {
+		my $self = shift;
+
+		my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+		$sth->execute();
+		my $table = Text::SimpleTable->new(3,30,50);
+		$table->row('ID','TITLE','DESCRIPTION');
+		$table->hr();
+		while(my $row = $sth->fetchrow_hashref()) {
+			$table->row($row->{'id'},$row->{'title'},$row->{'description'});
+		}
+		$sth->finish();
+		print $table->boxes->draw(),"\n",$self->sysop_prompt('Choose ID (< = Nevermind)');
+		my $line;
+		do {
+			$line = $self->sysop_get_line(3);
+		} until($line =~ /\d+|\</);
+		if ($line ne '<') {
+			$self->{'USER'}->{'file_manager'} = $line + 0;
+			$sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=1'); # sysop is always 1
+			$sth->execute($line);
+			$sth->finish();
+		}
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST),'files/sysop/filemanager.ANS'));
+	},
 	'SYSOP FILE MANAGER' => sub {
 		my $self = shift;
         return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
 	},
+    'SYSOP LIST FILES' => sub {
+        my $self = shift;
+        return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+    },
 	'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
 		my $self = shift;
 		$self->sysop_list_users('VERTICAL ABBREVIATED');
@@ -227,12 +265,14 @@ my $SYSOP_COMMANDS = {
 		$self->sysop_edit_configuration();
 		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
 	},
+    'SYSOP LIST COMMANDS' => sub {
+        my $self = shift;
+		return($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/commands_reference.ANS'));
+    },
 };
 
 binmode(STDOUT, ":encoding(UTF-8)"); # Make sure the screen knows it is UTF-8
 system_menu($BBS_OBJ);
-$MEMORY->record('Shutting Down');
-$MEMORY->dump() if ($LEVEL eq 'DEBUGMAX');
 chdir($OLDDIR);
 exit(0);
 
@@ -332,8 +372,8 @@ sub system_menu {
     } ## end unless ($TEST)
     print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
     print locate(($START_ROW + $ROW_ADJUST),1), cldown;
-
-	$MEMORY->record('Initialized and running');
+    $bbs_obj->{'sysop'} = TRUE;
+	$bbs_obj->users_load('sysop','');
     while ($RUNNING) {
         ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         if ($wsize != $width || $hsize != $height) {
@@ -345,7 +385,12 @@ sub system_menu {
         my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/sysop.ANS');
 		while($command !~ /BACK/ && $RUNNING) {
 			$DEBUG->DEBUG(["Running command $command"]);
-			$command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
+            if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
+                $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
+            } else {
+                $DEBUG->ERROR(["$command is not a valid SysOp Command!"]);
+                $command = 'BACK';
+            }
 			threads->yield();
 		}
     } ## end while ($RUNNING)

@@ -53,9 +53,12 @@ sub ansi_initialize {
         # Foreground color
         'BLACK'          => $esc . '30m',
         'RED'            => $esc . '31m',
+        'PINK'           => color('ANSI198'),
+        'ORANGE'         => color('ANSI202'),
         'GREEN'          => $esc . '32m',
         'YELLOW'         => $esc . '33m',
         'BLUE'           => $esc . '34m',
+        'NAVY'           => color('ANSI17'),
         'MAGENTA'        => $esc . '35m',
         'CYAN'           => $esc . '36m',
         'WHITE'          => $esc . '37m',
@@ -285,7 +288,9 @@ sub ansi_initialize {
         'HORIZONTAL RULE CYAN'             => "\r" . $self->{'ansi_sequences'}->{'B_CYAN'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
         'HORIZONTAL RULE WHITE'            => "\r" . $self->{'ansi_sequences'}->{'B_WHITE'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
     };
-
+    foreach my $count (0 .. 255) {
+        $self->{'ansi_sequences'}->{"ANSI$count"} = color("ANSI$count");
+    }
     $self->{'debug'}->DEBUG(['Initialized VT102']);
     return ($self);
 }

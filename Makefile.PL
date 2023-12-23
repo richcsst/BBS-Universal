@@ -84,7 +84,6 @@ if (
             'IO::Socket::INET'             => '1.20',
             'Debug::Easy'                  => '2.11',
 			'List::Util'                   => '1.40',
-			'Memory::Usage'                => 0,
         },
 
 		EXE_FILES => ['bin/bbs'],

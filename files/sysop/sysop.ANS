@@ -2,11 +2,12 @@
 1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
 C|SYSOP LOGIN|WHITE|Connect as another user
 D|SYSOP STATISTICS|MAGENTA|Display Statistics
+L|SYSOP LIST COMMANDS|ANSI202|Commands Reference
 U|SYSOP USER MANAGER|CYAN|User Manager
 F|SYSOP FILE MANAGER|YELLOW|File Manager
 B|SYSOP BBS LISTINGS MANAGER|BRIGHT BLUE|BBS Listings Manager
-S|SYSOP SETTINGS|RED|Change System Settings
-E|SYSOP SHOW ENVIRONMENT|WHITE|Show Environmental Variables
+S|SYSOP SETTINGS|ANSI125|Change System Settings
+E|SYSOP SHOW ENVIRONMENT|GREEN|Show Environmental Variables
 X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 ---
 [% RED     %]     #[% RESET %]  ____            _                   __  __
