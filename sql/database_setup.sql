@@ -79,9 +79,9 @@ CREATE TABLE file_categories (
 CREATE TABLE files (
 	id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
 	filename     VARCHAR(255) NOT NULL,
-	path         VARCHAR(255) NOT NULL,
 	title        VARCHAR(255) NOT NULL,
-	category     INT UNSIGNED NOT NULL,
+	user_id      INT UNSIGNED NOT NULL DEFAULT 1,
+	category     INT UNSIGNED NOT NULL DEFAULT 1,
 	file_type    SMALLINT NOT NULL,
 	description  MEDIUMTEXT NOT NULL,
 	file_size    BIGINT UNSIGNED NOT NULL,
@@ -115,6 +115,7 @@ INSERT INTO config (config_name, config_value) VALUES ('DEFAULT BAUD RATE','2400
 INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
 INSERT INTO config (config_name, config_value) VALUES ('SHORT DATE FORMAT','%m/%d/%Y');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TIMEOUT','10');
+INSERT INTO config (config_name, config_value) VALUES ('FILES PATH','files/files/');
 
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ASCII','ASC');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
@@ -236,7 +237,21 @@ INSERT INTO file_types (type, extension) VALUES ('MS-DOS/Windows Executable','EX
 
 INSERT INTO file_categories (title,description) VALUES ('BBS::Universal Specific','All Files Relating to BBS Universal');
 
-INSERT INTO files (filename,path,title,category,file_type,description,file_size) VALUES ('BBS_Universal.png','./files/main/','BBS::Universal Logo',1,(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format',148513);
+INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format',148513);
+
+INSERT INTO files (
+    filename,
+	title,
+	file_type,
+	description,
+	file_size
+  ) VALUES (
+    'BBS-Universal-0.001.tar.gz',
+    'BBS::Universal distribution',
+    (SELECT id FROM file_types WHERE extension='GZ'),
+    'BBS::Universal is a BBS server written in Perl',
+    223232
+  );
 
 
 -- Views
@@ -305,7 +320,6 @@ AS
 SELECT
     files.id AS id,
 	files.filename AS filename,
-	files.path AS path,
 	files.title AS title,
 	file_categories.title AS category,
 	file_types.type AS type,
@@ -313,13 +327,16 @@ SELECT
 	files.description AS description,
 	files.file_size AS file_size,
 	files.uploaded AS uploaded,
-	files.endorsements AS endorsements
+	files.endorsements AS endorsements,
+	users.username AS username
 FROM
     files
 INNER JOIN
     file_categories ON files.category=file_categories.id
 INNER JOIN
-    file_types ON files.file_type=file_types.id;
+    file_types ON files.file_type=file_types.id
+INNER JOIN
+    users ON files.user_id=users.id;
 
 CREATE VIEW bbs_listing_view
   AS

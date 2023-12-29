@@ -6,17 +6,17 @@ sub ansi_initialize {
 
     my $esc = chr(27) . '[';
 
-    $self->{'ansi_prefix'}       = $esc;
+    $self->{'ansi_prefix'}    = $esc;
     $self->{'ansi_sequences'} = {
-		'RETURN'     => chr(13),
-		'LINEFEED'   => chr(10),
-		'NEWLINE'    => chr(13) . chr(10),
+        'RETURN'   => chr(13),
+        'LINEFEED' => chr(10),
+        'NEWLINE'  => chr(13) . chr(10),
 
         'CLEAR'      => cls,
-		'CLS'        => cls,
-		'CLEAR LINE' => clline,
-		'CLEAR DOWN' => cldown,
-		'CLEAR UP'   => clup,
+        'CLS'        => cls,
+        'CLEAR LINE' => clline,
+        'CLEAR DOWN' => cldown,
+        'CLEAR UP'   => clup,
 
         # Cursor
         'UP'          => $esc . 'A',
@@ -91,14 +91,14 @@ sub ansi_initialize {
         'BRIGHT B_CYAN'    => $esc . '106m',
         'BRIGHT B_WHITE'   => $esc . '107m',
 
-		# Special
-		'HORIZONTAL RULE RED'     => "\r" . $esc . '41m' . clline . $esc . '0m',
-		'HORIZONTAL RULE GREEN'   => "\r" . $esc . '42m' . clline . $esc . '0m',
-		'HORIZONTAL RULE YELLOW'  => "\r" . $esc . '43m' . clline . $esc . '0m',
-		'HORIZONTAL RULE BLUE'    => "\r" . $esc . '44m' . clline . $esc . '0m',
-		'HORIZONTAL RULE MAGENTA' => "\r" . $esc . '45m' . clline . $esc . '0m',
-		'HORIZONTAL RULE CYAN'    => "\r" . $esc . '46m' . clline . $esc . '0m',
-		'HORIZONTAL RULE WHITE'   => "\r" . $esc . '47m' . clline . $esc . '0m',
+        # Special
+        'HORIZONTAL RULE RED'     => "\r" . $esc . '41m' . clline . $esc . '0m',
+        'HORIZONTAL RULE GREEN'   => "\r" . $esc . '42m' . clline . $esc . '0m',
+        'HORIZONTAL RULE YELLOW'  => "\r" . $esc . '43m' . clline . $esc . '0m',
+        'HORIZONTAL RULE BLUE'    => "\r" . $esc . '44m' . clline . $esc . '0m',
+        'HORIZONTAL RULE MAGENTA' => "\r" . $esc . '45m' . clline . $esc . '0m',
+        'HORIZONTAL RULE CYAN'    => "\r" . $esc . '46m' . clline . $esc . '0m',
+        'HORIZONTAL RULE WHITE'   => "\r" . $esc . '47m' . clline . $esc . '0m',
 
         'EURO'                             => chr(128),
         'ELIPSIS'                          => chr(133),
@@ -293,38 +293,38 @@ sub ansi_initialize {
     }
     $self->{'debug'}->DEBUG(['Initialized VT102']);
     return ($self);
-}
+} ## end sub ansi_initialize
 
 sub ansi_output {
-    my $self = shift;
-    my $text = shift;
-	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
-	my $lines = $mlines;
+    my $self   = shift;
+    my $text   = shift;
+    my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+    my $lines  = $mlines;
     $self->{'debug'}->DEBUG(['Send ANSI text']);
     foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
-		if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
-			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
-			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-		} else {
-			$text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
-		}
-    }
+        if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+            my $ch = locate(($main::START_ROW + $main::ROW_ADJUST), 1) . cldown;
+            $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+        } else {
+            $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
+        }
+    } ## end foreach my $string (keys %{...})
     my $s_len = length($text);
-	my $nl = $self->{'ansi_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
-		my $char = substr($text, $count, 1);
+        my $char = substr($text, $count, 1);
         if ($char eq "\n") {
-			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
-				$char = $nl;
-			}
-			$lines--;
-			if ($lines <= 0) {
-				$lines = $mlines;
-				last unless($self->scroll($nl));
-			}
-		}
-		$self->send_char($char);
-    }
+            if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+                $char = $nl;
+            }
+            $lines--;
+            if ($lines <= 0) {
+                $lines = $mlines;
+                last unless ($self->scroll($nl));
+            }
+        } ## end if ($char eq "\n")
+        $self->send_char($char);
+    } ## end foreach my $count (0 .. $s_len)
     return (TRUE);
-}
+} ## end sub ansi_output
 1;

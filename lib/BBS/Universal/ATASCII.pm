@@ -5,12 +5,12 @@ sub atascii_initialize {
     my $self = shift;
 
     $self->{'atascii_sequences'} = {
-        'HEART'       => chr(0),
-        '0x01'        => chr(1),
+        'HEART' => chr(0),
+        '0x01'  => chr(1),
 
         'RETURN'      => chr(13),
-		'LINEFEED'    => chr(10),
-		'NEWLINE'     => chr(13) . chr(10),
+        'LINEFEED'    => chr(10),
+        'NEWLINE'     => chr(13) . chr(10),
         'ESC'         => chr(27),
         'UP'          => chr(28),
         'DOWN'        => chr(29),
@@ -33,34 +33,34 @@ sub atascii_output {
     my $self = shift;
     my $text = shift;
 
-	my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3: 21;
-	my $lines  = $mlines;
+    my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+    my $lines  = $mlines;
 
     $self->{'debug'}->DEBUG(['Send ATASCII text']);
     foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
-		if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
-			my $ch = locate(($main::START_ROW + $main::ROW_ADJUST),1) . cldown;
-			$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-		} else {
-			$text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
-		}
-    }
+        if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
+            my $ch = locate(($main::START_ROW + $main::ROW_ADJUST), 1) . cldown;
+            $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+        } else {
+            $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
+        }
+    } ## end foreach my $string (keys %{...})
     my $s_len = length($text);
-    my $nl = $self->{'atascii_sequences'}->{'NEWLINE'};
-	foreach my $count (0 .. $s_len) {
-		my $char = substr($text, $count, 1);
-		if ($char eq "\n") {
-			if ($text !~ /$nl/ && ! $self->{'local_mode'}) { # translate only if the file doesn't have ASCII newlines
-				$char = $nl;
-			}
-			$lines--;
-			if ($lines <= 0) {
-				$lines = $mlines;
-				last unless($self->scroll($nl));
-			}
-		}
-		$self->send_char($char);
-	}
+    my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
+    foreach my $count (0 .. $s_len) {
+        my $char = substr($text, $count, 1);
+        if ($char eq "\n") {
+            if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+                $char = $nl;
+            }
+            $lines--;
+            if ($lines <= 0) {
+                $lines = $mlines;
+                last unless ($self->scroll($nl));
+            }
+        } ## end if ($char eq "\n")
+        $self->send_char($char);
+    } ## end foreach my $count (0 .. $s_len)
     return (TRUE);
 } ## end sub atascii_output
 1;

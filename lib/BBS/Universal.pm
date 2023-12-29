@@ -2001,7 +2001,7 @@ sub sysop_versions_format {
 			$heading .= "\n";
 		}
 	}
-	$heading = colored(['yellow on_red'], $heading);
+	$heading = colored(['bold yellow on_red'], $heading);
 	foreach my $v (@{ $self->{'VERSIONS'} }) {
 		next if ($bbs_only && $v !~ /^BBS/);
 		$versions .= "\t\t $v";
@@ -2354,6 +2354,158 @@ sub sysop_list_users {
 	}
 	print 'Press a key to continue ... ';
 	return ($self->sysop_keypress(TRUE));
+	return(TRUE);
+}
+
+sub sysop_list_files {
+	my $self = shift;
+
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
+	$sth->execute();
+	my $sizes = {};
+	while(my $row = $sth->fetchrow_hashref()) {
+		foreach my $name (keys %{$row}) {
+			if ($name eq 'file_size') {
+				my $size = int($row->{$name}) . 'k';
+				$sizes->{$name} = max(length($size),$sizes->{$name});
+			} else {
+				$sizes->{$name} = max(length("$row->{$name}"),$sizes->{$name});
+			}
+		}
+	}
+	$sth->finish();
+	my $table = Text::SimpleTable->new(
+		$sizes->{'filename'},
+		$sizes->{'title'},
+		$sizes->{'type'},
+		$sizes->{'description'},
+		$sizes->{'username'},
+		$sizes->{'file_size'},
+		$sizes->{'uploaded'},
+	);
+	$table->row('FILENAME','TITLE','TYPE','DESCRIPTION','USER','SIZE','UPLOADED');
+	$table->hr();
+	$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
+	$sth->execute();
+	my $category;
+	while(my $row = $sth->fetchrow_hashref()) {
+		$table->row(
+			$row->{'filename'},
+			$row->{'title'},
+			$row->{'type'},
+			$row->{'description'},
+			$row->{'username'},
+			int($row->{'file_size'} / 1024) . 'k',
+			$row->{'uploaded'},
+		);
+		$category = $row->{'category'};
+	}
+	$sth->finish();
+	print "\nCATEGORY:  ",$category,"\n",$table->boxes->draw(),"\n",$self->sysop_prompt('Press a Key To Continue');
+	$self->sysop_keypress();
+	print "BACK\n";
+	return(TRUE);
+}
+
+sub sysop_select_file_category {
+	my $self = shift;
+
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+	$sth->execute();
+	my $table = Text::SimpleTable->new(3,30,50);
+	$table->row('ID','TITLE','DESCRIPTION');
+	$table->hr();
+	while(my $row = $sth->fetchrow_hashref()) {
+		$table->row($row->{'id'},$row->{'title'},$row->{'description'});
+	}
+	$sth->finish();
+	print $table->boxes->draw(),"\n",$self->sysop_prompt('Choose ID (< = Nevermind)');
+	my $line;
+	do {
+		$line = $self->sysop_get_line(3);
+	} until($line =~ /\d+|\</);
+	if ($line ne '<') {
+		$self->{'USER'}->{'file_category'} = $line + 0;
+		$sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=1'); # sysop is always 1
+		$sth->execute($line);
+		$sth->finish();
+	}
+	return(TRUE);
+}
+
+sub sysop_select_file_category {
+	my $self = shift;
+
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+	$sth->execute();
+	my $table = Text::SimpleTable->new(3,30,50);
+	$table->row('ID','TITLE','DESCRIPTION');
+	$table->hr();
+	my $max_id = 1;
+	while(my $row = $sth->fetchrow_hashref()) {
+		$table->row($row->{'id'},$row->{'title'},$row->{'description'});
+		$max_id = $row->{'id'};
+	}
+	$sth->finish();
+	print $table->boxes->draw(),"\n",$self->sysop_prompt('Choose ID (< = Nevermind)');
+	my $line;
+	do {
+		$line = uc($self->sysop_get_line(3));
+	} until($line =~ /^(\d+|\<)/i);
+	if ($line eq '<') {
+		return(FALSE);
+	} elsif ($line >= 1 && $line <= $max_id) {
+		$sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=1');
+		$sth->execute($line);
+		$sth->finish();
+		$self->{'USER'}->{'file_category'} = $line + 0;
+		return(TRUE);
+	} else {
+		return(FALSE);
+	}
+}
+
+sub sysop_edit_file_categories {
+	my $self = shift;
+
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+	$sth->execute();
+	my $table = Text::SimpleTable->new(3,30,50);
+	$table->row('ID','TITLE','DESCRIPTION');
+	$table->hr();
+	while(my $row = $sth->fetchrow_hashref()) {
+		$table->row($row->{'id'},$row->{'title'},$row->{'description'});
+		}
+	$sth->finish();
+	print $table->boxes->draw(),"\n",$self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
+	my $line;
+	do {
+		$line = uc($self->sysop_get_line(3));
+	} until($line =~ /^(\d+|A|\<)/i);
+	if ($line eq 'A') { # Add
+		print "\nADD NEW FILE CATEGORY\n";
+		$table = Text::SimpleTable->new(11,80);
+		$table->row('TITLE',"\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
+		$table->row('DESCRIPTION',"\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
+		print "\n",$table->boxes->draw();
+		print $self->{'ansi_sequences'}->{'UP'} x 5,$self->{'ansi_sequences'}->{'RIGHT'} x 16;
+		my $title = $self->sysop_get_line(80);
+		if ($title ne '') {
+			print "\r",$self->{'ansi_sequences'}->{'DOWN'},$self->{'ansi_sequences'}->{'RIGHT'} x 16;
+			my $description = $self->sysop_get_line(80);
+			if ($description ne '') {
+				$sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description) VALUES (?,?)');
+				$sth->execute($title,$description);
+				$sth->finish();
+				print "\n\nNew Entry Added\n";
+			} else {
+				print "\n\nNevermind\n";
+			}
+		} else {
+			print "\n\n\nNevermind\n";
+		}
+	} elsif ($line =~ /\d+/) { # Edit
+	}
 	return(TRUE);
 }
 

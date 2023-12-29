@@ -14,23 +14,23 @@ sub users_load {
     my $username = shift;
     my $password = shift;
 
-	my $sth;
-	if ($self->{'sysop'}) {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE username=?');
-		$sth->execute($username);
-	} else {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE username=? AND password=SHA2(?,512)');
-		$sth->execute($username,$password);
-	}
+    my $sth;
+    if ($self->{'sysop'}) {
+        $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE username=?');
+        $sth->execute($username);
+    } else {
+        $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE username=? AND password=SHA2(?,512)');
+        $sth->execute($username, $password);
+    }
     my $results = $sth->fetchrow_hashref();
     if (defined($results)) {
         $self->{'debug'}->DEBUG(["$username found"]);
-		$self->{'USER'} = $results;
-		delete($self->{'USER'}->{'password'});
-        return(TRUE);
-    }
-    return(FALSE);
-}
+        $self->{'USER'} = $results;
+        delete($self->{'USER'}->{'password'});
+        return (TRUE);
+    } ## end if (defined($results))
+    return (FALSE);
+} ## end sub users_load
 
 sub users_list {
     my $self = shift;
@@ -58,7 +58,7 @@ sub users_count {
 }
 
 sub user_info {
-	my $self = shift;
-	return('');
+    my $self = shift;
+    return ('');
 }
 1;
