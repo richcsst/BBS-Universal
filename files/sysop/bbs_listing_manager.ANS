@@ -1,5 +1,6 @@
 A|SYSOP BBS ADD|YELLOW|Add a BBS to the List
 E|SYSOP BBS EDIT|GREEN|Edit a BBS on List
+R|SYSOP BBS DELETE|RED|Remove a BBS on List
 V|SYSOP BBS LIST VIEW|WHITE|View BBS List
 Z|BACK|WHITE|Return to System Menu
 ---

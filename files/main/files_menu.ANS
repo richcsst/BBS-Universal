@@ -1,0 +1,15 @@
+C|FILE CATEGORY|YELLOW|Change File Category
+L|LIST FILES|MAGENTA|List files
+S|SEARCH FILES SUMMARY|GREEN|Search for file (short format)
+D|SEARCH FILES DETAILED|RED|Search for file (long format)
+Z|BACK|GREEN|Main Menu
+---
+[% CLEAR %][% GREEN %]
+ _____ _ _        ____            _                 
+|  ___(_) | ___  / ___| _   _ ___| |_ ___ _ __ ___  
+| |_  | | |/ _ \ \___ \| | | / __| __/ _ \ '_ ` _ \ 
+|  _| | | |  __/  ___) | |_| \__ \ ||  __/ | | | | |
+|_|   |_|_|\___| |____/ \__, |___/\__\___|_| |_| |_|
+                        |___/[% RESET %]
+
+Current Category [% GREEN %][% BIG BULLET RIGHT %][% RESET %] [% FILE CATEGORY %]

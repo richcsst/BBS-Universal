@@ -67,15 +67,17 @@ sub petscii_output {
     my $lines  = $mlines;
 
     $self->{'debug'}->DEBUG(['Send PETSCII text']);
+    if (length($text) > 1) {
+        foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
+            if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+                my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+                $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+            } else {
+                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
+            }
+        } ## end foreach my $string (keys %{...})
+    }
     my $s_len = length($text);
-    foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
-        if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
-            my $ch = locate(($main::START_ROW + $main::ROW_ADJUST), 1) . cldown;
-            $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-        } else {
-            $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
-        }
-    } ## end foreach my $string (keys %{...})
     my $nl = $self->{'petscii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);

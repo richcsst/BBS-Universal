@@ -37,14 +37,16 @@ sub atascii_output {
     my $lines  = $mlines;
 
     $self->{'debug'}->DEBUG(['Send ATASCII text']);
-    foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
-        if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
-            my $ch = locate(($main::START_ROW + $main::ROW_ADJUST), 1) . cldown;
-            $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-        } else {
-            $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
-        }
-    } ## end foreach my $string (keys %{...})
+    if (length($text) > 1) {
+        foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
+            if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
+                my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+                $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+            } else {
+                $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
+            }
+        } ## end foreach my $string (keys %{...})
+    }
     my $s_len = length($text);
     my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {

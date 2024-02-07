@@ -81,9 +81,10 @@ if (
             'DBI'                          => '1.50',
             'DBD::mysql'                   => '4.00',
             'Term::ReadKey'                => '2.30',
-            'IO::Socket::INET'             => '1.20',
+            'IO::Socket'                   => '1.20',
             'Debug::Easy'                  => '2.11',
 			'List::Util'                   => '1.40',
+			'Cache::FastMmap'              => 0,
         },
 
 		EXE_FILES => ['bin/bbs'],

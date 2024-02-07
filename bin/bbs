@@ -8,11 +8,12 @@
 # |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|
 #
 # =============================================================
-# Copyright © 2023 Richard Kelsch
+# Copyright © 2023-2024 Richard Kelsch
 # All Rights Reserved
 # Licensed under the GNU Public License Version 3
 #   See the LICENSE file for details
 
+use 5.010;
 use strict;
 use English qw( -no_match_vars );
 use utf8;
@@ -25,14 +26,12 @@ use threads (
     'exit' => 'threads_only',
     'stringify',
 );
-use threads::shared;
 
 use DBI;
 use DBD::mysql;
 use Cwd;
 use DateTime;
 use Time::HiRes qw(time sleep);
-use IO::Socket::INET;
 use Debug::Easy;
 use Getopt::Long;
 use Term::ReadKey;
@@ -41,6 +40,8 @@ use Term::ANSIColor;
 use Text::SimpleTable;
 use List::Util qw(min max);
 use Text::Format;
+use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
+use Cache::Memcached::Fast::Safe;
 
 use BBS::Universal;
 
@@ -48,24 +49,23 @@ BEGIN {
     our $VERSION = '0.001';
 }
 
-# Shared with threads
-our $RUNNING : shared         = TRUE;
-our $TEST : shared            = FALSE;
-our @SERVER_STATUS : shared   = ();
-our $UPDATE : shared          = TRUE;
-our $ONLINE : shared          = 0;
-our $THREADS_RUNNING : shared = 0;
-our $ROW_ADJUST : shared      = 0;
-
-our $START_ROW = 7;
+binmode(STDOUT,':encoding(UTF-8)');
 
 my $OLDDIR         = getcwd;
 my $LEVEL          = 'ERROR';
 my $SERVER_THREADS = {};
+my $RESTART        = FALSE;
+my @CALL           = @ARGV;
+my $SINGLE         = FALSE;
+
+# Shared with threads
+
+our $TEST          = FALSE;
 
 GetOptions(
     'test|sysop' => \$TEST,
     'debug=s'    => \$LEVEL,
+	'single'     => \$SINGLE,
 );
 
 $LEVEL = uc($LEVEL);
@@ -77,98 +77,124 @@ my $DEBUG = Debug::Easy->new(
 ############## BBS Core ###################
 print cls;
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
+my $CACHE = Cache::Memcached::Fast::Safe->new(
+	{
+		'servers' => [
+			{
+				'address' => $BBS_OBJ->{'CONF'}->{'MEMCACHED HOST'} . ':' . $BBS_OBJ->{'CONF'}->{'MEMCACHED PORT'},
+			},
+		],
+		'namespace' => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
+		'utf8'      => TRUE,
+	}
+);
+$CACHE->set('RUNNING', TRUE);
+$CACHE->set('TEST', $TEST);
+$CACHE->set('UPDATE', TRUE);
+$CACHE->set('ONLINE', 0);
+$CACHE->set('THREADS_RUNNING', 0);
+$CACHE->set('ROW_ADJUST', 0);
+$CACHE->set('START_ROW', 7);
 
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
 
-my $MAX_THREADS = min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
+my $MAX_THREADS = ($SINGLE) ? 1 : min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 
 our $SYSOP_COMMANDS = {
     'SYSOP SHOW ENVIRONMENT' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/environment.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANS'));
     },
     'SYSOP BBS LISTINGS MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
     },
     'SYSOP BBS EDIT' => sub {
         my $self = shift;
         $self->sysop_edit_bbs();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
     },
     'SYSOP BBS ADD' => sub {
         my $self = shift;
         $self->sysop_add_bbs();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+    },
+    'SYSOP BBS DELETE' => sub {
+        my $self = shift;
+        $self->sysop_delete_bbs();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
     },
     'SYSOP BBS LIST VIEW' => sub {
         my $self = shift;
         $self->sysop_list_bbs();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
     },
     'SYSOP EDIT FILE CATEGORIES' => sub {
         my $self = shift;
         $self->sysop_edit_file_categories();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
     },
     'SYSOP SELECT FILE CATEGORY' => sub {
         my $self = shift;
 
         $self->sysop_select_file_category();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
     },
     'SYSOP FILE MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
     },
     'SYSOP LIST FILES' => sub {
         my $self = shift;
         $self->sysop_list_files();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
     },
     'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL ABBREVIATED');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANS');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP LIST USERS VERTICAL DETAILED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL DETAILED');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP LIST USERS HORIZONTAL DETAILED' => sub {
         my $self = shift;
         $self->sysop_list_users('HORIZONTAL DETAILED');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP EDIT USER' => sub {
         my $self = shift;
-        $self->sysop_user_edit($START_ROW + $ROW_ADJUST, 'files/sysop/edituser.ANS');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANS');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP ADD USER' => sub {
         my $self = shift;
-        $self->sysop_user_add($START_ROW + $ROW_ADJUST, 'files/sysop/adduser.ANS');
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANS');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP DELETE USER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_delete($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/deleteuser.ANS');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
-        {
-            lock($RUNNING);
-            $RUNNING = FALSE;
-        }
+		$CACHE->set('RUNNING', FALSE);
     },
+	'SYSOP RESTART' => sub {
+        print "\n\nShutting down threads\n";
+		$CACHE->set('RUNNING', FALSE);
+		$RESTART = TRUE;
+	},
     'SYSOP LOGIN SYSOP' => sub {
         run_bbs_sysop(shift, TRUE);
         return ('BACK');
@@ -179,45 +205,48 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP STATISTICS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/statistics.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/statistics.ANS'));
     },
     'BACK' => sub {    # Dummy placeholder
     },
     'SYSOP USER MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP SETTINGS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
     'SYSOP FIRST TIME SETUP' => sub {
         my $self = shift;
         print "\nThis is for first time setup, if you do this on an already configured system,\nit will wipe everything clean.  Are you sure you want to do this [Y/N]?  ";
         if ($self->sysop_decision()) {
-            $self->sysop_first_time_setup(($START_ROW + $ROW_ADJUST));
+            $self->sysop_first_time_setup(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')));
         }
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
     'SYSOP VIEW CONFIGURATION' => sub {
         my $self = shift;
         $self->sysop_view_configuration(TRUE);
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
     'SYSOP EDIT CONFIGURATION' => sub {
         my $self = shift;
         $self->sysop_edit_configuration();
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
     'SYSOP LIST COMMANDS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/commands_reference.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANS'));
     },
 };
 
-binmode(STDOUT, ":encoding(UTF-8)");    # Make sure the screen knows it is UTF-8
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
+if ($RESTART) {
+	print "\n\nRESTARTING...\n";
+	exec($ENV{'_'},@CALL);
+}
 exit(0);
 
 ###########################################
@@ -234,20 +263,17 @@ sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-    {
-        lock($ROW_ADJUST);
-        $ROW_ADJUST = 0;
-    }
+	$CACHE->set('ROW_ADJUST', 0);
 
     print setscroll(1, $hsize), locate(1, 1);
     print colored(['red'],         '  ____  ____ ____    _   _       _                          _ ') . sprintf(' │ Version %.03f', $BBS::Universal::VERSION), "\n";
     print colored(['yellow'],      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |'),  ' │ Written By Richard Kelsch',                       clline, "\n";
-    print colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}), ' │ Copyright © 2023 Richard Kelsch',                 clline, "\n";
+    print colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}), ' │ Copyright © 2023-2024 Richard Kelsch',                 clline, "\n";
     print colored(['magenta'],     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |'),  ' │ All Rights Reserved',                             clline, "\n";
     print colored(['bright_blue'], ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|'),  ' │ Licensed under the GNU Public License Version 3', clline, "\n";
     print locate(6,          1),  '━' x $wsize;
     print locate(6,          64), '┷';
-    print locate($START_ROW, 1),  cldown;
+    print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
 
     # U2537
@@ -262,18 +288,21 @@ sub system_menu {
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
 
     my ($width, $height) = ($wsize, $hsize);
-    print locate($START_ROW, 1), cldown;
+    print locate($CACHE->get('START_ROW'), 1), cldown;
 
     my $socket;
     unless ($TEST) {
         print 'Loading ' . $MAX_THREADS . ' Threads ...';
-        $socket = IO::Socket::INET->new(
+        $socket = IO::Socket->new(
+			'Domain'    => AF_INET,
             'LocalHost' => $bbs_obj->{'CONF'}->{'HOST'},
             'LocalPort' => $bbs_obj->{'CONF'}->{'PORT'},
+			'Type'      => SOCK_STREAM,
             'Proto'     => 'tcp',
             'Listen'    => 5,
-            'ReuseAddr' => FALSE,
-            'Timeout'   => 5,
+            'ReuseAddr' => TRUE,
+            'ReusePort' => TRUE,
+            'Timeout'   => 1,
             'Blocking'  => TRUE,
         );
         my $error = undef;
@@ -284,11 +313,7 @@ sub system_menu {
         } else {
             $DEBUG->DEBUG(["Waiting for a connection for $bbs_obj->{'CONF'}->{host} : $bbs_obj->{'CONF'}->{port}"]);
             foreach my $thread (1 .. $MAX_THREADS) {
-                {
-                    lock(@SERVER_STATUS);
-                    $SERVER_STATUS[$thread] = FALSE;
-                }
-                my $name = sprintf('SERVER %02d', $thread);
+				my $name = sprintf('SERVER_%02d', $thread);
                 $DEBUG->DEBUG(["$name Ready"]);
                 $SERVER_THREADS->{$name} = threads->create(
                     \&run_bbs,
@@ -300,26 +325,20 @@ sub system_menu {
                         'debuglevel'    => $LEVEL
                     }
                 );
-                {
-                    lock($UPDATE);
-                    $UPDATE = TRUE;
-                }
+				$CACHE->set('UPDATE', TRUE);
                 servers_status($bbs_obj, FALSE);
             } ## end foreach my $thread (1 .. $MAX_THREADS)
             $DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
             $SIG{'ALRM'} = sub { servers_status($bbs_obj, TRUE); };
-            {
-                lock($UPDATE);
-                $UPDATE = TRUE;
-            }
+            $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, TRUE);    # This is a sub not a method, so we pass the object conventionally
         } ## end else [ if (defined($error)) ]
     } ## end unless ($TEST)
-    print setscroll(($START_ROW + $ROW_ADJUST), $hsize);
-    print locate(($START_ROW + $ROW_ADJUST), 1), cldown;
+    print setscroll(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), $hsize);
+    print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
     $bbs_obj->{'sysop'} = TRUE;
     $bbs_obj->users_load('sysop', '');
-    while ($RUNNING) {
+    while ($CACHE->get('RUNNING')) {
         ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         if ($wsize != $width || $hsize != $height) {
             alarm(0);
@@ -327,8 +346,8 @@ sub system_menu {
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE);
         } ## end if ($wsize != $width ||...)
-        my $command = $bbs_obj->sysop_parse_menu(($START_ROW + $ROW_ADJUST), 'files/sysop/sysop.ANS');
-        while ($command !~ /BACK/ && $RUNNING) {
+        my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANS');
+        while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
             $DEBUG->DEBUG(["Running command $command"]);
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
                 $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
@@ -338,7 +357,7 @@ sub system_menu {
             }
             threads->yield();
         } ## end while ($command !~ /BACK/...)
-    } ## end while ($RUNNING)
+    }
     $socket->close() if (defined($socket));
     finish($bbs_obj);
     $DEBUG->DEBUG(['Main End']);
@@ -348,7 +367,7 @@ sub system_menu {
 sub servers_status {
     my $bbs_obj    = shift;
     my $show_alarm = shift || TRUE;
-    if ($UPDATE) {
+    if ($CACHE->get('UPDATE') && ! $TEST) {
         alarm(0);
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         my $stp   = int($wsize / 26);
@@ -361,43 +380,28 @@ sub servers_status {
 
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
-        {
-            lock($ROW_ADJUST);
-            $ROW_ADJUST = 2;
-
-            lock($ONLINE);
-            $ONLINE = 0;
-
-            lock($THREADS_RUNNING);
-            $THREADS_RUNNING = 0;
-        }
+		$CACHE->set('ROW_ADJUST', 2);
+		$CACHE->set('ONLINE', 0);
+		$CACHE->set('THREADS_RUNNING', 0);
         foreach my $name (sort(keys %{$SERVER_THREADS})) {
-            my $status = '';
-            if ($SERVER_STATUS[$count] == TRUE) {
-                $status = 'CONNECTED';
-                lock($ONLINE);
-                $ONLINE++;
-                lock($THREADS_RUNNING);
-                $THREADS_RUNNING++;
-            } elsif ($SERVER_STATUS[$count] == FALSE) {
-                $status = 'IDLE';
-                lock($THREADS_RUNNING);
-                $THREADS_RUNNING++;
+            if ($CACHE->get($name) eq 'CONNECTED') {
+				$CACHE->set('ONLINE', $CACHE->get('ONLINE') + 1);
+				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
+				$CACHE->set($name, 'CONNECTED');
+            } elsif ($CACHE->get($name) eq 'IDLE') {
+				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
+				$CACHE->set($name, 'IDLE');
             } else {
-                $status = 'FINISHED';
-                lock($THREADS_RUNNING);
-                $THREADS_RUNNING--;
+				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1);
+				$CACHE->set($name, 'FINISHED');
             }
-            push(@row, "$name -> $status");
+            push(@row, "$name -> " . $CACHE->get($name));
             $steps--;
             if ($steps == 0) {
                 $steps = $stp;
                 $table->row(@row);
                 @row = ();
-                {
-                    lock($ROW_ADJUST);
-                    $ROW_ADJUST++;
-                }
+				$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
             } ## end if ($steps == 0)
             $count++;
             threads->yield();
@@ -408,11 +412,9 @@ sub servers_status {
                 $steps--;
                 threads->yield();
             }
-            lock($ROW_ADJUST);
-            $ROW_ADJUST++;
-            $table->row(@row);
-            lock($UPDATE);
-            $UPDATE = FALSE;
+			$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+            $table->row(@row);;
+			$CACHE->set('UPDATE', FALSE);
         } ## end if (scalar(@row))
         my $tbl = $bbs_obj->center($table->boxes->draw(), $wsize);
         my $cn  = colored(['green'],   'CONNECTED');
@@ -423,13 +425,13 @@ sub servers_status {
         $tbl =~ s/FINISHED/$fn/g;
 
         if ($show_alarm) {
-            print savepos, chr(27), locate($START_ROW, 1), $tbl, loadpos;
+            print savepos, chr(27), locate($CACHE->get('START_ROW'), 1), $tbl, loadpos;
             $SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
             alarm(1);
         } else {
-            print locate($START_ROW, 1), $tbl;
+            print locate($CACHE->get('START_ROW'), 1), $tbl;
         }
-    } ## end if ($UPDATE)
+    }
     return (TRUE);
 } ## end sub servers_status
 
@@ -450,42 +452,41 @@ sub run_bbs {
     );
     $debug->DEBUG(["BBS Server Thread $thread_name Started"]);
     $debug->DEBUGMAX([$params]);
-
-    while ($RUNNING) {
+    while ($CACHE->get('RUNNING')) {
         {
+			$CACHE->set($thread_name, 'IDLE');
             my $client_socket = $socket->accept();
             if (defined($client_socket)) {
-                {
-                    lock(@SERVER_STATUS);
-                    $SERVER_STATUS[$thread_number] = TRUE;
-                    lock($UPDATE);
-                    $UPDATE = TRUE;
-                }
+				binmode($client_socket,':ultra-raw');
+				$CACHE->set($thread_name, 'CONNECTED');
+				$CACHE->set('UPDATE',TRUE);
                 $debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
+				$debug->DEBUG(['Creating new BBS::Universal object']);
                 my $bbs = BBS::Universal->new(
                     {
-                        'thread_name'   => $thread_name . 'socket' => $socket,
+                        'thread_name'   => $thread_name,
+						'thread_number' => $thread_number,
+						'socket'        => $socket,
                         'client_socket' => $client_socket,
                         'debug'         => $debug,
-                        'debuglevel'    => $params->{'debuglevel'},
+						'debuglevel'    => $params->{'debuglevel'},
                     }
                 );
+				$debug->DEBUG(['BBS::Universal object created','Running connection process']);
                 $bbs->run(FALSE);
-                shutdown($client_socket, 1);    # Hang up
-                {
-                    lock(@SERVER_STATUS);
-                    $SERVER_STATUS[$thread_number] = FALSE;
-                    lock($UPDATE);
-                    $UPDATE = TRUE;
-                }
-            } ## end if (defined($client_socket...))
+				$debug->DEBUG(['Shutdown client socket']);
+                $client_socket->shutdown(SHUT_RDWR);    # Hang up
+				$CACHE->set($thread_name, 'IDLE');
+				$CACHE->set('UPDATE',TRUE);
+            } else {
+				$CACHE->set($thread_name, 'IDLE');
+				$CACHE->set('UPDATE',TRUE);
+				threads->yield();
+			}
         }
         threads->yield();
-    } ## end while ($RUNNING)
-    {
-        lock(@SERVER_STATUS);
-        $SERVER_STATUS[$thread_number] = -1;
     }
+	$CACHE->set($thread_name, 'TERMINATED');
     $debug->INFO(["Thread $thread_name shutting down"]);
 } ## end sub run_bbs
 
@@ -495,7 +496,7 @@ sub run_bbs_sysop {
 
     # Only allow the main program to respond to signals, not the threads
     #    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
-    print locate(($START_ROW + $ROW_ADJUST), 1), cldown;
+    print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
     my $bbs = BBS::Universal->new(
         {
             'thread_name' => 'CONSOLE',
@@ -513,10 +514,7 @@ sub clean_joinable {
     while (threads->list(threads::running)) {
         foreach my $thread (threads->list(threads::joinable)) {
             $thread->join();
-            {
-                lock($UPDATE);
-                $UPDATE = TRUE;
-            }
+			$CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, FALSE);
             alarm 0;
             threads->yield();
@@ -525,10 +523,7 @@ sub clean_joinable {
     } ## end while (threads->list(threads::running...))
     foreach my $thread (threads->list(threads::joinable)) {
         $thread->join();
-        {
-            lock($UPDATE);
-            $UPDATE = TRUE;
-        }
+		$CACHE->set('UPDATE', TRUE);
         servers_status($bbs_obj, FALSE);
         alarm 0;
         threads->yield();
@@ -537,16 +532,12 @@ sub clean_joinable {
 
 sub finish {
     my $bbs_obj = shift;
-    {
-        lock($RUNNING);
-        $RUNNING = FALSE;
-    }
+	$CACHE->set('RUNNING', FALSE);
     $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
     clean_joinable($bbs_obj);
-    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-    print setscroll(1, $hsize), color('reset'), cls;
     $DEBUG->INFO(['Shutdown Complete']);
     chdir($OLDDIR);
+	system('reset');
     alarm(0);
 } ## end sub finish
 
@@ -557,21 +548,24 @@ sub hard_finish {
     #
     # It unceremoniously kills all threads (and disconnects anyone connected to them)
 
-    {    # Always use semaphores when writing to a shared variable
-        lock($RUNNING);
-        $RUNNING = FALSE;
-    }
+	$CACHE->set('RUNNING', FALSE);
+
     $DEBUG->WARNING(['Forcing Shutdown...']);
-    sleep 2;
-    foreach my $thread (threads::running) {
-        $thread->kill('KILL');
-    }
-    clean_joinable();
-    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-    print setscroll(1, $hsize), color('reset'), cls;
+    sleep 1;
+	if ($TEST) {
+		print "Skipping threads\n";
+	} else {
+		foreach my $thread (threads->list(threads::running)) {
+			$thread->kill('KILL');
+		}
+		clean_joinable();
+	}
     $DEBUG->INFO(['Hard Shutdown Complete']);
     chdir($OLDDIR);
     alarm(0);
+	system('reset');
+	shutdown_message();
+	exit(1);
 } ## end sub hard_finish
 
 __END__

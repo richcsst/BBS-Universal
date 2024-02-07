@@ -12,8 +12,8 @@ sub ansi_initialize {
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
 
-        'CLEAR'      => cls,
-        'CLS'        => cls,
+        'CLEAR'      => locate(1,1) . cls,
+        'CLS'        => locate(1,1) . cls,
         'CLEAR LINE' => clline,
         'CLEAR DOWN' => cldown,
         'CLEAR UP'   => clup,
@@ -35,6 +35,7 @@ sub ansi_initialize {
 
         # Attributes
         'INVERT'       => $esc . '7m',
+        'REVERSE'      => $esc . '7m',
         'CROSSED OUT'  => $esc . '9m',
         'DEFAULT FONT' => $esc . '10m',
         'FONT1'        => $esc . '11m',
@@ -301,14 +302,16 @@ sub ansi_output {
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
     $self->{'debug'}->DEBUG(['Send ANSI text']);
-    foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
-        if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
-            my $ch = locate(($main::START_ROW + $main::ROW_ADJUST), 1) . cldown;
-            $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-        } else {
-            $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
-        }
-    } ## end foreach my $string (keys %{...})
+    if (length($text) > 1) {
+        foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
+            if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+                my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+                $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+            } else {
+                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
+            }
+        } ## end foreach my $string (keys %{...})
+    }
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {

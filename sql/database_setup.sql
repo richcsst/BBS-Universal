@@ -103,6 +103,13 @@ CREATE TABLE bbs_listing (
     bbs_poster_id INT UNSIGNED NOT NULL
 );
 
+CREATE TABLE news (
+    news_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	news_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	news_title VARCHAR(255),
+	news_content TEXT
+);
+
 -- Inserts
 
 INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES ('BBS Universal Sample','localhost',9999,1);
@@ -112,10 +119,16 @@ INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal
 INSERT INTO config (config_name, config_value) VALUES ('PORT','9999');
 INSERT INTO config (config_name, config_value) VALUES ('BBS ROOT','.');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT BAUD RATE','2400');
+INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TEXT MODE','ASCII');
+INSERT INTO config (config_name, config_value) VALUES ('DEFAULT SUFFIX','ASC');
 INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
 INSERT INTO config (config_name, config_value) VALUES ('SHORT DATE FORMAT','%m/%d/%Y');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TIMEOUT','10');
 INSERT INTO config (config_name, config_value) VALUES ('FILES PATH','files/files/');
+INSERT INTO config (config_name, config_value) VALUES ('LOGIN TRIES','3');
+INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED HOST','localhost');
+INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED PORT','11211');
+INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED NAMESPACE','BBSUniversal::');
 
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ASCII','ASC');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
@@ -145,6 +158,21 @@ INSERT INTO permissions (id,view_files,upload_files,download_files,remove_files,
 		true,
 		65535
 	);
+INSERT INTO users (username,nickname,password,given,family,text_mode,accomplishments)
+    VALUES (
+	    'testuser',
+		'Testmeister',
+		SHA2('BBS::Universal',512),
+		'Test','User',
+		(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
+		'My existence is destined to end soon'
+	);
+INSERT INTO permissions (
+    id
+  )
+  VALUES (
+	    LAST_INSERT_ID()
+  );
 
 INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Atari','Atari Discussion');
@@ -253,6 +281,13 @@ INSERT INTO files (
     223232
   );
 
+INSERT INTO news (
+    news_title,
+	news_content
+  ) VALUES (
+    'BBS Universal Installation',
+	'BBS::Universal, a Perl based BBS server designed for retro and modern computers has been installeed on this server.'
+  );
 
 -- Views
 
@@ -322,6 +357,7 @@ SELECT
 	files.filename AS filename,
 	files.title AS title,
 	file_categories.title AS category,
+	file_categories.id AS category_id,
 	file_types.type AS type,
 	file_types.extension AS extension,
 	files.description AS description,

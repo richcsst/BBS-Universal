@@ -1,6 +1,6 @@
 # Key | Command | Color | Description
-1|SYSOP VIEW CONFIGURATION|GREEN|View The System Configuration
-2|SYSOP EDIT CONFIGURATION|MAGENTA|Edit The System Configuration
+V|SYSOP VIEW CONFIGURATION|GREEN|View The System Configuration
+E|SYSOP EDIT CONFIGURATION|MAGENTA|Edit The System Configuration
 O|SYSOP FIRST TIME SETUP|CYAN|Setup BBS (First Time Setup)
 Z|BACK|WHITE|Return to System Menu
 ---

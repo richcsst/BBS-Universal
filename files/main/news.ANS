@@ -1,0 +1,9 @@
+S|NEWS SUMMARY|GREEN|List News Summary
+N|NEWS DISPLAY|MAGENTA|Show News in Detail
+Z|BACK|WHITE|Return to the Main Menu
+---
+[% CLEAR %][% CYAN %]  _   _                   
+ | \ | | _____      _____ 
+ |  \| |/ _ \ \ /\ / / __|
+ | |\  |  __/\ V  V /\__ \
+ |_| \_|\___| \_/\_/ |___/[% RESET %]
