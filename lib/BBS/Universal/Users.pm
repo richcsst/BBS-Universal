@@ -1,5 +1,5 @@
 package BBS::Universal::Users;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub users_initialize {
     my $self = shift;

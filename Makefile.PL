@@ -84,7 +84,7 @@ if (
             'IO::Socket'                   => '1.20',
             'Debug::Easy'                  => '2.11',
 			'List::Util'                   => '1.40',
-			'Cache::FastMmap'              => 0,
+			'Cache::Memcached::Fast'       => 0,
         },
 
 		EXE_FILES => ['bin/bbs'],

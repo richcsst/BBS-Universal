@@ -1,5 +1,5 @@
 package BBS::Universal::FileTransfer;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub filetransfer_initialize {
     my $self = shift;

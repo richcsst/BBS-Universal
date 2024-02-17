@@ -1,5 +1,5 @@
 package BBS::Universal::ASCII;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub ascii_initialize {
     my $self = shift;
@@ -8,6 +8,8 @@ sub ascii_initialize {
         'RETURN'   => chr(13),
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
+		'CLS'      => '',
+		'CLEAR'    => '',
     };
     $self->{'debug'}->DEBUG(['ASCII Initialized']);
     return ($self);

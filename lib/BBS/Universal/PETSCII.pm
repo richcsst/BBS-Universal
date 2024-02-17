@@ -1,5 +1,5 @@
 package BBS::Universal::PETSCII;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub petscii_initialize {
     my $self = shift;

@@ -1,5 +1,5 @@
 package BBS::Universal::ANSI;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub ansi_initialize {
     my $self = shift;
@@ -292,7 +292,7 @@ sub ansi_initialize {
     foreach my $count (0 .. 255) {
         $self->{'ansi_sequences'}->{"ANSI$count"} = color("ANSI$count");
     }
-    $self->{'debug'}->DEBUG(['Initialized VT102']);
+    $self->{'debug'}->DEBUG(['Initialized ANSI']);
     return ($self);
 } ## end sub ansi_initialize
 

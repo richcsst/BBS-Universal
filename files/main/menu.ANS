@@ -1,3 +1,4 @@
+B|BBS LISTING|BRIGHT BLUE|Show BBS List
 O|FORUMS|MAGENTA|Go To Forums
 M|ACCOUNT MANAGER|WHITE|Manage Your Account
 F|FILES|GREEN|Go To Files
@@ -5,9 +6,8 @@ N|NEWS|CYAN|System News
 A|ABOUT|YELLOW|About This BBS
 X|DISCONNECT|RED|Disconnect
 ---
-[% CLS %]
-[% RED     %]  #[% RESET %]  __  __       _         __  __                   [% RED     %]#[% RESET %]
-[% YELLOW  %] ##[% RESET %] |  \/  | __ _(_)_ __   |  \/  | ___ _ __  _   _  [% YELLOW  %]##[% RESET %]
-[% GREEN   %]###[% RESET %] | |\/| |/ _` | | '_ \  | |\/| |/ _ \ '_ \| | | | [% GREEN   %]###[% RESET %]
-[% MAGENTA %] ##[% RESET %] | |  | | (_| | | | | | | |  | |  __/ | | | |_| | [% MAGENTA %]##[% RESET %]
-[% BLUE    %]  #[% RESET %] |_|  |_|\__,_|_|_| |_| |_|  |_|\___|_| |_|\__,_| [% BLUE    %]#[% RESET %]
+[% RED     %][% B_RED     %]        [% RESET %]   __  __       _          __  __                    [% RED     %][% B_RED     %]        [% RESET %]
+[% YELLOW  %][% B_YELLOW  %]        [% RESET %]  |  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _   [% YELLOW  %][% B_YELLOW  %]        [% RESET %]
+[% GREEN   %][% B_GREEN   %]        [% RESET %]  | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |  [% GREEN   %][% B_GREEN   %]        [% RESET %]
+[% MAGENTA %][% B_MAGENTA %]        [% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |  [% MAGENTA %][% B_MAGENTA %]        [% RESET %]
+[% BLUE    %][% B_BLUE    %]        [% RESET %]  |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|  [% BLUE    %][% B_BLUE    %]        [% RESET %]

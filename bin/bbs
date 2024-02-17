@@ -41,12 +41,12 @@ use Text::SimpleTable;
 use List::Util qw(min max);
 use Text::Format;
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
-use Cache::Memcached::Fast::Safe;
+use Cache::Memcached::Fast;
 
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.001';
+    our $VERSION = '0.002';
 }
 
 binmode(STDOUT,':encoding(UTF-8)');
@@ -77,7 +77,7 @@ my $DEBUG = Debug::Easy->new(
 ############## BBS Core ###################
 print cls;
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
-my $CACHE = Cache::Memcached::Fast::Safe->new(
+my $CACHE = Cache::Memcached::Fast->new(
 	{
 		'servers' => [
 			{
@@ -299,11 +299,11 @@ sub system_menu {
             'LocalPort' => $bbs_obj->{'CONF'}->{'PORT'},
 			'Type'      => SOCK_STREAM,
             'Proto'     => 'tcp',
-            'Listen'    => 5,
+            'Listen'    => 1,
             'ReuseAddr' => TRUE,
             'ReusePort' => TRUE,
             'Timeout'   => 1,
-            'Blocking'  => TRUE,
+            'Blocking'  => FALSE,
         );
         my $error = undef;
         $error = "Cannot create socket for $!n" unless ($socket);
@@ -359,6 +359,7 @@ sub system_menu {
         } ## end while ($command !~ /BACK/...)
     }
     $socket->close() if (defined($socket));
+	$CACHE->set('RUNNING',FALSE);
     finish($bbs_obj);
     $DEBUG->DEBUG(['Main End']);
     shutdown_message();
@@ -453,37 +454,34 @@ sub run_bbs {
     $debug->DEBUG(["BBS Server Thread $thread_name Started"]);
     $debug->DEBUGMAX([$params]);
     while ($CACHE->get('RUNNING')) {
-        {
+		$CACHE->set($thread_name, 'IDLE');
+		my $client_socket = $socket->accept();
+		if (defined($client_socket)) {
+			binmode($client_socket,':ultra-raw');
+			$CACHE->set($thread_name, 'CONNECTED');
+			$CACHE->set('UPDATE',TRUE);
+			$debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
+			$debug->DEBUG(['Creating new BBS::Universal object']);
+			my $bbs = BBS::Universal->new(
+				{
+					'thread_name'   => $thread_name,
+				    'thread_number' => $thread_number,
+				    'socket'        => $socket,
+					'client_socket' => $client_socket,
+					'debug'         => $debug,
+					'debuglevel'    => $params->{'debuglevel'},
+				}
+			);
+			$debug->DEBUG(['BBS::Universal object created','Running connection process']);
+			$bbs->run(FALSE);
+			$debug->DEBUG(['Shutdown client socket']);
+			$client_socket->shutdown(SHUT_RDWR);    # Hang up
 			$CACHE->set($thread_name, 'IDLE');
-            my $client_socket = $socket->accept();
-            if (defined($client_socket)) {
-				binmode($client_socket,':ultra-raw');
-				$CACHE->set($thread_name, 'CONNECTED');
-				$CACHE->set('UPDATE',TRUE);
-                $debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
-				$debug->DEBUG(['Creating new BBS::Universal object']);
-                my $bbs = BBS::Universal->new(
-                    {
-                        'thread_name'   => $thread_name,
-						'thread_number' => $thread_number,
-						'socket'        => $socket,
-                        'client_socket' => $client_socket,
-                        'debug'         => $debug,
-						'debuglevel'    => $params->{'debuglevel'},
-                    }
-                );
-				$debug->DEBUG(['BBS::Universal object created','Running connection process']);
-                $bbs->run(FALSE);
-				$debug->DEBUG(['Shutdown client socket']);
-                $client_socket->shutdown(SHUT_RDWR);    # Hang up
-				$CACHE->set($thread_name, 'IDLE');
-				$CACHE->set('UPDATE',TRUE);
-            } else {
-				$CACHE->set($thread_name, 'IDLE');
-				$CACHE->set('UPDATE',TRUE);
-				threads->yield();
-			}
-        }
+			$CACHE->set('UPDATE',TRUE);
+		} else {
+			$CACHE->set($thread_name, 'IDLE');
+			$CACHE->set('UPDATE',TRUE);
+		}
         threads->yield();
     }
 	$CACHE->set($thread_name, 'TERMINATED');
@@ -551,6 +549,7 @@ sub hard_finish {
 	$CACHE->set('RUNNING', FALSE);
 
     $DEBUG->WARNING(['Forcing Shutdown...']);
+	alarm(0);
     sleep 1;
 	if ($TEST) {
 		print "Skipping threads\n";
@@ -562,7 +561,6 @@ sub hard_finish {
 	}
     $DEBUG->INFO(['Hard Shutdown Complete']);
     chdir($OLDDIR);
-    alarm(0);
 	system('reset');
 	shutdown_message();
 	exit(1);

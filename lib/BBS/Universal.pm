@@ -45,12 +45,12 @@ use Text::Format;
 use Text::SimpleTable;
 use List::Util qw(min max);
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
-use Cache::Memcached::Fast::Safe;
+use Cache::Memcached::Fast;
 
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.001';
+    our $VERSION = '0.002';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
       TRUE
@@ -69,17 +69,18 @@ BEGIN {
     );
     our @EXPORT_OK = qw();
     binmode(STDOUT, ":encoding(UTF-8)");
-    our $ANSI_VERSION = '0.001';
-    our $ASCII_VERSION = '0.001';
-    our $ATASCII_VERSION = '0.001';
-    our $CPU_VERSION = '0.001';
-    our $DB_VERSION = '0.001';
-    our $FILETRANSFER_VERSION = '0.001';
+    our $ANSI_VERSION = '0.002';
+    our $ASCII_VERSION = '0.002';
+    our $ATASCII_VERSION = '0.002';
+    our $BBS_LIST_VERSION = '0.001';
+    our $CPU_VERSION = '0.002';
+    our $DB_VERSION = '0.002';
+    our $FILETRANSFER_VERSION = '0.002';
     our $MESSAGES_VERSION = '0.001';
-    our $NEWS_VERSION = '0.001';
-    our $PETSCII_VERSION = '0.001';
-    our $SYSOP_VERSION = '0.001';
-    our $USERS_VERSION = '0.001';
+    our $NEWS_VERSION = '0.002';
+    our $PETSCII_VERSION = '0.002';
+    our $SYSOP_VERSION = '0.002';
+    our $USERS_VERSION = '0.002';
 } ## end BEGIN
 
 sub DESTROY {
@@ -95,7 +96,7 @@ sub small_new {
 	$self->populate_common();
     $self->{'debug'}->DEBUGMAX([$self]);
 
-	$self->{'CACHE'} = Cache::Memcached::Fast::Safe->new(
+	$self->{'CACHE'} = Cache::Memcached::Fast->new(
 		{
 			'servers' => [
 				{
@@ -154,7 +155,7 @@ sub new {    # Always call with the socket as a parameter
 
     bless($self, $class);
 	$self->populate_common();
-	$self->{'CACHE'} = Cache::Memcached::Fast::Safe->new(
+	$self->{'CACHE'} = Cache::Memcached::Fast->new(
 		{
 			'servers' => [
 				{
@@ -195,6 +196,7 @@ sub populate_common {
     $self->sysop_initialize();
 	$self->cpu_initialize();
 	$self->news_initialize();
+	$self->bbs_list_initialize();
     chomp(my $os = `uname -a`);
 	$self->{'SPEEDS'} = {                       # This depends on the granularity of Time::HiRes
 		'FULL'  => 0,
@@ -214,7 +216,10 @@ sub populate_common {
 		'OS'                 => $os,
 		'PERL VERSION'       => $self->{'VERSIONS'}->[0],
 		'BBS VERSION'        => $self->{'VERSIONS'}->[1],
-		'BANNER'             => sub {
+		'BBS LIST'           => sub {
+			return($self->bbs_list_all());
+		},
+    	'BANNER'             => sub {
 			my $self = shift;
 			my $banner = $self->load_file('files/main/banner');
 			return($banner);
@@ -296,6 +301,15 @@ sub populate_common {
 		'UPTIME'             => 'placeholder',
 	};
 	$self->{'COMMANDS'} = {
+		'BBS LIST ADD' => sub {
+			my $self = shift;
+			$self->bbs_list_add();
+			return($self->load_menu('files/main/bbs_listing'));
+		},
+		'BBS LISTING' => sub {
+			my $self = shift;
+			return($self->load_menu('files/main/bbs_listing'));
+		},
 		'ACCOUNT MANAGER' => sub {
 			my $self = shift;
 			return($self->load_menu('files/main/menu'));
@@ -434,7 +448,9 @@ sub login {
 					$tries--;
 				}
 			}
-        } until($valid || $tries <= 0 || ! ($self->{'CACHE'}->get('RUNNING') && $self->is_connected()));
+			last unless ($self->{'CACHE'}->get('RUNNING'));
+			last unless ($self->is_connected());
+        } until($valid || $tries <= 0);
 	}
 	$self->{'debug'}->DEBUGMAX([$self->{'USER'}]);
     return ($valid);
@@ -539,6 +555,22 @@ sub show_choices {
 	}
 }
 
+sub header {
+	my $self = shift;
+
+	my $width = $self->{'USER'}->{'max_columns'};
+	my $name = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
+
+	my $text = '#' x int(($width - length($name)) / 2);
+	$text .= $name;
+	$text .= '#' x ($width - length($text));
+	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+		my $char = '[% THICK HORIZONTAL BAR %]';
+		$text =~ s/\#/$char/g;
+	}
+	return($self->detokenize_text('[% CLS %]' . $text));
+}
+
 sub load_menu {
 	my $self = shift;
 	my $file = shift;
@@ -556,6 +588,8 @@ sub load_menu {
 				my ($k, $cmd, $color, $t) = split(/\|/,$line);
 				$k = uc($k);
 				$cmd = uc($cmd);
+				$color = uc($color);
+				$color =~ s/BRIGHT /BRIGHT_/g;
 				$self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
 				$mapping->{$k} = {
 					'command' => $cmd,
@@ -569,6 +603,7 @@ sub load_menu {
 			$mapping->{'TEXT'} .= $self->detokenize_text($line) . "\n";
 		}
 	}
+	$mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
 	return($mapping);
 }
 
@@ -666,6 +701,7 @@ sub get_line {
                 $line .= $key;
             }
         }
+		threads->yield();
     }
 
     if ($echo) {
@@ -915,6 +951,7 @@ sub parse_versions {
 		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
 		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
 		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
+		"BBS::Universal::BBS_List      $BBS::Universal::BBS_List",
 		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
 		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
 		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
@@ -1277,7 +1314,7 @@ sub ansi_initialize {
     foreach my $count (0 .. 255) {
         $self->{'ansi_sequences'}->{"ANSI$count"} = color("ANSI$count");
     }
-    $self->{'debug'}->DEBUG(['Initialized VT102']);
+    $self->{'debug'}->DEBUG(['Initialized ANSI']);
     return ($self);
 } ## end sub ansi_initialize
 
@@ -1327,6 +1364,8 @@ sub ascii_initialize {
         'RETURN'   => chr(13),
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
+		'CLS'      => '',
+		'CLEAR'    => '',
     };
     $self->{'debug'}->DEBUG(['ASCII Initialized']);
     return ($self);
@@ -1427,6 +1466,78 @@ sub atascii_output {
     } ## end foreach my $count (0 .. $s_len)
     return (TRUE);
 } ## end sub atascii_output
+
+ 
+
+# package BBS::Universal::BBS_List;
+
+sub bbs_list_initialize {
+    my $self = shift;
+    return ($self);
+}
+
+sub bbs_list_add {
+	my $self = shift;
+	my $index = 0;
+	$self->output($self->prompt('What is the BBS Name'));
+	my $bbs_name = $self->get_line(ECHO,50);
+	$self->output("\n");
+	if ($bbs_name ne '' && length($bbs_name) > 3) {
+		$self->output($self->prompt('What is the URL or Hostname'));
+		my $bbs_hostname = $self->get_line(ECHO,50);
+		$self->output("\n");
+		if ($bbs_hostname ne '' && length($bbs_hostname) > 5) {
+			$self->output($self->prompt('What is the Port number'));
+			my $bbs_port = $self->get_line(ECHO,5);
+			$self->output("\n");
+			if ($bbs_port ne '' && $bbs_port =~ /^\d+$/) {
+				$self->output('Adding BBS Entry...');
+				my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
+				$sth->execute($bbs_name, $bbs_hostname, $bbs_port);
+				$sth->finish();
+				$self->output("\n");
+			} else {
+				return (FALSE);
+			}
+		} else {
+			return (FALSE);
+		}
+	} else {
+		return (FALSE);
+	}
+	return (TRUE);
+}
+
+sub bbs_list_all {
+	my $self = shift;
+
+	$self->{'debug'}->DEBUG(['BBS LISTING BEGIN']);
+	my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
+	$sth->execute();
+	my @listing;
+	my ($name_size, $hostname_size, $poster_size) = (1, 1, 6);
+	while (my $row = $sth->fetchrow_hashref()) {
+		push(@listing, $row);
+		$name_size     = max(length($row->{'bbs_name'}),     $name_size);
+		$hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
+		$poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
+	}
+	my $table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
+	$table->row('NAME', 'HOSTNAME', 'PORT', 'POSTER');
+	$table->hr();
+	foreach my $line (@listing) {
+		$table->row($line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
+	}
+	my $response;
+	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+		$response = $table->boxes->draw();
+	} else {
+		$response = $table->draw();
+	}
+	$self->{'debug'}->DEBUGMAX([$response]);
+	$self->{'debug'}->DEBUG(['BBS LISTING END']);
+	return($response);
+}
 
  
 

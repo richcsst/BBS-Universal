@@ -1,5 +1,5 @@
 package BBS::Universal::DB;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub db_initialize {
     my $self = shift;

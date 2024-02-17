@@ -1,5 +1,5 @@
 package BBS::Universal::CPU;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub cpu_initialize {
     my $self = shift;

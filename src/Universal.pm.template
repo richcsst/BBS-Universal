@@ -45,12 +45,12 @@ use Text::Format;
 use Text::SimpleTable;
 use List::Util qw(min max);
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
-use Cache::Memcached::Fast::Safe;
+use Cache::Memcached::Fast;
 
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.001';
+    our $VERSION = '0.002';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
       TRUE
@@ -84,7 +84,7 @@ sub small_new {
 	$self->populate_common();
     $self->{'debug'}->DEBUGMAX([$self]);
 
-	$self->{'CACHE'} = Cache::Memcached::Fast::Safe->new(
+	$self->{'CACHE'} = Cache::Memcached::Fast->new(
 		{
 			'servers' => [
 				{
@@ -143,7 +143,7 @@ sub new {    # Always call with the socket as a parameter
 
     bless($self, $class);
 	$self->populate_common();
-	$self->{'CACHE'} = Cache::Memcached::Fast::Safe->new(
+	$self->{'CACHE'} = Cache::Memcached::Fast->new(
 		{
 			'servers' => [
 				{
@@ -184,6 +184,7 @@ sub populate_common {
     $self->sysop_initialize();
 	$self->cpu_initialize();
 	$self->news_initialize();
+	$self->bbs_list_initialize();
     chomp(my $os = `uname -a`);
 	$self->{'SPEEDS'} = {                       # This depends on the granularity of Time::HiRes
 		'FULL'  => 0,
@@ -203,7 +204,10 @@ sub populate_common {
 		'OS'                 => $os,
 		'PERL VERSION'       => $self->{'VERSIONS'}->[0],
 		'BBS VERSION'        => $self->{'VERSIONS'}->[1],
-		'BANNER'             => sub {
+		'BBS LIST'           => sub {
+			return($self->bbs_list_all());
+		},
+    	'BANNER'             => sub {
 			my $self = shift;
 			my $banner = $self->load_file('files/main/banner');
 			return($banner);
@@ -285,6 +289,15 @@ sub populate_common {
 		'UPTIME'             => 'placeholder',
 	};
 	$self->{'COMMANDS'} = {
+		'BBS LIST ADD' => sub {
+			my $self = shift;
+			$self->bbs_list_add();
+			return($self->load_menu('files/main/bbs_listing'));
+		},
+		'BBS LISTING' => sub {
+			my $self = shift;
+			return($self->load_menu('files/main/bbs_listing'));
+		},
 		'ACCOUNT MANAGER' => sub {
 			my $self = shift;
 			return($self->load_menu('files/main/menu'));
@@ -423,7 +436,9 @@ sub login {
 					$tries--;
 				}
 			}
-        } until($valid || $tries <= 0 || ! ($self->{'CACHE'}->get('RUNNING') && $self->is_connected()));
+			last unless ($self->{'CACHE'}->get('RUNNING'));
+			last unless ($self->is_connected());
+        } until($valid || $tries <= 0);
 	}
 	$self->{'debug'}->DEBUGMAX([$self->{'USER'}]);
     return ($valid);
@@ -528,6 +543,22 @@ sub show_choices {
 	}
 }
 
+sub header {
+	my $self = shift;
+
+	my $width = $self->{'USER'}->{'max_columns'};
+	my $name = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
+
+	my $text = '#' x int(($width - length($name)) / 2);
+	$text .= $name;
+	$text .= '#' x ($width - length($text));
+	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+		my $char = '[% THICK HORIZONTAL BAR %]';
+		$text =~ s/\#/$char/g;
+	}
+	return($self->detokenize_text('[% CLS %]' . $text));
+}
+
 sub load_menu {
 	my $self = shift;
 	my $file = shift;
@@ -545,6 +576,8 @@ sub load_menu {
 				my ($k, $cmd, $color, $t) = split(/\|/,$line);
 				$k = uc($k);
 				$cmd = uc($cmd);
+				$color = uc($color);
+				$color =~ s/BRIGHT /BRIGHT_/g;
 				$self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
 				$mapping->{$k} = {
 					'command' => $cmd,
@@ -558,6 +591,7 @@ sub load_menu {
 			$mapping->{'TEXT'} .= $self->detokenize_text($line) . "\n";
 		}
 	}
+	$mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
 	return($mapping);
 }
 
@@ -655,6 +689,7 @@ sub get_line {
                 $line .= $key;
             }
         }
+		threads->yield();
     }
 
     if ($echo) {
@@ -904,6 +939,7 @@ sub parse_versions {
 		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
 		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
 		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
+		"BBS::Universal::BBS_List      $BBS::Universal::BBS_List",
 		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
 		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
 		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
