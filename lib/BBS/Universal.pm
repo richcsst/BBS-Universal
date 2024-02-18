@@ -951,7 +951,7 @@ sub parse_versions {
 		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
 		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
 		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
-		"BBS::Universal::BBS_List      $BBS::Universal::BBS_List",
+		"BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION",
 		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
 		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
 		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
