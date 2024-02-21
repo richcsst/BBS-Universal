@@ -149,8 +149,8 @@ sub new {    # Always call with the socket as a parameter
         'null'            => chr(0),
         'delete'          => chr(127),
         'suffixes'        => [ qw( ASC ATA PET ANS ) ],
-        'host'      => undef,
-        'port'      => undef,
+        'host'            => undef,
+        'port'            => undef,
     };
 
     bless($self, $class);
@@ -256,6 +256,14 @@ sub populate_common {
 			my $self = shift;
 			return($self->{'USER'}->{'username'});
 		},
+        'USER EMAIL'         => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'show_email'}) {
+                return($self->{'USER'}->{'email'});
+            } else {
+                return('[HIDDEN]');
+            }
+        },
 		'USER GIVEN'         => sub {
 			my $self = shift;
 			return($self->{'USER'}->{'given'});
@@ -312,7 +320,7 @@ sub populate_common {
 		},
 		'ACCOUNT MANAGER' => sub {
 			my $self = shift;
-			return($self->load_menu('files/main/menu'));
+			return($self->load_menu('files/main/account'));
 		},
 		'BACK' => sub {
 			my $self = shift;
@@ -336,7 +344,7 @@ sub populate_common {
 			my $self = shift;
 			return($self->load_menu('files/main/files_menu'));
 		},
-		'LIST FILES' => sub {
+		'LIST FILES SUMMARY' => sub {
 			my $self = shift;
 			$self->files_list_summary(FALSE);
 			return($self->load_menu('files/main/files_menu'));
@@ -972,6 +980,25 @@ sub parse_versions {
     ];
     return ($versions);
 } ## end sub parse_versions
+
+sub yes_no {
+    my $self = shift;
+    my $bool = shift;
+
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        if ($bool) {
+            return('[% GREEN %]YES[% RESET %]');
+        } else {
+            return('[% RED %]NO[% RESET %]');
+        }
+    } else {
+        if ($bool) {
+            return('YES');
+        } else {
+            return('NO');
+        }
+    }
+}
 
 sub get_uptime {
     my $self = shift;
@@ -1755,8 +1782,8 @@ sub files_list_summary {
 	if ($search) {
 		$self->output("\n" . $self->prompt('Search for'));
 		$filter = $self->get_line(ECHO,20);
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE filename LIKE ? AND category=? ORDER BY uploaded DESC');
-		$sth->execute($filter,$self->{'USER'}->{'file_category'});
+		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
+		$sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
 	} else {
 		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
 		$sth->execute($self->{'USER'}->{'file_category'});
@@ -1800,8 +1827,8 @@ sub files_list_detailed {
 	if ($search) {
 		$self->output("\n" . $self->prompt('Search for'));
 		$filter = $self->get_line(ECHO,20);
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE filename LIKE ? AND category=? ORDER BY uploaded DESC');
-		$sth->execute($filter,$self->{'USER'}->{'file_category'});
+		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
+		$sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
 	} else {
 		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
 		$sth->execute($self->{'USER'}->{'file_category'});
@@ -1809,17 +1836,27 @@ sub files_list_detailed {
 	my @files;
 	my $max_filename = 10;
 	my $max_title = 20;
+    my $max_uploader = 8;
 	if ($sth->rows > 0) {
 		while(my $row = $sth->fetchrow_hashref()) {
 			push(@files,$row);
 			$max_filename = max(length($row->{'filename'}),$max_filename);
 			$max_title = max(length($row->{'title'}),$max_title);
+            if ($row->{'prefer_nickname'}) {
+                $max_uploader = max(length($row->{'nickname'}),$max_uploader);
+            } else {
+                $max_uploader = max(length($row->{'username'}),$max_uploader);
+            }
 		}
-		my $table = Text::SimpleTable->new($max_filename,$max_title);
-		$table->row('FILENAME','TITLE');
+		my $table = Text::SimpleTable->new($max_filename,$max_title,$max_uploader);
+		$table->row('FILENAME','TITLE','UPLOADER');
 		$table->hr();
 		foreach my $record (@files) {
-			$table->row($record->{'filename'},$record->{'title'});
+            if ($record->{'prefer_nickname'}) {
+                $table->row($record->{'filename'},$record->{'title'},$record->{'nickname'});
+            } else {
+                $table->row($record->{'filename'},$record->{'title'},$record->{'username'});
+            }
 		}
 		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
 			$self->output($table->boxes->draw());
@@ -2369,6 +2406,7 @@ sub sysop_initialize {
           given
           family
           nickname
+          email
           birthday
           location
           baud_rate
@@ -2411,6 +2449,7 @@ sub sysop_initialize {
         'given'           => 12,
         'family'          => 12,
         'nickname'        => 12,
+        'email'           => 20,
         'birthday'        => 10,
         'location'        => 20,
         'baud_rate'       => 4,
@@ -2717,6 +2756,7 @@ sub sysop_list_users {
 			  given,
 			  family,
 			  nickname,
+              email,
 			  DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
 			  location,
 			  baud_rate,
@@ -2840,10 +2880,13 @@ sub sysop_list_files {
         } ## end foreach my $name (keys %{$row...})
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
-    my $table = ($wsize > 150) ? Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}->{'uploaded'}) : Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});;
+    my $table;
     if ($wsize > 150) {
+#		$self->{'debug'}->ERROR($sizes);exit;
+		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
 		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
 	} else {
+		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
 		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
 	}
     $table->hr();
@@ -3205,6 +3248,7 @@ sub sysop_user_add {
         'remove_message'  => 'No',
         'sysop'           => 'No',
         'page_sysop'      => 'Yes',
+        'show_email'      => 'No',
     };
     my $mapping = $self->sysop_load_menu($row, $file);
     $self->{'debug'}->DEBUGMAX([$mapping]);
@@ -3652,6 +3696,7 @@ sub users_add {
 				given,
 				family,
 				nickname,
+                email,
 				accomplishments,
 				retro_systems,
 				birthday,
@@ -3663,7 +3708,7 @@ sub users_add {
 		}
 	);
 	$self->{'debug'}->DEBUGMAX($user_template);
-	$sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'},) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+	$sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'},) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
 	$sth = $self->{'dbh'}->prepare(
 		q{
 			INSERT INTO permissions (
@@ -3674,6 +3719,7 @@ sub users_add {
 				download_files,
 				remove_files,
 				read_message,
+                show_email,
 				post_message,
 				remove_message,
 				sysop,
@@ -3682,7 +3728,7 @@ sub users_add {
 			  VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
 		}
 	);
-	$sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'timeout'});
+	$sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'timeout'});
 
 	if ($self->{'dbh'}->errstr) {
 		$self->{'dbh'}->rollback;
@@ -3765,7 +3811,63 @@ sub users_count {
 
 sub user_info {
     my $self = shift;
-    return ('');
+
+    my $text = '';
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        $text .= '[% BOLD %][% CYAN %]ACCOUNT NUMBER  [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'id'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]USERNAME        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'username'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]FULL NAME       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'fullname'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]NICKNAME        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'nickname'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]EMAIL           [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'email'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]SCREEN          [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]BIRTHDAY        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'birthday'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]LOCATION        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'location'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]BAUD RATE       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'baud_rate'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]LAST LOGIN      [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'login_time'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]LAST LOGOUT     [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'logout_time'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]TEXT MODE       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'text_mode'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]IDLE TIMEOUT    [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'timeout'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]RETRO SYSTEMS   [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'retro_systems'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]ACCOMPLISHMENTS [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'accomplishments'} . "\n";
+        $text .= '[% BOLD %][% CYAN %]SHOW EMAIL      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'show_email'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]PREFER NICKNAME [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'prefer_nickname'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]VIEW FILES      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'view_files'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]UPLOAD FILES    [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'upload_files'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]DOWNLOAD FILES  [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'download_files'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]REMOVE FILES    [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'remove_files'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]READ_MESSAGES   [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'read_message'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]POST MESSAGES   [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'post_message'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]REMOVE MESSAGES [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'remove_message'}) . "\n";
+        $text .= '[% BOLD %][% CYAN %]PAGE SYSOP      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'page_sysop'}) . "\n";
+    } else {
+        $text .= 'ACCOUNT NUMBER  = ' . $self->{'USER'}->{'id'} . "\n";
+        $text .= 'USERNAME        = ' . $self->{'USER'}->{'username'} . "\n";
+        $text .= 'FULL NAME       = ' . $self->{'USER'}->{'fullname'} . "\n";
+        $text .= 'NICKNAME        = ' . $self->{'USER'}->{'nickname'} . "\n";
+        $text .= 'EMAIL           = ' . $self->{'USER'}->{'email'} . "\n";
+        $text .= 'SCREEN          = ' . $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'} . "\n";
+        $text .= 'BIRTHDAY        = ' . $self->{'USER'}->{'birthday'} . "\n";
+        $text .= 'LOCATION        = ' . $self->{'USER'}->{'location'} . "\n";
+        $text .= 'BAUD RATE       = ' . $self->{'USER'}->{'baud_rate'} . "\n";
+        $text .= 'LAST LOGIN      = ' . $self->{'USER'}->{'login_time'} . "\n";
+        $text .= 'LAST LOGOUT     = ' . $self->{'USER'}->{'logout_time'} . "\n";
+        $text .= 'TEXT MODE       = ' . $self->{'USER'}->{'text_mode'} . "\n";
+        $text .= 'IDLE TIMEOUT    = ' . $self->{'USER'}->{'timeout'} . "\n";
+        $text .= 'RETRO SYSTEMS   = ' . $self->{'USER'}->{'retro_systems'} . "\n";
+        $text .= 'ACCOMPLISHMENTS = ' . $self->{'USER'}->{'accomplishments'} . "\n";
+        $text .= 'SHOW EMAIL      = ' . $self->yes_no($self->{'USER'}->{'show_email'}) . "\n";
+        $text .= 'PREFER NICKNAME = ' . $self->yes_no($self->{'USER'}->{'prefer_nickname'}) . "\n";
+        $text .= 'VIEW FILES      = ' . $self->yes_no($self->{'USER'}->{'view_files'}) . "\n";
+        $text .= 'UPLOAD FILES    = ' . $self->yes_no($self->{'USER'}->{'upload_files'}) . "\n";
+        $text .= 'DOWNLOAD FILES  = ' . $self->yes_no($self->{'USER'}->{'download_files'}) . "\n";
+        $text .= 'REMOVE FILES    = ' . $self->yes_no($self->{'USER'}->{'remove_files'}) . "\n";
+        $text .= 'READ_MESSAGES   = ' . $self->yes_no($self->{'USER'}->{'read_message'}) . "\n";
+        $text .= 'POST MESSAGES   = ' . $self->yes_no($self->{'USER'}->{'post_message'}) . "\n";
+        $text .= 'REMOVE MESSAGES = ' . $self->yes_no($self->{'USER'}->{'remove_message'}) . "\n";
+        $text .= 'PAGE SYSOP      = ' . $self->yes_no($self->{'USER'}->{'page_sysop'}) . "\n";
+    }
+
+    return ($text);
 }
 
  

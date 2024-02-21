@@ -25,8 +25,9 @@ CREATE TABLE users (
 	given           VARCHAR(255) NOT NULL,
 	family          VARCHAR(255) NOT NULL,
 	nickname        VARCHAR(255),
-    max_columns     SMALLINT UNSIGNED DEFAULT 80,
-	max_rows        SMALLINT UNSIGNED DEFAULT 25,
+    email           VARCHAR(255) DEFAULT '',
+    max_columns     SMALLINT UNSIGNED DEFAULT 132,
+	max_rows        SMALLINT UNSIGNED DEFAULT 50,
 	accomplishments TEXT,
 	retro_systems   TEXT,
 	birthday        DATE,
@@ -41,6 +42,7 @@ CREATE TABLE users (
 
 CREATE TABLE permissions (
 	id             INT UNSIGNED PRIMARY KEY,
+    show_email     BOOLEAN DEFAULT FALSE,
 	view_files     BOOLEAN DEFAULT FALSE,
 	upload_files   BOOLEAN DEFAULT FALSE,
 	download_files BOOLEAN DEFAULT FALSE,
@@ -311,11 +313,13 @@ CREATE VIEW users_view
 	users.logout_time           AS logout_time,
 	users.file_category         AS file_category,
 	users.forum_category        AS forum_category,
+    users.email                 AS email,
 	text_modes.text_mode        AS text_mode,
 	text_modes.suffix           AS suffix,
 	permissions.timeout         AS timeout,
 	users.retro_systems         AS retro_systems,
 	users.accomplishments       AS accomplishments,
+    permissions.show_email      AS show_email,
 	permissions.prefer_nickname AS prefer_nickname,
 	permissions.view_files      AS view_files,
 	permissions.upload_files    AS upload_files,
@@ -364,7 +368,11 @@ SELECT
 	files.file_size AS file_size,
 	files.uploaded AS uploaded,
 	files.endorsements AS endorsements,
-	users.username AS username
+    permissions.prefer_nickname AS prefer_nickname,
+	users.username AS username,
+    users.nickname AS nickname,
+    CONCAT(users.given,' ',users.family) AS fullname
+
 FROM
     files
 INNER JOIN
@@ -372,7 +380,9 @@ INNER JOIN
 INNER JOIN
     file_types ON files.file_type=file_types.id
 INNER JOIN
-    users ON files.user_id=users.id;
+    users ON files.user_id=users.id
+INNER JOIN
+    permissions ON users.id=permissions.id;
 
 CREATE VIEW bbs_listing_view
   AS

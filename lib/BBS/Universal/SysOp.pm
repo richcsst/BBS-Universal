@@ -292,6 +292,7 @@ sub sysop_initialize {
           given
           family
           nickname
+          email
           birthday
           location
           baud_rate
@@ -334,6 +335,7 @@ sub sysop_initialize {
         'given'           => 12,
         'family'          => 12,
         'nickname'        => 12,
+        'email'           => 20,
         'birthday'        => 10,
         'location'        => 20,
         'baud_rate'       => 4,
@@ -640,6 +642,7 @@ sub sysop_list_users {
 			  given,
 			  family,
 			  nickname,
+              email,
 			  DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
 			  location,
 			  baud_rate,
@@ -763,10 +766,13 @@ sub sysop_list_files {
         } ## end foreach my $name (keys %{$row...})
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
-    my $table = ($wsize > 150) ? Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}->{'uploaded'}) : Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});;
+    my $table;
     if ($wsize > 150) {
+#		$self->{'debug'}->ERROR($sizes);exit;
+		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
 		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
 	} else {
+		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
 		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
 	}
     $table->hr();
@@ -1128,6 +1134,7 @@ sub sysop_user_add {
         'remove_message'  => 'No',
         'sysop'           => 'No',
         'page_sysop'      => 'Yes',
+        'show_email'      => 'No',
     };
     my $mapping = $self->sysop_load_menu($row, $file);
     $self->{'debug'}->DEBUGMAX([$mapping]);

@@ -137,8 +137,8 @@ sub new {    # Always call with the socket as a parameter
         'null'            => chr(0),
         'delete'          => chr(127),
         'suffixes'        => [ qw( ASC ATA PET ANS ) ],
-        'host'      => undef,
-        'port'      => undef,
+        'host'            => undef,
+        'port'            => undef,
     };
 
     bless($self, $class);
@@ -244,6 +244,14 @@ sub populate_common {
 			my $self = shift;
 			return($self->{'USER'}->{'username'});
 		},
+        'USER EMAIL'         => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'show_email'}) {
+                return($self->{'USER'}->{'email'});
+            } else {
+                return('[HIDDEN]');
+            }
+        },
 		'USER GIVEN'         => sub {
 			my $self = shift;
 			return($self->{'USER'}->{'given'});
@@ -300,7 +308,7 @@ sub populate_common {
 		},
 		'ACCOUNT MANAGER' => sub {
 			my $self = shift;
-			return($self->load_menu('files/main/menu'));
+			return($self->load_menu('files/main/account'));
 		},
 		'BACK' => sub {
 			my $self = shift;
@@ -324,7 +332,7 @@ sub populate_common {
 			my $self = shift;
 			return($self->load_menu('files/main/files_menu'));
 		},
-		'LIST FILES' => sub {
+		'LIST FILES SUMMARY' => sub {
 			my $self = shift;
 			$self->files_list_summary(FALSE);
 			return($self->load_menu('files/main/files_menu'));
@@ -960,6 +968,25 @@ sub parse_versions {
     ];
     return ($versions);
 } ## end sub parse_versions
+
+sub yes_no {
+    my $self = shift;
+    my $bool = shift;
+
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        if ($bool) {
+            return('[% GREEN %]YES[% RESET %]');
+        } else {
+            return('[% RED %]NO[% RESET %]');
+        }
+    } else {
+        if ($bool) {
+            return('YES');
+        } else {
+            return('NO');
+        }
+    }
+}
 
 sub get_uptime {
     my $self = shift;
