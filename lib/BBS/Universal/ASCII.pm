@@ -8,8 +8,8 @@ sub ascii_initialize {
         'RETURN'   => chr(13),
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
-		'CLS'      => '',
-		'CLEAR'    => '',
+        'CLS'      => '',
+        'CLEAR'    => '',
     };
     $self->{'debug'}->DEBUG(['ASCII Initialized']);
     return ($self);

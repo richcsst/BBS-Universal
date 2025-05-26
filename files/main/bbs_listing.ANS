@@ -7,4 +7,4 @@ Z|BACK|WHITE|Return to the Main Menu
  | |_) | |_) |__) | | |___| \__ \ |_| | | | | (_| |
  |____/|____/____/  |_____|_|___/\__|_|_| |_|\__, |
                                              |___/[% RESET %]
-[% BBS LIST %]
+[% SHOW BBS LIST %]

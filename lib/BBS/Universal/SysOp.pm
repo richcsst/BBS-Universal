@@ -643,11 +643,11 @@ sub sysop_list_users {
 			  family,
 			  nickname,
               email,
-			  DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
+			  birthday,
 			  location,
 			  baud_rate,
-			  DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
-			  DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
+			  login_time,
+			  logout_time,
 			  text_mode,
 			  forum_category,
 			  file_category,
@@ -696,9 +696,9 @@ sub sysop_list_users {
         $table->row('NAME', 'VALUE');
 
         while (my $Row = $sth->fetchrow_hashref()) {
-			$table->hr();
+            $table->hr();
             foreach my $name (@order) {
-                if ($name ne 'id' && $Row->{$name} =~ /^(0|1)$/) {
+                if ($name !~ /id|time/ && $Row->{$name} =~ /^(0|1)$/) {
                     $Row->{$name} = $self->sysop_true_false($Row->{$name}, 'YN');
                 } elsif ($name eq 'timeout') {
                     $Row->{$name} = $Row->{$name} . ' Minutes';
@@ -768,26 +768,27 @@ sub sysop_list_files {
     $sth->finish();
     my $table;
     if ($wsize > 150) {
-#		$self->{'debug'}->ERROR($sizes);exit;
-		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
-		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
-	} else {
-		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
-		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
-	}
+
+        #		$self->{'debug'}->ERROR($sizes);exit;
+        $table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
+        $table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
+    } else {
+        $table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'}, 4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
+        $table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
+    }
     $table->hr();
     $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
     $sth->execute();
     my $category;
 
     while (my $row = $sth->fetchrow_hashref()) {
-		if ($wsize > 150) {
-			$table->row($row->{'filename'}, $row->{'title'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k', $row->{'uploaded'},);
-		} else {
-			$table->row($row->{'filename'}, $row->{'title'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k');
-		}
+        if ($wsize > 150) {
+            $table->row($row->{'filename'}, $row->{'title'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k', $row->{'uploaded'},);
+        } else {
+            $table->row($row->{'filename'}, $row->{'title'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k');
+        }
         $category = $row->{'category'};
-    }
+    } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
     print "\nCATEGORY:  ", $category, "\n", $table->boxes->draw(), "\n", 'Press a Key To Continue ...';
     $self->sysop_keypress();
@@ -1019,28 +1020,29 @@ sub sysop_user_delete {
     $sth->execute($search, $search);
     my $user_row = $sth->fetchrow_hashref();
     $sth->finish();
+
     if (defined($user_row)) {
         my $table = Text::SimpleTable->new(16, 60);
         $table->row('FIELD', 'VALUE');
         $table->hr();
         foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-			if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
-				$user_row->{$field} = $self->sysop_true_false($user_row->{$field}, 'YN');
-			} elsif ($field eq 'timeout') {
-				$user_row->{$field} = $user_row->{$field} . ' Minutes';
-			}
-			$table->row($field, $user_row->{$field} . '');
+            if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
+                $user_row->{$field} = $self->sysop_true_false($user_row->{$field}, 'YN');
+            } elsif ($field eq 'timeout') {
+                $user_row->{$field} = $user_row->{$field} . ' Minutes';
+            }
+            $table->row($field, $user_row->{$field} . '');
         } ## end foreach my $field (@{ $self...})
-		if ($self->sysop_pager($table->boxes->draw())) {
-			print "Are you sure that you want to delete this user (Y|N)?  ";
-			my $answer = $self->sysop_decision();
-			if ($answer) {
-				print "\n\nDeleting ",$user_row->{'username'}," ... ";
-				$sth = $self->users_delete($user_row->{'id'});
-			}
-		}
-	}
-}
+        if ($self->sysop_pager($table->boxes->draw())) {
+            print "Are you sure that you want to delete this user (Y|N)?  ";
+            my $answer = $self->sysop_decision();
+            if ($answer) {
+                print "\n\nDeleting ", $user_row->{'username'}, " ... ";
+                $sth = $self->users_delete($user_row->{'id'});
+            }
+        } ## end if ($self->sysop_pager...)
+    } ## end if (defined($user_row))
+} ## end sub sysop_user_delete
 
 sub sysop_user_edit {
     my $self = shift;
@@ -1109,9 +1111,9 @@ sub sysop_user_edit {
                 $sth->execute($new, $user_row->{'id'});
                 $sth->finish();
             }
-		} else {
-			print "BACK\n";
-        } ## end if ($key !~ /$key_exit/i)
+        } else {
+            print "BACK\n";
+        }
     } elsif ($search ne '') {
         print "User not found!\n\n";
     }
@@ -1216,10 +1218,10 @@ sub sysop_user_add {
         $adjustment += 2;
     } ## end foreach my $entry (@{ $self...})
     pop(@{ $self->{'SYSOP ORDER DETAILED'} });
-	if ($self->users_add($user_template)) {
-		print "\n\n",colored(['green'],'SUCCESS'),"\n";
-		return(TRUE);
-	}
+    if ($self->users_add($user_template)) {
+        print "\n\n", colored(['green'], 'SUCCESS'), "\n";
+        return (TRUE);
+    }
     return (FALSE);
 } ## end sub sysop_user_add
 
@@ -1469,10 +1471,10 @@ sub sysop_add_bbs {
     }
     my @order = (qw(bbs_name bbs_hostname bbs_port));
     my $bbs   = {
-		'bbs_name' => '',
-		'bbs_hostname' => '',
-		'bbs_port' => '',
-	};
+        'bbs_name'     => '',
+        'bbs_hostname' => '',
+        'bbs_port'     => '',
+    };
     my $index = 0;
     print $table->boxes->draw();
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 17;
@@ -1500,7 +1502,7 @@ sub sysop_add_bbs {
 } ## end sub sysop_add_bbs
 
 sub sysop_delete_bbs {
-	my $self = shift;
+    my $self = shift;
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(50);
@@ -1516,18 +1518,18 @@ sub sysop_delete_bbs {
         $table->row('FIELD NAME', 'VALUE');
         $table->hr();
         foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
-			$table->row($name, $bbs->{$name});
-        } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
+            $table->row($name, $bbs->{$name});
+        }
         print $table->boxes->draw();
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
-        unless($choice) {
+        unless ($choice) {
             return (FALSE);
         }
         $sth = $self->{'dbh'}->prepare('DELETE FROM bbs_listing WHERE bbs_id=?');
         $sth->execute($bbs->{'bbs_id'});
-    }
-	$sth->finish();
-	return(TRUE);
-}
+    } ## end if ($sth->rows())
+    $sth->finish();
+    return (TRUE);
+} ## end sub sysop_delete_bbs
 1;

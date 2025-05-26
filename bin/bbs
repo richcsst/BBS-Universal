@@ -49,7 +49,7 @@ BEGIN {
     our $VERSION = '0.002';
 }
 
-binmode(STDOUT,':encoding(UTF-8)');
+binmode(STDOUT, ':encoding(UTF-8)');
 
 my $OLDDIR         = getcwd;
 my $LEVEL          = 'ERROR';
@@ -60,12 +60,12 @@ my $SINGLE         = FALSE;
 
 # Shared with threads
 
-our $TEST          = FALSE;
+our $TEST = FALSE;
 
 GetOptions(
     'test|sysop' => \$TEST,
     'debug=s'    => \$LEVEL,
-	'single'     => \$SINGLE,
+    'single'     => \$SINGLE,
 );
 
 $LEVEL = uc($LEVEL);
@@ -77,24 +77,24 @@ my $DEBUG = Debug::Easy->new(
 ############## BBS Core ###################
 print cls;
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
-my $CACHE = Cache::Memcached::Fast->new(
-	{
-		'servers' => [
-			{
-				'address' => $BBS_OBJ->{'CONF'}->{'MEMCACHED HOST'} . ':' . $BBS_OBJ->{'CONF'}->{'MEMCACHED PORT'},
-			},
-		],
-		'namespace' => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
-		'utf8'      => TRUE,
-	}
+my $CACHE   = Cache::Memcached::Fast->new(
+    {
+        'servers' => [
+            {
+                'address' => $BBS_OBJ->{'CONF'}->{'MEMCACHED HOST'} . ':' . $BBS_OBJ->{'CONF'}->{'MEMCACHED PORT'},
+            },
+        ],
+        'namespace' => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
+        'utf8'      => TRUE,
+    }
 );
-$CACHE->set('RUNNING', TRUE);
-$CACHE->set('TEST', $TEST);
-$CACHE->set('UPDATE', TRUE);
-$CACHE->set('ONLINE', 0);
+$CACHE->set('RUNNING',         TRUE);
+$CACHE->set('TEST',            $TEST);
+$CACHE->set('UPDATE',          TRUE);
+$CACHE->set('ONLINE',          0);
 $CACHE->set('THREADS_RUNNING', 0);
-$CACHE->set('ROW_ADJUST', 0);
-$CACHE->set('START_ROW', 7);
+$CACHE->set('ROW_ADJUST',      0);
+$CACHE->set('START_ROW',       7);
 
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
@@ -188,13 +188,13 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP SHUTDOWN' => sub {
         print "\n\nShutting down threads\n";
-		$CACHE->set('RUNNING', FALSE);
+        $CACHE->set('RUNNING', FALSE);
     },
-	'SYSOP RESTART' => sub {
+    'SYSOP RESTART' => sub {
         print "\n\nShutting down threads\n";
-		$CACHE->set('RUNNING', FALSE);
-		$RESTART = TRUE;
-	},
+        $CACHE->set('RUNNING', FALSE);
+        $RESTART = TRUE;
+    },
     'SYSOP LOGIN SYSOP' => sub {
         run_bbs_sysop(shift, TRUE);
         return ('BACK');
@@ -244,8 +244,8 @@ our $SYSOP_COMMANDS = {
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
 if ($RESTART) {
-	print "\n\nRESTARTING...\n";
-	exec($ENV{'_'},@CALL);
+    print "\n\nRESTARTING...\n";
+    exec($ENV{'_'}, @CALL);
 }
 exit(0);
 
@@ -263,16 +263,16 @@ sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-	$CACHE->set('ROW_ADJUST', 0);
+    $CACHE->set('ROW_ADJUST', 0);
 
     print setscroll(1, $hsize), locate(1, 1);
     print colored(['red'],         '  ____  ____ ____    _   _       _                          _ ') . sprintf(' │ Version %.03f', $BBS::Universal::VERSION), "\n";
     print colored(['yellow'],      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |'),  ' │ Written By Richard Kelsch',                       clline, "\n";
-    print colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}), ' │ Copyright © 2023-2024 Richard Kelsch',                 clline, "\n";
+    print colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}), ' │ Copyright © 2023-2024 Richard Kelsch',            clline, "\n";
     print colored(['magenta'],     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |'),  ' │ All Rights Reserved',                             clline, "\n";
     print colored(['bright_blue'], ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|'),  ' │ Licensed under the GNU Public License Version 3', clline, "\n";
-    print locate(6,          1),  '━' x $wsize;
-    print locate(6,          64), '┷';
+    print locate(6,                        1),  '━' x $wsize;
+    print locate(6,                        64), '┷';
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
 
@@ -294,10 +294,10 @@ sub system_menu {
     unless ($TEST) {
         print 'Loading ' . $MAX_THREADS . ' Threads ...';
         $socket = IO::Socket->new(
-			'Domain'    => AF_INET,
+            'Domain'    => AF_INET,
             'LocalHost' => $bbs_obj->{'CONF'}->{'HOST'},
             'LocalPort' => $bbs_obj->{'CONF'}->{'PORT'},
-			'Type'      => SOCK_STREAM,
+            'Type'      => SOCK_STREAM,
             'Proto'     => 'tcp',
             'Listen'    => 1,
             'ReuseAddr' => TRUE,
@@ -313,7 +313,7 @@ sub system_menu {
         } else {
             $DEBUG->DEBUG(["Waiting for a connection for $bbs_obj->{'CONF'}->{host} : $bbs_obj->{'CONF'}->{port}"]);
             foreach my $thread (1 .. $MAX_THREADS) {
-				my $name = sprintf('SERVER_%02d', $thread);
+                my $name = sprintf('SERVER_%02d', $thread);
                 $DEBUG->DEBUG(["$name Ready"]);
                 $SERVER_THREADS->{$name} = threads->create(
                     \&run_bbs,
@@ -325,7 +325,7 @@ sub system_menu {
                         'debuglevel'    => $LEVEL
                     }
                 );
-				$CACHE->set('UPDATE', TRUE);
+                $CACHE->set('UPDATE', TRUE);
                 servers_status($bbs_obj, FALSE);
             } ## end foreach my $thread (1 .. $MAX_THREADS)
             $DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
@@ -344,7 +344,7 @@ sub system_menu {
             alarm(0);
             ($wsize, $hsize, $wpixels, $hpixels) = logo();
             ($width, $height) = ($wsize, $hsize);
-            servers_status($bbs_obj, TRUE);
+            servers_status($bbs_obj, TRUE) unless ($TEST);
         } ## end if ($wsize != $width ||...)
         my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANS');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
@@ -357,9 +357,9 @@ sub system_menu {
             }
             threads->yield();
         } ## end while ($command !~ /BACK/...)
-    }
+    } ## end while ($CACHE->get('RUNNING'...))
     $socket->close() if (defined($socket));
-	$CACHE->set('RUNNING',FALSE);
+    $CACHE->set('RUNNING', FALSE);
     finish($bbs_obj);
     $DEBUG->DEBUG(['Main End']);
     shutdown_message();
@@ -368,7 +368,7 @@ sub system_menu {
 sub servers_status {
     my $bbs_obj    = shift;
     my $show_alarm = shift || TRUE;
-    if ($CACHE->get('UPDATE') && ! $TEST) {
+    if ($CACHE->get('UPDATE') && !$TEST) {
         alarm(0);
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         my $stp   = int($wsize / 26);
@@ -381,20 +381,20 @@ sub servers_status {
 
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
-		$CACHE->set('ROW_ADJUST', 2);
-		$CACHE->set('ONLINE', 0);
-		$CACHE->set('THREADS_RUNNING', 0);
+        $CACHE->set('ROW_ADJUST',      2);
+        $CACHE->set('ONLINE',          0);
+        $CACHE->set('THREADS_RUNNING', 0);
         foreach my $name (sort(keys %{$SERVER_THREADS})) {
             if ($CACHE->get($name) eq 'CONNECTED') {
-				$CACHE->set('ONLINE', $CACHE->get('ONLINE') + 1);
-				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
-				$CACHE->set($name, 'CONNECTED');
+                $CACHE->set('ONLINE',          $CACHE->get('ONLINE') + 1);
+                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
+                $CACHE->set($name,             'CONNECTED');
             } elsif ($CACHE->get($name) eq 'IDLE') {
-				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
-				$CACHE->set($name, 'IDLE');
+                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
+                $CACHE->set($name,             'IDLE');
             } else {
-				$CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1);
-				$CACHE->set($name, 'FINISHED');
+                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1);
+                $CACHE->set($name,             'FINISHED');
             }
             push(@row, "$name -> " . $CACHE->get($name));
             $steps--;
@@ -402,7 +402,7 @@ sub servers_status {
                 $steps = $stp;
                 $table->row(@row);
                 @row = ();
-				$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+                $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
             } ## end if ($steps == 0)
             $count++;
             threads->yield();
@@ -413,9 +413,9 @@ sub servers_status {
                 $steps--;
                 threads->yield();
             }
-			$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-            $table->row(@row);;
-			$CACHE->set('UPDATE', FALSE);
+            $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+            $table->row(@row);
+            $CACHE->set('UPDATE', FALSE);
         } ## end if (scalar(@row))
         my $tbl = $bbs_obj->center($table->boxes->draw(), $wsize);
         my $cn  = colored(['green'],   'CONNECTED');
@@ -432,7 +432,7 @@ sub servers_status {
         } else {
             print locate($CACHE->get('START_ROW'), 1), $tbl;
         }
-    }
+    } ## end if ($CACHE->get('UPDATE'...))
     return (TRUE);
 } ## end sub servers_status
 
@@ -453,38 +453,39 @@ sub run_bbs {
     );
     $debug->DEBUG(["BBS Server Thread $thread_name Started"]);
     $debug->DEBUGMAX([$params]);
+
     while ($CACHE->get('RUNNING')) {
-		$CACHE->set($thread_name, 'IDLE');
-		my $client_socket = $socket->accept();
-		if (defined($client_socket)) {
-			binmode($client_socket,':ultra-raw');
-			$CACHE->set($thread_name, 'CONNECTED');
-			$CACHE->set('UPDATE',TRUE);
-			$debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
-			$debug->DEBUG(['Creating new BBS::Universal object']);
-			my $bbs = BBS::Universal->new(
-				{
-					'thread_name'   => $thread_name,
-				    'thread_number' => $thread_number,
-				    'socket'        => $socket,
-					'client_socket' => $client_socket,
-					'debug'         => $debug,
-					'debuglevel'    => $params->{'debuglevel'},
-				}
-			);
-			$debug->DEBUG(['BBS::Universal object created','Running connection process']);
-			$bbs->run(FALSE);
-			$debug->DEBUG(['Shutdown client socket']);
-			$client_socket->shutdown(SHUT_RDWR);    # Hang up
-			$CACHE->set($thread_name, 'IDLE');
-			$CACHE->set('UPDATE',TRUE);
-		} else {
-			$CACHE->set($thread_name, 'IDLE');
-			$CACHE->set('UPDATE',TRUE);
-		}
+        $CACHE->set($thread_name, 'IDLE');
+        my $client_socket = $socket->accept();
+        if (defined($client_socket)) {
+            binmode($client_socket, ':ultra-raw');
+            $CACHE->set($thread_name, 'CONNECTED');
+            $CACHE->set('UPDATE',     TRUE);
+            $debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
+            $debug->DEBUG(['Creating new BBS::Universal object']);
+            my $bbs = BBS::Universal->new(
+                {
+                    'thread_name'   => $thread_name,
+                    'thread_number' => $thread_number,
+                    'socket'        => $socket,
+                    'client_socket' => $client_socket,
+                    'debug'         => $debug,
+                    'debuglevel'    => $params->{'debuglevel'},
+                }
+            );
+            $debug->DEBUG(['BBS::Universal object created', 'Running connection process']);
+            $bbs->run(FALSE);
+            $debug->DEBUG(['Shutdown client socket']);
+            $client_socket->shutdown(SHUT_RDWR);    # Hang up
+            $CACHE->set($thread_name, 'IDLE');
+            $CACHE->set('UPDATE',     TRUE);
+        } else {
+            $CACHE->set($thread_name, 'IDLE');
+            $CACHE->set('UPDATE',     TRUE);
+        }
         threads->yield();
-    }
-	$CACHE->set($thread_name, 'TERMINATED');
+    } ## end while ($CACHE->get('RUNNING'...))
+    $CACHE->set($thread_name, 'TERMINATED');
     $debug->INFO(["Thread $thread_name shutting down"]);
 } ## end sub run_bbs
 
@@ -512,7 +513,7 @@ sub clean_joinable {
     while (threads->list(threads::running)) {
         foreach my $thread (threads->list(threads::joinable)) {
             $thread->join();
-			$CACHE->set('UPDATE', TRUE);
+            $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, FALSE);
             alarm 0;
             threads->yield();
@@ -521,7 +522,7 @@ sub clean_joinable {
     } ## end while (threads->list(threads::running...))
     foreach my $thread (threads->list(threads::joinable)) {
         $thread->join();
-		$CACHE->set('UPDATE', TRUE);
+        $CACHE->set('UPDATE', TRUE);
         servers_status($bbs_obj, FALSE);
         alarm 0;
         threads->yield();
@@ -530,12 +531,12 @@ sub clean_joinable {
 
 sub finish {
     my $bbs_obj = shift;
-	$CACHE->set('RUNNING', FALSE);
+    $CACHE->set('RUNNING', FALSE);
     $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
     clean_joinable($bbs_obj);
     $DEBUG->INFO(['Shutdown Complete']);
     chdir($OLDDIR);
-	system('reset');
+    system('reset');
     alarm(0);
 } ## end sub finish
 
@@ -546,24 +547,24 @@ sub hard_finish {
     #
     # It unceremoniously kills all threads (and disconnects anyone connected to them)
 
-	$CACHE->set('RUNNING', FALSE);
+    $CACHE->set('RUNNING', FALSE);
 
     $DEBUG->WARNING(['Forcing Shutdown...']);
-	alarm(0);
+    alarm(0);
     sleep 1;
-	if ($TEST) {
-		print "Skipping threads\n";
-	} else {
-		foreach my $thread (threads->list(threads::running)) {
-			$thread->kill('KILL');
-		}
-		clean_joinable();
-	}
+    if ($TEST) {
+        print "Skipping threads\n";
+    } else {
+        foreach my $thread (threads->list(threads::running)) {
+            $thread->kill('KILL');
+        }
+        clean_joinable();
+    } ## end else [ if ($TEST) ]
     $DEBUG->INFO(['Hard Shutdown Complete']);
     chdir($OLDDIR);
-	system('reset');
-	shutdown_message();
-	exit(1);
+    system('reset');
+    shutdown_message();
+    exit(1);
 } ## end sub hard_finish
 
 __END__

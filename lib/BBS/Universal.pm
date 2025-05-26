@@ -5,17 +5,19 @@ use 5.010;
 use strict;
 no strict 'subs';
 no warnings;
+
+# use Carp::Always;
 use utf8;
 use constant {
     TRUE        => 1,
     FALSE       => 0,
-	YES         => 1,
-	NO          => 0,
+    YES         => 1,
+    NO          => 0,
     BLOCKING    => 1,
     NONBLOCKING => 0,
-	PASSWORD    => -1,
-	ECHO        => 1,
-	SILENT      => 0,
+    PASSWORD    => -1,
+    ECHO        => 1,
+    SILENT      => 0,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -26,9 +28,9 @@ use open qw(:std :utf8);
 
 # Modules
 use threads (
-	'yield',
-	'exit' => 'threads_only',
-	'stringify',
+    'yield',
+    'exit' => 'threads_only',
+    'stringify',
 );
 use English qw( -no_match_vars );
 use Config;
@@ -55,13 +57,13 @@ BEGIN {
     our @EXPORT  = qw(
       TRUE
       FALSE
-	  YES
-	  NO
-	  BLOCKING
-	  NONBLOCKING
-	  PASSWORD
-	  ECHO
-	  SILENT
+      YES
+      NO
+      BLOCKING
+      NONBLOCKING
+      PASSWORD
+      ECHO
+      SILENT
       ASCII
       ATASCII
       PETSCII
@@ -93,21 +95,21 @@ sub small_new {
     my $self  = shift;
 
     bless($self, $class);
-	$self->populate_common();
+    $self->populate_common();
     $self->{'debug'}->DEBUGMAX([$self]);
 
-	$self->{'CACHE'} = Cache::Memcached::Fast->new(
-		{
-			'servers' => [
-				{
-					'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
-				},
-			],
-			'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
-			'utf8'      => TRUE,
-		}
-	);
-	return ($self);
+    $self->{'CACHE'} = Cache::Memcached::Fast->new(
+        {
+            'servers' => [
+                {
+                    'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
+                },
+            ],
+            'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
+            'utf8'      => TRUE,
+        }
+    );
+    return ($self);
 } ## end sub small_new
 
 sub new {    # Always call with the socket as a parameter
@@ -120,8 +122,8 @@ sub new {    # Always call with the socket as a parameter
 
     my $os   = `/usr/bin/uname -a`;
     my $self = {
-		'thread_name'     => $params->{'thread_name'},
-		'thread_number'   => $params->{'thread_number'},
+        'thread_name'     => $params->{'thread_name'},
+        'thread_number'   => $params->{'thread_number'},
         'local_mode'      => $lmode,
         'debuglevel'      => $params->{'debuglevel'},
         'debug'           => $params->{'debug'},
@@ -148,252 +150,326 @@ sub new {    # Always call with the socket as a parameter
         'can'             => chr(24),
         'null'            => chr(0),
         'delete'          => chr(127),
-        'suffixes'        => [ qw( ASC ATA PET ANS ) ],
+        'suffixes'        => [qw( ASC ATA PET ANS )],
         'host'            => undef,
         'port'            => undef,
     };
 
     bless($self, $class);
-	$self->populate_common();
-	$self->{'CACHE'} = Cache::Memcached::Fast->new(
-		{
-			'servers' => [
-				{
-					'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
-				},
-			],
-			'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
-			'utf8'      => TRUE,
-		}
-	);
+    $self->populate_common();
+    $self->{'CACHE'} = Cache::Memcached::Fast->new(
+        {
+            'servers' => [
+                {
+                    'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
+                },
+            ],
+            'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
+            'utf8'      => TRUE,
+        }
+    );
     $self->{'debug'}->DEBUGMAX([$self]);
 
     return ($self);
 } ## end sub new
 
 sub dump_permissions {
-	my $self = shift;
-	return('');
+    my $self = shift;
+    return ('');
 }
 
 sub populate_common {
-	my $self = shift;
-    $self->{'CPU'}  = $self->cpu_info();
-    $self->{'CONF'} = $self->configuration();
-	$self->{'VERSIONS'} = $self->parse_versions();
-    $self->{'USER'} = {
-        'text_mode' => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
-        'suffix'    => $self->{'CONF'}->{'DEFAULT SUFFIX'},
+    my $self = shift;
+    $self->{'CPU'}      = $self->cpu_info();
+    $self->{'CONF'}     = $self->configuration();
+    $self->{'VERSIONS'} = $self->parse_versions();
+    $self->{'USER'}     = {
+        'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
+        'suffix'      => $self->{'CONF'}->{'DEFAULT SUFFIX'},
+        'max_columns' => 80,
+        'max_rows'    => 25,
     };
-	$self->db_initialize();
-	$self->ascii_initialize();
-	$self->atascii_initialize();
-	$self->petscii_initialize();
-	$self->ansi_initialize();
-	$self->filetransfer_initialize();
-	$self->messages_initialize();
-	$self->users_initialize();
+    $self->db_initialize();
+    $self->ascii_initialize();
+    $self->atascii_initialize();
+    $self->petscii_initialize();
+    $self->ansi_initialize();
+    $self->filetransfer_initialize();
+    $self->messages_initialize();
+    $self->users_initialize();
     $self->sysop_initialize();
-	$self->cpu_initialize();
-	$self->news_initialize();
-	$self->bbs_list_initialize();
+    $self->cpu_initialize();
+    $self->news_initialize();
+    $self->bbs_list_initialize();
     chomp(my $os = `uname -a`);
-	$self->{'SPEEDS'} = {                       # This depends on the granularity of Time::HiRes
-		'FULL'  => 0,
-		'300'   => 0.02,
-		'1200'  => 0.005,
-		'2400'  => 0.0025,
-		'4800'  => 0.00125,
-		'9600'  => 0.000625,
-		'19200' => 0.0003125,
-	};
-	$self->{'TOKENS'} = {
-		'SYSOP'              => ($self->{'sysop'}) ? 'SYSOP CREDENTIALS' : 'USER CREDENTIALS',
-		'CPU IDENTITY'       => $self->{'CPU'}->{'CPU IDENTITY'},
-		'CPU CORES'          => $self->{'CPU'}->{'CPU CORES'},
-		'CPU SPEED'          => $self->{'CPU'}->{'CPU SPEED'},
-		'CPU THREADS'        => $self->{'CPU'}->{'CPU THREADS'},
-		'OS'                 => $os,
-		'PERL VERSION'       => $self->{'VERSIONS'}->[0],
-		'BBS VERSION'        => $self->{'VERSIONS'}->[1],
-		'BBS LIST'           => sub {
-			return($self->bbs_list_all());
-		},
-    	'BANNER'             => sub {
-			my $self = shift;
-			my $banner = $self->load_file('files/main/banner');
-			return($banner);
-		},
-		'FILE CATEGORY' => sub {
-			my $self = shift;
-			return($self->users_file_category());
-		},
-		'FORUM CATEGORY' => sub {
-			my $self = shift;
-			return($self->users_forum_category());
-		},
-		'USER INFO'          => sub {
-			my $self = shift;
-			return($self->user_info());
-		},
-		'BBS NAME'        => sub {
-			my $self = shift;
-			return($self->{'CONF'}->{'BBS NAME'});
-		},
-		'AUTHOR NAME'        => sub {
-			my $self = shift;
-			return($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
-		},
-		'USER PERMISSIONS'   => sub {
-			my $self = shift;
-			return($self->dump_permissions);
-		},
-		'USER ID'            => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'id'});
-		},
-		'USERNAME'           => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'username'});
-		},
-        'USER EMAIL'         => sub {
+    $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
+        'FULL'  => 0,
+        '300'   => 0.02,
+        '1200'  => 0.005,
+        '2400'  => 0.0025,
+        '4800'  => 0.00125,
+        '9600'  => 0.000625,
+        '19200' => 0.0003125,
+    };
+    $self->{'TOKENS'} = {
+        'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
+        'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
+        'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
+        'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
+        'OS'           => $os,
+        'PERL VERSION' => $self->{'VERSIONS'}->[0],
+        'BBS VERSION'  => $self->{'VERSIONS'}->[1],
+        'SYSOP'        => sub {
             my $self = shift;
-            if ($self->{'USER'}->{'show_email'}) {
-                return($self->{'USER'}->{'email'});
+            if ($self->{'sysop'}) {
+                return ('SYSOP CREDENTIALS');
             } else {
-                return('[HIDDEN]');
+                return ('USER CREDENTIALS');
             }
         },
-		'USER GIVEN'         => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'given'});
-		},
-		'USER FAMILY'        => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'family'});
-		},
-		'USER LOCATION'      => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'location'});
-		},
-		'USER BIRTHDAY'      => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'birthday'});
-		},
-		'USER RETRO SYSTEMS' => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'retro_systems'});
-		},
-		'USER LOGIN TIME'    => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'login_time'});
-		},
-		'USER TEXT MODE'     => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'text_mode'});
-		},
-		'BAUD RATE'          => sub {
-			my $self = shift;
-			return($self->{'baud_rate'});
-		},
-		'TIME'               => sub {
-			my $self = shift;
-			return(DateTime->now);
-		},
-		'UPTIME'             => sub {
-			my $self = shift;
-			chomp(my $uptime = `uptime -p`);
-			return($uptime);
-		},
-		'VERSIONS'           => 'placeholder',
-		'UPTIME'             => 'placeholder',
-	};
-	$self->{'COMMANDS'} = {
-		'BBS LIST ADD' => sub {
-			my $self = shift;
-			$self->bbs_list_add();
-			return($self->load_menu('files/main/bbs_listing'));
-		},
-		'BBS LISTING' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/bbs_listing'));
-		},
-		'ACCOUNT MANAGER' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/account'));
-		},
-		'BACK' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/menu'));
-		},
-		'DISCONNECT' => sub {
-			my $self = shift;
+        'BANNER' => sub {
+            my $self   = shift;
+            my $banner = $self->load_file('files/main/banner');
+            return ($banner);
+        },
+        'FILE CATEGORY' => sub {
+            my $self = shift;
+            return ($self->users_file_category());
+        },
+        'FORUM CATEGORY' => sub {
+            my $self = shift;
+            return ($self->users_forum_category());
+        },
+        'USER INFO' => sub {
+            my $self = shift;
+            return ($self->user_info());
+        },
+        'BBS NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'BBS NAME'});
+        },
+        'AUTHOR NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
+        },
+        'USER PERMISSIONS' => sub {
+            my $self = shift;
+            return ($self->dump_permissions);
+        },
+        'USER ID' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'id'});
+        },
+        'USER FULLNAME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'fullname'});
+        },
+        'USER USERNAME' => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'prefer_nickname'}) {
+                return ($self->{'USER'}->{'nickname'});
+            } else {
+                return ($self->{'USER'}->{'username'});
+            }
+        },
+        'USER NICKNAME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'nickname'});
+        },
+        'USER EMAIL' => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'show_email'}) {
+                return ($self->{'USER'}->{'email'});
+            } else {
+                return ('[HIDDEN]');
+            }
+        },
+        'USER COLUMNS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_columns'});
+        },
+        'USER ROWS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_rows'});
+        },
+        'USER SCREEN SIZE' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'});
+        },
+        'USER GIVEN' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'given'});
+        },
+        'USER FAMILY' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'family'});
+        },
+        'USER LOCATION' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'location'});
+        },
+        'USER BIRTHDAY' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'birthday'});
+        },
+        'USER RETRO SYSTEMS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'retro_systems'});
+        },
+        'USER LOGIN TIME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'login_time'});
+        },
+        'USER TEXT MODE' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'text_mode'});
+        },
+        'BAUD RATE' => sub {
+            my $self = shift;
+            return ($self->{'baud_rate'});
+        },
+        'TIME' => sub {
+            my $self = shift;
+            return (DateTime->now);
+        },
+        'UPTIME' => sub {
+            my $self = shift;
+            chomp(my $uptime = `uptime -p`);
+            return ($uptime);
+        },
+        'SHOW BBS LIST' => sub {
+            my $self = shift;
+            return ($self->bbs_list_all());
+        },
+        'ONLINE' => sub {
+            my $self = shift;
+            return ($self->{'CACHE'}->get('ONLINE'));
+        },
+        'VERSIONS' => 'placeholder',
+        'UPTIME'   => 'placeholder',
+    };
 
-			$self->output("\nDisconnect, are you sure (Y|N)?  ");
-			unless($self->decision()) {
-				return($self->load_menu('files/main/menu'));
-			}
-			$self->output("\n");
-		},
-		'FILE CATEGORY' => sub {
-			my $self = shift;
-			$self->choose_file_category();
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'FILES' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'LIST FILES SUMMARY' => sub {
-			my $self = shift;
-			$self->files_list_summary(FALSE);
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'LIST FILES DETAILED' => sub {
-			my $self = shift;
-			$self->files_list_detailed(FALSE);
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'SEARCH FILES SUMMARY' => sub {
-			my $self = shift;
-			$self->files_list_summary(TRUE);
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'SEARCH FILES DETAILED' => sub {
-			my $self = shift;
-			$self->files_list_detailed(TRUE);
-			return($self->load_menu('files/main/files_menu'));
-		},
-		'NEWS' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/news'));
-		},
-		'NEWS SUMMARY' => sub {
-			my $self = shift;
-			$self->news_summary();
-			return($self->load_menu('files/main/news'));
-		},
-		'NEWS DISPLAY' => sub {
-			my $self = shift;
-			$self->news_display();
-			return($self->load_menu('files/main/news'));
-		},
-		'FORUMS' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/menu'));
-		},
-		'ABOUT' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/about'));
-		},
-	};
-}
+    $self->{'COMMANDS'} = {
+        'UPDATE ACCOMPLISHMENTS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'UPDATE LOCATION' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'UPDATE EMAIL' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'UPDATE RETRO SYSTEMS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE SCREEN SIZE' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHOOSE TEXT MODE' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+
+        'TOGGLE SHOW EMAIL' => sub {
+            my $self = shift;
+            $self->{'USER'}->{'show_email'} = !$self->{'USER'}->{'show_email'};
+            return ($self->load_menu('files/main/account'));
+        },
+        'TOGGLE PREFER NICKNAME' => sub {
+            my $self = shift;
+            $self->{'USER'}->{'prefer_nickname'} = !$self->{'USER'}->{'prefer_nickname'};
+            return ($self->load_menu('files/main/account'));
+        },
+        'BBS LIST ADD' => sub {
+            my $self = shift;
+            $self->bbs_list_add();
+            return ($self->load_menu('files/main/bbs_listing'));
+        },
+        'BBS LISTING' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/bbs_listing'));
+        },
+        'ACCOUNT MANAGER' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'BACK' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/menu'));
+        },
+        'DISCONNECT' => sub {
+            my $self = shift;
+
+            $self->output("\nDisconnect, are you sure (Y|N)?  ");
+            unless ($self->decision()) {
+                return ($self->load_menu('files/main/menu'));
+            }
+            $self->output("\n");
+        },
+        'FILE CATEGORY' => sub {
+            my $self = shift;
+            $self->choose_file_category();
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'FILES' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'LIST FILES SUMMARY' => sub {
+            my $self = shift;
+            $self->files_list_summary(FALSE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'LIST FILES DETAILED' => sub {
+            my $self = shift;
+            $self->files_list_detailed(FALSE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'SEARCH FILES SUMMARY' => sub {
+            my $self = shift;
+            $self->files_list_summary(TRUE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'SEARCH FILES DETAILED' => sub {
+            my $self = shift;
+            $self->files_list_detailed(TRUE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'NEWS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/news'));
+        },
+        'NEWS SUMMARY' => sub {
+            my $self = shift;
+            $self->news_summary();
+            return ($self->load_menu('files/main/news'));
+        },
+        'NEWS DISPLAY' => sub {
+            my $self = shift;
+            $self->news_display();
+            return ($self->load_menu('files/main/news'));
+        },
+        'FORUMS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/menu'));
+        },
+        'ABOUT' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/about'));
+        },
+    };
+} ## end sub populate_common
 
 sub run {
-    my $self = shift;
-	my $sysop = shift;
+    my $self  = shift;
+    my $sysop = shift;
 
-	$self->{'sysop'} = $sysop;
+    $self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
     if ($self->greeting()) {    # Greeting also logs in
@@ -423,77 +499,77 @@ sub login {
     my $valid = FALSE;
 
     my $username;
-	if ($self->{'sysop'}) {
-		$username = 'sysop';
-		$self->output("\n\nAuto-login of $username successful\n\n");
-		$valid = $self->users_load($username,'');
-	} else {
+    if ($self->{'sysop'}) {
+        $username = 'sysop';
+        $self->output("\n\nAuto-login of $username successful\n\n");
+        $valid = $self->users_load($username, '');
+    } else {
         my $tries = $self->{'CONF'}->{'LOGIN TRIES'} + 0;
         do {
             do {
                 $self->output("\n" . 'Please enter your username ("NEW" if you are a new user) > ');
-                $username = $self->get_line(ECHO,32);
-				$tries-- if ($username eq '');
-				last if ($tries <= 0 || ! $self->is_connected());
-            } until($username ne '');
-			if ($self->is_connected()) {
-				if (uc($username) eq 'NEW') {
-					$valid = $self->create_account();
-				} elsif ($username eq 'sysop' && ! $self->{'local_mode'}) {
-					$self->output("\n\nSysOp cannot connect remotely\n\n");
-				} else {
-					$self->output("\n\nPlease enter your password > ");
-					my $password = $self->get_line(PASSWORD,64);
-					$self->{'debug'}->DEBUG(["Attempting to load $username"]);
-					$valid = $self->users_load($username,$password);
-				}
-				if ($valid) {
-					$self->{'debug'}->DEBUG(['Login successful']);
-					$self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
-				} else {
-					$self->{'debug'}->WARNING(["Login for $username unsuccessful"]);
-					$self->output("\n\nLogin incorrect\n\n");
-					$tries--;
-				}
-			}
-			last unless ($self->{'CACHE'}->get('RUNNING'));
-			last unless ($self->is_connected());
-        } until($valid || $tries <= 0);
-	}
-	$self->{'debug'}->DEBUGMAX([$self->{'USER'}]);
+                $username = $self->get_line(ECHO, 32);
+                $tries-- if ($username eq '');
+                last     if ($tries <= 0 || !$self->is_connected());
+            } until ($username ne '');
+            if ($self->is_connected()) {
+                if (uc($username) eq 'NEW') {
+                    $valid = $self->create_account();
+                } elsif ($username eq 'sysop' && !$self->{'local_mode'}) {
+                    $self->output("\n\nSysOp cannot connect remotely\n\n");
+                } else {
+                    $self->output("\n\nPlease enter your password > ");
+                    my $password = $self->get_line(PASSWORD, 64);
+                    $self->{'debug'}->DEBUG(["Attempting to load $username"]);
+                    $valid = $self->users_load($username, $password);
+                } ## end else [ if (uc($username) eq 'NEW')]
+                if ($valid) {
+                    $self->{'debug'}->DEBUG(['Login successful']);
+                    $self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
+                } else {
+                    $self->{'debug'}->WARNING(["Login for $username unsuccessful"]);
+                    $self->output("\n\nLogin incorrect\n\n");
+                    $tries--;
+                }
+            } ## end if ($self->is_connected...)
+            last unless ($self->{'CACHE'}->get('RUNNING'));
+            last unless ($self->is_connected());
+        } until ($valid || $tries <= 0);
+    } ## end else [ if ($self->{'sysop'}) ]
+    $self->{'debug'}->DEBUGMAX([$self->{'USER'}]);
     return ($valid);
 } ## end sub login
 
 sub create_account {
     my $self = shift;
 
-    return(FALSE);
+    return (FALSE);
 }
 
 sub is_connected {
     my $self = shift;
-	if ($self->{'CACHE'}->get('RUNNING') && ($self->{'sysop'} || defined($self->{'cl_socket'}))) {
-		$self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'CONNECTED');
-		$self->{'CACHE'}->set('UPDATE', TRUE);
-		return(TRUE);
-	} else {
-		$self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'IDLE');
-		$self->{'CACHE'}->set('UPDATE', TRUE);
-		return(FALSE);
-	}
-}
+    if ($self->{'CACHE'}->get('RUNNING') && ($self->{'sysop'} || defined($self->{'cl_socket'}))) {
+        $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'CONNECTED');
+        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
+        return (TRUE);
+    } else {
+        $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'IDLE');
+        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
+        return (FALSE);
+    }
+} ## end sub is_connected
 
 sub decision {
     my $self = shift;
 
-	my $response = uc($self->get_key(SILENT,BLOCKING));
+    my $response = uc($self->get_key(SILENT, BLOCKING));
     if ($response eq 'Y') {
-		$self->output("YES\n");
-		return (TRUE);
-	}
+        $self->output("YES\n");
+        return (TRUE);
+    }
     $self->output("NO\n");
     return (FALSE);
-}
+} ## end sub decision
 
 sub prompt {
     my $self = shift;
@@ -509,8 +585,8 @@ sub prompt {
     } else {
         $response = "$text > ";
     }
-    return($response);
-}
+    return ($response);
+} ## end sub prompt
 
 sub menu_choice {
     my $self   = shift;
@@ -518,127 +594,116 @@ sub menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
-#	print "$choice - $color - $desc\n";
+    #	print "$choice - $color - $desc\n";
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $self->output(" $choice " . chr(31) . " $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-		$self->output(
-			$self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} .
-			colored([$color],$choice) .
-			$self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} .
-			colored([$color],$self->{'ansi_sequences'}->{'BIG BULLET RIGHT'}) .
-			" $desc"
-		);
+        $self->output($self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} . colored([$color], $choice) . $self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} . colored([$color], $self->{'ansi_sequences'}->{'BIG BULLET RIGHT'}) . " $desc");
     } else {
         $self->output(" $choice > $desc");
     }
-}
+} ## end sub menu_choice
 
 sub show_choices {
-    my $self = shift;
+    my $self    = shift;
     my $mapping = shift;
 
     my $keys = '';
-	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-		$self->output(
-			$self->{'ansi_sequences'}->{'TOP LEFT ROUNDED'} .
-			$self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} .
-			$self->{'ansi_sequences'}->{'TOP RIGHT ROUNDED'} .
-			"\n"
-		);
-	}
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        $self->output($self->{'ansi_sequences'}->{'TOP LEFT ROUNDED'} . $self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} . $self->{'ansi_sequences'}->{'TOP RIGHT ROUNDED'} . "\n");
+    }
     foreach my $kmenu (sort(keys %{$mapping})) {
         next if ($kmenu eq 'TEXT');
-		$self->menu_choice($kmenu,$mapping->{$kmenu}->{'color'},$mapping->{$kmenu}->{'text'});
-		$self->output("\n");
+        $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+        $self->output("\n");
     }
-	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-		$self->output(
-			$self->{'ansi_sequences'}->{'BOTTOM LEFT ROUNDED'} .
-			$self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} .
-			$self->{'ansi_sequences'}->{'BOTTOM RIGHT ROUNDED'}
-		);
-	}
-}
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        $self->output($self->{'ansi_sequences'}->{'BOTTOM LEFT ROUNDED'} . $self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} . $self->{'ansi_sequences'}->{'BOTTOM RIGHT ROUNDED'});
+    }
+} ## end sub show_choices
 
 sub header {
-	my $self = shift;
+    my $self = shift;
 
-	my $width = $self->{'USER'}->{'max_columns'};
-	my $name = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
+    my $width = $self->{'USER'}->{'max_columns'};
+    my $name  = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
 
-	my $text = '#' x int(($width - length($name)) / 2);
-	$text .= $name;
-	$text .= '#' x ($width - length($text));
-	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-		my $char = '[% THICK HORIZONTAL BAR %]';
-		$text =~ s/\#/$char/g;
-	}
-	return($self->detokenize_text('[% CLS %]' . $text));
-}
+    my $text = '#' x int(($width - length($name)) / 2);
+    $text .= $name;
+    $text .= '#' x ($width - length($text));
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        my $char = '[% THICK HORIZONTAL BAR %]';
+        $text =~ s/\#/$char/g;
+    }
+    return ($self->detokenize_text('[% CLS %]' . $text));
+} ## end sub header
 
 sub load_menu {
-	my $self = shift;
-	my $file = shift;
+    my $self = shift;
+    my $file = shift;
 
-	my $orig = $self->load_file($file);
-	my @Text = split(/\n/,$orig);
-	my $mapping = { 'TEXT' => '' };
-	my $mode = TRUE;
-	my $text = '';
-	foreach my $line (@Text) {
-		next if ($line =~ /^\#/);
-		$self->{'debug'}->DEBUGMAX([$line]);
-		if ($mode) {
-			if ($line !~ /^---/) {
-				my ($k, $cmd, $color, $t) = split(/\|/,$line);
-				$k = uc($k);
-				$cmd = uc($cmd);
-				$color = uc($color);
-				$color =~ s/BRIGHT /BRIGHT_/g;
-				$self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
-				$mapping->{$k} = {
-					'command' => $cmd,
-					'color'   => $color,
-					'text'    => $t,
-				};
-			} else {
-				$mode = FALSE;
-			}
-		} else {
-			$mapping->{'TEXT'} .= $self->detokenize_text($line) . "\n";
-		}
-	}
-	$mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
-	return($mapping);
-}
+    my $orig    = $self->load_file($file);
+    my @Text    = split(/\n/, $orig);
+    my $mapping = { 'TEXT' => '' };
+    my $mode    = TRUE;
+    my $text    = '';
+    foreach my $line (@Text) {
+        next if ($line =~ /^\#/);
+        $self->{'debug'}->DEBUGMAX([$line]);
+        if ($mode) {
+            if ($line !~ /^---/) {
+                my ($k, $cmd, $color, $t) = split(/\|/, $line);
+                $k     = uc($k);
+                $cmd   = uc($cmd);
+                $color = uc($color);
+                $color =~ s/BRIGHT /BRIGHT_/g;
+                $self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
+                if (exists($self->{'COMMANDS'}->{$cmd})) {
+                    $mapping->{$k} = {
+                        'command' => $cmd,
+                        'color'   => $color,
+                        'text'    => $t,
+                    };
+                } else {
+                    $self->{'debug'}->ERROR(["Command Missing!  $cmd"]);
+                }
+            } else {
+                $mode = FALSE;
+            }
+        } else {
+            $mapping->{'TEXT'} .= $self->detokenize_text($line) . "\n";
+        }
+    } ## end foreach my $line (@Text)
+    $mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
+    return ($mapping);
+} ## end sub load_menu
 
 sub main_menu {
-    my $self  = shift;
-	my $file  = shift;
+    my $self = shift;
+    my $file = shift;
 
-	my $connected = TRUE;
-	my $command = '';
+    my $connected = TRUE;
+    my $command   = '';
     $self->{'debug'}->DEBUG(['Main Menu loop start']);
-	my $mapping = $self->load_menu($file);
-    while($connected && $self->is_connected()) {
+    my $mapping = $self->load_menu($file);
+    while ($connected && $self->is_connected()) {
         $self->output($mapping->{'TEXT'} . "\n");
-		$self->show_choices($mapping);
-		$self->output("\n" . $self->prompt('Choose'));
-		my $key;
-		do {
-			$key = uc($self->get_key(SILENT,BLOCKING));
-		} until (exists($mapping->{$key}) || ! $self->is_connected());
-		$self->output($mapping->{$key}->{'command'} . "\n");
-		$command = $mapping->{$key}->{'command'};
-		$self->{'debug'}->DEBUGMAX([$key,$mapping->{$key}]);
-		$mapping = $self->{'COMMANDS'}->{$command}->($self);
-		if (ref($mapping) ne 'HASH' || ! $self->is_connected()) {
-			$connected = FALSE;
-		}
-    }
+        $self->show_choices($mapping);
+        $self->output("\n" . $self->prompt('Choose'));
+        my $key;
+        do {
+            $key = uc($self->get_key(SILENT, BLOCKING));
+        } until (exists($mapping->{$key}) || !$self->is_connected());
+        $self->output($mapping->{$key}->{'command'} . "\n");
+        $command = $mapping->{$key}->{'command'};
+        $self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
+        $mapping = $self->{'COMMANDS'}->{$command}->($self);
+        if (ref($mapping) ne 'HASH' || !$self->is_connected()) {
+            $connected = FALSE;
+        }
+    } ## end while ($connected && $self...)
     $self->{'debug'}->DEBUG(['Main Menu end']);
 } ## end sub main_menu
 
@@ -666,17 +731,17 @@ sub get_key {
     my $blocking = shift;
 
     my $key = undef;
-	local $/ = "\x{00}";
+    local $/ = "\x{00}";
     if ($self->{'local_mode'}) {
         ReadMode 'ultra-raw';
         $key = ($blocking) ? ReadKey(0) : ReadKey(-1);
         ReadMode 'restore';
     } elsif ($self->is_connected()) {
-		my $handle = $self->{'cl_socket'};
-        ReadMode 'ultra-raw',$handle;
-        $key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60,$handle) : ReadKey(-1,$handle);
-        ReadMode 'restore',$handle;
-    } ## end else [ if ($self->{'local_mode'...})]
+        my $handle = $self->{'cl_socket'};
+        ReadMode 'ultra-raw', $handle;
+        $key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $handle) : ReadKey(-1, $handle);
+        ReadMode 'restore', $handle;
+    } ## end elsif ($self->is_connected...)
     $self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)]);
     if ($echo == ECHO && defined($key)) {
         $key = $self->{'backspace'} if ($key eq chr(127));
@@ -692,25 +757,25 @@ sub get_line {
     my $echo  = shift;
     my $limit = shift;
 
-    $limit = min($limit,65535);
+    $limit = min($limit, 65535);
 
     my $line = '';
     my $key;
 
-    while($self->is_connected() && $key ne chr(13) && length($line) < $limit) {
-        $key = $self->get_key($echo,BLOCKING);
+    while ($self->is_connected() && $key ne chr(13) && length($line) < $limit) {
+        $key = $self->get_key($echo, BLOCKING);
         if (defined($key) && $key ne '' && $self->is_connected()) {
             if ($key eq $self->{'backspace'} || $key eq chr(127)) {
                 my $len = length($line);
                 if ($len > 0) {
-                    $line = substr($line,$len - 1);
+                    $line = substr($line, $len - 1);
                 }
             } elsif ($key ne chr(13) && $key ne chr(10)) {
                 $line .= $key;
             }
-        }
-		threads->yield();
-    }
+        } ## end if (defined($key) && $key...)
+        threads->yield();
+    } ## end while ($self->is_connected...)
 
     if ($echo) {
         $self->{'debug'}->DEBUG(['User entered a line of text']);
@@ -727,25 +792,24 @@ sub detokenize_text {    # Detokenize text markup
 
     if (length($text) > 1) {
         $self->{'debug'}->DEBUG(['Detokenizing text']);
-        $self->{'TOKENS'}->{'ONLINE'} = $self->{'CACHE'}->get('ONLINE');
 
         $self->{'debug'}->DEBUGMAX([$text]);    # Before
-        foreach my $key (keys %{$self->{'TOKENS'}}) {
-            if ($key eq 'VERSIONS' && $text =~ /$key/i) {
+        foreach my $key (keys %{ $self->{'TOKENS'} }) {
+            if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
                 my $versions = '';
-                foreach my $names (@{$self->{'VERSIONS'}}) {
+                foreach my $names (@{ $self->{'VERSIONS'} }) {
                     $versions .= $names . "\n";
                 }
                 $text =~ s/\[\%\s+$key\s+\%\]/$versions/gi;
             } elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE') {
-                my $ch = $self->{'TOKENS'}->{$key}->($self); # Code call
+                my $ch = $self->{'TOKENS'}->{$key}->($self);    # Code call
                 $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
             } else {
-                $text =~ s/\[\%\s+$key\s+\%\]/$self->{'tokens'}->{$key}/gi;
+                $text =~ s/\[\%\s+$key\s+\%\]/$self->{'TOKENS'}->{$key}/gi;
             }
-        } ## end foreach my $key (keys %$tokens)
+        } ## end foreach my $key (keys %{ $self...})
         $self->{'debug'}->DEBUGMAX([$text]);    # After
-    }
+    } ## end if (length($text) > 1)
     return ($text);
 } ## end sub detokenize_text
 
@@ -753,22 +817,22 @@ sub output {
     my $self = shift;
     my $text = $self->detokenize_text(shift);
 
-	if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
-		my $format = Text::Format->new(
-			'columns' => $self->{'USER'}->{'max_columns'} - 1,
-			'tabstop' => 4,
-			'extraSpace' => TRUE,
-			'firstIndent' => 0,
-		);
- 		my $header;
-		($header,$text) = split(/\[\%\s+WRAP\s+\%\]/,$text);
-		if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
-			$text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
-			$format->justify(TRUE);
-		}
-		$text = $format->format($text);
-		$text = $header . $text;
-	}
+    if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+        my $format = Text::Format->new(
+            'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+            'tabstop'     => 4,
+            'extraSpace'  => TRUE,
+            'firstIndent' => 0,
+        );
+        my $header;
+        ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
+        if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+            $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+            $format->justify(TRUE);
+        }
+        $text = $format->format($text);
+        $text = $header . $text;
+    } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ATASCII') {
         $self->{'debug'}->DEBUG(['Send ATASCII']);
@@ -791,11 +855,11 @@ sub send_char {
     my $char = shift;
 
     # This sends one character at a time to the socket to simulate a retro BBS
-    if ($self->{'sysop'} || $self->{'local_mode'} || ! defined($self->{'cl_socket'})) {
+    if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print $char;
     } else {
-		my $handle = $self->{'cl_socket'};
-		print $handle $char;
+        my $handle = $self->{'cl_socket'};
+        print $handle $char;
     }
 
     # Send at the chosen baud rate by delaying the output by a fraction of a second
@@ -805,200 +869,176 @@ sub send_char {
 } ## end sub send_char
 
 sub scroll {
-	my $self = shift;
-	my $nl   = shift;
+    my $self = shift;
+    my $nl   = shift;
 
-	my $string;
-	if ($self->{'local_mode'}) {
-		$string = "\n\nScroll?  ";
-	} else {
-		$string = "$nl$nl" . 'Scroll?  ';
-	}
-	$self->send_char($string);
-	if ($self->get_key(ECHO,BLOCKIMG) =~ /N/i) {
-		return(FALSE);
-	}
-	return(TRUE);
-}
+    my $string;
+    if ($self->{'local_mode'}) {
+        $string = "\n\nScroll?  ";
+    } else {
+        $string = "$nl$nl" . 'Scroll?  ';
+    }
+    $self->send_char($string);
+    if ($self->get_key(ECHO, BLOCKIMG) =~ /N/i) {
+        return (FALSE);
+    }
+    return (TRUE);
+} ## end sub scroll
 
 sub static_configuration {
-	my $self = shift;
-	my $file = shift;
+    my $self = shift;
+    my $file = shift;
 
-	$self->{'debug'}->DEBUG(['Getting static configuration']);
-	$self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'} = 'Richard Kelsch';
-	$self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'} = 'Richard Kelsch <rich@rk-internet.com>';
-	$self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Southern Utah - USA';
-	if (-e $file) {
-		open(my $CFG,'<',$file) or die "$file missing!";
-		chomp(my @lines=<$CFG>);
-		close($CFG);
-		foreach my $line (@lines) {
-			next if ($line eq '' || $line =~ /^\#/);
-			my ($name,$val) = split(/\s+=\s+/,$line);
-			$self->{'CONF'}->{'STATIC'}->{$name} = $val;
-			$self->{'debug'}->DEBUGMAX([$name,$val]);
-		}
-	}
-}
+    $self->{'debug'}->DEBUG(['Getting static configuration']);
+    $self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'}     = 'Richard Kelsch';
+    $self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'}    = 'Richard Kelsch <rich@rk-internet.com>';
+    $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Southern Utah - USA';
+    if (-e $file) {
+        open(my $CFG, '<', $file) or die "$file missing!";
+        chomp(my @lines = <$CFG>);
+        close($CFG);
+        foreach my $line (@lines) {
+            next if ($line eq '' || $line =~ /^\#/);
+            my ($name, $val) = split(/\s+=\s+/, $line);
+            $self->{'CONF'}->{'STATIC'}->{$name} = $val;
+            $self->{'debug'}->DEBUGMAX([$name, $val]);
+        } ## end foreach my $line (@lines)
+    } ## end if (-e $file)
+} ## end sub static_configuration
 
 sub choose_file_category {
-	my $self = shift;
+    my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Choose File Category']);
-	my $table;
-	my $choices = [qw(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)];
-	my $hchoice = {};
-	my @categories;
-	if ($self->{'USER'}->{'max_columns'} <= 40) {
-		$table = Text::SimpleTable->new(6,20,15);
-	} else {
-		$table = Text::SimpleTable->new(6,30,43);
-	}
-	$table->row('CHOICE','TITLE','DESCRIPTION');
-	$table->hr();
-	my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
-	$sth->execute();
-	if ($sth->rows > 0 && $sth->rows <= 35) {
-		while(my $row = $sth->fetchrow_hashref()) {
-			$table->row($choices->[$row->{'id'} - 1],$row->{'title'},$row->{'description'});
-			$hchoice->{$choices->[$row->{'id'} - 1]} = $row->{'id'};
-			push(@categories,$row->{'title'});
-		}
-		$sth->finish();
-		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output($table->boxes->draw());
-		} else {
-			$self->output($table->draw());
-		}
-		$self->output("\n" . $self->prompt('Choose Category (< = Nevermind)'));
-		my $response;
-		do {
-			$response = uc($self->get_key(SILENT,BLOCKING));
-		} until (exists($hchoice->{$response}) || $response eq '<' || ! $self->is_connected());
-		if ($response ne '<') {
-			$self->{'USER'}->{'file_category'} = $hchoice->{$response};
-			$self->output($categories[$hchoice->{$response} - 1] . "\n");
-			$sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=?');
-			$sth->execute($hchoice->{$response},$self->{'USER'}->{'id'});
-			$sth->finish();
-		} else {
-			$self->output("Nevermind\n");
-		}
-	}
-}
+    $self->{'debug'}->DEBUG(['Choose File Category']);
+    my $table;
+    my $choices = [qw(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)];
+    my $hchoice = {};
+    my @categories;
+    if ($self->{'USER'}->{'max_columns'} <= 40) {
+        $table = Text::SimpleTable->new(6, 20, 15);
+    } else {
+        $table = Text::SimpleTable->new(6, 30, 43);
+    }
+    $table->row('CHOICE', 'TITLE', 'DESCRIPTION');
+    $table->hr();
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+    $sth->execute();
+    if ($sth->rows > 0 && $sth->rows <= 35) {
+        while (my $row = $sth->fetchrow_hashref()) {
+            $table->row($choices->[$row->{'id'} - 1], $row->{'title'}, $row->{'description'});
+            $hchoice->{ $choices->[$row->{'id'} - 1] } = $row->{'id'};
+            push(@categories, $row->{'title'});
+        }
+        $sth->finish();
+        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+            $self->output($table->boxes->draw());
+        } else {
+            $self->output($table->draw());
+        }
+        $self->output("\n" . $self->prompt('Choose Category (< = Nevermind)'));
+        my $response;
+        do {
+            $response = uc($self->get_key(SILENT, BLOCKING));
+        } until (exists($hchoice->{$response}) || $response eq '<' || !$self->is_connected());
+        if ($response ne '<') {
+            $self->{'USER'}->{'file_category'} = $hchoice->{$response};
+            $self->output($categories[$hchoice->{$response} - 1] . "\n");
+            $sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=?');
+            $sth->execute($hchoice->{$response}, $self->{'USER'}->{'id'});
+            $sth->finish();
+        } else {
+            $self->output("Nevermind\n");
+        }
+    } ## end if ($sth->rows > 0 && ...)
+} ## end sub choose_file_category
 
 # Typical subroutines, not objects
 
 sub configuration {
     my $self = shift;
 
-	unless(exists($self->{'CONF'}->{'STATIC'})) {
-		my @static_file = ('./conf/bbs.rc','~/.bbs_universal/bbs.rc','/etc/bbs.rc');
-		my $found = FALSE;
-		foreach my $file (@static_file) {
-			if (-e $file) {
-				$self->{'debug'}->DEBUG(["$file found"]);
-				$found = TRUE;
-				$self->static_configuration($file);
-				last;
-			} else {
-				$self->{'debug'}->WARNING(["$file not found, trying the next file in the list"]);
-			}
-		}
-		unless($found) {
-			$self->{'debug'}->ERROR(['BBS Static Configuration file not found',join("\n",@static_file)]);
-			exit(1);
-		}
-		$self->db_connect();
-	}
+    unless (exists($self->{'CONF'}->{'STATIC'})) {
+        my @static_file = ('./conf/bbs.rc', '~/.bbs_universal/bbs.rc', '/etc/bbs.rc');
+        my $found       = FALSE;
+        foreach my $file (@static_file) {
+            if (-e $file) {
+                $self->{'debug'}->DEBUG(["$file found"]);
+                $found = TRUE;
+                $self->static_configuration($file);
+                last;
+            } else {
+                $self->{'debug'}->WARNING(["$file not found, trying the next file in the list"]);
+            }
+        } ## end foreach my $file (@static_file)
+        unless ($found) {
+            $self->{'debug'}->ERROR(['BBS Static Configuration file not found', join("\n", @static_file)]);
+            exit(1);
+        }
+        $self->db_connect();
+    } ## end unless (exists($self->{'CONF'...}))
     #######################################################
     my $count = scalar(@_);
     if ($count == 1) {    # Get single value
         my $name = shift;
-		$self->{'debug'}->DEBUG(["Get configuration value for $name"]);
+        $self->{'debug'}->DEBUG(["Get configuration value for $name"]);
 
-        my $sth = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
-		my $result = $sth->execute($name);
-		$sth->finish();
+        my $sth    = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
+        my $result = $sth->execute($name);
+        $sth->finish();
         return ($result);
     } elsif ($count == 2) {    # Set a single value
-        my $name  = shift;
-        my $fval  = shift;
-		$self->{'debug'}->DEBUG(["Set configuration value for $name = $fval",'Preparing']);
-		my $sth = $self->{'dbh'}->prepare('UPDATE config SET config_value=? WHERE config_name=?');
-		$self->{'debug'}->DEBUG(['Executing']);
-		my $result = $sth->execute($fval,$name);
-		$sth->finish();
-		$self->{'debug'}->DEBUG(['Updated in DB']);
-		$self->{'CONF'}->{$name} = $fval;
-        return(TRUE);
-    } elsif ($count == 0) { # Get entire configuration forces a reload into CONF
-		$self->{'debug'}->DEBUG(['Query entire configurion']);
-		$self->db_connect() unless(exists($self->{'dbh'}));
-        my $sth = $self->{'dbh'}->prepare('SELECT config_name,config_value FROM config');
-		my $results = {};
-		$sth->execute();
-		while(my @row = $sth->fetchrow_array()) {
-			$results->{$row[0]} = $row[1];
-			$self->{'CONF'}->{$row[0]} = $row[1];
-		}
-		$sth->finish();
+        my $name = shift;
+        my $fval = shift;
+        $self->{'debug'}->DEBUG(["Set configuration value for $name = $fval", 'Preparing']);
+        my $sth = $self->{'dbh'}->prepare('UPDATE config SET config_value=? WHERE config_name=?');
+        $self->{'debug'}->DEBUG(['Executing']);
+        my $result = $sth->execute($fval, $name);
+        $sth->finish();
+        $self->{'debug'}->DEBUG(['Updated in DB']);
+        $self->{'CONF'}->{$name} = $fval;
+        return (TRUE);
+    } elsif ($count == 0) {    # Get entire configuration forces a reload into CONF
+        $self->{'debug'}->DEBUG(['Query entire configurion']);
+        $self->db_connect() unless (exists($self->{'dbh'}));
+        my $sth     = $self->{'dbh'}->prepare('SELECT config_name,config_value FROM config');
+        my $results = {};
+        $sth->execute();
+        while (my @row = $sth->fetchrow_array()) {
+            $results->{ $row[0] } = $row[1];
+            $self->{'CONF'}->{ $row[0] } = $row[1];
+        }
+        $sth->finish();
 
-        return($self->{'CONF'});
-    } ## end else [ if ($count == 1) ]
+        return ($self->{'CONF'});
+    } ## end elsif ($count == 0)
 } ## end sub configuration
 
 sub parse_versions {
     my $self = shift;
 
-    my $versions = [
-		"Perl                          $OLD_PERL_VERSION",
-		"BBS::Universal                $BBS::Universal::VERSION",
-		"BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
-		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
-		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
-		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
-		"BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION",
-		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
-		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
-		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
-		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
-		"BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
-		"BBS::Universal::DB            $BBS::Universal::DB_VERSION",
-		"DBI                           $DBI::VERSION",
-		"DBD::mysql                    $DBD::mysql::VERSION",
-		"DateTime                      $DateTime::VERSION",
-		"Debug::Easy                   $Debug::Easy::VERSION",
-		"File::Basename                $File::Basename::VERSION",
-		"Time::HiRes                   $Time::HiRes::VERSION",
-		"Term::ReadKey                 $Term::ReadKey::VERSION",
-		"Term::ANSIScreen              $Term::ANSIScreen::VERSION",
-		"Text::Format                  $Text::Format::VERSION",
-		"Text::SimpleTable             $Text::SimpleTable::VERSION",
-		"IO::Socket                    $IO::Socket::VERSION",
-    ];
+    my $versions = ["Perl                          $OLD_PERL_VERSION", "BBS::Universal                $BBS::Universal::VERSION", "BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION", "BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION", "BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION", "BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION", "BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION", "BBS::Universal::CPU           $BBS::Universal::CPU_VERSION", "BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION", "BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION", "BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION", "BBS::Universal::Users         $BBS::Universal::USERS_VERSION", "BBS::Universal::DB            $BBS::Universal::DB_VERSION", "DBI                           $DBI::VERSION", "DBD::mysql                    $DBD::mysql::VERSION", "DateTime                      $DateTime::VERSION", "Debug::Easy                   $Debug::Easy::VERSION", "File::Basename                $File::Basename::VERSION", "Time::HiRes                   $Time::HiRes::VERSION", "Term::ReadKey                 $Term::ReadKey::VERSION", "Term::ANSIScreen              $Term::ANSIScreen::VERSION", "Text::Format                  $Text::Format::VERSION", "Text::SimpleTable             $Text::SimpleTable::VERSION", "IO::Socket                    $IO::Socket::VERSION",];
     return ($versions);
 } ## end sub parse_versions
 
 sub yes_no {
-    my $self = shift;
-    my $bool = shift;
+    my $self  = shift;
+    my $bool  = shift;
+    my $color = shift;
 
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+    if ($color && $self->{'USER'}->{'text_mode'} eq 'ANSI') {
         if ($bool) {
-            return('[% GREEN %]YES[% RESET %]');
+            return ('[% GREEN %]YES[% RESET %]');
         } else {
-            return('[% RED %]NO[% RESET %]');
+            return ('[% RED %]NO[% RESET %]');
         }
     } else {
         if ($bool) {
-            return('YES');
+            return ('YES');
         } else {
-            return('NO');
+            return ('NO');
         }
-    }
-}
+    } ## end else [ if ($color && $self->{...})]
+} ## end sub yes_no
 
 sub get_uptime {
     my $self = shift;
@@ -1040,13 +1080,13 @@ sub center {
 } ## end sub center
 
 sub trim {
-	my $self = shift;
-	my $text = shift;
+    my $self = shift;
+    my $text = shift;
 
-	$text =~ s/^\s+//;
-	$text =~ s/\s+$//;
-	return($text);
-}
+    $text =~ s/^\s+//;
+    $text =~ s/\s+$//;
+    return ($text);
+} ## end sub trim
 
 # package BBS::Universal::ANSI;
 
@@ -1061,8 +1101,8 @@ sub ansi_initialize {
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
 
-        'CLEAR'      => locate(1,1) . cls,
-        'CLS'        => locate(1,1) . cls,
+        'CLEAR'      => locate(1, 1) . cls,
+        'CLS'        => locate(1, 1) . cls,
         'CLEAR LINE' => clline,
         'CLEAR DOWN' => cldown,
         'CLEAR UP'   => clup,
@@ -1360,7 +1400,7 @@ sub ansi_output {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
@@ -1391,8 +1431,8 @@ sub ascii_initialize {
         'RETURN'   => chr(13),
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
-		'CLS'      => '',
-		'CLEAR'    => '',
+        'CLS'      => '',
+        'CLEAR'    => '',
     };
     $self->{'debug'}->DEBUG(['ASCII Initialized']);
     return ($self);
@@ -1474,7 +1514,7 @@ sub atascii_output {
                 $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
@@ -1504,67 +1544,67 @@ sub bbs_list_initialize {
 }
 
 sub bbs_list_add {
-	my $self = shift;
-	my $index = 0;
-	$self->output($self->prompt('What is the BBS Name'));
-	my $bbs_name = $self->get_line(ECHO,50);
-	$self->output("\n");
-	if ($bbs_name ne '' && length($bbs_name) > 3) {
-		$self->output($self->prompt('What is the URL or Hostname'));
-		my $bbs_hostname = $self->get_line(ECHO,50);
-		$self->output("\n");
-		if ($bbs_hostname ne '' && length($bbs_hostname) > 5) {
-			$self->output($self->prompt('What is the Port number'));
-			my $bbs_port = $self->get_line(ECHO,5);
-			$self->output("\n");
-			if ($bbs_port ne '' && $bbs_port =~ /^\d+$/) {
-				$self->output('Adding BBS Entry...');
-				my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
-				$sth->execute($bbs_name, $bbs_hostname, $bbs_port);
-				$sth->finish();
-				$self->output("\n");
-			} else {
-				return (FALSE);
-			}
-		} else {
-			return (FALSE);
-		}
-	} else {
-		return (FALSE);
-	}
-	return (TRUE);
-}
+    my $self  = shift;
+    my $index = 0;
+    $self->output($self->prompt('What is the BBS Name'));
+    my $bbs_name = $self->get_line(ECHO, 50);
+    $self->output("\n");
+    if ($bbs_name ne '' && length($bbs_name) > 3) {
+        $self->output($self->prompt('What is the URL or Hostname'));
+        my $bbs_hostname = $self->get_line(ECHO, 50);
+        $self->output("\n");
+        if ($bbs_hostname ne '' && length($bbs_hostname) > 5) {
+            $self->output($self->prompt('What is the Port number'));
+            my $bbs_port = $self->get_line(ECHO, 5);
+            $self->output("\n");
+            if ($bbs_port ne '' && $bbs_port =~ /^\d+$/) {
+                $self->output('Adding BBS Entry...');
+                my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
+                $sth->execute($bbs_name, $bbs_hostname, $bbs_port);
+                $sth->finish();
+                $self->output("\n");
+            } else {
+                return (FALSE);
+            }
+        } else {
+            return (FALSE);
+        }
+    } else {
+        return (FALSE);
+    }
+    return (TRUE);
+} ## end sub bbs_list_add
 
 sub bbs_list_all {
-	my $self = shift;
+    my $self = shift;
 
-	$self->{'debug'}->DEBUG(['BBS LISTING BEGIN']);
-	my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
-	$sth->execute();
-	my @listing;
-	my ($name_size, $hostname_size, $poster_size) = (1, 1, 6);
-	while (my $row = $sth->fetchrow_hashref()) {
-		push(@listing, $row);
-		$name_size     = max(length($row->{'bbs_name'}),     $name_size);
-		$hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
-		$poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
-	}
-	my $table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
-	$table->row('NAME', 'HOSTNAME', 'PORT', 'POSTER');
-	$table->hr();
-	foreach my $line (@listing) {
-		$table->row($line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
-	}
-	my $response;
-	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-		$response = $table->boxes->draw();
-	} else {
-		$response = $table->draw();
-	}
-	$self->{'debug'}->DEBUGMAX([$response]);
-	$self->{'debug'}->DEBUG(['BBS LISTING END']);
-	return($response);
-}
+    $self->{'debug'}->DEBUG(['BBS LISTING BEGIN']);
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
+    $sth->execute();
+    my @listing;
+    my ($name_size, $hostname_size, $poster_size) = (1, 1, 6);
+    while (my $row = $sth->fetchrow_hashref()) {
+        push(@listing, $row);
+        $name_size     = max(length($row->{'bbs_name'}),     $name_size);
+        $hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
+        $poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
+    } ## end while (my $row = $sth->fetchrow_hashref...)
+    my $table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
+    $table->row('NAME', 'HOSTNAME', 'PORT', 'POSTER');
+    $table->hr();
+    foreach my $line (@listing) {
+        $table->row($line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
+    }
+    my $response;
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        $response = $table->boxes->draw();
+    } else {
+        $response = $table->draw();
+    }
+    $self->{'debug'}->DEBUGMAX([$response]);
+    $self->{'debug'}->DEBUG(['BBS LISTING END']);
+    return ($response);
+} ## end sub bbs_list_all
 
  
 
@@ -1774,104 +1814,104 @@ sub load_file {
 } ## end sub load_file
 
 sub files_list_summary {
-    my $self = shift;
-	my $search = shift;
+    my $self   = shift;
+    my $search = shift;
 
-	my $sth;
-	my $filter;
-	if ($search) {
-		$self->output("\n" . $self->prompt('Search for'));
-		$filter = $self->get_line(ECHO,20);
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
-		$sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
-	} else {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
-		$sth->execute($self->{'USER'}->{'file_category'});
-	}
-	my @files;
-	my $max_filename = 10;
-	my $max_title = 20;
-	if ($sth->rows > 0) {
-		while(my $row = $sth->fetchrow_hashref()) {
-			push(@files,$row);
-			$max_filename = max(length($row->{'filename'}),$max_filename);
-			$max_title = max(length($row->{'title'}),$max_title);
-		}
-		my $table = Text::SimpleTable->new($max_filename,$max_title);
-		$table->row('FILENAME','TITLE');
-		$table->hr();
-		foreach my $record (@files) {
-			$table->row($record->{'filename'},$record->{'title'});
-		}
-		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output($table->boxes->draw());
-		} else {
-			$self->output($table->draw());
-		}
-	} elsif ($search) {
-		$self->output("\nSorry '$filter' not found");
-	} else {
-		$self->output("\nSorry, this file category is empty\n");
-	}
-	$self->output("\nPress a key to continue ...");
-	$self->get_key(ECHO,BLOCKING);
+    my $sth;
+    my $filter;
+    if ($search) {
+        $self->output("\n" . $self->prompt('Search for'));
+        $filter = $self->get_line(ECHO, 20);
+        $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
+        $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
+    } else {
+        $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
+        $sth->execute($self->{'USER'}->{'file_category'});
+    }
+    my @files;
+    my $max_filename = 10;
+    my $max_title    = 20;
+    if ($sth->rows > 0) {
+        while (my $row = $sth->fetchrow_hashref()) {
+            push(@files, $row);
+            $max_filename = max(length($row->{'filename'}), $max_filename);
+            $max_title    = max(length($row->{'title'}),    $max_title);
+        }
+        my $table = Text::SimpleTable->new($max_filename, $max_title);
+        $table->row('FILENAME', 'TITLE');
+        $table->hr();
+        foreach my $record (@files) {
+            $table->row($record->{'filename'}, $record->{'title'});
+        }
+        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+            $self->output($table->boxes->draw());
+        } else {
+            $self->output($table->draw());
+        }
+    } elsif ($search) {
+        $self->output("\nSorry '$filter' not found");
+    } else {
+        $self->output("\nSorry, this file category is empty\n");
+    }
+    $self->output("\nPress a key to continue ...");
+    $self->get_key(ECHO, BLOCKING);
     return (TRUE);
-}
+} ## end sub files_list_summary
 
 sub files_list_detailed {
-    my $self = shift;
-	my $search = shift;
+    my $self   = shift;
+    my $search = shift;
 
-	my $sth;
-	my $filter;
-	if ($search) {
-		$self->output("\n" . $self->prompt('Search for'));
-		$filter = $self->get_line(ECHO,20);
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
-		$sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
-	} else {
-		$sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
-		$sth->execute($self->{'USER'}->{'file_category'});
-	}
-	my @files;
-	my $max_filename = 10;
-	my $max_title = 20;
+    my $sth;
+    my $filter;
+    if ($search) {
+        $self->output("\n" . $self->prompt('Search for'));
+        $filter = $self->get_line(ECHO, 20);
+        $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
+        $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
+    } else {
+        $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=? ORDER BY uploaded DESC');
+        $sth->execute($self->{'USER'}->{'file_category'});
+    }
+    my @files;
+    my $max_filename = 10;
+    my $max_title    = 20;
     my $max_uploader = 8;
-	if ($sth->rows > 0) {
-		while(my $row = $sth->fetchrow_hashref()) {
-			push(@files,$row);
-			$max_filename = max(length($row->{'filename'}),$max_filename);
-			$max_title = max(length($row->{'title'}),$max_title);
+    if ($sth->rows > 0) {
+        while (my $row = $sth->fetchrow_hashref()) {
+            push(@files, $row);
+            $max_filename = max(length($row->{'filename'}), $max_filename);
+            $max_title    = max(length($row->{'title'}),    $max_title);
             if ($row->{'prefer_nickname'}) {
-                $max_uploader = max(length($row->{'nickname'}),$max_uploader);
+                $max_uploader = max(length($row->{'nickname'}), $max_uploader);
             } else {
-                $max_uploader = max(length($row->{'username'}),$max_uploader);
+                $max_uploader = max(length($row->{'username'}), $max_uploader);
             }
-		}
-		my $table = Text::SimpleTable->new($max_filename,$max_title,$max_uploader);
-		$table->row('FILENAME','TITLE','UPLOADER');
-		$table->hr();
-		foreach my $record (@files) {
+        } ## end while (my $row = $sth->fetchrow_hashref...)
+        my $table = Text::SimpleTable->new($max_filename, $max_title, $max_uploader);
+        $table->row('FILENAME', 'TITLE', 'UPLOADER');
+        $table->hr();
+        foreach my $record (@files) {
             if ($record->{'prefer_nickname'}) {
-                $table->row($record->{'filename'},$record->{'title'},$record->{'nickname'});
+                $table->row($record->{'filename'}, $record->{'title'}, $record->{'nickname'});
             } else {
-                $table->row($record->{'filename'},$record->{'title'},$record->{'username'});
+                $table->row($record->{'filename'}, $record->{'title'}, $record->{'username'});
             }
-		}
-		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output($table->boxes->draw());
-		} else {
-			$self->output($table->draw());
-		}
-	} elsif ($search) {
-		$self->output("\nSorry '$filter' not found");
-	} else {
-		$self->output("\nSorry, this file category is empty\n");
-	}
-	$self->output("\nPress a key to continue ...");
-	$self->get_key(ECHO,BLOCKING);
+        } ## end foreach my $record (@files)
+        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+            $self->output($table->boxes->draw());
+        } else {
+            $self->output($table->draw());
+        }
+    } elsif ($search) {
+        $self->output("\nSorry '$filter' not found");
+    } else {
+        $self->output("\nSorry, this file category is empty\n");
+    }
+    $self->output("\nPress a key to continue ...");
+    $self->get_key(ECHO, BLOCKING);
     return (TRUE);
-}
+} ## end sub files_list_detailed
 
 sub save_file {
     my $self = shift;
@@ -1927,12 +1967,12 @@ sub news_initialize {
 
     $self->{'debug'}->DEBUG(['News Initialized']);
     return ($self);
-}
+} ## end sub news_initialize
 
 sub news_display {
-	my $self = shift;
+    my $self = shift;
 
-	my $sql = q{
+    my $sql = q{
 		SELECT
 		  news_id,
 		  news_title,
@@ -1940,48 +1980,30 @@ sub news_display {
 		  DATE_FORMAT(news_date,'} . $self->{'CONF'}->{'SHORT DATE FORMAT'} . q{') AS newsdate
 		FROM news
 		ORDER BY news_date DESC};
-	my $sth = $self->{'dbh'}->prepare($sql);
-	$sth->execute();
-	if ($sth->rows > 0) {
-		$self->output("\n");
-		while(my $row = $sth->fetchrow_hashref()) {
-			if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-				$self->output(
-					'[% B_GREEN %] ' .
-					$row->{'news_title'} .
-					' [% RESET %] - ' .
-					$row->{'newsdate'} . 
-					"\n\n" .
-					'[% WRAP %]' .
-					$row->{'news_content'} .
-					"\n\n"
-				);
-			} else {
-				$self->output(
-					'* ' .
-					$row->{'news_title'} .
-					' - ' .
-					$row->{'newsdate'} .
-					"\n\n" .
-					'[% WRAP %]' .
-					$row->{'news_content'} .
-					"\n\n"
-				);
-			}
-		}
-	} else {
-		$self->output('No News');
-	}
-	$sth->finish();
-	$self->output("\nPress a key to continue ... ");
-	$self->get_key(SILENT,BLOCKING);
-	return(TRUE);
-}
+    my $sth = $self->{'dbh'}->prepare($sql);
+    $sth->execute();
+    if ($sth->rows > 0) {
+        $self->output("\n");
+        while (my $row = $sth->fetchrow_hashref()) {
+            if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+                $self->output('[% B_GREEN %] ' . $row->{'news_title'} . ' [% RESET %] - ' . $row->{'newsdate'} . "\n\n" . '[% WRAP %]' . $row->{'news_content'} . "\n\n");
+            } else {
+                $self->output('* ' . $row->{'news_title'} . ' - ' . $row->{'newsdate'} . "\n\n" . '[% WRAP %]' . $row->{'news_content'} . "\n\n");
+            }
+        } ## end while (my $row = $sth->fetchrow_hashref...)
+    } else {
+        $self->output('No News');
+    }
+    $sth->finish();
+    $self->output("\nPress a key to continue ... ");
+    $self->get_key(SILENT, BLOCKING);
+    return (TRUE);
+} ## end sub news_display
 
 sub news_summary {
-	my $self = shift;
+    my $self = shift;
 
-	my $sql = q{
+    my $sql = q{
 		SELECT
 		  news_id,
 		  news_title,
@@ -1989,28 +2011,28 @@ sub news_summary {
 		  DATE_FORMAT(news_date,'} . $self->{'CONF'}->{'SHORT DATE FORMAT'} . q{') AS newsdate
 		FROM news
 		ORDER BY news_date DESC};
-	my $sth = $self->{'dbh'}->prepare($sql);
-	$sth->execute();
-	if ($sth->rows > 0) {
-		my $table = Text::SimpleTable->new(10,$self->{'USER'}->{'max_columns'} - 13);
-		$table->row('DATE','TITLE');
-		$table->hr();
-		while(my $row = $sth->fetchrow_hashref()) {
-			$table->row($row->{'newsdate'},$row->{'news_title'});
-		}
-		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output($table->boxes->draw());
-		} else {
-			$self->output($table->draw());
-		}
-	} else {
-		$self->output('No News');
-	}
-	$sth->finish();
-	$self->output("\nPress a key to continue ... ");
-	$self->get_key(SILENT,BLOCKING);
-	return(TRUE);
-}
+    my $sth = $self->{'dbh'}->prepare($sql);
+    $sth->execute();
+    if ($sth->rows > 0) {
+        my $table = Text::SimpleTable->new(10, $self->{'USER'}->{'max_columns'} - 13);
+        $table->row('DATE', 'TITLE');
+        $table->hr();
+        while (my $row = $sth->fetchrow_hashref()) {
+            $table->row($row->{'newsdate'}, $row->{'news_title'});
+        }
+        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+            $self->output($table->boxes->draw());
+        } else {
+            $self->output($table->draw());
+        }
+    } else {
+        $self->output('No News');
+    }
+    $sth->finish();
+    $self->output("\nPress a key to continue ... ");
+    $self->get_key(SILENT, BLOCKING);
+    return (TRUE);
+} ## end sub news_summary
 
  
 
@@ -2091,9 +2113,9 @@ sub petscii_output {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
-    my $nl = $self->{'petscii_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);
         if ($char eq "\n") {
@@ -2757,11 +2779,11 @@ sub sysop_list_users {
 			  family,
 			  nickname,
               email,
-			  DATE_FORMAT(birthday,'} . $date_format . q{') AS birthday,
+			  birthday,
 			  location,
 			  baud_rate,
-			  DATE_FORMAT(login_time,'} . $date_format . q{') AS login_time,
-			  DATE_FORMAT(logout_time,'} . $date_format . q{') AS logout_time,
+			  login_time,
+			  logout_time,
 			  text_mode,
 			  forum_category,
 			  file_category,
@@ -2810,9 +2832,9 @@ sub sysop_list_users {
         $table->row('NAME', 'VALUE');
 
         while (my $Row = $sth->fetchrow_hashref()) {
-			$table->hr();
+            $table->hr();
             foreach my $name (@order) {
-                if ($name ne 'id' && $Row->{$name} =~ /^(0|1)$/) {
+                if ($name !~ /id|time/ && $Row->{$name} =~ /^(0|1)$/) {
                     $Row->{$name} = $self->sysop_true_false($Row->{$name}, 'YN');
                 } elsif ($name eq 'timeout') {
                     $Row->{$name} = $Row->{$name} . ' Minutes';
@@ -2882,26 +2904,27 @@ sub sysop_list_files {
     $sth->finish();
     my $table;
     if ($wsize > 150) {
-#		$self->{'debug'}->ERROR($sizes);exit;
-		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
-		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
-	} else {
-		$table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'},4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
-		$table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
-	}
+
+        #		$self->{'debug'}->ERROR($sizes);exit;
+        $table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
+        $table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
+    } else {
+        $table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, max($sizes->{'extension'}, 4), $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'});
+        $table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE');
+    }
     $table->hr();
     $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
     $sth->execute();
     my $category;
 
     while (my $row = $sth->fetchrow_hashref()) {
-		if ($wsize > 150) {
-			$table->row($row->{'filename'}, $row->{'title'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k', $row->{'uploaded'},);
-		} else {
-			$table->row($row->{'filename'}, $row->{'title'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k');
-		}
+        if ($wsize > 150) {
+            $table->row($row->{'filename'}, $row->{'title'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k', $row->{'uploaded'},);
+        } else {
+            $table->row($row->{'filename'}, $row->{'title'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k');
+        }
         $category = $row->{'category'};
-    }
+    } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
     print "\nCATEGORY:  ", $category, "\n", $table->boxes->draw(), "\n", 'Press a Key To Continue ...';
     $self->sysop_keypress();
@@ -3133,28 +3156,29 @@ sub sysop_user_delete {
     $sth->execute($search, $search);
     my $user_row = $sth->fetchrow_hashref();
     $sth->finish();
+
     if (defined($user_row)) {
         my $table = Text::SimpleTable->new(16, 60);
         $table->row('FIELD', 'VALUE');
         $table->hr();
         foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-			if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
-				$user_row->{$field} = $self->sysop_true_false($user_row->{$field}, 'YN');
-			} elsif ($field eq 'timeout') {
-				$user_row->{$field} = $user_row->{$field} . ' Minutes';
-			}
-			$table->row($field, $user_row->{$field} . '');
+            if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
+                $user_row->{$field} = $self->sysop_true_false($user_row->{$field}, 'YN');
+            } elsif ($field eq 'timeout') {
+                $user_row->{$field} = $user_row->{$field} . ' Minutes';
+            }
+            $table->row($field, $user_row->{$field} . '');
         } ## end foreach my $field (@{ $self...})
-		if ($self->sysop_pager($table->boxes->draw())) {
-			print "Are you sure that you want to delete this user (Y|N)?  ";
-			my $answer = $self->sysop_decision();
-			if ($answer) {
-				print "\n\nDeleting ",$user_row->{'username'}," ... ";
-				$sth = $self->users_delete($user_row->{'id'});
-			}
-		}
-	}
-}
+        if ($self->sysop_pager($table->boxes->draw())) {
+            print "Are you sure that you want to delete this user (Y|N)?  ";
+            my $answer = $self->sysop_decision();
+            if ($answer) {
+                print "\n\nDeleting ", $user_row->{'username'}, " ... ";
+                $sth = $self->users_delete($user_row->{'id'});
+            }
+        } ## end if ($self->sysop_pager...)
+    } ## end if (defined($user_row))
+} ## end sub sysop_user_delete
 
 sub sysop_user_edit {
     my $self = shift;
@@ -3223,9 +3247,9 @@ sub sysop_user_edit {
                 $sth->execute($new, $user_row->{'id'});
                 $sth->finish();
             }
-		} else {
-			print "BACK\n";
-        } ## end if ($key !~ /$key_exit/i)
+        } else {
+            print "BACK\n";
+        }
     } elsif ($search ne '') {
         print "User not found!\n\n";
     }
@@ -3330,10 +3354,10 @@ sub sysop_user_add {
         $adjustment += 2;
     } ## end foreach my $entry (@{ $self...})
     pop(@{ $self->{'SYSOP ORDER DETAILED'} });
-	if ($self->users_add($user_template)) {
-		print "\n\n",colored(['green'],'SUCCESS'),"\n";
-		return(TRUE);
-	}
+    if ($self->users_add($user_template)) {
+        print "\n\n", colored(['green'], 'SUCCESS'), "\n";
+        return (TRUE);
+    }
     return (FALSE);
 } ## end sub sysop_user_add
 
@@ -3583,10 +3607,10 @@ sub sysop_add_bbs {
     }
     my @order = (qw(bbs_name bbs_hostname bbs_port));
     my $bbs   = {
-		'bbs_name' => '',
-		'bbs_hostname' => '',
-		'bbs_port' => '',
-	};
+        'bbs_name'     => '',
+        'bbs_hostname' => '',
+        'bbs_port'     => '',
+    };
     my $index = 0;
     print $table->boxes->draw();
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 17;
@@ -3614,7 +3638,7 @@ sub sysop_add_bbs {
 } ## end sub sysop_add_bbs
 
 sub sysop_delete_bbs {
-	my $self = shift;
+    my $self = shift;
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(50);
@@ -3630,20 +3654,20 @@ sub sysop_delete_bbs {
         $table->row('FIELD NAME', 'VALUE');
         $table->hr();
         foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
-			$table->row($name, $bbs->{$name});
-        } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
+            $table->row($name, $bbs->{$name});
+        }
         print $table->boxes->draw();
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
-        unless($choice) {
+        unless ($choice) {
             return (FALSE);
         }
         $sth = $self->{'dbh'}->prepare('DELETE FROM bbs_listing WHERE bbs_id=?');
         $sth->execute($bbs->{'bbs_id'});
-    }
-	$sth->finish();
-	return(TRUE);
-}
+    } ## end if ($sth->rows())
+    $sth->finish();
+    return (TRUE);
+} ## end sub sysop_delete_bbs
 
  
 
@@ -3685,12 +3709,12 @@ sub users_list {
 }
 
 sub users_add {
-    my $self = shift;
-	my $user_template = shift;
+    my $self          = shift;
+    my $user_template = shift;
 
     $self->{'dbh'}->begin_work;
-	my $sth = $self->{'dbh'}->prepare(
-		q{
+    my $sth = $self->{'dbh'}->prepare(
+        q{
 			INSERT INTO users (
 				username,
 				given,
@@ -3706,11 +3730,11 @@ sub users_add {
 				password)
 			  VALUES (?,?,?,?,?,?,DATE(?),?,?,(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode=?),SHA2(?,512))
 		}
-	);
-	$self->{'debug'}->DEBUGMAX($user_template);
-	$sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'},) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
-	$sth = $self->{'dbh'}->prepare(
-		q{
+    );
+    $self->{'debug'}->DEBUGMAX($user_template);
+    $sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'},) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+    $sth = $self->{'dbh'}->prepare(
+        q{
 			INSERT INTO permissions (
 				id,
 				prefer_nickname,
@@ -3727,21 +3751,21 @@ sub users_add {
 				timeout)
 			  VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
 		}
-	);
-	$sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'timeout'});
+    );
+    $sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'timeout'});
 
-	if ($self->{'dbh'}->errstr) {
-		$self->{'dbh'}->rollback;
-		$self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
-		$sth->finish();
-		return(FALSE);
-	} else {
-		$self->{'dbh'}->commit;
-		$self->{'debug'}->DEBUG(['Success']);
-		$sth->finish();
-		return(TRUE);
-	}
-}
+    if ($self->{'dbh'}->errstr) {
+        $self->{'dbh'}->rollback;
+        $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+        $sth->finish();
+        return (FALSE);
+    } else {
+        $self->{'dbh'}->commit;
+        $self->{'debug'}->DEBUG(['Success']);
+        $sth->finish();
+        return (TRUE);
+    } ## end else [ if ($self->{'dbh'}->errstr)]
+} ## end sub users_add
 
 sub users_edit {
     my $self = shift;
@@ -3749,56 +3773,56 @@ sub users_edit {
 
 sub users_delete {
     my $self = shift;
-	my $id   = shift;
+    my $id   = shift;
 
-	$self->{'debug'}->WARNING(["Delete user $id"]);
-	$self->{'debug'}->DEBUG(['Delete Permissions first']);
-	$self->{'dbh'}->begin_work();
-	my $sth = $self->{'dbh'}->prepare('DELETE FROM permissions WHERE id=?');
-	$sth->execute($id);
-	if ($self->{'dbh'}->errstr) {
-		$self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
-		$self->{'dbh'}->rollback();
-		$sth->finish();
-		return(FALSE);
-	} else {
-		$sth->finish();
-		$self->{'debug'}->DEBUG(['Permissions deleted, now the user']);
-		$sth = $self->{'dbh'}->prepare('DELETE FROM users WHERE id=?');
-		$sth->execute($id);
-		if ($self->{'dbh'}->errstr) {
-			$self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
-			$self->{'dbh'}->rollback();
-			$sth->finish();
-			return(FALSE);
-		} else {
-			$self->{'dbh'}->commit();
-			$self->{'debug'}->DEBUG(['Success']);
-			$sth->finish();
-			return(TRUE);
-		}
-	}
-}
+    $self->{'debug'}->WARNING(["Delete user $id"]);
+    $self->{'debug'}->DEBUG(['Delete Permissions first']);
+    $self->{'dbh'}->begin_work();
+    my $sth = $self->{'dbh'}->prepare('DELETE FROM permissions WHERE id=?');
+    $sth->execute($id);
+    if ($self->{'dbh'}->errstr) {
+        $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+        $self->{'dbh'}->rollback();
+        $sth->finish();
+        return (FALSE);
+    } else {
+        $sth->finish();
+        $self->{'debug'}->DEBUG(['Permissions deleted, now the user']);
+        $sth = $self->{'dbh'}->prepare('DELETE FROM users WHERE id=?');
+        $sth->execute($id);
+        if ($self->{'dbh'}->errstr) {
+            $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+            $self->{'dbh'}->rollback();
+            $sth->finish();
+            return (FALSE);
+        } else {
+            $self->{'dbh'}->commit();
+            $self->{'debug'}->DEBUG(['Success']);
+            $sth->finish();
+            return (TRUE);
+        } ## end else [ if ($self->{'dbh'}->errstr)]
+    } ## end else [ if ($self->{'dbh'}->errstr)]
+} ## end sub users_delete
 
 sub users_file_category {
-	my $self = shift;
+    my $self = shift;
 
-	my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
-	$sth->execute($self->{'USER'}->{'file_category'});
-	my ($category) = ($sth->fetchrow_array());
-	$sth->finish();
-	return($category);
-}
+    my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
+    $sth->execute($self->{'USER'}->{'file_category'});
+    my ($category) = ($sth->fetchrow_array());
+    $sth->finish();
+    return ($category);
+} ## end sub users_file_category
 
 sub users_forum_category {
-	my $self = shift;
+    my $self = shift;
 
-	my $sth = $self->{'dbh'}->prepare('SELECT name FROM message_categories WHERE id=?');
-	$sth->execute($self->{'USER'}->{'forum_category'});
-	my ($category) = ($sth->fetchrow_array());
-	$sth->finish();
-	return($category);
-}
+    my $sth = $self->{'dbh'}->prepare('SELECT name FROM message_categories WHERE id=?');
+    $sth->execute($self->{'USER'}->{'forum_category'});
+    my ($category) = ($sth->fetchrow_array());
+    $sth->finish();
+    return ($category);
+} ## end sub users_forum_category
 
 sub users_find {
     my $self = shift;
@@ -3812,63 +3836,65 @@ sub users_count {
 sub user_info {
     my $self = shift;
 
+    my $table;
     my $text = '';
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $text .= '[% BOLD %][% CYAN %]ACCOUNT NUMBER  [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'id'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]USERNAME        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'username'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]FULL NAME       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'fullname'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]NICKNAME        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'nickname'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]EMAIL           [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'email'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]SCREEN          [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]BIRTHDAY        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'birthday'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]LOCATION        [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'location'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]BAUD RATE       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'baud_rate'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]LAST LOGIN      [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'login_time'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]LAST LOGOUT     [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'logout_time'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]TEXT MODE       [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'text_mode'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]IDLE TIMEOUT    [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'timeout'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]RETRO SYSTEMS   [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'retro_systems'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]ACCOMPLISHMENTS [% MAGENTA %]=[% RESET %] ' . $self->{'USER'}->{'accomplishments'} . "\n";
-        $text .= '[% BOLD %][% CYAN %]SHOW EMAIL      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'show_email'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]PREFER NICKNAME [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'prefer_nickname'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]VIEW FILES      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'view_files'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]UPLOAD FILES    [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'upload_files'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]DOWNLOAD FILES  [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'download_files'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]REMOVE FILES    [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'remove_files'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]READ_MESSAGES   [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'read_message'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]POST MESSAGES   [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'post_message'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]REMOVE MESSAGES [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'remove_message'}) . "\n";
-        $text .= '[% BOLD %][% CYAN %]PAGE SYSOP      [% MAGENTA %]=[% RESET %] ' . $self->yes_no($self->{'USER'}->{'page_sysop'}) . "\n";
+
+    if (($self->{'USER'}->{'max_colums'} + 0) <= 40) {
+        $table = Text::SimpleTable->new(15, $self->{'USER'}->{'max_columns'} - 10);
+        $table->row('FIELD', 'VALUE');
+        $table->hr();
+        $table->row('ACCOUNT NUMBER',  $self->{'USER'}->{'id'});
+        $table->row('USERNAME',        $self->{'USER'}->{'username'});
+        $table->row('FULL NAME',       $self->{'USER'}->{'fullname'});
+        $table->row('NICKNAME',        $self->{'USER'}->{'nickname'});
+        $table->row('EMAIL',           $self->{'USER'}->{'email'});
+        $table->row('SCREEN',          $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'});
+        $table->row('BIRTHDAY',        $self->{'USER'}->{'birthday'});
+        $table->row('LOCATION',        $self->{'USER'}->{'location'});
+        $table->row('BAUD RATE',       $self->{'USER'}->{'baud_rate'});
+        $table->row('LAST LOGIN',      $self->{'USER'}->{'login_time'});
+        $table->row('LAST LOGOUT',     $self->{'USER'}->{'logout_time'});
+        $table->row('TEXT MODE',       $self->{'USER'}->{'text_mode'});
+        $table->row('IDLE TIMEOUT',    $self->{'USER'}->{'timeout'});
+        $table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
+        $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
+        $table->row('SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'},      FALSE));
+        $table->row('PREFER NICKNAME', $self->yes_no($self->{'USER'}->{'prefer_nickname'}, FALSE));
+        $table->row('VIEW FILES',      $self->yes_no($self->{'USER'}->{'view_files'},      FALSE));
+        $table->row('UPLOAD FILES',    $self->yes_no($self->{'USER'}->{'upload_files'},    FALSE));
+        $table->row('DOWNLOAD FILES',  $self->yes_no($self->{'USER'}->{'download_files'},  FALSE));
+        $table->row('REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'},    FALSE));
+        $table->row('READ_MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'},    FALSE));
+        $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE));
+        $table->row('REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE));
+        $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE));
     } else {
-        $text .= 'ACCOUNT NUMBER  = ' . $self->{'USER'}->{'id'} . "\n";
-        $text .= 'USERNAME        = ' . $self->{'USER'}->{'username'} . "\n";
-        $text .= 'FULL NAME       = ' . $self->{'USER'}->{'fullname'} . "\n";
-        $text .= 'NICKNAME        = ' . $self->{'USER'}->{'nickname'} . "\n";
-        $text .= 'EMAIL           = ' . $self->{'USER'}->{'email'} . "\n";
-        $text .= 'SCREEN          = ' . $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'} . "\n";
-        $text .= 'BIRTHDAY        = ' . $self->{'USER'}->{'birthday'} . "\n";
-        $text .= 'LOCATION        = ' . $self->{'USER'}->{'location'} . "\n";
-        $text .= 'BAUD RATE       = ' . $self->{'USER'}->{'baud_rate'} . "\n";
-        $text .= 'LAST LOGIN      = ' . $self->{'USER'}->{'login_time'} . "\n";
-        $text .= 'LAST LOGOUT     = ' . $self->{'USER'}->{'logout_time'} . "\n";
-        $text .= 'TEXT MODE       = ' . $self->{'USER'}->{'text_mode'} . "\n";
-        $text .= 'IDLE TIMEOUT    = ' . $self->{'USER'}->{'timeout'} . "\n";
-        $text .= 'RETRO SYSTEMS   = ' . $self->{'USER'}->{'retro_systems'} . "\n";
-        $text .= 'ACCOMPLISHMENTS = ' . $self->{'USER'}->{'accomplishments'} . "\n";
-        $text .= 'SHOW EMAIL      = ' . $self->yes_no($self->{'USER'}->{'show_email'}) . "\n";
-        $text .= 'PREFER NICKNAME = ' . $self->yes_no($self->{'USER'}->{'prefer_nickname'}) . "\n";
-        $text .= 'VIEW FILES      = ' . $self->yes_no($self->{'USER'}->{'view_files'}) . "\n";
-        $text .= 'UPLOAD FILES    = ' . $self->yes_no($self->{'USER'}->{'upload_files'}) . "\n";
-        $text .= 'DOWNLOAD FILES  = ' . $self->yes_no($self->{'USER'}->{'download_files'}) . "\n";
-        $text .= 'REMOVE FILES    = ' . $self->yes_no($self->{'USER'}->{'remove_files'}) . "\n";
-        $text .= 'READ_MESSAGES   = ' . $self->yes_no($self->{'USER'}->{'read_message'}) . "\n";
-        $text .= 'POST MESSAGES   = ' . $self->yes_no($self->{'USER'}->{'post_message'}) . "\n";
-        $text .= 'REMOVE MESSAGES = ' . $self->yes_no($self->{'USER'}->{'remove_message'}) . "\n";
-        $text .= 'PAGE SYSOP      = ' . $self->yes_no($self->{'USER'}->{'page_sysop'}) . "\n";
+        $table = Text::SimpleTable->new(15, ($self->{'USER'}->{'max_columns'} / 2) - 10, 15, ($self->{'USER'}->{'max_columns'} / 2) - 10);
+        $table->row('FIELD', 'VALUE', 'FIELD', 'VALUE');
+        $table->hr();
+        $table->row('ACCOUNT NUMBER',  $self->{'USER'}->{'id'},                                                'SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'},      FALSE));
+        $table->row('USERNAME',        $self->{'USER'}->{'username'},                                          'PREFER NICKNAME', $self->yes_no($self->{'USER'}->{'prefer_nickname'}, FALSE));
+        $table->row('FULL NAME',       $self->{'USER'}->{'fullname'},                                          'VIEW FILES',      $self->yes_no($self->{'USER'}->{'view_files'},      FALSE));
+        $table->row('NICKNAME',        $self->{'USER'}->{'nickname'},                                          'UPLOAD FILES',    $self->yes_no($self->{'USER'}->{'upload_files'},    FALSE));
+        $table->row('EMAIL',           $self->{'USER'}->{'email'},                                             'DOWNLOAD FILES',  $self->yes_no($self->{'USER'}->{'download_files'},  FALSE));
+        $table->row('SCREEN',          $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'}, 'REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'},    FALSE));
+        $table->row('BIRTHDAY',        $self->{'USER'}->{'birthday'},                                          'READ_MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'},    FALSE));
+        $table->row('LOCATION',        $self->{'USER'}->{'location'},                                          'POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE));
+        $table->row('BAUD RATE',       $self->{'USER'}->{'baud_rate'},                                         'REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE));
+        $table->row('LAST LOGIN',      $self->{'USER'}->{'login_time'},                                        'PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE));
+        $table->row('LAST LOGOUT',     $self->{'USER'}->{'logout_time'},                                       'TEXT MODE',       $self->{'USER'}->{'text_mode'});
+        $table->row('IDLE TIMEOUT',    $self->{'USER'}->{'timeout'},                                           'RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
+        $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'},                                   '',                '');
+    } ## end else [ if (($self->{'USER'}->...))]
+
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        $text = $table->boxes->draw();
+    } else {
+        $text = $table->draw();
     }
 
     return ($text);
-}
+} ## end sub user_info
 
  
 

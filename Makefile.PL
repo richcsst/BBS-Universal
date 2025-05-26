@@ -10,10 +10,10 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
-my $fast = (scalar(@ARGV)) ? 1 : 0; # Pass anything and it means Fast
-my $speed = 0.0025; # For sleep to simulate 2400 baud
+my $fast  = (scalar(@ARGV)) ? 1 : 0;    # Pass anything and it means Fast
+my $speed = 0.0025;                     # For sleep to simulate 2400 baud
 
-$| = 1;    # Turn off buffering
+$| = 1;                                 # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
 print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
 sleep 1 unless ($fast);
@@ -47,7 +47,7 @@ baud_print('TCP/IP ' . colored(['red'], 'R') . colored(['yellow'], 'e') . colore
 
 baud_print("Creating a proper Universal.pm ... ");
 merge();
-baud_print(colored(['green'],"Done\n\n"));
+baud_print(colored(['green'], "Done\n\n"));
 
 #
 
@@ -63,34 +63,34 @@ if (
             'ExtUtils::MakeMaker' => '7.20',
             'Time::HiRes'         => '1.9700',
             'Term::ANSIColor'     => '4.00',
-			'Config'              => 0,
+            'Config'              => 0,
         },
         BUILD_REQUIRES => {
             'Test::More' => '0.44',
         },
-        PREREQ_PM    => {
-			'Config'                       => 0,
-			'English'                      => 0,
-            'Time::HiRes'                  => 0,
-            'Text::Format'                 => '0.50',
-            'Term::ANSIColor'              => '4.00',
-            'Term::ANSIScreen'             => '1.50',
-            'DateTime'                     => '1.18',
-            'File::Basename'               => '2.85',
-            'Text::SimpleTable'            => '2.07',
-            'DBI'                          => '1.50',
-            'DBD::mysql'                   => '4.00',
-            'Term::ReadKey'                => '2.30',
-            'IO::Socket'                   => '1.20',
-            'Debug::Easy'                  => '2.11',
-			'List::Util'                   => '1.40',
-			'Cache::Memcached::Fast'       => '0.25',
+        PREREQ_PM => {
+            'Config'                 => 0,
+            'English'                => 0,
+            'Time::HiRes'            => 0,
+            'Text::Format'           => '0.50',
+            'Term::ANSIColor'        => '4.00',
+            'Term::ANSIScreen'       => '1.50',
+            'DateTime'               => '1.18',
+            'File::Basename'         => '2.85',
+            'Text::SimpleTable'      => '2.07',
+            'DBI'                    => '1.50',
+            'DBD::mysql'             => '4.00',
+            'Term::ReadKey'          => '2.30',
+            'IO::Socket'             => '1.20',
+            'Debug::Easy'            => '2.11',
+            'List::Util'             => '1.40',
+            'Cache::Memcached::Fast' => '0.25',
         },
 
-		EXE_FILES => ['bin/bbs'],
-        dist    => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
-        clean   => { FILES    => 'BBS-Universal-* _build* *bak *old' },
-        LICENSE => 'gpl_3', # GNU Public License Version 3
+        EXE_FILES => ['bin/bbs'],
+        dist      => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
+        clean     => { FILES    => 'BBS-Universal-* _build* *bak *old' },
+        LICENSE   => 'gpl_3',    # GNU Public License Version 3
     )
 ) {
     print chr(27) . '[0m', color('reset');
@@ -120,49 +120,52 @@ sub baud_print {
     } ## end else [ if ($fast) ]
 } ## end sub baud_print
 
-sub merge { # Perl sometimes is a pain in the ...
-	my @dir;
-	opendir(my $DIR,'lib/BBS/Universal/');
-	chomp(@dir = readdir($DIR));
-	closedir($DIR);
+sub merge {    # Perl sometimes is a pain in the ...
+    my @dir;
+    opendir(my $DIR, 'lib/BBS/Universal/');
+    chomp(@dir = readdir($DIR));
+    closedir($DIR);
 
-	my $master = slurp_file('src/Universal.pm.template');
-	foreach my $file (sort(@dir)) {
-		next if ($file !~ /\.pm$/);
-		my $shortfile = "$file";
-		$shortfile =~ s/\.pm//;
-		$shortfile = uc($shortfile) . '_VERSION';
-		open(my $FILE,"lib/BBS/Universal/$file");
-		chomp(my @lines = <$FILE>);
-		close($FILE);
-		my $text = '';
-		foreach my $line (@lines) {
-			$line =~ s/^1\;//;
-			$line =~ s/^package/\# package/;
-			if ($line =~ /^BEGIN/) {
-				$line =~ s/BEGIN \{ //;
-				$line =~ s/ \}//;
-				$line =~ s/\$VERSION/\$$shortfile/;
-				$master =~ s/BEGIN \{(.*?)\} \#/BEGIN \{$1    $line\n\} #/s;
-			} else {
-				$text .= "$line\n";
-			}
-		}
-		$master =~ s/\# MANUAL IMPORT HERE #/$text \n\n\# MANUAL IMPORT HERE \#/;
-	}
-	$master =~ s/\# MANUAL IMPORT HERE \#//;
-	while($master =~ /\n\n\n+/s) {
-		$master =~ s/\n\n\n+/\n\n/gs;
-	}
-	open(my $OUT,'>','lib/BBS/Universal.pm');
-	print $OUT $master;
-	close($OUT);
-}
+    my $master = slurp_file('src/Universal.pm.template');
+    foreach my $file (sort(@dir)) {
+        next if ($file !~ /\.pm$/);
+        my $shortfile = "$file";
+        $shortfile =~ s/\.pm//;
+        $shortfile = uc($shortfile) . '_VERSION';
+        open(my $FILE, "lib/BBS/Universal/$file");
+        chomp(my @lines = <$FILE>);
+        close($FILE);
+        my $text = '';
+
+        foreach my $line (@lines) {
+            $line =~ s/^1\;//;
+            $line =~ s/^package/\# package/;
+            if ($line =~ /^BEGIN/) {
+                $line   =~ s/BEGIN \{ //;
+                $line   =~ s/ \}//;
+                $line   =~ s/\$VERSION/\$$shortfile/;
+                $master =~ s/BEGIN \{(.*?)\} \#/BEGIN \{$1    $line\n\} #/s;
+            } else {
+                $text .= "$line\n";
+            }
+        } ## end foreach my $line (@lines)
+        $master =~ s/\# MANUAL IMPORT HERE #/$text \n\n\# MANUAL IMPORT HERE \#/;
+    } ## end foreach my $file (sort(@dir...))
+    $master =~ s/\# MANUAL IMPORT HERE \#//;
+    while ($master =~ /\n\n\n+/s) {
+        $master =~ s/\n\n\n+/\n\n/gs;
+    }
+    open(my $OUT, '>', 'lib/BBS/Universal.pm');
+    print $OUT $master;
+    close($OUT);
+} ## end sub merge
 
 sub slurp_file {
-	my $file = shift;
-	return( do { local (@ARGV, $/) = $file; <> } );
-}
+    my $file = shift;
+    return (
+        do { local (@ARGV, $/) = $file; <> }
+    );
+} ## end sub slurp_file
 
 __END__
 

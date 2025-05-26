@@ -12,8 +12,8 @@ sub ansi_initialize {
         'LINEFEED' => chr(10),
         'NEWLINE'  => chr(13) . chr(10),
 
-        'CLEAR'      => locate(1,1) . cls,
-        'CLS'        => locate(1,1) . cls,
+        'CLEAR'      => locate(1, 1) . cls,
+        'CLS'        => locate(1, 1) . cls,
         'CLEAR LINE' => clline,
         'CLEAR DOWN' => cldown,
         'CLEAR UP'   => clup,
@@ -311,7 +311,7 @@ sub ansi_output {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {

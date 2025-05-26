@@ -35,8 +35,8 @@ CREATE TABLE users (
 	forum_category  INT UNSIGNED NOT NULL DEFAULT 1,
 	location        VARCHAR(255),
 	baud_rate       ENUM('FULL','19200','9600','4800','2400','1200','300') NOT NULL DEFAULT '2400',
-	login_time      TIMESTAMP,
-	logout_time     TIMESTAMP,
+	login_time      TIMESTAMP NOT NULL DEFAULT NOW(),
+	logout_time     TIMESTAMP NOT NULL DEFAULT NOW(),
 	text_mode       TINYINT UNSIGNED NOT NULL
 );
 
@@ -137,7 +137,7 @@ INSERT INTO text_modes (text_mode,suffix) VALUES ('ATASCII','ATA');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('PETSCII','PET');
 INSERT INTO text_modes (text_mode,suffix) VALUES ('ANSI','ANS');
 
-INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments)
+INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems)
     VALUES (
 	    'sysop',
 		'SysOp',
@@ -145,7 +145,8 @@ INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,a
 		'System','Operator',
 		(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
 		'FULL',
-		'I manage and maintain this system'
+		'I manage and maintain this system',
+		'Stuff'
 	);
 INSERT INTO permissions (id,view_files,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES (

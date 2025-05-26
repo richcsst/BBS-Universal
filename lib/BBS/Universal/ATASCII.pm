@@ -46,7 +46,7 @@ sub atascii_output {
                 $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {

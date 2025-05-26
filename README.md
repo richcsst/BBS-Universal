@@ -22,6 +22,7 @@ For MySQL, please use the plugin "mysql_native_password" when creating the "bbss
 
 ```bash
       CREATE USER 'bbssystem'@'%' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
+	  GRANT ALL PRIVILEGES ON BBSUniversal.* TO 'bbsystem'@'%';
 ```
 
 If you want to enable SSL, well... you are on your own.  The connect code is in BBS::Universal::DB.pm and you must rebuild the installation.

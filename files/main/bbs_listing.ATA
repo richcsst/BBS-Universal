@@ -13,5 +13,5 @@ Z|BACK|WHITE|Return to the Main Menu
 | |___| \__ \ |_| | | | | (_| |
 |_____|_|___/\__|_|_| |_|\__, |
                          |___/
-[% BBS LIST %]
+[% SHOW BBS LIST %]
 

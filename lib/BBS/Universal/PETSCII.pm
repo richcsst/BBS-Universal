@@ -76,9 +76,9 @@ sub petscii_output {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
             }
         } ## end foreach my $string (keys %{...})
-    }
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
-    my $nl = $self->{'petscii_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);
         if ($char eq "\n") {
