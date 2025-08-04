@@ -29,7 +29,7 @@ If you want to enable SSL, well... you are on your own.  The connect code is in 
 
 ## LICENSE AND COPYRIGHT
 
-Copyright © 2023-2024 Richard Kelsch
+Copyright © 2023-2025 Richard Kelsch
 
 This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License Version 3 as published by the Free Software Foundation.
 
