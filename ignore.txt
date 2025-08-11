@@ -23,3 +23,4 @@ test
 src/*.pm
 build.sh
 out.txt
+fix
