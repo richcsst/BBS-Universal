@@ -19,6 +19,7 @@ use English qw( -no_match_vars );
 use utf8;
 use Config;
 use open qw(:std :utf8);
+no warnings;
 
 # Use threads first, so others inherit
 use threads (
@@ -84,18 +85,22 @@ my $CACHE   = Cache::Memcached::Fast->new(
                 'address' => $BBS_OBJ->{'CONF'}->{'MEMCACHED HOST'} . ':' . $BBS_OBJ->{'CONF'}->{'MEMCACHED PORT'},
             },
         ],
-        'namespace' => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
-        'utf8'      => TRUE,
+        'namespace'      => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
+        'utf8'           => TRUE,
+		'close_on_error' => TRUE,
     }
 );
-$CACHE->set('RUNNING',         TRUE);
-$CACHE->set('TEST',            $TEST);
-$CACHE->set('UPDATE',          TRUE);
-$CACHE->set('ONLINE',          0);
-$CACHE->set('THREADS_RUNNING', 0);
-$CACHE->set('ROW_ADJUST',      0);
-$CACHE->set('START_ROW',       7);
-
+$CACHE->flush_all;
+$CACHE->enable_compress(TRUE);
+$CACHE->set_multi(
+	['RUNNING',         TRUE],
+	['TEST',            $TEST],
+	['UPDATE',          TRUE],
+	['ONLINE',          0],
+	['THREADS_RUNNING', 0],
+	['ROW_ADJUST',      0],
+	['START_ROW',       7],
+);
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
 
@@ -187,8 +192,14 @@ our $SYSOP_COMMANDS = {
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
     'SYSOP SHUTDOWN' => sub {
-        print "\n\nShutting down threads\n";
-        $CACHE->set('RUNNING', FALSE);
+		my $self = shift;
+		$self->output("\nShutdown BBS (y/N)?  ");
+		if ($self->sysop_decision) {
+			print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
+			$CACHE->set('RUNNING', FALSE);
+		} else {
+			return('BACK');
+		}
     },
     'SYSOP RESTART' => sub {
         print "\n\nShutting down threads\n";
@@ -266,17 +277,15 @@ sub logo {
     $CACHE->set('ROW_ADJUST', 0);
 
     print setscroll(1, $hsize), locate(1, 1);
-    print colored(['red'],         '  ____  ____ ____    _   _       _                          _ ') . sprintf(' │ Version %.03f', $BBS::Universal::VERSION), "\n";
-    print colored(['yellow'],      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |'),  ' │ Written By Richard Kelsch',                       clline, "\n";
-    print colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |}), ' │ Copyright © 2023-2024 Richard Kelsch',            clline, "\n";
-    print colored(['magenta'],     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |'),  ' │ All Rights Reserved',                             clline, "\n";
-    print colored(['bright_blue'], ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|'),  ' │ Licensed under the GNU Public License Version 3', clline, "\n";
-    print locate(6,                        1),  '━' x $wsize;
-    print locate(6,                        64), '┷';
+    print colored(['red','on_black'], clline .         '  ____  ____ ____    _   _       _                          _  ') . colored(['on_black'],sprintf('│ Version %.03f', $BBS::Universal::VERSION)), "\n";
+    print colored(['yellow','on_black'], clline .      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | '), colored(['on_black'], '│ Written By Richard Kelsch'), "\n";
+    print colored(['green','on_black'], clline .      q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }), colored(['on_black'], '│ Copyright © 2023-2024 Richard Kelsch'), "\n";
+    print colored(['magenta','on_black'], clline .     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | '), colored(['on_black'], '│ All Rights Reserved'), "\n";
+    print colored(['bright_blue','on_black'], clline . ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| '), colored(['on_black'], '│ Licensed under the GNU Public License Version 3'), "\n";
+    print locate(6, 1), colored(['on_black'], '━' x $wsize);
+    print locate(6, 64), colored(['on_black'],'┷');
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
-
-    # U2537
 } ## end sub logo
 
 sub system_menu {
@@ -332,8 +341,8 @@ sub system_menu {
             $SIG{'ALRM'} = sub { servers_status($bbs_obj, TRUE); };
             $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, TRUE);    # This is a sub not a method, so we pass the object conventionally
-        } ## end else [ if (defined($error)) ]
-    } ## end unless ($TEST)
+        }
+    }
     print setscroll(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), $hsize);
     print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
     $bbs_obj->{'sysop'} = TRUE;
@@ -367,9 +376,9 @@ sub system_menu {
 
 sub servers_status {
     my $bbs_obj    = shift;
-    my $show_alarm = shift || TRUE;
+    my $show_alarm = shift;
     if ($CACHE->get('UPDATE') && !$TEST) {
-        alarm(0);
+		alarm(0);
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         my $stp   = int($wsize / 26);
         my $steps = $stp;
@@ -381,20 +390,28 @@ sub servers_status {
 
         my $table = Text::SimpleTable->new(@sizes);
         my $count = 1;
-        $CACHE->set('ROW_ADJUST',      2);
-        $CACHE->set('ONLINE',          0);
-        $CACHE->set('THREADS_RUNNING', 0);
-        foreach my $name (sort(keys %{$SERVER_THREADS})) {
+        $CACHE->set_multi(
+			['ROW_ADJUST',      2],
+			['ONLINE',          0],
+			['THREADS_RUNNING', 0],
+		);
+       foreach my $name (sort(keys %{$SERVER_THREADS})) {
             if ($CACHE->get($name) eq 'CONNECTED') {
-                $CACHE->set('ONLINE',          $CACHE->get('ONLINE') + 1);
-                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
-                $CACHE->set($name,             'CONNECTED');
+                $CACHE->set_multi(
+					['ONLINE',          $CACHE->get('ONLINE') + 1],
+					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+					[$name,             'CONNECTED'],
+				);
             } elsif ($CACHE->get($name) eq 'IDLE') {
-                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1);
-                $CACHE->set($name,             'IDLE');
+                $CACHE->set_multi(
+					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+					[$name,             'IDLE'],
+				);
             } else {
-                $CACHE->set('THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1);
-                $CACHE->set($name,             'FINISHED');
+                $CACHE->set_multi(
+					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1],
+					[$name,             'FINISHED'],
+				);
             }
             push(@row, "$name -> " . $CACHE->get($name));
             $steps--;
@@ -417,21 +434,23 @@ sub servers_status {
             $table->row(@row);
             $CACHE->set('UPDATE', FALSE);
         } ## end if (scalar(@row))
-        my $tbl = $bbs_obj->center($table->boxes->draw(), $wsize);
-        my $cn  = colored(['green'],   'CONNECTED');
-        my $idl = colored(['magenta'], 'IDLE');
-        my $fn  = colored(['red'],     'FINISHED');
-        $tbl =~ s/CONNECTED/$cn/g;
-        $tbl =~ s/IDLE/$idl/g;
-        $tbl =~ s/FINISHED/$fn/g;
+		if (defined($table)) {
+			my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
+			my $cn  = colored(['green'],   'CONNECTED');
+			my $idl = colored(['magenta'], 'IDLE');
+			my $fn  = colored(['red'],     'FINISHED');
+			$tbl =~ s/CONNECTED/$cn/g;
+			$tbl =~ s/IDLE/$idl/g;
+			$tbl =~ s/FINISHED/$fn/g;
 
-        if ($show_alarm) {
-            print savepos, chr(27), locate($CACHE->get('START_ROW'), 1), $tbl, loadpos;
-            $SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
-            alarm(1);
-        } else {
-            print locate($CACHE->get('START_ROW'), 1), $tbl;
-        }
+			if ($show_alarm) {
+				print savepos, $tbl, loadpos;
+				$SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
+				alarm(1);
+			} else {
+				print $tbl;
+			}
+		}
     } ## end if ($CACHE->get('UPDATE'...))
     return (TRUE);
 } ## end sub servers_status
@@ -459,8 +478,10 @@ sub run_bbs {
         my $client_socket = $socket->accept();
         if (defined($client_socket)) {
             binmode($client_socket, ':ultra-raw');
-            $CACHE->set($thread_name, 'CONNECTED');
-            $CACHE->set('UPDATE',     TRUE);
+            $CACHE->set_multi(
+				[$thread_name, 'CONNECTED'],
+				['UPDATE',     TRUE],
+			);
             $debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
             $debug->DEBUG(['Creating new BBS::Universal object']);
             my $bbs = BBS::Universal->new(
@@ -477,11 +498,15 @@ sub run_bbs {
             $bbs->run(FALSE);
             $debug->DEBUG(['Shutdown client socket']);
             $client_socket->shutdown(SHUT_RDWR);    # Hang up
-            $CACHE->set($thread_name, 'IDLE');
-            $CACHE->set('UPDATE',     TRUE);
+            $CACHE->set_multi(
+				[$thread_name, 'IDLE'],
+				['UPDATE',     TRUE],
+			);
         } else {
-            $CACHE->set($thread_name, 'IDLE');
-            $CACHE->set('UPDATE',     TRUE);
+            $CACHE->set_multi(
+				[$thread_name, 'IDLE'],
+				['UPDATE',     TRUE],
+			);
         }
         threads->yield();
     } ## end while ($CACHE->get('RUNNING'...))

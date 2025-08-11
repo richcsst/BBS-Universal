@@ -542,7 +542,7 @@ sub sysop_decision {
     my $response;
     do {
         $response = uc($self->sysop_keypress());
-    } until ($response =~ /Y|N/i);
+    } until ($response =~ /Y|N/i || $response eq chr(13));
     if ($response eq 'Y') {
         print "YES\n";
         return (TRUE);
@@ -554,12 +554,14 @@ sub sysop_decision {
 sub sysop_keypress {
     my $self = shift;
     my $key;
-    ReadMode 4;
+	alarm(0);
+    ReadMode 'ultra-raw';
     do {
-        $key = ReadKey(0);
+        $key = ReadKey(-1);
         threads->yield();
     } until (defined($key));
-    ReadMode 0;
+    ReadMode 'restore';
+	alarm(1);
     return ($key);
 } ## end sub sysop_keypress
 

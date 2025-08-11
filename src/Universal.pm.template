@@ -141,6 +141,80 @@ sub new {    # Always call with the socket as a parameter
         'suffixes'        => [qw( ASC ATA PET ANS )],
         'host'            => undef,
         'port'            => undef,
+		'telnet_commands' => [
+			'SE (Subnegotiation end) - End of negotiation (or data block) of a sub-service of a protocol mechanism',
+			'NOP (No operation) - Data packet that does nothing',
+			'Data Mark',
+			'Break',
+			'Interrupt Process - Request that other party ends current process',
+			'Abort output - Request that other party stops sending output',
+			'Are you there?',
+			'Erase character',
+			'Erase Line',
+			'Go ahead',
+			'SB (Subnegotiation begin) - Initiate the negotiation of a sub-service of a protocol mechanism',
+			'WILL - Informs othqer party that this party will use a protocol mechanism',
+			"WON'T - Informs other party that this party will not use a protocol mechanism",
+			'DO - Instruct other party to use a protocol mechanism',
+			"DON'T - Instruct other party to not use a protocol mechanism",
+			'IAC - Sequence Initializer/Escape Character',
+		],
+		'telnet_options'  => [
+			'Binary Transmission',
+			'Echo',
+			'Reconnection',
+			'Suppress Go Ahead',
+			'Approx Message Size Negotiation',
+			'Status',
+			'Timing Mark',
+			'Remote Controlled Trans and Echo',
+			'Output Line Width',
+			'Output Page Size',
+			'Output Carriage-Return Disposition',
+			'Output Horizontal Tab Stops',
+			'Output Horizontal Tab Disposition',
+			'Output Formfeed Disposition',
+			'Output Vertical Tabstops',
+			'Output Vertical Tab Disposition',
+			'Output Linefeed Disposition',
+			'Extended ASCII',
+			'Logout',
+			'Byte Macro',
+			'Data Entry Terminal',
+			'RFC 1043',
+			'RFC 732',
+			'SUPDUP',
+			'RFC 736',
+			'RFC 734',
+			'SUPDUP Output',
+			'Send Location',
+			'Terminal Type',
+			'End of Record',
+			'TACACS User Identification',
+			'Output Marking',
+			'Terminal Location Number',
+			'Telnet 3270 Regime',
+			'30X.3 PAD',
+			'Negotiate About Window Size',
+			'Terminal Speed',
+			'Remote Flow Control',
+			'Linemode',
+			'X Display Location',
+			'Environment Option',
+			'Authentication Option',
+			'Encryption Option',
+			'New Environment Option',
+			'TN3270E',
+			'XAUTH',
+			'CHARSET',
+			'Telnet Remote Serial Port (RSP)',
+			'Com Port Control Option',
+			'Telnet Suppress Local Echo',
+			'Telnet Start TLS',
+			'KERMIT',
+			'SEND-URL',
+			'FORWARD_',
+		],
     };
 
     bless($self, $class);
@@ -362,7 +436,6 @@ sub populate_common {
             my $self = shift;
             return ($self->load_menu('files/main/account'));
         },
-
         'TOGGLE SHOW EMAIL' => sub {
             my $self = shift;
             $self->{'USER'}->{'show_email'} = !$self->{'USER'}->{'show_email'};
@@ -393,7 +466,7 @@ sub populate_common {
         'DISCONNECT' => sub {
             my $self = shift;
 
-            $self->output("\nDisconnect, are you sure (Y|N)?  ");
+            $self->output("\nDisconnect, are you sure (y|N)?  ");
             unless ($self->decision()) {
                 return ($self->load_menu('files/main/menu'));
             }
@@ -471,7 +544,6 @@ sub greeting {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Sending greeting']);
-
     # Load and print greetings message here
     my $text = $self->load_file('files/main/greeting');
     $self->{'debug'}->DEBUGMAX([$text]);
@@ -536,13 +608,15 @@ sub create_account {
 
 sub is_connected {
     my $self = shift;
-    if ($self->{'CACHE'}->get('RUNNING') && ($self->{'sysop'} || defined($self->{'cl_socket'}))) {
+	if ($self->{'local_mode'}) {
+		return(TRUE);
+	} elsif ($self->{'CACHE'}->get('RUNNING') && ($self->{'sysop'} || defined($self->{'cl_socket'}))) {
         $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'CONNECTED');
-        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
+        $self->{'CACHE'}->set('UPDATE', TRUE);
         return (TRUE);
     } else {
         $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'IDLE');
-        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
+        $self->{'CACHE'}->set('UPDATE', TRUE);
         return (FALSE);
     }
 } ## end sub is_connected
@@ -713,11 +787,20 @@ sub categories_menu {    # Handle categories menu
     return (TRUE);
 } ## end sub categories_menu
 
+sub parse_telnet_escape {
+	my $self    = shift;
+	my $command = shift;
+	my $option  = shift;
+
+	return(sprintf('%s - %s',$self->{'telnet_commands'}->[($command - 240)],$self->{'telnet_options'}->[$option]));
+}
+
 sub get_key {
     my $self     = shift;
     my $echo     = shift;
     my $blocking = shift;
 
+	alarm(0);
     my $key = undef;
     local $/ = "\x{00}";
     if ($self->{'local_mode'}) {
@@ -725,27 +808,38 @@ sub get_key {
         $key = ($blocking) ? ReadKey(0) : ReadKey(-1);
         ReadMode 'restore';
     } elsif ($self->is_connected()) {
-        my $handle = $self->{'cl_socket'};
-        ReadMode 'ultra-raw', $handle;
-        $key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $handle) : ReadKey(-1, $handle);
-        ReadMode 'restore', $handle;
+		my $escape = FALSE;
+		ReadMode 'noecho', $self->{'cl_socket'};
+		do {
+			$key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'}) : ReadKey(-1, $self->{'cl_socket'});
+			if (ord($key) == 255) { # Ignore Telnet escapes
+				$self->{'debug'}->DEBUG(['IAC Telnet Escape Sequence']);
+				$escape = TRUE;
+				my $command = ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'});
+				my $option  = ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'});
+				$self->{'debug'}->DEBUG([$self->parse_telnet_escape(ord($command),ord($option))]);
+			} else {
+				$escape = FALSE;
+			}
+		} until (! $escape);
+		ReadMode 'restore', $self->{'cl_socket'};
     } ## end elsif ($self->is_connected...)
-    $self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)]);
+    $self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)."  ECHO=$echo  BLOCKING=$blocking"]);
+	$key = $self->{'backspace'} if ($key eq chr(127));
     if ($echo == ECHO && defined($key)) {
-        $key = $self->{'backspace'} if ($key eq chr(127));
+		$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
         $self->output($key);
     } elsif ($echo == PASSWORD && defined($key)) {
         $self->output('*');
     }
+	alarm(1);
     return ($key);
 } ## end sub get_key
 
 sub get_line {
     my $self  = shift;
     my $echo  = shift;
-    my $limit = shift;
-
-    $limit = min($limit, 65535);
+    my $limit = min(shift, 65535);
 
     my $line = '';
     my $key;
@@ -758,9 +852,9 @@ sub get_line {
                 if ($len > 0) {
                     $line = substr($line, $len - 1);
                 }
-            } elsif ($key ne chr(13) && $key ne chr(10)) {
+            } elsif ($key ne chr(13) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
                 $line .= $key;
-            }
+			}
         } ## end if (defined($key) && $key...)
         threads->yield();
     } ## end while ($self->is_connected...)
@@ -778,23 +872,23 @@ sub detokenize_text {    # Detokenize text markup
     my $self = shift;
     my $text = shift;
 
-    if (length($text) > 1) {
+    if (defined($text) && length($text) > 1) {
         $self->{'debug'}->DEBUG(['Detokenizing text']);
 
         $self->{'debug'}->DEBUGMAX([$text]);    # Before
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
-            if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
-                my $versions = '';
-                foreach my $names (@{ $self->{'VERSIONS'} }) {
-                    $versions .= $names . "\n";
-                }
-                $text =~ s/\[\%\s+$key\s+\%\]/$versions/gi;
-            } elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE') {
-                my $ch = $self->{'TOKENS'}->{$key}->($self);    # Code call
-                $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
-            } else {
-                $text =~ s/\[\%\s+$key\s+\%\]/$self->{'TOKENS'}->{$key}/gi;
-            }
+			if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
+				my $versions = '';
+				foreach my $names (@{ $self->{'VERSIONS'} }) {
+					$versions .= $names . "\n";
+				}
+				$text =~ s/\[\%\s+$key\s+\%\]/$versions/g;
+			} elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE' && $text =~ /\[\%\s+$key\s+\%\]/) {
+				my $ch = $self->{'TOKENS'}->{$key}->($self);    # Code call
+				$text =~ s/\[\%\s+$key\s+\%\]/$ch/g;
+			} else {
+				$text =~ s/\[\%\s+$key\s+\%\]/$self->{'TOKENS'}->{$key}/g;
+			}
         } ## end foreach my $key (keys %{ $self...})
         $self->{'debug'}->DEBUGMAX([$text]);    # After
     } ## end if (length($text) > 1)
@@ -805,37 +899,41 @@ sub output {
     my $self = shift;
     my $text = $self->detokenize_text(shift);
 
-    if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
-        my $format = Text::Format->new(
-            'columns'     => $self->{'USER'}->{'max_columns'} - 1,
-            'tabstop'     => 4,
-            'extraSpace'  => TRUE,
-            'firstIndent' => 0,
-        );
-        my $header;
-        ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
-        if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
-            $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
-            $format->justify(TRUE);
-        }
-        $text = $format->format($text);
-        $text = $header . $text;
-    } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
-    my $mode = $self->{'USER'}->{'text_mode'};
-    if ($mode eq 'ATASCII') {
-        $self->{'debug'}->DEBUG(['Send ATASCII']);
-        $self->atascii_output($text);
-    } elsif ($mode eq 'PETSCII') {
-        $self->{'debug'}->DEBUG(['Send PETSCII']);
-        $self->petscii_output($text);
-    } elsif ($mode eq 'ANSI') {
-        $self->{'debug'}->DEBUG(['Send ANSI']);
-        $self->ansi_output($text);
-    } else {    # ASCII (always the default)
-        $self->{'debug'}->DEBUG(['Send ASCII']);
-        $self->ascii_output($text);
-    }
-    return (TRUE);
+	if (defined($text) && $text ne '') {
+		if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+			my $format = Text::Format->new(
+				'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+				'tabstop'     => 4,
+				'extraSpace'  => TRUE,
+				'firstIndent' => 0,
+			);
+			my $header;
+			($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
+			if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+				$text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+				$format->justify(TRUE);
+			}
+			$text = $format->format($text);
+			$text = $header . $text;
+		} ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
+		my $mode = $self->{'USER'}->{'text_mode'};
+		if ($mode eq 'ATASCII') {
+			$self->{'debug'}->DEBUG(['Send ATASCII']);
+			$self->atascii_output($text);
+		} elsif ($mode eq 'PETSCII') {
+			$self->{'debug'}->DEBUG(['Send PETSCII']);
+			$self->petscii_output($text);
+		} elsif ($mode eq 'ANSI') {
+			$self->{'debug'}->DEBUG(['Send ANSI']);
+			$self->ansi_output($text);
+		} else {    # ASCII (always the default)
+			$self->{'debug'}->DEBUG(['Send ASCII']);
+			$self->ascii_output($text);
+		}
+	} else {
+		return(FALSE);
+	}
+	return (TRUE);
 } ## end sub output
 
 sub send_char {
@@ -844,9 +942,9 @@ sub send_char {
 
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
-        print $char;
+        print STDOUT $char;
     } else {
-        my $handle = $self->{'cl_socket'};
+		my $handle = $self->{'cl_socket'};
         print $handle $char;
     }
 

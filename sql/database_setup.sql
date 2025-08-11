@@ -41,19 +41,19 @@ CREATE TABLE users (
 );
 
 CREATE TABLE permissions (
-	id             INT UNSIGNED PRIMARY KEY,
-    show_email     BOOLEAN DEFAULT FALSE,
-	view_files     BOOLEAN DEFAULT FALSE,
-	upload_files   BOOLEAN DEFAULT FALSE,
-	download_files BOOLEAN DEFAULT FALSE,
-	remove_files   BOOLEAN DEFAULT FALSE,
-	read_message   BOOLEAN DEFAULT FALSE,
-	post_message   BOOLEAN DEFAULT FALSE,
-	remove_message BOOLEAN DEFAULT FALSE,
-	sysop          BOOLEAN DEFAULT FALSE,
-	page_sysop     BOOLEAN DEFAULT TRUE,
+	id              INT UNSIGNED PRIMARY KEY,
+    show_email      BOOLEAN DEFAULT FALSE,
+	view_files      BOOLEAN DEFAULT FALSE,
+	upload_files    BOOLEAN DEFAULT FALSE,
+	download_files  BOOLEAN DEFAULT FALSE,
+	remove_files    BOOLEAN DEFAULT FALSE,
+	read_message    BOOLEAN DEFAULT FALSE,
+	post_message    BOOLEAN DEFAULT FALSE,
+	remove_message  BOOLEAN DEFAULT FALSE,
+	sysop           BOOLEAN DEFAULT FALSE,
+	page_sysop      BOOLEAN DEFAULT TRUE,
 	prefer_nickname BOOLEAN DEFAULT FALSE,
-	timeout        SMALLINT UNSIGNED DEFAULT 10
+	timeout         SMALLINT UNSIGNED DEFAULT 10
 );
 
 CREATE TABLE message_categories (
@@ -106,9 +106,9 @@ CREATE TABLE bbs_listing (
 );
 
 CREATE TABLE news (
-    news_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-	news_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-	news_title VARCHAR(255),
+    news_id      INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+	news_date    TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	news_title   VARCHAR(255),
 	news_content TEXT
 );
 
@@ -297,40 +297,39 @@ INSERT INTO news (
 CREATE VIEW users_view
  AS
  SELECT
-    users.id                    AS id,
-	users.username              AS username,
-	CONCAT(users.given,' ',users.family)
-	                            AS fullname,
-	users.password              AS password,
-	users.given                 AS given,
-	users.family                AS family,
-	users.nickname              AS nickname,
-	users.max_columns           AS max_columns,
-	users.max_rows              AS max_rows,
-	users.birthday              AS birthday,
-	users.location              AS location,
-	users.baud_rate             AS baud_rate,
-	users.login_time            AS login_time,
-	users.logout_time           AS logout_time,
-	users.file_category         AS file_category,
-	users.forum_category        AS forum_category,
-    users.email                 AS email,
-	text_modes.text_mode        AS text_mode,
-	text_modes.suffix           AS suffix,
-	permissions.timeout         AS timeout,
-	users.retro_systems         AS retro_systems,
-	users.accomplishments       AS accomplishments,
-    permissions.show_email      AS show_email,
-	permissions.prefer_nickname AS prefer_nickname,
-	permissions.view_files      AS view_files,
-	permissions.upload_files    AS upload_files,
-	permissions.download_files  AS download_files,
-	permissions.remove_files    AS remove_files,
-	permissions.read_message    AS read_message,
-	permissions.post_message    AS post_message,
-	permissions.remove_message  AS remove_message,
-	permissions.sysop           AS sysop,
-	permissions.page_sysop      AS page_sysop
+    users.id                             AS id,
+	users.username                       AS username,
+	CONCAT(users.given,' ',users.family) AS fullname,
+	users.password                       AS password,
+	users.given                          AS given,
+	users.family                         AS family,
+	users.nickname                       AS nickname,
+	users.max_columns                    AS max_columns,
+	users.max_rows                       AS max_rows,
+	users.birthday                       AS birthday,
+	users.location                       AS location,
+	users.baud_rate                      AS baud_rate,
+	users.login_time                     AS login_time,
+	users.logout_time                    AS logout_time,
+	users.file_category                  AS file_category,
+	users.forum_category                 AS forum_category,
+    users.email                          AS email,
+	text_modes.text_mode                 AS text_mode,
+	text_modes.suffix                    AS suffix,
+	permissions.timeout                  AS timeout,
+	users.retro_systems                  AS retro_systems,
+	users.accomplishments                AS accomplishments,
+    permissions.show_email               AS show_email,
+	permissions.prefer_nickname          AS prefer_nickname,
+	permissions.view_files               AS view_files,
+	permissions.upload_files             AS upload_files,
+	permissions.download_files           AS download_files,
+	permissions.remove_files             AS remove_files,
+	permissions.read_message             AS read_message,
+	permissions.post_message             AS post_message,
+	permissions.remove_message           AS remove_message,
+	permissions.sysop                    AS sysop,
+	permissions.page_sysop               AS page_sysop
  FROM
     users
  INNER JOIN
@@ -341,13 +340,13 @@ CREATE VIEW users_view
 CREATE VIEW messages_view
  AS
  SELECT
-     messages.id AS id,
-	 messages.from_id AS from_id,
-	 message_categories.name AS category_name,
+     messages.id                          AS id,
+	 messages.from_id                     AS from_id,
+	 message_categories.name              AS category_name,
 	 CONCAT(users.given,' ',users.family) AS Author,
-	 messages.title AS title,
-	 messages.message AS message,
-	 messages.created AS created
+	 messages.title                       AS title,
+	 messages.message                     AS message,
+	 messages.created                     AS created
  FROM
      messages
  INNER JOIN
@@ -358,20 +357,20 @@ CREATE VIEW messages_view
 CREATE VIEW files_view
 AS
 SELECT
-    files.id AS id,
-	files.filename AS filename,
-	files.title AS title,
-	file_categories.title AS category,
-	file_categories.id AS category_id,
-	file_types.type AS type,
-	file_types.extension AS extension,
-	files.description AS description,
-	files.file_size AS file_size,
-	files.uploaded AS uploaded,
-	files.endorsements AS endorsements,
-    permissions.prefer_nickname AS prefer_nickname,
-	users.username AS username,
-    users.nickname AS nickname,
+    files.id                             AS id,
+	files.filename                       AS filename,
+	files.title                          AS title,
+	file_categories.title                AS category,
+	file_categories.id                   AS category_id,
+	file_types.type                      AS type,
+	file_types.extension                 AS extension,
+	files.description                    AS description,
+	files.file_size                      AS file_size,
+	files.uploaded                       AS uploaded,
+	files.endorsements                   AS endorsements,
+    permissions.prefer_nickname          AS prefer_nickname,
+	users.username                       AS username,
+    users.nickname                       AS nickname,
     CONCAT(users.given,' ',users.family) AS fullname
 
 FROM

@@ -22,7 +22,7 @@ sub ascii_output {
     my $lines  = $mlines;
 
     $self->{'debug'}->DEBUG(['Send ASCII text']);
-    $self->{'debug'}->DEBUGMAX([$text]);
+    $self->{'debug'}->DEBUGMAX(["SENDING: $text"]);
     my $s_len = length($text);
     my $nl    = $self->{'ascii_sequences'}->{'NEWLINE'};
     foreach my $count (0 .. $s_len) {
