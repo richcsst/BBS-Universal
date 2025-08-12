@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -22,196 +22,9 @@ sub sysop_initialize {
     }
     my $versions     = $self->sysop_versions_format($sections, FALSE);
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
+	my $esc          = chr(27) . '[';
 
     $self->{'sysop_tokens'} = {
-        'EURO'                             => chr(128),
-        'ELIPSIS'                          => chr(133),
-        'BULLET DOT'                       => chr(149),
-        'HOLLOW BULLET DOT'                => '○',
-        'BIG HYPHEN'                       => chr(150),
-        'BIGGEST HYPHEN'                   => chr(151),
-        'TRADEMARK'                        => chr(153),
-        'CENTS'                            => chr(162),
-        'POUND'                            => chr(163),
-        'YEN'                              => chr(165),
-        'COPYRIGHT'                        => chr(169),
-        'DOUBLE LT'                        => chr(171),
-        'REGISTERED'                       => chr(174),
-        'OVERLINE'                         => chr(175),
-        'DEGREE'                           => chr(176),
-        'SQUARED'                          => chr(178),
-        'CUBED'                            => chr(179),
-        'MICRO'                            => chr(181),
-        'MIDDLE DOT'                       => chr(183),
-        'DOUBLE GT'                        => chr(187),
-        'QUARTER'                          => chr(188),
-        'HALF'                             => chr(189),
-        'THREE QUARTERS'                   => chr(190),
-        'INVERTED QUESTION'                => chr(191),
-        'DIVISION'                         => chr(247),
-        'HEART'                            => '♥',
-        'CLUB'                             => '♣',
-        'DIAMOND'                          => '♦',
-        'LARGE PLUS'                       => '┼',
-        'LARGE VERTICAL BAR'               => '│',
-        'LARGE OVERLINE'                   => '▔',
-        'LARGE UNDERLINE'                  => '▁',
-        'BULLET RIGHT'                     => '▶',
-        'BULLET LEFT'                      => '◀',
-        'SMALL BULLET RIGHT'               => '▸',
-        'SMALL BULLET LEFT'                => '◂',
-        'BIG BULLET RIGHT'                 => '►',
-        'BIG BULLET LEFT'                  => '◄',
-        'BULLET DOWN'                      => '▼',
-        'BULLET UP'                        => '▲',
-        'WEDGE TOP LEFT'                   => '◢',
-        'WEDGE TOP RIGHT'                  => '◣',
-        'WEDGE BOTTOM LEFT'                => '◥',
-        'WEDGE BOTTOM RIGHT'               => '◤',
-        'LOWER ONE EIGHT BLOCK'            => '▁',
-        'LOWER ONE QUARTER BLOCK'          => '▂',
-        'LOWER THREE EIGHTHS BLOCK'        => '▃',
-        'LOWER FIVE EIGTHS BLOCK'          => '▅',
-        'LOWER THREE QUARTERS BLOCK'       => '▆',
-        'LOWER SEVEN EIGHTHS BLOCK'        => '▇',
-        'LEFT SEVEN EIGHTHS BLOCK'         => '▉',
-        'LEFT THREE QUARTERS BLOCK'        => '▊',
-        'LEFT FIVE EIGHTHS BLOCK'          => '▋',
-        'LEFT THREE EIGHTHS BLOCK'         => '▍',
-        'LEFT ONE QUARTER BLOCK'           => '▎',
-        'LEFT ONE EIGHTH BLOCK'            => '▏',
-        'MEDIUM SHADE'                     => '▒',
-        'DARK SHADE'                       => ' ',
-        'UPPER ONE EIGHTH BLOCK'           => '▔',
-        'RIGHT ONE EIGHTH BLOCK'           => '▕',
-        'LOWER LEFT QUADRANT'              => '▖',
-        'LOWER RIGHT QUADRANT'             => '▗',
-        'UPPER LEFT QUADRANT'              => '▘',
-        'LEFT LOWER RIGHT QUADRANTS'       => '▙',
-        'UPPER LEFT LOWER RIGHT QUADRANTS' => '▚',
-        'LEFT UPPER RIGHT QUADRANTS'       => '▛',
-        'UPPER LEFT RIGHT QUADRANTS'       => '▜',
-        'UPPER RIGHT QUADRANT'             => '▝',
-        'UPPER RIGHT LOWER LEFT QUADRANTS' => '▞',
-        'RIGHT LOWER LEFT QUADRANTS'       => '▟',
-        'THICK VERTICAL BAR'               => chr(0xA6),
-        'THIN HORIZONTAL BAR'              => '─',
-        'THICK HORIZONTAL BAR'             => '━',
-        'THIN VERTICAL BAR'                => '│',
-        'MEDIUM VERTICAL BAR'              => '┃',
-        'THIN DASHED HORIZONTAL BAR'       => '┄',
-        'THICK DASHED HORIZONTAL BAR'      => '┅',
-        'THIN DASHED VERTICAL BAR'         => '┆',
-        'THICK DASHED VERTICAL BAR'        => '┇',
-        'THIN DOTTED HORIZONTAL BAR'       => '┈',
-        'THICK DOTTED HORIZONTAL BAR'      => '┉',
-        'MEDIUM DASHED VERTICAL BAR'       => '┊',
-        'THICK DASHED VERTICAL BAR'        => '┋',
-        'U250C'                            => '┌',
-        'U250D'                            => '┍',
-        'U250E'                            => '┎',
-        'U250F'                            => '┏',
-        'U2510'                            => '┐',
-        'U2511'                            => '┑',
-        'U2512'                            => '┒',
-        'U2513'                            => '┓',
-        'U2514'                            => '└',
-        'U2515'                            => '┕',
-        'U2516'                            => '┖',
-        'U2517'                            => '┗',
-        'U2518'                            => '┘',
-        'U2519'                            => '┙',
-        'U251A'                            => '┚',
-        'U251B'                            => '┛',
-        'U251C'                            => '├',
-        'U251D'                            => '┝',
-        'U251E'                            => '┞',
-        'U251F'                            => '┟',
-        'U2520'                            => '┠',
-        'U2521'                            => '┡',
-        'U2522'                            => '┢',
-        'U2523'                            => '┣',
-        'U2524'                            => '┤',
-        'U2525'                            => '┥',
-        'U2526'                            => '┦',
-        'U2527'                            => '┧',
-        'U2528'                            => '┨',
-        'U2529'                            => '┩',
-        'U252A'                            => '┪',
-        'U252B'                            => '┫',
-        'U252C'                            => '┬',
-        'U252D'                            => '┭',
-        'U252E'                            => '┮',
-        'U252F'                            => '┯',
-        'U2530'                            => '┰',
-        'U2531'                            => '┱',
-        'U2532'                            => '┲',
-        'U2533'                            => '┳',
-        'U2534'                            => '┴',
-        'U2535'                            => '┵',
-        'U2536'                            => '┶',
-        'U2537'                            => '┷',
-        'U2538'                            => '┸',
-        'U2539'                            => '┹',
-        'U253A'                            => '┺',
-        'U253B'                            => '┻',
-        'U235C'                            => '┼',
-        'U253D'                            => '┽',
-        'U253E'                            => '┾',
-        'U253F'                            => '┿',
-        'U2540'                            => '╀',
-        'U2541'                            => '╁',
-        'U2542'                            => '╂',
-        'U2543'                            => '╃',
-        'U2544'                            => '╄',
-        'U2545'                            => '╅',
-        'U2546'                            => '╆',
-        'U2547'                            => '╇',
-        'U2548'                            => '╈',
-        'U2549'                            => '╉',
-        'U254A'                            => '╊',
-        'U254B'                            => '╋',
-        'U254C'                            => '╌',
-        'U254D'                            => '╍',
-        'U254E'                            => '╎',
-        'U254F'                            => '╏',
-        'CHECK'                            => '✓',
-        'PIE'                              => 'π',
-        'TOP LEFT ROUNDED'                 => '╭',
-        'TOP RIGHT ROUNDED'                => '╮',
-        'BOTTOM RIGHT ROUNDED'             => '╯',
-        'BOTTOM LEFT ROUNDED'              => '╰',
-        'FULL FORWARD SLASH'               => '╱',
-        'FULL BACKWZARD SLASH'             => '╲',
-        'FULL X'                           => '╳',
-        'THIN LEFT HALF HYPHEN'            => '╴',
-        'THIN TOP HALF BAR'                => '╵',
-        'THIN RIGHT HALF HYPHEN'           => '╶',
-        'THIN BOTTOM HALF BAR'             => '╷',
-        'THICK LEFT HALF HYPHEN'           => '╸',
-        'THICK TOP HALF BAR'               => '╹',
-        'THICK RIGHT HALF HYPHEN'          => '╺',
-        'THICK BOTTOM HALF BAR'            => '╻',
-        'RIGHT TELESCOPE'                  => '╼',
-        'DOWN TELESCOPE'                   => '╽',
-        'LEFT TELESCOPE'                   => '╾',
-        'UP TELESCOPE'                     => '╿',
-        'MIDDLE VERTICAL RULE BLACK'       => $self->sysop_locate_middle('B_BLACK'),
-        'MIDDLE VERTICAL RULE RED'         => $self->sysop_locate_middle('B_RED'),
-        'MIDDLE VERTICAL RULE GREEN'       => $self->sysop_locate_middle('B_GREEN'),
-        'MIDDLE VERTICAL RULE YELLOW'      => $self->sysop_locate_middle('B_YELLOW'),
-        'MIDDLE VERTICAL RULE BLUE'        => $self->sysop_locate_middle('B_BLUE'),
-        'MIDDLE VERTICAL RULE MAGENTA'     => $self->sysop_locate_middle('B_MAGENTA'),
-        'MIDDLE VERTICAL RULE CYAN'        => $self->sysop_locate_middle('B_CYAN'),
-        'MIDDLE VERTICAL RULE WHITE'       => $self->sysop_locate_middle('B_WHITE'),
-        'HORIZONTAL RULE RED'              => "\r" . $self->{'ansi_sequences'}->{'B_RED'} . clline . $self->{'ansi_sequences'}->{'RESET'},        # Needs color defined before actual use
-        'HORIZONTAL RULE GREEN'            => "\r" . $self->{'ansi_sequences'}->{'B_GREEN'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
-        'HORIZONTAL RULE YELLOW'           => "\r" . $self->{'ansi_sequences'}->{'B_YELLOW'} . clline . $self->{'ansi_sequences'}->{'RESET'},     # Needs color defined before actual use
-        'HORIZONTAL RULE BLUE'             => "\r" . $self->{'ansi_sequences'}->{'B_BLUE'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE MAGENTA'          => "\r" . $self->{'ansi_sequences'}->{'B_MAGENTA'} . clline . $self->{'ansi_sequences'}->{'RESET'},    # Needs color defined before actual use
-        'HORIZONTAL RULE CYAN'             => "\r" . $self->{'ansi_sequences'}->{'B_CYAN'} . clline . $self->{'ansi_sequences'}->{'RESET'},       # Needs color defined before actual use
-        'HORIZONTAL RULE WHITE'            => "\r" . $self->{'ansi_sequences'}->{'B_WHITE'} . clline . $self->{'ansi_sequences'}->{'RESET'},      # Needs color defined before actual use
-
         # Tokens
         'HOSTNAME'     => $self->sysop_hostname,
         'IP ADDRESS'   => $self->sysop_ip_address(),
@@ -225,6 +38,15 @@ sub sysop_initialize {
         'BBS VERSIONS' => $bbs_versions,
         'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
 
+        'MIDDLE VERTICAL RULE BLACK'     => $self->sysop_locate_middle('B_BLACK'),
+        'MIDDLE VERTICAL RULE RED'       => $self->sysop_locate_middle('B_RED'),
+		'MIDDLE VERTICAL RULE GREEN'     => $self->sysop_locate_middle('B_GREEN'),
+		'MIDDLE VERTICAL RULE YELLOW'    => $self->sysop_locate_middle('B_YELLOW'),
+		'MIDDLE VERTICAL RULE BLUE'      => $self->sysop_locate_middle('B_BLUE'),
+		'MIDDLE VERTICAL RULE MAGENTA'   => $self->sysop_locate_middle('B_MAGENTA'),
+		'MIDDLE VERTICAL RULE CYAN'      => $self->sysop_locate_middle('B_CYAN'),
+		'MIDDLE VERTICAL RULE WHITE'     => $self->sysop_locate_middle('B_WHITE'),
+		
         # Non-static
         'THREADS COUNT' => sub {
             my $self = shift;
@@ -269,21 +91,37 @@ sub sysop_initialize {
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
             my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-            my $table = Text::SimpleTable->new(40);
-            $table->row('SYSOP MENU COMMANDS');
+			my @sys = (sort(keys %{$main::SYSOP_COMMANDS}));
+			my @usr = (sort(keys %{ $self->{'COMMANDS'} }),(sort(keys %{ $self->{'COMMANDS'} })));
+			my $x = 1;
+			my $y = 1;
+			foreach my $s (@sys) {
+				$x = max(length($s),$x);
+			}
+			foreach my $u (@usr) {
+				$y = max(length($u),$y);
+			}
+            my $table = Text::SimpleTable->new($x,$y);
+            $table->row('SYSOP MENU COMMANDS','USER MENU COMMANDS');
             $table->hr();
-            foreach my $sysop_names (sort(keys %{$main::SYSOP_COMMANDS})) {
-                $table->row($sysop_names);
-            }
-            $table->hr();
-            $table->row('USER MENU COMMANDS');
-            $table->hr();
-            foreach my $names (sort(keys %{ $self->{'COMMANDS'} })) {
-                $table->row($names);
-            }
+			my ($sysop_names,$user_names);
+			while(scalar(@sys) || scalar(@usr)) {
+				if (scalar(@sys)) {
+					$sysop_names = shift(@sys);
+				} else {
+					$sysop_names = ' ';
+				}
+				if (scalar(@usr)) {
+					$user_names = shift(@usr);
+				} else {
+					$user_names = ' ';
+				}
+				$table->row($sysop_names,$user_names);
+			}
             return ($self->center($table->boxes->draw(), $wsize));
         },
     };
+
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
           id
@@ -527,7 +365,7 @@ sub sysop_parse_menu {
     my $keys   = '';
     print "\r", cldown unless ($scroll);
     $self->sysop_show_choices($mapping);
-    print "\n", $self->sysop_prompt('Choose');
+    print "\n", $self->sysop_prompt('[% B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] Choose');
     my $key;
     do {
         $key = uc($self->sysop_keypress());
@@ -553,15 +391,15 @@ sub sysop_decision {
 
 sub sysop_keypress {
     my $self = shift;
+	$self->{'CACHE'}->set('SHOW_STATUS',FALSE);
     my $key;
-	alarm(0);
     ReadMode 'ultra-raw';
     do {
         $key = ReadKey(-1);
         threads->yield();
     } until (defined($key));
     ReadMode 'restore';
-	alarm(1);
+	$self->{'CACHE'}->set('SHOW_STATUS',TRUE);
     return ($key);
 } ## end sub sysop_keypress
 
@@ -850,8 +688,8 @@ sub sysop_edit_file_categories {
     if ($line eq 'A') {    # Add
         print "\nADD NEW FILE CATEGORY\n";
         $table = Text::SimpleTable->new(11, 80);
-        $table->row('TITLE',       "\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
-        $table->row('DESCRIPTION', "\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x 80);
+        $table->row('TITLE',       "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
+        $table->row('DESCRIPTION', "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
         print "\n", $table->boxes->draw();
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(80);
@@ -891,7 +729,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 50;
+    my $value_width = 45;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -909,47 +747,71 @@ sub sysop_view_configuration {
     my $table = ($view) ? Text::SimpleTable->new($name_width, $value_width) : Text::SimpleTable->new(6, $name_width, $value_width);
     if ($view) {
         $table->row('STATIC NAME', 'STATIC VALUE');
-    } else {
-        $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
+		$table->hr();
+#    } else {
+#        $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
     }
-    $table->hr();
     foreach my $conf (sort(keys %{ $self->{'CONF'}->{'STATIC'} })) {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-        } else {
-            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
+			$table->hr();
+#        } else {
+#            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
         }
     } ## end foreach my $conf (sort(keys...))
-    $table->hr();
     if ($view) {
-        $table->row('NAME IN DB', 'VALUE IN DB');
+        $table->row('CONFIG NAME', 'CONFIG VALUE');
     } else {
-        $table->row('CHOICE', 'NAME IN DB', 'VALUE IN DB');
+        $table->row('CHOICE', 'CONFIG NAME', 'CONFIG VALUE');
     }
     $table->hr();
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
         next if ($conf eq 'STATIC');
+		my $c = $self->{'CONF'}->{$conf};
+		if ($conf eq 'DEFAULT TIMEOUT') {
+			$c .= ' Minutes';
+		} elsif ($conf eq 'DEFAULT BAUD RATE') {
+			$c .= ' bps - 300,1200,2400,4800,9600,19200,FULL';
+		} elsif ($conf eq 'SHORT DATE FORMAT') {
+			$c .= ' - %d = day, %m = Month, %Y = Year';
+		} elsif ($conf eq 'THREAD MULTIPLIER') {
+			$c .= ' x CPU Cores';
+		} elsif ($conf eq 'DEFAULT TEXT MODE') {
+			$c .= ' - ANSI,ASCII,ATASCII,PETSCII';
+		} elsif ($conf eq 'DEFAULT SUFFIX') {
+			$c .= ' - ANS,ASC,ATA,PET';
+		}
         if ($view) {
-            $table->row($conf, $self->{'CONF'}->{$conf});
+            $table->row($conf, $c);
         } else {
             if ($conf =~ /AUTHOR/) {
-                $table->row(' ', $conf, $self->{'CONF'}->{$conf});
+                $table->row(' ', $conf, $c);
             } else {
-                $table->row($count, $conf, $self->{'CONF'}->{$conf});
+                $table->row(uc('  ' . sprintf('%x',$count) . ' '), $conf, $c);
                 $count++;
             }
         } ## end else [ if ($view) ]
     } ## end foreach my $conf (sort(keys...))
     my $output = $table->boxes->draw();
-    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'STATIC NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME') {
-        if ($output =~ /($change)/) {
-            my $ch = colored(['yellow'], $1);
-            $output =~ s/$1/$ch/gs;
+    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
+        if ($output =~ /$change/) {
+            my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'],$change);
+            $output =~ s/$change/$ch/gs;
         }
     } ## end foreach my $change ('AUTHOR EMAIL'...)
-    print $output;
+	{
+		my $ch = colored(['cyan'], 'CHOICE');
+		$output =~ s/CHOICE/$ch/gs;
+		$ch = colored(['bright_yellow'], 'STATIC NAME');
+		$output =~ s/STATIC NAME/$ch/gs;
+		$ch = colored(['green'], 'CONFIG NAME');
+		$output =~ s/CONFIG NAME/$ch/gs;
+		$ch = colored(['cyan'], 'CONFIG VALUE');
+		$output =~ s/CONFIG VALUE/$ch/gs;
+	}
+    print $self->sysop_detokenize($output);
     if ($view) {
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
@@ -957,7 +819,7 @@ sub sysop_view_configuration {
         print $self->sysop_menu_choice('TOP',    '',    '');
         print $self->sysop_menu_choice('Z',      'RED', 'Return to Settings Menu');
         print $self->sysop_menu_choice('BOTTOM', '',    '');
-        print $self->sysop_prompt('Choose');
+        print $self->sysop_prompt('[% B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] Choose');
         return (TRUE);
     } ## end else [ if ($view) ]
 } ## end sub sysop_view_configuration
@@ -969,21 +831,32 @@ sub sysop_edit_configuration {
     my $choice;
     do {
         $choice = $self->sysop_keypress(TRUE);
-    } until ($choice =~ /\d|Z/i);
-    if ($choice !~ /\d/i) {
+    } until ($choice =~ /\d|[A-F]|Z/i);
+    if ($choice =~ /Z/i) {
         print "BACK\n";
         return (FALSE);
     }
+	$choice = hex($choice);
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
     $self->{'debug'}->DEBUGMAX(["Choice $choice $conf[$choice]"]);
-    print '(Edit) ', $conf[$choice], ' ', $self->{'sysop_tokens'}->{'BIG BULLET RIGHT'}, '  ';
+    print '(Edit) ', $conf[$choice], ' ', $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}, '  ';
     my $sizes = {
-        'BAUD RATE'         => 4,
-        'BBS NAME'          => 50,
-        'BBS ROOT'          => 60,
-        'HOST'              => 20,
-        'THREAD MULTIPLIER' => 2,
-        'PORT'              => 5,
+        'BAUD RATE'           => 4,
+        'BBS NAME'            => 50,
+        'BBS ROOT'            => 60,
+        'HOST'                => 20,
+        'THREAD MULTIPLIER'   => 2,
+        'PORT'                => 5,
+		'DEFAULT BAUD RATE'   => 5,
+		'DEFAULT SUFFIX'      => 3,
+		'DEFAULT TEXT MODE'   => 7,
+		'DEFAULT TIMEOUT'     => 3,
+		'FILES PATH'          => 60,
+		'LOGIN TRIES'         => 1,
+		'MEMCACHED HOST'      => 20,
+		'MEMCACHED NAMESPACE' => 32,
+		'MEMCACHED PORT'      => 5,
+		'SHORT DATE FORMAT'   => 8,
     };
     my $string = $self->sysop_get_line($sizes->{ $conf[$choice] });
     return (FALSE) if ($string eq '');
@@ -994,10 +867,13 @@ sub sysop_edit_configuration {
 
 sub sysop_get_line {
     my $self  = shift;
-    my $width = shift || 50;
+    my $width = shift;
 
-    print savepos, "\n", loadpos, $self->{'ansi_sequences'}->{'DOWN'}, $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x $width, loadpos;
+	$self->{'CACHE'}->set('SHOW_STATUS',FALSE);
+#    print savepos . $self->{'ansi_characters'}->{'DOWN'} . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
+    print savepos . down . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
     chomp(my $response = <STDIN>);
+	$self->{'CACHE'}->set('SHOW_STATUS',TRUE);
 
     # TEMP
     return ($response);
@@ -1093,7 +969,7 @@ sub sysop_user_edit {
         print $table->boxes->draw(), "\n";
         $self->{'debug'}->DEBUGMAX([$mapping]);
         $self->sysop_show_choices($mapping);
-        print "\n", $self->sysop_prompt('Choose');
+        print "\n", $self->sysop_prompt('[% B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] Choose');
         do {
             $key = uc($self->sysop_keypress());
         } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
@@ -1150,27 +1026,27 @@ sub sysop_user_add {
     foreach my $name (@{ $self->{'SYSOP ORDER DETAILED'} }) {
         next if ($name =~ /id|fullname|_time|suffix|max_|_category/);
         if ($name eq 'timeout') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name eq 'baud_rate') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /username|given|family|password/) {
             if ($name eq 'given') {
-                $table->row("$name (first)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (first)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             } elsif ($name eq 'family') {
-                $table->row("$name (last)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (last)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             } else {
-                $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             }
         } elsif ($name eq 'text_mode') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name eq 'birthday') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/) {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /location|retro_systems|accomplishments/) {
-            $table->row($name, "\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
+            $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
         } else {
-            $table->row($name, "\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         }
         $user_template->{$name} = undef;
     } ## end foreach my $name (@{ $self->...})
@@ -1278,8 +1154,8 @@ sub sysop_validate_fields {
 sub sysop_prompt {
     my $self     = shift;
     my $text     = shift;
-    my $response = $text . ' ' . $self->{'sysop_tokens'}->{'BIG BULLET RIGHT'} . ' ';
-    return ($response);
+    my $response = $text . ' [% PINK %]' . $self->{'ansi_characters'}->{'BLACK RIGHTWARDS ARROWHEAD'} . '[% RESET %] ';
+    return ($self->sysop_detokenize($response));
 } ## end sub sysop_prompt
 
 sub sysop_detokenize {
@@ -1303,6 +1179,10 @@ sub sysop_detokenize {
         }
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
     } ## end foreach my $name (keys %{ $self...})
+    foreach my $char (keys %{ $self->{'ansi_characters'} }) {
+        my $ch = $self->{'ansi_characters'}->{$char};
+        $text =~ s/\[\%\s+$char\s+\%\]/$ch/sgi;
+    } ## end foreach my $name (keys %{ $self...})
     $self->{'debug'}->DEBUGMAX([$text]);    # After
 
     return ($text);
@@ -1316,11 +1196,11 @@ sub sysop_menu_choice {
 
     my $response;
     if ($choice eq 'TOP') {
-        $response = $self->{'sysop_tokens'}->{'TOP LEFT ROUNDED'} . $self->{'sysop_tokens'}->{'THIN HORIZONTAL BAR'} . $self->{'sysop_tokens'}->{'TOP RIGHT ROUNDED'} . "\n";
+        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND LEFT'} . "\n";
     } elsif ($choice eq 'BOTTOM') {
-        $response = $self->{'sysop_tokens'}->{'BOTTOM LEFT ROUNDED'} . $self->{'sysop_tokens'}->{'THIN HORIZONTAL BAR'} . $self->{'sysop_tokens'}->{'BOTTOM RIGHT ROUNDED'} . "\n";
+        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'} . "\n";
     } else {
-        $response = $self->{'sysop_tokens'}->{'THIN VERTICAL BAR'} . colored(["BOLD $color"], $choice) . $self->{'sysop_tokens'}->{'THIN VERTICAL BAR'} . ' ' . colored([$color], $self->{'sysop_tokens'}->{'BIG BULLET RIGHT'}) . ' ' . $desc . "\n";
+        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored(["BOLD $color"], $choice) . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . ' ' . colored([$color], $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}) . ' ' . $desc . "\n";
     }
     return ($response);
 } ## end sub sysop_menu_choice
@@ -1468,7 +1348,7 @@ sub sysop_add_bbs {
     my $table = Text::SimpleTable->new(12, 50);
     foreach my $name (qw(bbs_name bbs_hostname bbs_port)) {
         my $count = ($name eq 'bbs_port') ? 5 : 50;
-        $table->row($name, "\n" . $self->{'sysop_tokens'}->{'LARGE OVERLINE'} x $count);
+        $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x $count);
         $table->hr() unless ($name eq 'bbs_port');
     }
     my @order = (qw(bbs_name bbs_hostname bbs_port));

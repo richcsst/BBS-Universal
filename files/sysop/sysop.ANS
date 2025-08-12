@@ -11,10 +11,10 @@ E|SYSOP SHOW ENVIRONMENT|GREEN|Show Environmental Variables
 R|SYSOP RESTART|WHITE|Restart BBS
 X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 ---
-[% RED     %]     #[% RESET %]  ____            _                   __  __
-[% YELLOW  %]    ##[% RESET %] / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _ 
-[% GREEN   %]   ###[% RESET %] \___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |
-[% MAGENTA %]  ####[% RESET %]  ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |
-[% BLUE    %] #####[% RESET %] |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|
-[% CYAN    %]######[% RESET %]        |___/
-[% RESET %]
+[% RED     %]     #[% BRIGHT WHITE %]  ____            _                   __  __[% RESET %]
+[% YELLOW  %]    ##[% BRIGHT WHITE %] / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _[% RESET %]
+[% GREEN   %]   ###[% BRIGHT WHITE %] \___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |[% RESET %]
+[% MAGENTA %]  ####[% BRIGHT WHITE %]  ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |[% RESET %]
+[% BLUE    %] #####[% BRIGHT WHITE %] |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|[% RESET %]
+[% CYAN    %]######[% BRIGHT WHITE %]        |___/[% RESET %]
+

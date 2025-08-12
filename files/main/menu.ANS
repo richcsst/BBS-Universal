@@ -6,8 +6,8 @@ N|NEWS|CYAN|System News
 A|ABOUT|YELLOW|About This BBS
 X|DISCONNECT|RED|Disconnect
 ---
-[% RED     %][% B_RED     %]        [% RESET %]   __  __       _          __  __                    [% RED     %][% B_RED     %]        [% RESET %]
-[% YELLOW  %][% B_YELLOW  %]        [% RESET %]  |  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _   [% YELLOW  %][% B_YELLOW  %]        [% RESET %]
-[% GREEN   %][% B_GREEN   %]        [% RESET %]  | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |  [% GREEN   %][% B_GREEN   %]        [% RESET %]
-[% MAGENTA %][% B_MAGENTA %]        [% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |  [% MAGENTA %][% B_MAGENTA %]        [% RESET %]
-[% BLUE    %][% B_BLUE    %]        [% RESET %]  |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|  [% BLUE    %][% B_BLUE    %]        [% RESET %]
+[% RED     %]       [% BLACK LOWER RIGHT TRIANGLE %][% B_RED     %] [% RESET %]   __  __       _          __  __                    [% B_RED     %] [% RESET %][% RED %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% YELLOW  %]      [% BLACK LOWER RIGHT TRIANGLE %][% B_YELLOW  %]  [% RESET %]  |  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _   [% B_YELLOW  %]  [% RESET %][% YELLOW %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% GREEN   %]     [% BLACK LOWER RIGHT TRIANGLE %][% B_GREEN   %]   [% RESET %]  | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |  [% B_GREEN   %]   [% RESET %][% GREEN %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% MAGENTA %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_MAGENTA %]    [% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |  [% B_MAGENTA %]    [% RESET %][% MAGENTA %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% BLUE    %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BLUE    %]     [% RESET %]  |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|  [% B_BLUE    %]     [% RESET %][% BLUE %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]

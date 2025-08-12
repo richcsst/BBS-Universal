@@ -3,11 +3,11 @@ L|SYSOP LIST FILES|GREEN|List Files
 E|SYSOP EDIT FILE CATEGORIES|YELLOW|Edit File Categories
 Z|BACK|WHITE|Return To Main Menu
 ---
-[% RED     %]     #[% YELLOW %]  _____ _ _        __  __                                   
-[% YELLOW  %]    ##[% YELLOW %] |  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __ 
-[% GREEN   %]   ###[% YELLOW %] | |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|
-[% MAGENTA %]  ####[% YELLOW %] |  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |   
-[% BLUE    %] #####[% YELLOW %] |_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|   
-[% CYAN    %]######[% YELLOW %]                                            |___/ 
-[% RESET %]
-Current Category:  [% FILE CATEGORY %]
+[% RED     %]     #[% YELLOW %] _____ _ _        __  __[% RESET %] 
+[% YELLOW  %]    ##[% YELLOW %]|  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
+[% GREEN   %]   ###[% YELLOW %]| |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
+[% MAGENTA %]  ####[% YELLOW %]|  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
+[% BLUE    %] #####[% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
+[% CYAN    %]######[% YELLOW %]                                           |___/[% RESET %]
+
+[% B_WHITE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]

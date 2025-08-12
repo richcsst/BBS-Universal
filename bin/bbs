@@ -8,7 +8,8 @@
 # |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|
 #
 # =============================================================
-# Copyright © 2023-2024 Richard Kelsch
+# BBS::Universal
+# Copyright © 2023-2025 Richard Kelsch
 # All Rights Reserved
 # Licensed under the GNU Public License Version 3
 #   See the LICENSE file for details
@@ -43,11 +44,12 @@ use List::Util qw(min max);
 use Text::Format;
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
+use charnames;
 
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.002';
+    our $VERSION = '0.003';
 }
 
 binmode(STDOUT, ':encoding(UTF-8)');
@@ -100,6 +102,7 @@ $CACHE->set_multi(
 	['THREADS_RUNNING', 0],
 	['ROW_ADJUST',      0],
 	['START_ROW',       7],
+	['SHOW_STATUS',     TRUE],
 );
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
@@ -279,7 +282,7 @@ sub logo {
     print setscroll(1, $hsize), locate(1, 1);
     print colored(['red','on_black'], clline .         '  ____  ____ ____    _   _       _                          _  ') . colored(['on_black'],sprintf('│ Version %.03f', $BBS::Universal::VERSION)), "\n";
     print colored(['yellow','on_black'], clline .      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | '), colored(['on_black'], '│ Written By Richard Kelsch'), "\n";
-    print colored(['green','on_black'], clline .      q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }), colored(['on_black'], '│ Copyright © 2023-2024 Richard Kelsch'), "\n";
+    print colored(['green','on_black'], clline .      q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }), colored(['on_black'], '│ Copyright © 2023-2025 Richard Kelsch'), "\n";
     print colored(['magenta','on_black'], clline .     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | '), colored(['on_black'], '│ All Rights Reserved'), "\n";
     print colored(['bright_blue','on_black'], clline . ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| '), colored(['on_black'], '│ Licensed under the GNU Public License Version 3'), "\n";
     print locate(6, 1), colored(['on_black'], '━' x $wsize);
@@ -377,81 +380,84 @@ sub system_menu {
 sub servers_status {
     my $bbs_obj    = shift;
     my $show_alarm = shift;
-    if ($CACHE->get('UPDATE') && !$TEST) {
-		alarm(0);
-        my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-        my $stp   = int($wsize / 26);
-        my $steps = $stp;
-        my @row   = ();
-        my @sizes;
-        foreach my $count (1 .. $stp) {
-            push(@sizes, 22);
-        }
 
-        my $table = Text::SimpleTable->new(@sizes);
-        my $count = 1;
-        $CACHE->set_multi(
-			['ROW_ADJUST',      2],
-			['ONLINE',          0],
-			['THREADS_RUNNING', 0],
-		);
-       foreach my $name (sort(keys %{$SERVER_THREADS})) {
-            if ($CACHE->get($name) eq 'CONNECTED') {
-                $CACHE->set_multi(
-					['ONLINE',          $CACHE->get('ONLINE') + 1],
-					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
-					[$name,             'CONNECTED'],
-				);
-            } elsif ($CACHE->get($name) eq 'IDLE') {
-                $CACHE->set_multi(
-					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
-					[$name,             'IDLE'],
-				);
-            } else {
-                $CACHE->set_multi(
-					['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1],
-					[$name,             'FINISHED'],
-				);
-            }
-            push(@row, "$name -> " . $CACHE->get($name));
-            $steps--;
-            if ($steps == 0) {
-                $steps = $stp;
-                $table->row(@row);
-                @row = ();
-                $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-            } ## end if ($steps == 0)
-            $count++;
-            threads->yield();
-        } ## end foreach my $name (sort(keys...))
-        if (scalar(@row)) {
-            while ($steps >= 0) {
-                push(@row, ' ');
-                $steps--;
-                threads->yield();
-            }
-            $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-            $table->row(@row);
-            $CACHE->set('UPDATE', FALSE);
-        } ## end if (scalar(@row))
-		if (defined($table)) {
-			my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
-			my $cn  = colored(['green'],   'CONNECTED');
-			my $idl = colored(['magenta'], 'IDLE');
-			my $fn  = colored(['red'],     'FINISHED');
-			$tbl =~ s/CONNECTED/$cn/g;
-			$tbl =~ s/IDLE/$idl/g;
-			$tbl =~ s/FINISHED/$fn/g;
-
-			if ($show_alarm) {
-				print savepos, $tbl, loadpos;
-				$SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
-				alarm(1);
-			} else {
-				print $tbl;
+	if ($CACHE->get('SHOW_STATUS')) {
+		if ($CACHE->get('UPDATE') && !$TEST) {
+			alarm(0);
+			my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+			my $stp   = int($wsize / 26);
+			my $steps = $stp;
+			my @row   = ();
+			my @sizes;
+			foreach my $count (1 .. $stp) {
+				push(@sizes, 22);
 			}
-		}
-    } ## end if ($CACHE->get('UPDATE'...))
+
+			my $table = Text::SimpleTable->new(@sizes);
+			my $count = 1;
+			$CACHE->set_multi(
+				['ROW_ADJUST',      2],
+				['ONLINE',          0],
+				['THREADS_RUNNING', 0],
+			);
+			foreach my $name (sort(keys %{$SERVER_THREADS})) {
+				if ($CACHE->get($name) eq 'CONNECTED') {
+					$CACHE->set_multi(
+						['ONLINE',          $CACHE->get('ONLINE') + 1],
+						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+						[$name,             'CONNECTED'],
+					);
+				} elsif ($CACHE->get($name) eq 'IDLE') {
+					$CACHE->set_multi(
+						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+						[$name,             'IDLE'],
+					);
+				} else {
+					$CACHE->set_multi(
+						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1],
+						[$name,             'FINISHED'],
+					);
+				}
+				push(@row, "$name -> " . $CACHE->get($name));
+				$steps--;
+				if ($steps == 0) {
+					$steps = $stp;
+					$table->row(@row);
+					@row = ();
+					$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+				} ## end if ($steps == 0)
+				$count++;
+				threads->yield();
+			} ## end foreach my $name (sort(keys...))
+			if (scalar(@row)) {
+				while ($steps >= 0) {
+					push(@row, ' ');
+					$steps--;
+					threads->yield();
+				}
+				$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+				$table->row(@row);
+				$CACHE->set('UPDATE', FALSE);
+			} ## end if (scalar(@row))
+			if (defined($table)) {
+				my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
+				my $cn  = colored(['green'],   'CONNECTED');
+				my $idl = colored(['magenta'], 'IDLE');
+				my $fn  = colored(['red'],     'FINISHED');
+				$tbl =~ s/CONNECTED/$cn/g;
+				$tbl =~ s/IDLE/$idl/g;
+				$tbl =~ s/FINISHED/$fn/g;
+
+				if ($show_alarm) {
+					print savepos, $tbl, loadpos;
+					$SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
+					alarm(1);
+				} else {
+					print $tbl;
+				}
+			}
+		} ## end if ($CACHE->get('UPDATE'...))
+	}
     return (TRUE);
 } ## end sub servers_status
 

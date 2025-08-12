@@ -4,7 +4,6 @@ S|SEARCH FILES SUMMARY|GREEN|Search for file (short format)
 D|SEARCH FILES DETAILED|RED|Search for file (long format)
 Z|BACK|GREEN|Main Menu
 ---
-[% CLEAR %]
  _____ _ _      
 |  ___(_) | ___ 
 | |_  | | |/ _ \

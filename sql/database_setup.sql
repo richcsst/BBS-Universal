@@ -270,26 +270,12 @@ INSERT INTO file_categories (title,description) VALUES ('BBS::Universal Specific
 
 INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format',148513);
 
-INSERT INTO files (
-    filename,
-	title,
-	file_type,
-	description,
-	file_size
-  ) VALUES (
-    'BBS-Universal-0.001.tar.gz',
-    'BBS::Universal distribution',
-    (SELECT id FROM file_types WHERE extension='GZ'),
-    'BBS::Universal is a BBS server written in Perl',
-    223232
-  );
-
 INSERT INTO news (
     news_title,
 	news_content
   ) VALUES (
     'BBS Universal Installation',
-	'BBS::Universal, a Perl based BBS server designed for retro and modern computers has been installeed on this server.'
+	'BBS::Universal, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
   );
 
 -- Views

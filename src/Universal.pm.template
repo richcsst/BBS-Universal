@@ -52,7 +52,7 @@ use Cache::Memcached::Fast;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.002';
+    our $VERSION = '0.003';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
       TRUE
@@ -643,7 +643,7 @@ sub prompt {
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $response = "$text > ";
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $response = $text . ' ' . $self->{'ansi_sequences'}->{'BIG BULLET RIGHT'} . ' ';
+        $response = $text . ' ' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . ' ';
     } else {
         $response = "$text > ";
     }
@@ -662,7 +662,7 @@ sub menu_choice {
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} . colored([$color], $choice) . $self->{'ansi_sequences'}->{'THIN VERTICAL BAR'} . colored([$color], $self->{'ansi_sequences'}->{'BIG BULLET RIGHT'}) . " $desc");
+        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored([$color], $choice) . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored([$color], $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}) . " $desc");
     } else {
         $self->output(" $choice > $desc");
     }
@@ -674,15 +674,16 @@ sub show_choices {
 
     my $keys = '';
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_sequences'}->{'TOP LEFT ROUNDED'} . $self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} . $self->{'ansi_sequences'}->{'TOP RIGHT ROUNDED'} . "\n");
+        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND LEFT'} . "\n");
     }
+	my $odd = 0;
     foreach my $kmenu (sort(keys %{$mapping})) {
         next if ($kmenu eq 'TEXT');
         $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-        $self->output("\n");
+		$self->output("\n");
     }
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_sequences'}->{'BOTTOM LEFT ROUNDED'} . $self->{'ansi_sequences'}->{'THIN HORIZONTAL BAR'} . $self->{'ansi_sequences'}->{'BOTTOM RIGHT ROUNDED'});
+        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'});
     }
 } ## end sub show_choices
 
@@ -696,7 +697,7 @@ sub header {
     $text .= $name;
     $text .= '#' x ($width - length($text));
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        my $char = '[% THICK HORIZONTAL BAR %]';
+        my $char = '[% BOX DRAWINGS HEAVY HORIZONTAL %]';
         $text =~ s/\#/$char/g;
     }
     return ($self->detokenize_text('[% CLS %]' . $text));
@@ -753,10 +754,19 @@ sub main_menu {
     while ($connected && $self->is_connected()) {
         $self->output($mapping->{'TEXT'} . "\n");
         $self->show_choices($mapping);
-        $self->output("\n" . $self->prompt('Choose'));
+		my $mode = $self->{'USER'}->{'text_mode'};
+		if ($mode eq 'ANSI') {
+			$self->output("\n" . $self->prompt('(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . 'Choose'));
+		} elsif ($mode eq 'ATASCII') {
+			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+		} elsif ($mode eq 'PETSCII') {
+			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+		} else {
+			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+		}
         my $key;
         do {
-            $key = uc($self->get_key(SILENT, BLOCKING));
+            $key = uc($self->get_key(SILENT, FALSE));
         } until (exists($mapping->{$key}) || !$self->is_connected());
         $self->output($mapping->{$key}->{'command'} . "\n");
         $command = $mapping->{$key}->{'command'};
@@ -800,7 +810,6 @@ sub get_key {
     my $echo     = shift;
     my $blocking = shift;
 
-	alarm(0);
     my $key = undef;
     local $/ = "\x{00}";
     if ($self->{'local_mode'}) {
@@ -832,7 +841,6 @@ sub get_key {
     } elsif ($echo == PASSWORD && defined($key)) {
         $self->output('*');
     }
-	alarm(1);
     return ($key);
 } ## end sub get_key
 
@@ -978,7 +986,7 @@ sub static_configuration {
     $self->{'debug'}->DEBUG(['Getting static configuration']);
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'}     = 'Richard Kelsch';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'}    = 'Richard Kelsch <rich@rk-internet.com>';
-    $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Southern Utah - USA';
+    $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Central Utah - USA';
     if (-e $file) {
         open(my $CFG, '<', $file) or die "$file missing!";
         chomp(my @lines = <$CFG>);
@@ -1101,8 +1109,35 @@ sub configuration {
 
 sub parse_versions {
     my $self = shift;
-
-    my $versions = ["Perl                          $OLD_PERL_VERSION", "BBS::Universal                $BBS::Universal::VERSION", "BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION", "BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION", "BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION", "BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION", "BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION", "BBS::Universal::CPU           $BBS::Universal::CPU_VERSION", "BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION", "BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION", "BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION", "BBS::Universal::Users         $BBS::Universal::USERS_VERSION", "BBS::Universal::DB            $BBS::Universal::DB_VERSION", "DBI                           $DBI::VERSION", "DBD::mysql                    $DBD::mysql::VERSION", "DateTime                      $DateTime::VERSION", "Debug::Easy                   $Debug::Easy::VERSION", "File::Basename                $File::Basename::VERSION", "Time::HiRes                   $Time::HiRes::VERSION", "Term::ReadKey                 $Term::ReadKey::VERSION", "Term::ANSIScreen              $Term::ANSIScreen::VERSION", "Text::Format                  $Text::Format::VERSION", "Text::SimpleTable             $Text::SimpleTable::VERSION", "IO::Socket                    $IO::Socket::VERSION",];
+###
+    my $versions = [
+		"Perl                          $OLD_PERL_VERSION",
+		"BBS Executable                $main::VERSION",
+		"BBS::Universal                $BBS::Universal::VERSION",
+		"BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
+		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
+		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
+		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
+		"BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION",
+		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
+		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
+		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
+		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
+		"BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
+		"BBS::Universal::DB            $BBS::Universal::DB_VERSION",
+		"DBI                           $DBI::VERSION",
+		"DBD::mysql                    $DBD::mysql::VERSION",
+		"DateTime                      $DateTime::VERSION",
+		"Debug::Easy                   $Debug::Easy::VERSION",
+		"File::Basename                $File::Basename::VERSION",
+		"Time::HiRes                   $Time::HiRes::VERSION",
+		"Term::ReadKey                 $Term::ReadKey::VERSION",
+		"Term::ANSIScreen              $Term::ANSIScreen::VERSION",
+		"Text::Format                  $Text::Format::VERSION",
+		"Text::SimpleTable             $Text::SimpleTable::VERSION",
+		"IO::Socket                    $IO::Socket::VERSION",
+	];
+###
     return ($versions);
 } ## end sub parse_versions
 

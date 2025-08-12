@@ -4,7 +4,6 @@ R|SYSOP BBS DELETE|RED|Remove a BBS on List
 V|SYSOP BBS LIST VIEW|WHITE|View BBS List
 Z|BACK|WHITE|Return to System Menu
 ---
-[% CLEAR %]
 [% RED     %]     #[% BRIGHT BLUE %]  ____  ____ ____    _     _     _   _               __  __                                   
 [% YELLOW  %]    ##[% BRIGHT BLUE %] | __ )| __ ) ___|  | |   (_)___| |_(_)_ __   __ _  |  \/  | __ _ _ __   __ _  __ _  ___ _ __ 
 [% GREEN   %]   ###[% BRIGHT BLUE %] |  _ \|  _ \___ \  | |   | / __| __| | '_ \ / _` | | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|
