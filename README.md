@@ -1,6 +1,6 @@
 ### BBS::Universal
 
-![BBS::Universal Logo](files/main/BBS_Universal.png?raw=true "BBS::Universal")
+![BBS::Universal Logo](files/files/BBS_Universal.png?raw=true "BBS::Universal")
 
 A Perl based TCP-IP BBS catering to retro computers and that modem experience.
 
