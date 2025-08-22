@@ -159,6 +159,11 @@ our $SYSOP_COMMANDS = {
         $self->sysop_list_files();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
     },
+	'SYSOP DELETE FILES' => sub {
+		my $self = shift;
+		$self->sysop_delete_files();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+	},
     'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL ABBREVIATED');

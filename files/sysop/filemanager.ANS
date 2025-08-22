@@ -1,6 +1,7 @@
 C|SYSOP SELECT FILE CATEGORY|MAGENTA|Select Category
 L|SYSOP LIST FILES|GREEN|List Files
 E|SYSOP EDIT FILE CATEGORIES|YELLOW|Edit File Categories
+D|SYSOP DELETE FILES|CYAN|Delete Files
 Z|BACK|WHITE|Return To Main Menu
 ---
 [% RED     %]     #[% YELLOW %] _____ _ _        __  __[% RESET %] 

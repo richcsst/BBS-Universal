@@ -68,6 +68,8 @@ if (
         BUILD_REQUIRES => {
             'Test::More' => '0.44',
         },
+		PREREQ_PRINT => 1,
+		PREREQ_FATAL => 1,
         PREREQ_PM => {
             'Config'                 => 0,
             'English'                => 0,

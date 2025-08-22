@@ -588,6 +588,12 @@ sub sysop_list_users {
     return (TRUE);
 } ## end sub sysop_list_users
 
+sub sysop_delete_files {
+	my $self = shift;
+
+	return(TRUE);
+}
+
 sub sysop_list_files {
     my $self = shift;
 
@@ -755,12 +761,12 @@ sub sysop_view_configuration {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-			$table->hr();
 #        } else {
 #            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
         }
     } ## end foreach my $conf (sort(keys...))
     if ($view) {
+		$table->hr();
         $table->row('CONFIG NAME', 'CONFIG VALUE');
     } else {
         $table->row('CHOICE', 'CONFIG NAME', 'CONFIG VALUE');
