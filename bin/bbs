@@ -60,6 +60,7 @@ my $SERVER_THREADS = {};
 my $RESTART        = FALSE;
 my @CALL           = @ARGV;
 my $SINGLE         = FALSE;
+my $MPLAYER        = FALSE;
 
 # Shared with threads
 
@@ -76,6 +77,10 @@ my $DEBUG = Debug::Easy->new(
     'LogLevel' => $LEVEL,
     'Color'    => TRUE,
 );
+
+if (-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') {
+	$MPLAYER = TRUE;
+}
 
 ############## BBS Core ###################
 print cls;
@@ -266,6 +271,7 @@ if ($RESTART) {
     print "\n\nRESTARTING...\n";
     exec($ENV{'_'}, @CALL);
 }
+
 exit(0);
 
 ###########################################
@@ -567,6 +573,9 @@ sub clean_joinable {
 
 sub finish {
     my $bbs_obj = shift;
+	if ($MPLAYER) {
+		system('mplayer -really-quiet sysop_sounds/Pacman-death-sound.mp3 >/dev/null 2>&1 &');
+	}
     $CACHE->set('RUNNING', FALSE);
     $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
     clean_joinable($bbs_obj);

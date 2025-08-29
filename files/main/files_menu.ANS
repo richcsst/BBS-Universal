@@ -1,6 +1,6 @@
 C|FILE CATEGORY|YELLOW|Change File Category
 L|LIST FILES DETAILED|MAGENTA|List files
-S|SEARCH FILES SUMMARY|GREEN|Search for file (short format)
+S|SEARCH FILES SUMMARY|BRIGHT BLUE|Search for file (short format)
 D|SEARCH FILES DETAILED|RED|Search for file (long format)
 Z|BACK|GREEN|Main Menu
 ---

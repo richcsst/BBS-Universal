@@ -1169,6 +1169,8 @@ sub sysop_detokenize {
     my $text = shift;
 
     $self->{'debug'}->DEBUGMAX([$text]);    # Before
+
+	# OPERATION TOKENS
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
         if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
@@ -1178,6 +1180,8 @@ sub sysop_detokenize {
         }
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     } ## end foreach my $key (keys %{ $self...})
+
+	# ANSI TOKENS
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
         my $ch = $self->{'ansi_sequences'}->{$name};
         if ($name eq 'CLEAR') {
@@ -1185,6 +1189,8 @@ sub sysop_detokenize {
         }
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
     } ## end foreach my $name (keys %{ $self...})
+
+	# SPECIAL CHARACTERS
     foreach my $char (keys %{ $self->{'ansi_characters'} }) {
         my $ch = $self->{'ansi_characters'}->{$char};
         $text =~ s/\[\%\s+$char\s+\%\]/$ch/sgi;

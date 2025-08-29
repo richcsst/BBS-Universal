@@ -6,26 +6,26 @@ sub ansi_initialize {
 
     my $esc = chr(27) . '[';
 
-    $self->{'ansi_prefix'}    = $esc;
-    $self->{'ansi_sequences'} = {
+    $self->{'ansi_prefix'} = $esc;
+	$self->{'ansi_sequences'} = {
 		'RETURN'   => chr(13),
 		'LINEFEED' => chr(10),
 		'NEWLINE'  => chr(13) . chr(10),
 
-		'CLEAR'      => locate(1, 1) . cls,
-		'CLS'        => locate(1, 1) . cls,
-		'CLEAR LINE' => clline,
-		'CLEAR DOWN' => cldown,
-		'CLEAR UP'   => clup,
+		'CLEAR'      => $esc . '2J',
+		'CLS'        => $esc . '2J',
+		'CLEAR LINE' => $esc . '0K',
+		'CLEAR DOWN' => $esc . '0J',
+		'CLEAR UP'   => $esc . '1J',
 
 		# Cursor
-		'UP'          => up,
-		'DOWN'        => down,
-		'RIGHT'       => right,
-		'LEFT'        => left,
-		'SAVE'        => savepos,
-		'RESTORE'     => loadpos,
-		'RESET'       => $esc . '0m',
+		'UP'      => $esc . 'A',
+		'DOWN'    => $esc . 'B',
+		'RIGHT'   => $esc . 'C',
+		'LEFT'    => $esc . 'D',
+		'SAVE'    => $esc . 's',
+		'RESTORE' => $esc . 'u',
+		'RESET'   => $esc . '0m',
 
 		# Attributes
 		'BOLD'         => $esc . '1m',
@@ -96,27 +96,27 @@ sub ansi_initialize {
 		'BRIGHT B_CYAN'    => $esc . '106m',
 		'BRIGHT B_WHITE'   => $esc . '107m',
 
-		'HORIZONTAL RULE ORANGE'         => "\r" . $esc . '48;5;202m' . clline . $esc . '0m',
-		'HORIZONTAL RULE PINK'           => "\r" . $esc . '48;5;198m' . clline . $esc . '0m',
-		'HORIZONTAL RULE RED'            => "\r" . $esc . '41m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT RED'     => "\r" . $esc . '101m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE GREEN'          => "\r" . $esc . '42m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT GREEN'   => "\r" . $esc . '102m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE YELLOW'         => "\r" . $esc . '43m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT YELLOW'  => "\r" . $esc . '103m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE BLUE'           => "\r" . $esc . '44m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT BLUE'    => "\r" . $esc . '104m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE MAGENTA'        => "\r" . $esc . '45m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT MAGENTA' => "\r" . $esc . '105m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE CYAN'           => "\r" . $esc . '46m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT CYAN'    => "\r" . $esc . '106m'      . clline . $esc . '0m',
-		'HORIZONTAL RULE WHITE'          => "\r" . $esc . '47m'       . clline . $esc . '0m',
-		'HORIZONTAL RULE BRIGHT WHITE'   => "\r" . $esc . '107m'      . clline . $esc . '0m',
+		'HORIZONTAL RULE ORANGE'         => '[% RETURN %]' . $esc . '48;5;202m' . clline . $esc . '0m',
+		'HORIZONTAL RULE PINK'           => '[% RETURN %]' . $esc . '48;5;198m' . clline . $esc . '0m',
+		'HORIZONTAL RULE RED'            => '[% RETURN %]' . $esc . '41m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT RED'     => '[% RETURN %]' . $esc . '101m' . clline . $esc . '0m',
+		'HORIZONTAL RULE GREEN'          => '[% RETURN %]' . $esc . '42m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT GREEN'   => '[% RETURN %]' . $esc . '102m' . clline . $esc . '0m',
+		'HORIZONTAL RULE YELLOW'         => '[% RETURN %]' . $esc . '43m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT YELLOW'  => '[% RETURN %]' . $esc . '103m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BLUE'           => '[% RETURN %]' . $esc . '44m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT BLUE'    => '[% RETURN %]' . $esc . '104m' . clline . $esc . '0m',
+		'HORIZONTAL RULE MAGENTA'        => '[% RETURN %]' . $esc . '45m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT MAGENTA' => '[% RETURN %]' . $esc . '105m' . clline . $esc . '0m',
+		'HORIZONTAL RULE CYAN'           => '[% RETURN %]' . $esc . '46m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT CYAN'    => '[% RETURN %]' . $esc . '106m' . clline . $esc . '0m',
+		'HORIZONTAL RULE WHITE'          => '[% RETURN %]' . $esc . '47m' . clline . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT WHITE'   => '[% RETURN %]' . $esc . '107m' . clline . $esc . '0m',
 		@_,
 	};
 
-    # Generate generic colors
-    foreach my $count (0 .. 255) {
+	# Generate generic colors
+	foreach my $count (0 .. 255) {
 		$self->{'ansi_sequences'}->{"ANSI$count"}   = $esc . '38;5;' . $count . 'm';
 		$self->{'ansi_sequences'}->{"B_ANSI$count"} = $esc . '48;5;' . $count . 'm';
 		if ($count >= 232 && $count <= 255) {
@@ -126,33 +126,29 @@ sub ansi_initialize {
 		}
 	} ## end foreach my $count (0 .. 255)
 
-    # Generate symbols
-	my $start = 0x2010;
-	my $finish = 0x2B59;
+	# Generate symbols
+	my $start  = 0x2010;
+	my $finish = 0x2BFF;
 
-    my $name = charnames::viacode(0x1F341); # Maple Leaf
+	my $name = charnames::viacode(0x1F341);    # Maple Leaf
 	$self->{'ansi_characters'}->{$name} = charnames::string_vianame($name);
-    foreach my $u ($start .. $finish) {
+	foreach my $u ($start .. $finish) {
 		$name = charnames::viacode($u);
 		next if ($name eq '');
 		my $char = charnames::string_vianame($name);
-		$char = '?' unless(defined($char));
+		$char = '?' unless (defined($char));
 		$self->{'ansi_characters'}->{$name} = $char;
-	}
-	$start = 0x1F300;
+	} ## end foreach my $u ($start .. $finish)
+	$start  = 0x1F300;
 	$finish = 0x1FBFF;
 	foreach my $u ($start .. $finish) {
 		$name = charnames::viacode($u);
 		next if ($name eq '');
 		my $char = charnames::string_vianame($name);
-		$char = '?' unless(defined($char));
+		$char = '?' unless (defined($char));
 		$self->{'ansi_characters'}->{$name} = $char;
-	}
-
-    foreach my $count (0 .. 255) {
-        $self->{'ansi_sequences'}->{"ANSI$count"} = color("ANSI$count");
-    }
-    $self->{'debug'}->DEBUG(['Initialized ANSI']);
+	} ## end foreach my $u ($start .. $finish)
+	$self->{'debug'}->DEBUG(['Initialized ANSI']);
     return ($self);
 } ## end sub ansi_initialize
 
