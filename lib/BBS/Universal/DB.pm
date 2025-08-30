@@ -12,6 +12,11 @@ sub db_initialize {
 sub db_connect {
     my $self = shift;
 
+    my @dbhosts = split(/\s*,\s*/, $self->{'CONF'}->{'STATIC'}->{'DATABASE HOSTNAME'});
+    my $errors  = '';
+    foreach my $host (@dbhosts) {
+        $errors        = '';
+    # This is for the brave that want to try SSL connections.
     #	$self->{'dsn'} = sprintf('dbi:%s:database=%s;' .
     #		'host=%s;' .
     #		'port=%s;' .
@@ -28,10 +33,6 @@ sub db_connect {
     #		'/etc/mysql/certs/client-cert.pem',
     #		'/etc/mysql/certs/ca-cert.pem'
     #	);
-    my @dbhosts = split(/\s*,\s*/, $self->{'CONF'}->{'STATIC'}->{'DATABASE HOSTNAME'});
-    my $errors  = '';
-    foreach my $host (@dbhosts) {
-        $errors        = '';
         $self->{'dsn'} = sprintf('dbi:%s:database=%s;' . 'host=%s;' . 'port=%s;', $self->{'CONF'}->{'STATIC'}->{'DATABASE TYPE'}, $self->{'CONF'}->{'STATIC'}->{'DATABASE NAME'}, $host, $self->{'CONF'}->{'STATIC'}->{'DATABASE PORT'},);
         $self->{'dbh'} = DBI->connect(
             $self->{'dsn'},
