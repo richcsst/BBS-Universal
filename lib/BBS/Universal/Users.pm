@@ -60,20 +60,7 @@ sub users_add {
 		}
     );
     $self->{'debug'}->DEBUGMAX($user_template);
-    $sth->execute(
-		$user_template->{'username'},
-		$user_template->{'given'},
-		$user_template->{'family'},
-		$user_template->{'nickname'},
-		$user_template->{'email'},
-		$user_template->{'accomplishments'},
-		$user_template->{'retro_systems'},
-		$user_template->{'birthday'},
-		$user_template->{'location'},
-		$user_template->{'baud_rate'},
-		$user_template->{'text_mode'},
-		$user_template->{'password'},
-	) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+    $sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'},) or $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
     $sth = $self->{'dbh'}->prepare(
         q{
 			INSERT INTO permissions (

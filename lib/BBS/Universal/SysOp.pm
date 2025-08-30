@@ -22,9 +22,10 @@ sub sysop_initialize {
     }
     my $versions     = $self->sysop_versions_format($sections, FALSE);
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
-	my $esc          = chr(27) . '[';
+    my $esc          = chr(27) . '[';
 
     $self->{'sysop_tokens'} = {
+
         # Tokens
         'HOSTNAME'     => $self->sysop_hostname,
         'IP ADDRESS'   => $self->sysop_ip_address(),
@@ -38,15 +39,15 @@ sub sysop_initialize {
         'BBS VERSIONS' => $bbs_versions,
         'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
 
-        'MIDDLE VERTICAL RULE BLACK'     => $self->sysop_locate_middle('B_BLACK'),
-        'MIDDLE VERTICAL RULE RED'       => $self->sysop_locate_middle('B_RED'),
-		'MIDDLE VERTICAL RULE GREEN'     => $self->sysop_locate_middle('B_GREEN'),
-		'MIDDLE VERTICAL RULE YELLOW'    => $self->sysop_locate_middle('B_YELLOW'),
-		'MIDDLE VERTICAL RULE BLUE'      => $self->sysop_locate_middle('B_BLUE'),
-		'MIDDLE VERTICAL RULE MAGENTA'   => $self->sysop_locate_middle('B_MAGENTA'),
-		'MIDDLE VERTICAL RULE CYAN'      => $self->sysop_locate_middle('B_CYAN'),
-		'MIDDLE VERTICAL RULE WHITE'     => $self->sysop_locate_middle('B_WHITE'),
-		
+        'MIDDLE VERTICAL RULE BLACK'   => $self->sysop_locate_middle('B_BLACK'),
+        'MIDDLE VERTICAL RULE RED'     => $self->sysop_locate_middle('B_RED'),
+        'MIDDLE VERTICAL RULE GREEN'   => $self->sysop_locate_middle('B_GREEN'),
+        'MIDDLE VERTICAL RULE YELLOW'  => $self->sysop_locate_middle('B_YELLOW'),
+        'MIDDLE VERTICAL RULE BLUE'    => $self->sysop_locate_middle('B_BLUE'),
+        'MIDDLE VERTICAL RULE MAGENTA' => $self->sysop_locate_middle('B_MAGENTA'),
+        'MIDDLE VERTICAL RULE CYAN'    => $self->sysop_locate_middle('B_CYAN'),
+        'MIDDLE VERTICAL RULE WHITE'   => $self->sysop_locate_middle('B_WHITE'),
+
         # Non-static
         'THREADS COUNT' => sub {
             my $self = shift;
@@ -91,33 +92,33 @@ sub sysop_initialize {
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
             my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-			my @sys = (sort(keys %{$main::SYSOP_COMMANDS}));
-			my @usr = (sort(keys %{ $self->{'COMMANDS'} }),(sort(keys %{ $self->{'COMMANDS'} })));
-			my $x = 1;
-			my $y = 1;
-			foreach my $s (@sys) {
-				$x = max(length($s),$x);
-			}
-			foreach my $u (@usr) {
-				$y = max(length($u),$y);
-			}
-            my $table = Text::SimpleTable->new($x,$y);
-            $table->row('SYSOP MENU COMMANDS','USER MENU COMMANDS');
+            my @sys = (sort(keys %{$main::SYSOP_COMMANDS}));
+            my @usr = (sort(keys %{ $self->{'COMMANDS'} }), (sort(keys %{ $self->{'COMMANDS'} })));
+            my $x   = 1;
+            my $y   = 1;
+            foreach my $s (@sys) {
+                $x = max(length($s), $x);
+            }
+            foreach my $u (@usr) {
+                $y = max(length($u), $y);
+            }
+            my $table = Text::SimpleTable->new($x, $y);
+            $table->row('SYSOP MENU COMMANDS', 'USER MENU COMMANDS');
             $table->hr();
-			my ($sysop_names,$user_names);
-			while(scalar(@sys) || scalar(@usr)) {
-				if (scalar(@sys)) {
-					$sysop_names = shift(@sys);
-				} else {
-					$sysop_names = ' ';
-				}
-				if (scalar(@usr)) {
-					$user_names = shift(@usr);
-				} else {
-					$user_names = ' ';
-				}
-				$table->row($sysop_names,$user_names);
-			}
+            my ($sysop_names, $user_names);
+            while (scalar(@sys) || scalar(@usr)) {
+                if (scalar(@sys)) {
+                    $sysop_names = shift(@sys);
+                } else {
+                    $sysop_names = ' ';
+                }
+                if (scalar(@usr)) {
+                    $user_names = shift(@usr);
+                } else {
+                    $user_names = ' ';
+                }
+                $table->row($sysop_names, $user_names);
+            } ## end while (scalar(@sys) || scalar...)
             return ($self->center($table->boxes->draw(), $wsize));
         },
     };
@@ -391,7 +392,7 @@ sub sysop_decision {
 
 sub sysop_keypress {
     my $self = shift;
-	$self->{'CACHE'}->set('SHOW_STATUS',FALSE);
+    $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
     my $key;
     ReadMode 'ultra-raw';
     do {
@@ -399,7 +400,7 @@ sub sysop_keypress {
         threads->yield();
     } until (defined($key));
     ReadMode 'restore';
-	$self->{'CACHE'}->set('SHOW_STATUS',TRUE);
+    $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
     return ($key);
 } ## end sub sysop_keypress
 
@@ -589,9 +590,9 @@ sub sysop_list_users {
 } ## end sub sysop_list_users
 
 sub sysop_delete_files {
-	my $self = shift;
+    my $self = shift;
 
-	return(TRUE);
+    return (TRUE);
 }
 
 sub sysop_list_files {
@@ -696,7 +697,7 @@ sub sysop_edit_file_categories {
         $table = Text::SimpleTable->new(11, 80);
         $table->row('TITLE',       "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
         $table->row('DESCRIPTION', "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
-        print "\n", $table->boxes->draw();
+        print "\n",                                  $table->boxes->draw();
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(80);
         if ($title ne '') {
@@ -753,20 +754,22 @@ sub sysop_view_configuration {
     my $table = ($view) ? Text::SimpleTable->new($name_width, $value_width) : Text::SimpleTable->new(6, $name_width, $value_width);
     if ($view) {
         $table->row('STATIC NAME', 'STATIC VALUE');
-		$table->hr();
-#    } else {
-#        $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
-    }
+        $table->hr();
+
+        #    } else {
+        #        $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
+    } ## end if ($view)
     foreach my $conf (sort(keys %{ $self->{'CONF'}->{'STATIC'} })) {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-#        } else {
-#            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-        }
+
+            #        } else {
+            #            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
+        } ## end if ($view)
     } ## end foreach my $conf (sort(keys...))
     if ($view) {
-		$table->hr();
+        $table->hr();
         $table->row('CONFIG NAME', 'CONFIG VALUE');
     } else {
         $table->row('CHOICE', 'CONFIG NAME', 'CONFIG VALUE');
@@ -775,27 +778,27 @@ sub sysop_view_configuration {
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
         next if ($conf eq 'STATIC');
-		my $c = $self->{'CONF'}->{$conf};
-		if ($conf eq 'DEFAULT TIMEOUT') {
-			$c .= ' Minutes';
-		} elsif ($conf eq 'DEFAULT BAUD RATE') {
-			$c .= ' bps - 300,1200,2400,4800,9600,19200,FULL';
-		} elsif ($conf eq 'SHORT DATE FORMAT') {
-			$c .= ' - %d = day, %m = Month, %Y = Year';
-		} elsif ($conf eq 'THREAD MULTIPLIER') {
-			$c .= ' x CPU Cores';
-		} elsif ($conf eq 'DEFAULT TEXT MODE') {
-			$c .= ' - ANSI,ASCII,ATASCII,PETSCII';
-		} elsif ($conf eq 'DEFAULT SUFFIX') {
-			$c .= ' - ANS,ASC,ATA,PET';
-		}
+        my $c = $self->{'CONF'}->{$conf};
+        if ($conf eq 'DEFAULT TIMEOUT') {
+            $c .= ' Minutes';
+        } elsif ($conf eq 'DEFAULT BAUD RATE') {
+            $c .= ' bps - 300,1200,2400,4800,9600,19200,FULL';
+        } elsif ($conf eq 'SHORT DATE FORMAT') {
+            $c .= ' - %d = day, %m = Month, %Y = Year';
+        } elsif ($conf eq 'THREAD MULTIPLIER') {
+            $c .= ' x CPU Cores';
+        } elsif ($conf eq 'DEFAULT TEXT MODE') {
+            $c .= ' - ANSI,ASCII,ATASCII,PETSCII';
+        } elsif ($conf eq 'DEFAULT SUFFIX') {
+            $c .= ' - ANS,ASC,ATA,PET';
+        }
         if ($view) {
             $table->row($conf, $c);
         } else {
             if ($conf =~ /AUTHOR/) {
                 $table->row(' ', $conf, $c);
             } else {
-                $table->row(uc('  ' . sprintf('%x',$count) . ' '), $conf, $c);
+                $table->row(uc('  ' . sprintf('%x', $count) . ' '), $conf, $c);
                 $count++;
             }
         } ## end else [ if ($view) ]
@@ -803,20 +806,20 @@ sub sysop_view_configuration {
     my $output = $table->boxes->draw();
     foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
         if ($output =~ /$change/) {
-            my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'],$change);
+            my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'], $change);
             $output =~ s/$change/$ch/gs;
         }
     } ## end foreach my $change ('AUTHOR EMAIL'...)
-	{
-		my $ch = colored(['cyan'], 'CHOICE');
-		$output =~ s/CHOICE/$ch/gs;
-		$ch = colored(['bright_yellow'], 'STATIC NAME');
-		$output =~ s/STATIC NAME/$ch/gs;
-		$ch = colored(['green'], 'CONFIG NAME');
-		$output =~ s/CONFIG NAME/$ch/gs;
-		$ch = colored(['cyan'], 'CONFIG VALUE');
-		$output =~ s/CONFIG VALUE/$ch/gs;
-	}
+    {
+        my $ch = colored(['cyan'], 'CHOICE');
+        $output =~ s/CHOICE/$ch/gs;
+        $ch = colored(['bright_yellow'], 'STATIC NAME');
+        $output =~ s/STATIC NAME/$ch/gs;
+        $ch = colored(['green'], 'CONFIG NAME');
+        $output =~ s/CONFIG NAME/$ch/gs;
+        $ch = colored(['cyan'], 'CONFIG VALUE');
+        $output =~ s/CONFIG VALUE/$ch/gs;
+    }
     print $self->sysop_detokenize($output);
     if ($view) {
         print 'Press a key to continue ... ';
@@ -842,7 +845,7 @@ sub sysop_edit_configuration {
         print "BACK\n";
         return (FALSE);
     }
-	$choice = hex($choice);
+    $choice = hex($choice);
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
     $self->{'debug'}->DEBUGMAX(["Choice $choice $conf[$choice]"]);
     print '(Edit) ', $conf[$choice], ' ', $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}, '  ';
@@ -853,16 +856,16 @@ sub sysop_edit_configuration {
         'HOST'                => 20,
         'THREAD MULTIPLIER'   => 2,
         'PORT'                => 5,
-		'DEFAULT BAUD RATE'   => 5,
-		'DEFAULT SUFFIX'      => 3,
-		'DEFAULT TEXT MODE'   => 7,
-		'DEFAULT TIMEOUT'     => 3,
-		'FILES PATH'          => 60,
-		'LOGIN TRIES'         => 1,
-		'MEMCACHED HOST'      => 20,
-		'MEMCACHED NAMESPACE' => 32,
-		'MEMCACHED PORT'      => 5,
-		'SHORT DATE FORMAT'   => 8,
+        'DEFAULT BAUD RATE'   => 5,
+        'DEFAULT SUFFIX'      => 3,
+        'DEFAULT TEXT MODE'   => 7,
+        'DEFAULT TIMEOUT'     => 3,
+        'FILES PATH'          => 60,
+        'LOGIN TRIES'         => 1,
+        'MEMCACHED HOST'      => 20,
+        'MEMCACHED NAMESPACE' => 32,
+        'MEMCACHED PORT'      => 5,
+        'SHORT DATE FORMAT'   => 8,
     };
     my $string = $self->sysop_get_line($sizes->{ $conf[$choice] });
     return (FALSE) if ($string eq '');
@@ -875,11 +878,12 @@ sub sysop_get_line {
     my $self  = shift;
     my $width = shift;
 
-	$self->{'CACHE'}->set('SHOW_STATUS',FALSE);
-#    print savepos . $self->{'ansi_characters'}->{'DOWN'} . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
+    $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
+
+    #    print savepos . $self->{'ansi_characters'}->{'DOWN'} . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
     print savepos . down . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
     chomp(my $response = <STDIN>);
-	$self->{'CACHE'}->set('SHOW_STATUS',TRUE);
+    $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
 
     # TEMP
     return ($response);
@@ -1170,7 +1174,7 @@ sub sysop_detokenize {
 
     $self->{'debug'}->DEBUGMAX([$text]);    # Before
 
-	# OPERATION TOKENS
+    # OPERATION TOKENS
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
         if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
@@ -1181,7 +1185,7 @@ sub sysop_detokenize {
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     } ## end foreach my $key (keys %{ $self...})
 
-	# ANSI TOKENS
+    # ANSI TOKENS
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
         my $ch = $self->{'ansi_sequences'}->{$name};
         if ($name eq 'CLEAR') {
@@ -1190,11 +1194,11 @@ sub sysop_detokenize {
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
     } ## end foreach my $name (keys %{ $self...})
 
-	# SPECIAL CHARACTERS
+    # SPECIAL CHARACTERS
     foreach my $char (keys %{ $self->{'ansi_characters'} }) {
         my $ch = $self->{'ansi_characters'}->{$char};
         $text =~ s/\[\%\s+$char\s+\%\]/$ch/sgi;
-    } ## end foreach my $name (keys %{ $self...})
+    }
     $self->{'debug'}->DEBUGMAX([$text]);    # After
 
     return ($text);

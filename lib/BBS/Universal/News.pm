@@ -11,32 +11,32 @@ sub news_initialize {
 sub news_display {
     my $self = shift;
 
-	my $news = "\n";
-	my $format = Text::Format->new(
-		'columns'     => $self->{'USER'}->{'max_columns'} - 1,
-		'tabstop'     => 4,
-		'extraSpace'  => TRUE,
-		'firstIndent' => 2,
-	);
-	{
-		my $dt = DateTime->now;
-		if ($dt->month == 7 && $dt->day == 10) {
-			my $today;
-			if ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%d/%m/%Y') {
-				$today = $dt->dmy;
-			} elsif ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%Y/%m/%d') {
-				$today = $dt->ymd;
-			} else {
-				$today = $dt->mdy;
-			}
-			if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-				$news .= "$today - [% B_GREEN %][% BLACK %] Today is the author's birthday! [% RESET %] " . $self->{'ansi_characters'}->{'PARTY POPPER'} . "\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
-			} else {
-				$news .= "* $today - Today is the author's birthday!\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
-			}
-			$news .= "\n";
-		}
-	}
+    my $news   = "\n";
+    my $format = Text::Format->new(
+        'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+        'tabstop'     => 4,
+        'extraSpace'  => TRUE,
+        'firstIndent' => 2,
+    );
+    {
+        my $dt = DateTime->now;
+        if ($dt->month == 7 && $dt->day == 10) {
+            my $today;
+            if ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%d/%m/%Y') {
+                $today = $dt->dmy;
+            } elsif ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%Y/%m/%d') {
+                $today = $dt->ymd;
+            } else {
+                $today = $dt->mdy;
+            }
+            if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+                $news .= "$today - [% B_GREEN %][% BLACK %] Today is the author's birthday! [% RESET %] " . $self->{'ansi_characters'}->{'PARTY POPPER'} . "\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
+            } else {
+                $news .= "* $today - Today is the author's birthday!\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
+            }
+            $news .= "\n";
+        } ## end if ($dt->month == 7 &&...)
+    }
     my $sql = q{
 		SELECT
 		  news_id,
@@ -55,13 +55,13 @@ sub news_display {
             } else {
                 $news .= '* ' . $row->{'newsdate'} . ' - ' . $row->{'news_title'} . "\n\n" . $format->format($row->{'news_content'});
             }
-			$news .= "\n";
+            $news .= "\n";
         } ## end while (my $row = $sth->fetchrow_hashref...)
     } else {
         $news = "No News\n\n";
     }
     $sth->finish();
-	$self->output($news);
+    $self->output($news);
     $self->output("Press a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
     return (TRUE);
