@@ -16,23 +16,23 @@ sub db_connect {
     my $errors  = '';
     foreach my $host (@dbhosts) {
         $errors        = '';
-    # This is for the brave that want to try SSL connections.
-    #	$self->{'dsn'} = sprintf('dbi:%s:database=%s;' .
-    #		'host=%s;' .
-    #		'port=%s;' .
-    #		'mysql_ssl=%d;' .
-    #		'mysql_ssl_client_key=%s;' .
-    #		'mysql_ssl_client_cert=%s;' .
-    #		'mysql_ssl_ca_file=%s',
-    #		$self->{'CONF'}->{'DATABASE TYPE'},
-    #		$self->{'CONF'}->{'DATABASE NAME'},
-    #		$self->{'CONF'}->{'DATABASE HOSTNAME'},
-    #		$self->{'CONF'}->{'DATABASE PORT'},
-    #		TRUE,
-    #		'/etc/mysql/certs/client-key.pem',
-    #		'/etc/mysql/certs/client-cert.pem',
-    #		'/etc/mysql/certs/ca-cert.pem'
-    #	);
+		# This is for the brave that want to try SSL connections.
+		#	$self->{'dsn'} = sprintf('dbi:%s:database=%s;' .
+		#		'host=%s;' .
+		#		'port=%s;' .
+		#		'mysql_ssl=%d;' .
+		#		'mysql_ssl_client_key=%s;' .
+		#		'mysql_ssl_client_cert=%s;' .
+		#		'mysql_ssl_ca_file=%s',
+		#		$self->{'CONF'}->{'DATABASE TYPE'},
+		#		$self->{'CONF'}->{'DATABASE NAME'},
+		#		$self->{'CONF'}->{'DATABASE HOSTNAME'},
+		#		$self->{'CONF'}->{'DATABASE PORT'},
+		#		TRUE,
+		#		'/etc/mysql/certs/client-key.pem',
+		#		'/etc/mysql/certs/client-cert.pem',
+		#		'/etc/mysql/certs/ca-cert.pem'
+		#	);
         $self->{'dsn'} = sprintf('dbi:%s:database=%s;' . 'host=%s;' . 'port=%s;', $self->{'CONF'}->{'STATIC'}->{'DATABASE TYPE'}, $self->{'CONF'}->{'STATIC'}->{'DATABASE NAME'}, $host, $self->{'CONF'}->{'STATIC'}->{'DATABASE PORT'},);
         $self->{'dbh'} = DBI->connect(
             $self->{'dsn'},
@@ -40,7 +40,7 @@ sub db_connect {
             $self->{'CONF'}->{'STATIC'}->{'DATABASE PASSWORD'},
             {
                 'PrintError' => FALSE,
-                'AutoCommit' => TRUE
+				  'AutoCommit' => TRUE
             },
         ) or $errors = $DBI::errstr;
         last if ($errors eq '');
