@@ -96,6 +96,7 @@ sub ansi_initialize {
         'BRIGHT B_CYAN'    => $esc . '106m',
         'BRIGHT B_WHITE'   => $esc . '107m',
 
+		# Horizontal Rules
 		'HORIZONTAL RULE ORANGE'         => '[% RETURN %]' . $esc . '48;5;202m' . $esc . '0K' . $esc . '0m',
 		'HORIZONTAL RULE PINK'           => '[% RETURN %]' . $esc . '48;5;198m' . $esc . '0K' . $esc . '0m',
 		'HORIZONTAL RULE RED'            => '[% RETURN %]' . $esc . '41m' . $esc . '0K' . $esc . '0m',
