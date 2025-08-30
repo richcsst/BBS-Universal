@@ -96,6 +96,7 @@ sub ansi_initialize {
         'BRIGHT B_CYAN'    => $esc . '106m',
         'BRIGHT B_WHITE'   => $esc . '107m',
 
+<<<<<<< HEAD
         'HORIZONTAL RULE ORANGE'         => '[% RETURN %]' . $esc . '48;5;202m' . clline . $esc . '0m',
         'HORIZONTAL RULE PINK'           => '[% RETURN %]' . $esc . '48;5;198m' . clline . $esc . '0m',
         'HORIZONTAL RULE RED'            => '[% RETURN %]' . $esc . '41m' . clline . $esc . '0m',
@@ -114,6 +115,26 @@ sub ansi_initialize {
         'HORIZONTAL RULE BRIGHT WHITE'   => '[% RETURN %]' . $esc . '107m' . clline . $esc . '0m',
         @_,
     };
+=======
+		'HORIZONTAL RULE ORANGE'         => '[% RETURN %]' . $esc . '48;5;202m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE PINK'           => '[% RETURN %]' . $esc . '48;5;198m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE RED'            => '[% RETURN %]' . $esc . '41m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT RED'     => '[% RETURN %]' . $esc . '101m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE GREEN'          => '[% RETURN %]' . $esc . '42m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT GREEN'   => '[% RETURN %]' . $esc . '102m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE YELLOW'         => '[% RETURN %]' . $esc . '43m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT YELLOW'  => '[% RETURN %]' . $esc . '103m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BLUE'           => '[% RETURN %]' . $esc . '44m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT BLUE'    => '[% RETURN %]' . $esc . '104m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE MAGENTA'        => '[% RETURN %]' . $esc . '45m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT MAGENTA' => '[% RETURN %]' . $esc . '105m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE CYAN'           => '[% RETURN %]' . $esc . '46m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT CYAN'    => '[% RETURN %]' . $esc . '106m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE WHITE'          => '[% RETURN %]' . $esc . '47m' . $esc . '0K' . $esc . '0m',
+		'HORIZONTAL RULE BRIGHT WHITE'   => '[% RETURN %]' . $esc . '107m' . $esc . '0K' . $esc . '0m',
+		@_,
+	};
+>>>>>>> 60058417658cd6372d2c57d7683c041fcc49d6bb
 
     # Generate generic colors
     foreach my $count (0 .. 255) {
