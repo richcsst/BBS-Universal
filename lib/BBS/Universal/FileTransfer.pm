@@ -8,12 +8,12 @@ sub filetransfer_initialize {
     return ($self);
 } ## end sub filetransfer_initialize
 
-sub load_file {
+sub files_load_file {
     my $self = shift;
     my $file = shift;
 
     $self->{'debug'}->DEBUG(["Load $file"]);
-    my $filename = sprintf('%s.%s', $file, $self->{'USER'}->{'suffix'});
+    my $filename = sprintf('%s.%s', $file, substr($self->{'USER'}->{'text_mode'},0,3));
     $self->{'debug'}->DEBUG(["Load actual $filename"]);
     open(my $FILE, '<', $filename);
     my @text = <$FILE>;

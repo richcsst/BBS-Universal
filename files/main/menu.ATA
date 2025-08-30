@@ -1,11 +1,14 @@
+# KEY|COMMAND|COLOR|DESCRIPTION
 B|BBS LISTING|BLUE|Show BBS List
 O|FORUMS|WHITE|Go To Forums
 M|ACCOUNT MANAGER|WHITE|Manage Your Account
 F|FILES|WHITE|Go To Files
 N|NEWS|WHITE|System News
 A|ABOUT|WHITE|About This BBS
+U|LIST USERS|BRIGHT WHITE|List Users
 X|DISCONNECT|WHITE|Disconnect
 ---
-|\/| _.o._  |\/| _ ._     
-|  |(_||| | |  |(/_| ||_|
-
+ __  __
+|  \/  |___ _ _ _  _
+| |\/| / -_) ' \ || |
+|_|  |_\___|_||_\_,_|

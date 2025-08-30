@@ -138,7 +138,6 @@ sub sysop_initialize {
           text_mode
           max_columns
           max_rows
-          suffix
           timeout
           retro_systems
           accomplishments
@@ -183,7 +182,6 @@ sub sysop_initialize {
         'text_mode'       => 9,
         'max_rows'        => 5,
         'max_columns'     => 5,
-        'suffix'          => 3,
         'timeout'         => 5,
         'retro_systems'   => 20,
         'accomplishments' => 20,
@@ -467,7 +465,10 @@ sub sysop_list_users {
 
     my $table;
     $self->{'debug'}->DEBUG($list_mode);
-    my $date_format = $self->configuration('SHORT DATE FORMAT');
+    my $date_format = $self->configuration('DATE FORMAT');
+	$date_format =~ s/YEAR/\%Y/;
+	$date_format =~ s/MONTH/\%m/;
+	$date_format =~ s/DAY/\%d/;
     my $name_width  = 15;
     my $value_width = 60;
     my $sth;
@@ -494,7 +495,6 @@ sub sysop_list_users {
 			  file_category,
 			  max_columns,
 			  max_rows,
-			  suffix,
 			  timeout,
 			  retro_systems,
 			  accomplishments,
@@ -551,6 +551,10 @@ sub sysop_list_users {
         $sth->finish();
         $self->{'debug'}->DEBUG(['Show table']);
         my $string = $table->boxes->draw();
+		my $ch = colored(['bright_yellow'],'NAME');
+		$string =~ s/ NAME / $ch /;
+		$ch = colored(['bright_yellow'],'VALUE');
+		$string =~ s/ VALUE / $ch /;
         $self->{'debug'}->DEBUGMAX(\$string);
         $self->sysop_pager("$string\n");
     } else {    # Horizontal
@@ -783,14 +787,10 @@ sub sysop_view_configuration {
             $c .= ' Minutes';
         } elsif ($conf eq 'DEFAULT BAUD RATE') {
             $c .= ' bps - 300,1200,2400,4800,9600,19200,FULL';
-        } elsif ($conf eq 'SHORT DATE FORMAT') {
-            $c .= ' - %d = day, %m = Month, %Y = Year';
         } elsif ($conf eq 'THREAD MULTIPLIER') {
             $c .= ' x CPU Cores';
         } elsif ($conf eq 'DEFAULT TEXT MODE') {
             $c .= ' - ANSI,ASCII,ATASCII,PETSCII';
-        } elsif ($conf eq 'DEFAULT SUFFIX') {
-            $c .= ' - ANS,ASC,ATA,PET';
         }
         if ($view) {
             $table->row($conf, $c);
@@ -857,7 +857,6 @@ sub sysop_edit_configuration {
         'THREAD MULTIPLIER'   => 2,
         'PORT'                => 5,
         'DEFAULT BAUD RATE'   => 5,
-        'DEFAULT SUFFIX'      => 3,
         'DEFAULT TEXT MODE'   => 7,
         'DEFAULT TIMEOUT'     => 3,
         'FILES PATH'          => 60,
@@ -865,7 +864,7 @@ sub sysop_edit_configuration {
         'MEMCACHED HOST'      => 20,
         'MEMCACHED NAMESPACE' => 32,
         'MEMCACHED PORT'      => 5,
-        'SHORT DATE FORMAT'   => 8,
+        'DATE FORMAT'         => 10,
     };
     my $string = $self->sysop_get_line($sizes->{ $conf[$choice] });
     return (FALSE) if ($string eq '');
@@ -1034,7 +1033,7 @@ sub sysop_user_add {
     push(@{ $self->{'SYSOP ORDER DETAILED'} }, 'password');
 
     foreach my $name (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-        next if ($name =~ /id|fullname|_time|suffix|max_|_category/);
+        next if ($name =~ /id|fullname|_time|max_|_category/);
         if ($name eq 'timeout') {
             $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name eq 'baud_rate') {
@@ -1065,7 +1064,7 @@ sub sysop_user_add {
     my $column     = 21;
     my $adjustment = 7;
     foreach my $entry (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-        next if ($entry =~ /id|fullname|_time|suffix/);
+        next if ($entry =~ /id|fullname|_time/);
         do {
             print locate($row + $adjustment, $column), ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$entry}), locate($row + $adjustment, $column);
             chomp($user_template->{$entry} = <STDIN>);

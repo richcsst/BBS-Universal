@@ -8,6 +8,7 @@ sub atascii_initialize {
         'HEART' => chr(0),
         '0x01'  => chr(1),
 
+		'RING BELL'   => chr(7),
         'RETURN'      => chr(13),
         'LINEFEED'    => chr(10),
         'NEWLINE'     => chr(13) . chr(10),

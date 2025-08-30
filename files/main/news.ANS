@@ -1,9 +1,10 @@
+# KEY|COMMAND|COLOR|DESCRIPTION
 S|NEWS SUMMARY|GREEN|List News Summary
 N|NEWS DISPLAY|MAGENTA|Show News in Detail
 Z|BACK|WHITE|Return to the Main Menu
 ---
-[% CYAN %]  _   _                   
- | \ | | _____      _____ 
+[% CYAN %]  _   _
+ | \ | | _____      _____
  |  \| |/ _ \ \ /\ / / __|
  | |\  |  __/\ V  V /\__ \
  |_| \_|\___| \_/\_/ |___/[% RESET %]

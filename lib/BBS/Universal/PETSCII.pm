@@ -39,7 +39,7 @@ sub petscii_initialize {
         'ESC'               => chr(hex('0x1B')),
         'LINE FEED'         => chr(hex('0x0A')),
         'TAB'               => chr(9),
-        'BELL'              => chr(7),
+        'RING BELL'         => chr(7),
         'DOTTED CENTER'     => chr(hex('0x7C')),
         'PIPE'              => chr(hex('0x7D')),
         'DOTTED RIGHT'      => chr(hex('0x7E')),

@@ -18,6 +18,7 @@ use constant {
     PASSWORD    => -1,
     ECHO        => 1,
     SILENT      => 0,
+	NUMERIC     => 2,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -247,7 +248,6 @@ sub populate_common {
     $self->{'VERSIONS'} = $self->parse_versions();
     $self->{'USER'}     = {
         'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
-        'suffix'      => $self->{'CONF'}->{'DEFAULT SUFFIX'},
         'max_columns' => 80,
         'max_rows'    => 25,
     };
@@ -291,7 +291,7 @@ sub populate_common {
         },
         'BANNER' => sub {
             my $self   = shift;
-            my $banner = $self->load_file('files/main/banner');
+            my $banner = $self->files_load_file('files/main/banner');
             return ($banner);
         },
         'FILE CATEGORY' => sub {
@@ -403,6 +403,10 @@ sub populate_common {
             my $self = shift;
             return ($self->bbs_list_all());
         },
+        'SHOW USERS LIST' => sub {
+            my $self = shift;
+            return ($self->users_list());
+        },
         'ONLINE' => sub {
             my $self = shift;
             return ($self->{'CACHE'}->get('ONLINE'));
@@ -414,36 +418,47 @@ sub populate_common {
     $self->{'COMMANDS'} = {
         'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
+			$self->users_update_accomplishments();
             return ($self->load_menu('files/main/account'));
         },
         'UPDATE LOCATION' => sub {
             my $self = shift;
+			$self->users_update_location();
             return ($self->load_menu('files/main/account'));
         },
         'UPDATE EMAIL' => sub {
             my $self = shift;
+			$self->users_update_email();
             return ($self->load_menu('files/main/account'));
         },
         'UPDATE RETRO SYSTEMS' => sub {
             my $self = shift;
+			$self->users_update_retro_systems();
             return ($self->load_menu('files/main/account'));
         },
+		'CHANGE DATE FORMAT' => sub {
+			my $self = shift;
+			$self->users_change_date_format();
+			return($self->load_menu('files/main/account'));
+		},
         'CHANGE SCREEN SIZE' => sub {
             my $self = shift;
+            $self->users_change_screen_size();
             return ($self->load_menu('files/main/account'));
         },
         'CHOOSE TEXT MODE' => sub {
             my $self = shift;
+			$self->users_update_text_mode();
             return ($self->load_menu('files/main/account'));
         },
         'TOGGLE SHOW EMAIL' => sub {
             my $self = shift;
-            $self->{'USER'}->{'show_email'} = !$self->{'USER'}->{'show_email'};
+            $self->users_toggle_permission('show_email');
             return ($self->load_menu('files/main/account'));
         },
         'TOGGLE PREFER NICKNAME' => sub {
             my $self = shift;
-            $self->{'USER'}->{'prefer_nickname'} = !$self->{'USER'}->{'prefer_nickname'};
+            $self->users_toggle_permission('prefer_nickname');
             return ($self->load_menu('files/main/account'));
         },
         'BBS LIST ADD' => sub {
@@ -455,6 +470,10 @@ sub populate_common {
             my $self = shift;
             return ($self->load_menu('files/main/bbs_listing'));
         },
+		'LIST USERS' => sub {
+			my $self = shift;
+			return($self->load_menu('files/main/list_users'));
+		},
         'ACCOUNT MANAGER' => sub {
             my $self = shift;
             return ($self->load_menu('files/main/account'));
@@ -517,7 +536,7 @@ sub populate_common {
         },
         'FORUMS' => sub {
             my $self = shift;
-            return ($self->load_menu('files/main/menu'));
+            return ($self->load_menu('files/main/forums'));
         },
         'ABOUT' => sub {
             my $self = shift;
@@ -545,7 +564,7 @@ sub greeting {
 
     $self->{'debug'}->DEBUG(['Sending greeting']);
     # Load and print greetings message here
-    my $text = $self->load_file('files/main/greeting');
+    my $text = $self->files_load_file('files/main/greeting');
     $self->{'debug'}->DEBUGMAX([$text]);
     $self->output($text);
     $self->{'debug'}->DEBUG(['Greeting sent']);
@@ -563,6 +582,10 @@ sub login {
         $username = 'sysop';
         $self->output("\n\nAuto-login of $username successful\n\n");
         $valid = $self->users_load($username, '');
+		if ($self->{'local_mode'}) { # override DB values
+			my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+			$self->{'USER'}->{'columns'} = $wsize;
+		}
     } else {
         my $tries = $self->{'CONF'}->{'LOGIN TRIES'} + 0;
         do {
@@ -707,15 +730,15 @@ sub load_menu {
     my $self = shift;
     my $file = shift;
 
-    my $orig    = $self->load_file($file);
+    my $orig    = $self->files_load_file($file);
     my @Text    = split(/\n/, $orig);
     my $mapping = { 'TEXT' => '' };
     my $mode    = TRUE;
     my $text    = '';
     foreach my $line (@Text) {
-        next if ($line =~ /^\#/);
         $self->{'debug'}->DEBUGMAX([$line]);
         if ($mode) {
+			next if ($line =~ /^\#/);
             if ($line !~ /^---/) {
                 my ($k, $cmd, $color, $t) = split(/\|/, $line);
                 $k     = uc($k);
@@ -752,7 +775,7 @@ sub main_menu {
     $self->{'debug'}->DEBUG(['Main Menu loop start']);
     my $mapping = $self->load_menu($file);
     while ($connected && $self->is_connected()) {
-        $self->output($mapping->{'TEXT'} . "\n");
+        $self->output($mapping->{'TEXT'});
         $self->show_choices($mapping);
 		my $mode = $self->{'USER'}->{'text_mode'};
 		if ($mode eq 'ANSI') {
@@ -767,9 +790,13 @@ sub main_menu {
         my $key;
         do {
             $key = uc($self->get_key(SILENT, FALSE));
-        } until (exists($mapping->{$key}) || !$self->is_connected());
+        } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
         $self->output($mapping->{$key}->{'command'} . "\n");
-        $command = $mapping->{$key}->{'command'};
+		if ($key eq chr(3)) {
+			$command = 'DISCONNECT';
+		} else {
+			$command = $mapping->{$key}->{'command'};
+		}
         $self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
         $mapping = $self->{'COMMANDS'}->{$command}->($self);
         if (ref($mapping) ne 'HASH' || !$self->is_connected()) {
@@ -784,7 +811,7 @@ sub disconnect {
 
     # Load and print disconnect message here
     $self->{'debug'}->DEBUG(['Send Disconnect message']);
-    my $text = $self->load_file('files/main/disconnect');
+    my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
     $self->{'debug'}->DEBUG(['Disconnect message sent']);
     return (TRUE);
@@ -821,7 +848,7 @@ sub get_key {
 		ReadMode 'noecho', $self->{'cl_socket'};
 		do {
 			$key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'}) : ReadKey(-1, $self->{'cl_socket'});
-			if (ord($key) == 255) { # Ignore Telnet escapes
+			if ($key eq chr(255)) { # Ignore Telnet escapes
 				$self->{'debug'}->DEBUG(['IAC Telnet Escape Sequence']);
 				$escape = TRUE;
 				my $command = ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'});
@@ -830,12 +857,20 @@ sub get_key {
 			} else {
 				$escape = FALSE;
 			}
-		} until (! $escape);
+		} until (! $escape || ! $self->is_connected());
 		ReadMode 'restore', $self->{'cl_socket'};
     } ## end elsif ($self->is_connected...)
     $self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)."  ECHO=$echo  BLOCKING=$blocking"]);
+	return($key) if ($key eq chr(13));
 	$key = $self->{'backspace'} if ($key eq chr(127));
-    if ($echo == ECHO && defined($key)) {
+	if ($echo == NUMERIC && defined($key)) {
+		if ($key =~ /[0-9]/ || $key eq $self->{'backspace'}) {
+			$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
+			$self->output($key);
+		} else {
+			$key = '';
+		}
+    } elsif ($echo == ECHO && defined($key)) {
 		$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
         $self->output($key);
     } elsif ($echo == PASSWORD && defined($key)) {
@@ -848,25 +883,40 @@ sub get_line {
     my $self  = shift;
     my $echo  = shift;
     my $limit = min(shift, 65535);
-
-    my $line = '';
+    my $line  = shift || '';
     my $key;
 
-    while ($self->is_connected() && $key ne chr(13) && length($line) < $limit) {
-        $key = $self->get_key($echo, BLOCKING);
-        if (defined($key) && $key ne '' && $self->is_connected()) {
-            if ($key eq $self->{'backspace'} || $key eq chr(127)) {
-                my $len = length($line);
-                if ($len > 0) {
-                    $line = substr($line, $len - 1);
-                }
-            } elsif ($key ne chr(13) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
-                $line .= $key;
+	$self->output($line) if ($line ne '');
+    while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
+		if (length($line) < $limit) {
+			$key = $self->get_key($echo, BLOCKING);
+			return('') if (defined($key) && $key eq chr(3));
+			if (defined($key) && $key ne '' && $self->is_connected()) {
+				if ($key eq $self->{'backspace'} || $key eq chr(127)) {
+					$self->output(" $key");
+					my $len = length($line);
+					if ($len > 0) {
+						$line = substr($line,0, $len - 1);
+					}
+				} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+					$line .= $key;
+				}
+			} ## end if (defined($key) && $key...)
+		} else {
+			$key = $self->get_key(SILENT, BLOCKING);
+			return('') if (defined($key) && $key eq chr(3));
+			if (defined($key) && $key eq $self->{'backspace'} || $key eq chr(127)) {
+				$key = $self->{'backspace'};
+				$self->output("$key $key");
+				chop($line);
+			} else {
+				$self->output('[% RING BELL %]');
 			}
-        } ## end if (defined($key) && $key...)
+		}
         threads->yield();
     } ## end while ($self->is_connected...)
 
+	$line = '' if ($key eq chr(3));
     if ($echo) {
         $self->{'debug'}->DEBUG(['User entered a line of text']);
         $self->{'debug'}->DEBUGMAX([$line]);
@@ -1143,7 +1193,7 @@ sub parse_versions {
 
 sub yes_no {
     my $self  = shift;
-    my $bool  = shift;
+    my $bool  = 0 + shift;
     my $color = shift;
 
     if ($color && $self->{'USER'}->{'text_mode'} eq 'ANSI') {

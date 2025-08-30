@@ -18,6 +18,7 @@ use 5.010;
 use strict;
 use English qw( -no_match_vars );
 use utf8;
+use charnames ':full';
 use Config;
 use open qw(:std :utf8);
 no warnings;
@@ -44,7 +45,6 @@ use List::Util qw(min max);
 use Text::Format;
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
-use charnames;
 
 use BBS::Universal;
 
@@ -399,7 +399,7 @@ sub servers_status {
     my $bbs_obj    = shift;
     my $show_alarm = shift;
 
-	if ($CACHE->get('SHOW_STATUS')) {
+	if ($CACHE->get('SHOW_STATUS') && ! $bbs_obj->{'LOCAL LOGIN'}) {
 		if ($CACHE->get('UPDATE') && !$TEST) {
 			alarm(0);
 			my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -542,6 +542,7 @@ sub run_bbs_sysop {
     my $bbs_obj = shift;
     my $sysop   = shift;
 
+	$bbs_obj->{'LOCAL LOGIN'} = TRUE;
     # Only allow the main program to respond to signals, not the threads
     #    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
     print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
@@ -553,6 +554,7 @@ sub run_bbs_sysop {
         }
     );
     $bbs->run($sysop);
+	delete($bbs_obj->{'LOCAL LOGIN'});
     threads->yield() if (!$TEST);    # Be friendly
 } ## end sub run_bbs_sysop
 

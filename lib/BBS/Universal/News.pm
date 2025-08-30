@@ -1,5 +1,5 @@
 package BBS::Universal::News;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub news_initialize {
     my $self = shift;
@@ -22,9 +22,9 @@ sub news_display {
         my $dt = DateTime->now;
         if ($dt->month == 7 && $dt->day == 10) {
             my $today;
-            if ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%d/%m/%Y') {
+            if ($self->{'USER'}->{'DATE FORMAT'} eq 'DAY/MONTH/YEAR') {
                 $today = $dt->dmy;
-            } elsif ($self->{'CONF'}->{'SHORT DATE FORMAT'} eq '%Y/%m/%d') {
+            } elsif ($self->{'USER'}->{'DATE FORMAT'} eq 'YEAR/MONTH/DAY') {
                 $today = $dt->ymd;
             } else {
                 $today = $dt->mdy;
@@ -37,23 +37,27 @@ sub news_display {
             $news .= "\n";
         } ## end if ($dt->month == 7 &&...)
     }
+	my $df = $self->{'USER'}->{'date_format'};
+	$df =~ s/YEAR/\%Y/;
+	$df =~ s/MONTH/\%m/;
+	$df =~ s/DAY/\%d/;
     my $sql = q{
 		SELECT
 		  news_id,
 		  news_title,
 		  news_content,
-		  DATE_FORMAT(news_date,'} . $self->{'CONF'}->{'SHORT DATE FORMAT'} . q{') AS newsdate
+		  DATE_FORMAT(news_date,?) AS newsdate
 		FROM news
 		ORDER BY news_date DESC
 	};
     my $sth = $self->{'dbh'}->prepare($sql);
-    $sth->execute();
+    $sth->execute($df);
     if ($sth->rows > 0) {
-        while (my $row = $sth->fetchrow_hashref()) {
+        while (my $fields = $sth->fetchrow_hashref()) {
             if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-                $news .= $row->{'newsdate'} . ' - [% B_GREEN %][% BLACK %] ' . $row->{'news_title'} . " [% RESET %]\n\n" . $format->format($row->{'news_content'});
+                $news .= $fields->{'newsdate'} . ' - [% B_GREEN %][% BLACK %] ' . $fields->{'news_title'} . " [% RESET %]\n\n" . $format->format($fields->{'news_content'});
             } else {
-                $news .= '* ' . $row->{'newsdate'} . ' - ' . $row->{'news_title'} . "\n\n" . $format->format($row->{'news_content'});
+                $news .= '* ' . $fields->{'newsdate'} . ' - ' . $fields->{'news_title'} . "\n\n" . $format->format($fields->{'news_content'});
             }
             $news .= "\n";
         } ## end while (my $row = $sth->fetchrow_hashref...)
@@ -70,16 +74,22 @@ sub news_display {
 sub news_summary {
     my $self = shift;
 
+	my $format = $self->{'USER'}->{'date_format'};
+#	warn "DATE FORMAT $format";
+	$format =~ s/YEAR/\%Y/;
+	$format =~ s/MONTH/\%m/;
+	$format =~ s/DAY/\%d/;
+#	warn "DATE FORMAT $format";exit;
     my $sql = q{
 		SELECT
 		  news_id,
 		  news_title,
 		  news_content,
-		  DATE_FORMAT(news_date,'} . $self->{'CONF'}->{'SHORT DATE FORMAT'} . q{') AS newsdate
+		  DATE_FORMAT(news_date,?) AS newsdate
 		FROM news
 		ORDER BY news_date DESC};
     my $sth = $self->{'dbh'}->prepare($sql);
-    $sth->execute();
+    $sth->execute($format);
     if ($sth->rows > 0) {
         my $table = Text::SimpleTable->new(10, $self->{'USER'}->{'max_columns'} - 13);
         $table->row('DATE', 'TITLE');
@@ -88,7 +98,12 @@ sub news_summary {
             $table->row($row->{'newsdate'}, $row->{'news_title'});
         }
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output($table->boxes->draw());
+            my $text = $table->boxes->draw();
+			my $ch = colored(['bright_yellow'],'DATE');
+			$text =~ s/DATE/$ch/;
+			$ch = colored(['bright_yellow'],'TITLE');
+			$text =~ s/TITLE/$ch/;
+			$self->output($text);
         } else {
             $self->output($table->draw());
         }

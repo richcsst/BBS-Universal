@@ -1,4 +1,6 @@
+# KEY|COMMAND|COLOR|DESCRIPTION
 A|UPDATE ACCOMPLISHMENTS|MAGENTA|Update Accomplishments
+D|CHANGE DATE FORMAT|BRIGHT GREEN|Change Date Format
 E|TOGGLE SHOW EMAIL|GREEN|Toggle Show Email
 L|UPDATE LOCATION|RED|Update Your Location
 M|UPDATE EMAIL|WHITE|Update Email Address
@@ -8,10 +10,9 @@ S|CHANGE SCREEN SIZE|BLUE|Change Screen Size
 T|CHOOSE TEXT MODE|CYAN|Choose Text Mode
 Z|BACK|WHITE|Main Menu
 ---
-    _                             _   
+[% BRIGHT CYAN %]    _                             _   
    / \   ___ ___ ___  _   _ _ __ | |_ 
   / _ \ / __/ __/ _ \| | | | '_ \| __|
  / ___ \ (_| (_| (_) | |_| | | | | |_ 
 /_/   \_\___\___\___/ \__,_|_| |_|\__|
-
-[% USER INFO %]
+[% RESET %][% USER INFO %]
