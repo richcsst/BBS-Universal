@@ -27,6 +27,8 @@ For MySQL, please use the plugin "mysql_native_password" when creating the "bbss
 
 If you want to enable SSL, well... you are on your own.  The connect code is in BBS::Universal::DB.pm and you must rebuild the installation.
 
+* NOTE:  Recent MySQL versions have changed how to add user accounts and privileges (really Oracle?).
+
 ## LICENSE AND COPYRIGHT
 
 Copyright © 2023-2025 Richard Kelsch
