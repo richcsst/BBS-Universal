@@ -1,5 +1,5 @@
 package BBS::Universal::Users;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub users_initialize {
     my $self = shift;
@@ -9,22 +9,73 @@ sub users_initialize {
     return ($self);
 } ## end sub users_initialize
 
+sub users_change_access_level {
+	my $self = shift;
+	my $mapping = {
+		'TEXT' => '',
+		'Z' => {
+			'command'      => 'BACK',
+			'color'        => 'WHITE',
+			'access_level' => 'USER',
+			'text'         => 'Back to Account menu',
+		},
+	};
+	foreach my $result (keys %{$self->{'access_levels'}}) {
+		if (($self->{'access_levels'}->{$result} < $self->{'access_levels'}->{$self->{'USER'}->{'access_level'}}) || $self->{'USER'}->{'access_level'} eq 'SYSOP') {
+			$mapping->{chr(65 + $self->{'access_levels'}->{$result})} = {
+				'command'      => $result,
+				'color'        => 'WHITE',
+				'access_level' => $self->{'USER'}->{'access_level'},
+				'text'         => $result,
+			};
+		}
+	}
+
+	$self->show_choices($mapping);
+	my $mode = $self->{'USER'}->{'text_mode'};
+	if ($mode eq 'ANSI') {
+		$self->output("\n" . $self->prompt('(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . 'Choose'));
+	} elsif ($mode eq 'ATASCII') {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	} elsif ($mode eq 'PETSCII') {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	} else {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	}
+	my $key;
+	do {
+		$key = uc($self->get_key(SILENT, FALSE));
+	} until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+	$self->output($mapping->{$key}->{'command'} . "\n");
+	unless ($key eq 'Z' || $key eq chr(3)) {
+		my $command = $mapping->{$key}->{'command'};
+		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
+		my $sth = $self->{'dbh'}->prepare('UPDATE users SET date_format=? WHERE id=?');
+		$sth->execute($command,$self->{'USER'}->{'id'});
+		$sth->finish;
+		$self->{'USER'}->{'date_format'} = $command;
+	}
+    return (TRUE);
+}
+
 sub users_change_date_format {
 	my $self = shift;
 	my $mapping = {
 		'TEXT' => '',
 		'Z' => {
-			'command' => 'BACK',
-			'color'   => 'WHITE',
-			'text'    => 'Back to Account menu',
+			'command'      => 'BACK',
+			'color'        => 'WHITE',
+			'access_level' => 'USER',
+			'text'         => 'Back to Account menu',
 		},
 	};
 	my $count = 1;
 	foreach my $result ('YEAR/MONTH/DAY','MONTH/DAY/YEAR','DAY/MONTH/YEAR') {
 		$mapping->{chr(64 + $count)} = {
-			'command' => $result,
-			'color'   => 'WHITE',
-			'text'    => $result,
+			'command'      => $result,
+			'color'        => 'WHITE',
+			'access_level' => 'USER',
+			'text'         => $result,
 		};
 		$count++;
 	}
@@ -52,6 +103,55 @@ sub users_change_date_format {
 		$sth->execute($command,$self->{'USER'}->{'id'});
 		$sth->finish;
 		$self->{'USER'}->{'date_format'} = $command;
+	}
+    return (TRUE);
+}
+
+sub users_change_baud_rate {
+	my $self = shift;
+	my $mapping = {
+		'TEXT' => '',
+		'Z' => {
+			'command' => 'BACK',
+			'color'   => 'WHITE',
+			'access_level' => 'USER',
+			'text'    => 'Back to Account menu',
+		},
+	};
+	my $count = 1;
+	foreach my $result (qw(300 1200 2400 4800 9600 19200 FULL)) {
+		$mapping->{chr(64 + $count)} = {
+			'command' => $result,
+			'color'   => 'WHITE',
+			'access_level' => 'USER',
+			'text'    => $result,
+		};
+		$count++;
+	}
+
+	$self->show_choices($mapping);
+	my $mode = $self->{'USER'}->{'text_mode'};
+	if ($mode eq 'ANSI') {
+		$self->output("\n" . $self->prompt('(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . 'Choose'));
+	} elsif ($mode eq 'ATASCII') {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	} elsif ($mode eq 'PETSCII') {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	} else {
+		$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
+	}
+	my $key;
+	do {
+		$key = uc($self->get_key(SILENT, FALSE));
+	} until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+	$self->output($mapping->{$key}->{'command'} . "\n");
+	unless ($key eq 'Z' || $key eq chr(3)) {
+		my $command = $mapping->{$key}->{'command'};
+		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
+		my $sth = $self->{'dbh'}->prepare('UPDATE users SET baud_rate=? WHERE id=?');
+		$sth->execute($command,$self->{'USER'}->{'id'});
+		$sth->finish;
+		$self->{'USER'}->{'baud_rate'} = $command;
 	}
     return (TRUE);
 }
@@ -154,6 +254,7 @@ sub users_update_text_mode {
 		'Z' => {
 			'command' => 'BACK',
 			'color'   => 'WHITE',
+			'access_level' => 'USER',
 			'text'    => 'Back to Account menu',
 		},
 	};
@@ -164,6 +265,7 @@ sub users_update_text_mode {
 		$mapping->{chr(64 + $count)} = {
 			'command' => $result->{'text_mode'},
 			'color'   => 'WHITE',
+			'access_level' => 'USER',
 			'text'    => $result->{'text_mode'},
 		};
 		$count++;
@@ -481,6 +583,7 @@ sub user_info {
         $table->row('REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'}, FALSE),    'READ MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'}, FALSE));
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'}, FALSE),    'REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'}, FALSE));
         $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'}, FALSE),      'SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'}, FALSE));
+		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'},                          ' ', ' ');
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'},                       'RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
     } else {
         $width = min($width + 7, $self->{'USER'}->{'columns'} - 7);
@@ -511,6 +614,7 @@ sub user_info {
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE));
         $table->row('REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE));
         $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE));
+		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'});
         $table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
     } ## end else [ if ((($width + 22) * 2...))]
@@ -526,7 +630,7 @@ sub user_info {
         $text =~ s/ NO / $no /gs;
         $text =~ s/ YES / $yes /gs;
 
-        foreach $field ('SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
+        foreach $field ('ACCESS LEVEL','SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
             my $ch = colored(['cyan'], $field);
             $text =~ s/$field/$ch/gs;
         }

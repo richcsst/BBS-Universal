@@ -1,5 +1,10 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-Z|BACK|WHITE|Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+A|FORUM MESSAGES ADD|BRIGHT YELLOW|USER|Add New Message
+R|FORUM MESSAGES READ|RED|USER|Read Messages
+E|FORUM MESSAGES EDIT|CYAN|JUNIOR SYSOP|Edit Messages
+D|FORUM MESSAGES DELETE|BRIGHT BLUE|JUNIOR SYSOP|Delete Messages
+C|FORUM CATEGORIES|GREEN|USER|Change or List Sub-Forums
+Z|BACK|WHITE|USER|Main Menu
 ---
  ______                             
 |  ____|                            
@@ -7,3 +12,5 @@ Z|BACK|WHITE|Main Menu
 |  __/ _ \| '__| | | | '_ ` _ \/ __|
 | | | (_) | |  | |_| | | | | | \__ \
 |_|  \___/|_|   \__,_|_| |_| |_|___/
+
+[% BLACK %][% BRIGHT B_GREEN %]Current Forum Category[% RESET %] [% MAGENTA %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FORUM CATEGORY %]

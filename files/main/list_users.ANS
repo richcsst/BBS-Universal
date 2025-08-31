@@ -1,5 +1,5 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-Z|BACK|WHITE|Return to the Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVELS|DESCRIPTION
+Z|BACK|WHITE|USER|Return to the Main Menu
 ---
  _      _     _     _    _
 | |    (_)   | |   | |  | |

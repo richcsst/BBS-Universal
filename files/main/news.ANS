@@ -1,7 +1,7 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-S|NEWS SUMMARY|GREEN|List News Summary
-N|NEWS DISPLAY|MAGENTA|Show News in Detail
-Z|BACK|WHITE|Return to the Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+S|NEWS SUMMARY|GREEN|USER|List News Summary
+N|NEWS DISPLAY|MAGENTA|USER|Show News in Detail
+Z|BACK|WHITE|USER|Return to the Main Menu
 ---
 [% CYAN %]  _   _
  | \ | | _____      _____

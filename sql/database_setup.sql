@@ -35,6 +35,7 @@ CREATE TABLE users (
 	forum_category  INT UNSIGNED NOT NULL DEFAULT 1,
 	location        VARCHAR(255),
 	baud_rate       ENUM('FULL','19200','9600','4800','2400','1200','300') NOT NULL DEFAULT '2400',
+	access_level    ENUM('USER','VETERAN','JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
 	login_time      TIMESTAMP NOT NULL DEFAULT NOW(),
 	logout_time     TIMESTAMP NOT NULL DEFAULT NOW(),
 	text_mode       TINYINT UNSIGNED NOT NULL
@@ -136,7 +137,7 @@ INSERT INTO text_modes (text_mode) VALUES ('ATASCII');
 INSERT INTO text_modes (text_mode) VALUES ('PETSCII');
 INSERT INTO text_modes (text_mode) VALUES ('ANSI');
 
-INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems,birthday)
+INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems,birthday,access_level)
     VALUES (
 	    'sysop',
 		'SysOp',
@@ -146,7 +147,8 @@ INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,a
 		'FULL',
 		'I manage and maintain this system',
 		'Stuff',
-		now()
+		now(),
+		'SYSOP'
 	);
 INSERT INTO permissions (id,view_files,show_email,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES (
@@ -330,6 +332,7 @@ CREATE VIEW users_view
 	users.file_category                  AS file_category,
 	users.forum_category                 AS forum_category,
     users.email                          AS email,
+	users.access_level                   AS access_level,
 	text_modes.text_mode                 AS text_mode,
 	permissions.timeout                  AS timeout,
 	users.retro_systems                  AS retro_systems,

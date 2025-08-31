@@ -1,9 +1,9 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-S|NEWS SUMMARY|GREEN|List News Summary
-N|NEWS DISPLAY|MAGENTA|Show News in Detail
-Z|BACK|WHITE|Return to the Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+S|NEWS SUMMARY|GREEN|USER|List News Summary
+N|NEWS DISPLAY|MAGENTA|USER|Show News in Detail
+Z|BACK|CYAN|USER|Return to the Main Menu
 ---
- _  _
+ _  _               
 | \| |_____ __ _____
 | .` / -_) V  V (_-<
 |_|\_\___|\_/\_//__/

@@ -53,7 +53,7 @@ use Cache::Memcached::Fast;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.003';
+    our $VERSION = '0.004';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
       TRUE
@@ -142,6 +142,12 @@ sub new {    # Always call with the socket as a parameter
         'suffixes'        => [qw( ASC ATA PET ANS )],
         'host'            => undef,
         'port'            => undef,
+		'access_levels'   => {
+			'USER'         => 0,
+			'VETERAN'      => 1,
+			'JUNIOR SYSOP' => 2,
+			'SYSOP'        => 3,
+		},
 		'telnet_commands' => [
 			'SE (Subnegotiation end) - End of negotiation (or data block) of a sub-service of a protocol mechanism',
 			'NOP (No operation) - Data packet that does nothing',
@@ -421,6 +427,31 @@ sub populate_common {
 			$self->users_update_accomplishments();
             return ($self->load_menu('files/main/account'));
         },
+		'FORUM CATEGORIES' => sub {
+			my $self = shift;
+			$self->messages_forum_categories();
+            return ($self->load_menu('files/main/forum'));
+		},
+		'FORUM MESSAGES READ' => sub {
+			my $self = shift;
+			$self->messages_read_message();
+            return ($self->load_menu('files/main/forum'));
+		},
+		'FORUM MESSAGES EDIT' => sub {
+			my $self = shift;
+			$self->messages_edit_message('EDIT');
+            return ($self->load_menu('files/main/forum'));
+		},
+		'FORUM MESSAGES ADD' => sub {
+			my $self = shift;
+			$self->messages_edit_message('ADD');
+            return ($self->load_menu('files/main/forum'));
+		},
+		'FORUM MESSAGES DELETE' => sub {
+			my $self = shift;
+			$self->messages_delete_message();
+            return ($self->load_menu('files/main/forum'));
+		},
         'UPDATE LOCATION' => sub {
             my $self = shift;
 			$self->users_update_location();
@@ -436,6 +467,16 @@ sub populate_common {
 			$self->users_update_retro_systems();
             return ($self->load_menu('files/main/account'));
         },
+		'CHANGE ACCESS LEVEL' => sub {
+			my $self = shift;
+			$self->users_change_access_level();
+			return($self->load_menu('files/main/account'));
+		},
+		'CHANGE BAUD RATE' => sub {
+			my $self = shift;
+			$self->users_change_baud_rate();
+			return($self->load_menu('files/main/account'));
+		},
 		'CHANGE DATE FORMAT' => sub {
 			my $self = shift;
 			$self->users_change_date_format();
@@ -702,8 +743,10 @@ sub show_choices {
 	my $odd = 0;
     foreach my $kmenu (sort(keys %{$mapping})) {
         next if ($kmenu eq 'TEXT');
-        $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-		$self->output("\n");
+		if ($self->{'access_level'}->{$mapping->{$kmenu}->{'access_level'}} <= $self->{'access_level'}->{$self->{'USER'}->{'access_level'}} ) {
+			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+			$self->output("\n");
+		}
     }
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'});
@@ -740,7 +783,7 @@ sub load_menu {
         if ($mode) {
 			next if ($line =~ /^\#/);
             if ($line !~ /^---/) {
-                my ($k, $cmd, $color, $t) = split(/\|/, $line);
+                my ($k, $cmd, $color, $access, $t) = split(/\|/, $line);
                 $k     = uc($k);
                 $cmd   = uc($cmd);
                 $color = uc($color);
@@ -748,9 +791,10 @@ sub load_menu {
                 $self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
                 if (exists($self->{'COMMANDS'}->{$cmd})) {
                     $mapping->{$k} = {
-                        'command' => $cmd,
-                        'color'   => $color,
-                        'text'    => $t,
+                        'command'      => $cmd,
+                        'color'        => $color,
+						'access_level' => $access,
+                        'text'         => $t,
                     };
                 } else {
                     $self->{'debug'}->ERROR(["Command Missing!  $cmd"]);
@@ -1001,14 +1045,16 @@ sub send_char {
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print STDOUT $char;
+		$| = 1;
     } else {
 		my $handle = $self->{'cl_socket'};
         print $handle $char;
+		$| = 1;
     }
 
     # Send at the chosen baud rate by delaying the output by a fraction of a second
     # Only delay if the baud_rate is not FULL
-    sleep $self->{'SPEEDS'}->{ $self->{'baud_rate'} } if ($self->{'USER'}->{'baud_rate'} ne 'FULL');
+    sleep $self->{'SPEEDS'}->{ $self->{'USER'}->{'baud_rate'} } if ($self->{'USER'}->{'baud_rate'} ne 'FULL');
     return (TRUE);
 } ## end sub send_char
 

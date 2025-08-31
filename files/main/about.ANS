@@ -1,5 +1,5 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-Z|BACK|WHITE|Return to Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+Z|BACK|WHITE|USER|Return to Main Menu
 ---
 [% YELLOW %]    _    _                 _[% RESET %]
 [% YELLOW %]   / \  | |__   ___  _   _| |_[% RESET %]

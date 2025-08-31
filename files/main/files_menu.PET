@@ -1,13 +1,13 @@
-# KEY|COMMAND|COLOR|DESCRIPTION
-C|FILE CATEGORY|YELLOW|Change File Category
-L|LIST FILES SUMMARY|MAGENTA|List files
-S|SEARCH FILES SUMMARY|GREEN|Search for file (short format)
-D|SEARCH FILES DETAILED|RED|Search for file (long format)
-Z|BACK|GREEN|Main Menu
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+C|FILE CATEGORY|YELLOW|USER|Change File Category
+L|LIST FILES DETAILED|MAGENTA|USER|List files
+S|SEARCH FILES SUMMARY|GREEN|USER|Search for file (short format)
+D|SEARCH FILES DETAILED|RED|USER|Search for file (long format)
+Z|BACK|GREEN|USER|Main Menu
 ---
- ___ _ _       ___         _             
-| __(_) |___  / __|_  _ __| |_ ___ _ __  
-| _|| | / -_) \__ \ || (_-<  _/ -_) '  \ 
-|_| |_|_\___| |___/\_, /__/\__\___|_|_|_|
-                   |__/
+ ___ _ _        
+| __(_) |___ ___
+| _|| | / -_|_-<
+|_| |_|_\___/__/
+
 Current Category:  [% FILE CATEGORY %]
