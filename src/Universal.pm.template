@@ -279,6 +279,8 @@ sub populate_common {
         '9600'  => 0.000625,
         '19200' => 0.0003125,
     };
+
+	$self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
     $self->{'TOKENS'} = {
         'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
         'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
@@ -295,6 +297,10 @@ sub populate_common {
                 return ('USER CREDENTIALS');
             }
         },
+		'FORTUNE' => sub {
+			my $self = shift;
+			return($self->get_fortune);
+		},
         'BANNER' => sub {
             my $self   = shift;
             my $banner = $self->files_load_file('files/main/banner');
@@ -500,6 +506,11 @@ sub populate_common {
         'TOGGLE PREFER NICKNAME' => sub {
             my $self = shift;
             $self->users_toggle_permission('prefer_nickname');
+            return ($self->load_menu('files/main/account'));
+        },
+        'TOGGLE PLAY FORTUNES' => sub {
+            my $self = shift;
+            $self->users_toggle_permission('play_fortunes');
             return ($self->load_menu('files/main/account'));
         },
         'BBS LIST ADD' => sub {
@@ -1064,14 +1075,15 @@ sub scroll {
 
     my $string;
     if ($self->{'local_mode'}) {
-        $string = "\n\nScroll?  ";
+        $string = "\nScroll?  ";
     } else {
-        $string = "$nl$nl" . 'Scroll?  ';
+        $string = "$nl" . 'Scroll?  ';
     }
-    $self->send_char($string);
+    $self->output($string);
     if ($self->get_key(ECHO, BLOCKIMG) =~ /N/i) {
         return (FALSE);
     }
+	$self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
     return (TRUE);
 } ## end sub scroll
 
@@ -1304,6 +1316,19 @@ sub trim {
     $text =~ s/\s+$//;
     return ($text);
 } ## end sub trim
+
+sub get_fortune {
+	my $self = shift;
+	return(($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
+}
+
+sub playit {
+	my $self = shift;
+	my $file = shift;
+	if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
+		system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+	}
+}
 
 # MANUAL IMPORT HERE #
 

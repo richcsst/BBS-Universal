@@ -10,6 +10,8 @@ sub petscii_initialize {
         'NEWLINE'           => chr(13) . chr(10),
         'CLEAR'             => chr(hex('0x93')),
         'CLS'               => chr(hex('0x93')),
+		'BACKSPACE'         => chr(20),
+		'DELETE'            => chr(20),
         'WHITE'             => chr(5),
         'BLACK'             => chr(hex('0x90')),
         'RED'               => chr(hex('0x1C')),

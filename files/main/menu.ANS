@@ -13,3 +13,4 @@ X|DISCONNECT|RED|USER|Disconnect
 [% GREEN   %]     [% BLACK LOWER RIGHT TRIANGLE %][% B_GREEN   %]   [% RESET %]  | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |  [% B_GREEN   %]   [% RESET %][% GREEN %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
 [% MAGENTA %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_MAGENTA %]    [% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |  [% B_MAGENTA %]    [% RESET %][% MAGENTA %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
 [% BLUE    %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BLUE    %]     [% RESET %]  |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|  [% B_BLUE    %]     [% RESET %][% BLUE %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% FORTUNE %]

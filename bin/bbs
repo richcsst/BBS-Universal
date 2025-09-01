@@ -78,10 +78,6 @@ my $DEBUG = Debug::Easy->new(
     'Color'    => TRUE,
 );
 
-if (-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') {
-	$MPLAYER = TRUE;
-}
-
 ############## BBS Core ###################
 print cls;
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
@@ -264,7 +260,7 @@ our $SYSOP_COMMANDS = {
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANS'));
     },
 };
-playit('startup.mp3');
+$BBS_OBJ->playit('startup.mp3');
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
 if ($RESTART) {
@@ -275,13 +271,6 @@ if ($RESTART) {
 exit(0);
 
 ###########################################
-
-sub playit {
-	my $file = shift;
-	if ($MPLAYER) {
-		system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
-	}
-}
 
 sub shutdown_message {
     logo();
@@ -582,7 +571,7 @@ sub clean_joinable {
 
 sub finish {
     my $bbs_obj = shift;
-	playit('shutdown.mp3');
+	$bbs_obj->playit('shutdown.mp3');
     $CACHE->set('RUNNING', FALSE);
     $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
     clean_joinable($bbs_obj);

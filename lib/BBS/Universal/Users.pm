@@ -567,7 +567,38 @@ sub user_info {
         $width = max($width, length($self->{'USER'}->{$field}));
     }
 
-    if ((($width + 22) * 2) <= $self->{'USER'}->{'columns'}) {
+	if ($self->{'USER'}->{'max_columns'} <= 40) {
+		$table = sprintf('%-15s=%-25s','FIELD','VALUE') . "\n";
+		$table .= '-' x $self->{'USER'}->{'max_columns'} . "\n";
+		$table .= sprintf('%-15s=%-25s','ACCOUNT NUMBER', $self->{'USER'}->{'id'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','USERNAME', $self->{'USER'}->{'username'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','FULL NAME', $self->{'USER'}->{'fullname'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','NICKNAME', $self->{'USER'}->{'nickname'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','EMAIL', $self->{'USER'}->{'email'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','DATE FORMAT', $self->{'USER'}->{'date_format'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','SCREEN', $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','BIRTHDAY', $self->users_get_date($self->{'USER'}->{'birthday'})) . "\n";
+		$table .= sprintf('%-15s=%-25s','LOCATION', $self->{'USER'}->{'location'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','BAUD RATE', $self->{'USER'}->{'baud_rate'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','LAST LOGIN', $self->{'USER'}->{'login_time'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','LAST LOGOUT', $self->{'USER'}->{'logout_time'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','TEXT MODE', $self->{'USER'}->{'text_mode'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','IDLE TIMEOUT',    $self->{'USER'}->{'timeout'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'},      FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','PREFER NICKNAME', $self->yes_no($self->{'USER'}->{'prefer_nickname'}, FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','VIEW FILES',      $self->yes_no($self->{'USER'}->{'view_files'},      FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','UPLOAD FILES',    $self->yes_no($self->{'USER'}->{'upload_files'},    FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','DOWNLOAD FILES',  $self->yes_no($self->{'USER'}->{'download_files'},  FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'},    FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','READ MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'},    FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'},   FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE)) . "\n";
+		$table .= sprintf('%-15s=%-25s','ACCESS LEVEL',    $self->{'USER'}->{'access_level'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'}) . "\n";
+		$table .= sprintf('%-15s=%-25s','ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'}) . "\n";
+    } elsif ((($width + 22) * 2) <= $self->{'USER'}->{'max_columns'}) {
         $table = Text::SimpleTable->new(15, $width, 15, $width);
         $table->row('FIELD', 'VALUE', 'FIELD', 'VALUE');
         $table->hr();
@@ -576,17 +607,17 @@ sub user_info {
         $table->row('EMAIL',           $self->{'USER'}->{'email'},                                 'SCREEN',          $self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'});
         $table->row('BIRTHDAY',        $self->users_get_date($self->{'USER'}->{'birthday'}),       'LOCATION',        $self->{'USER'}->{'location'});
         $table->row('BAUD RATE',       $self->{'USER'}->{'baud_rate'},                             'LAST LOGIN',      $self->users_get_date($self->{'USER'}->{'login_time'}));
-        $table->row( 'DATE FORMAT',     $self->{'USER'}->{'date_format'},                          'LAST LOGOUT',     $self->users_get_date($self->{'USER'}->{'logout_time'}));
+        $table->row('DATE FORMAT',     $self->{'USER'}->{'date_format'},                           'LAST LOGOUT',     $self->users_get_date($self->{'USER'}->{'logout_time'}));
         $table->row('IDLE TIMEOUT',    $self->{'USER'}->{'timeout'},                               'TEXT MODE',       $self->{'USER'}->{'text_mode'});
         $table->row('PREFER NICKNAME', $self->yes_no($self->{'USER'}->{'prefer_nickname'}, FALSE), 'VIEW FILES',      $self->yes_no($self->{'USER'}->{'view_files'}, FALSE));
         $table->row('UPLOAD FILES',    $self->yes_no($self->{'USER'}->{'upload_files'}, FALSE),    'DOWNLOAD FILES',  $self->yes_no($self->{'USER'}->{'download_files'}, FALSE));
         $table->row('REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'}, FALSE),    'READ MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'}, FALSE));
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'}, FALSE),    'REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'}, FALSE));
         $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'}, FALSE),      'SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'}, FALSE));
-		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'},                          ' ', ' ');
+		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'},                          'PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'},   FALSE));
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'},                       'RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
     } else {
-        $width = min($width + 7, $self->{'USER'}->{'columns'} - 7);
+        $width = min($width + 7, $self->{'USER'}->{'max_columns'} - 7);
         $table = Text::SimpleTable->new(15, $width);
         $table->row('FIELD', 'VALUE');
         $table->hr();
@@ -613,13 +644,16 @@ sub user_info {
         $table->row('READ MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'},    FALSE));
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE));
         $table->row('REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE));
+		$table->row('PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'},   FALSE));
         $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE));
 		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'});
         $table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
     } ## end else [ if ((($width + 22) * 2...))]
 
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+	if ($self->{'USER'}->{'max_columns'} <= 40) {
+		$text = $table;
+    } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $text = $table->boxes->draw();
         my $no    = colored(['red'],           'NO');
         my $yes   = colored(['green'],         'YES');
@@ -630,7 +664,7 @@ sub user_info {
         $text =~ s/ NO / $no /gs;
         $text =~ s/ YES / $yes /gs;
 
-        foreach $field ('ACCESS LEVEL','SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
+        foreach $field ('PLAY FORTUNES','ACCESS LEVEL','SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
             my $ch = colored(['cyan'], $field);
             $text =~ s/$field/$ch/gs;
         }

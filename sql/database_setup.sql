@@ -54,6 +54,7 @@ CREATE TABLE permissions (
 	sysop           BOOLEAN DEFAULT FALSE,
 	page_sysop      BOOLEAN DEFAULT TRUE,
 	prefer_nickname BOOLEAN DEFAULT FALSE,
+	play_fortunes   BOOLEAN DEFAULT FALSE,
 	timeout         SMALLINT UNSIGNED DEFAULT 10
 );
 
@@ -131,6 +132,7 @@ INSERT INTO config (config_name, config_value) VALUES ('LOGIN TRIES','3');
 INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED HOST','localhost');
 INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED PORT','11211');
 INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED NAMESPACE','BBSUniversal::');
+INSERT INTO config (config_name, config_value) VALUES ('PLAY SYSOP SOUNDS','TRUE');
 
 INSERT INTO text_modes (text_mode) VALUES ('ASCII');
 INSERT INTO text_modes (text_mode) VALUES ('ATASCII');
@@ -347,7 +349,8 @@ CREATE VIEW users_view
 	permissions.post_message             AS post_message,
 	permissions.remove_message           AS remove_message,
 	permissions.sysop                    AS sysop,
-	permissions.page_sysop               AS page_sysop
+	permissions.page_sysop               AS page_sysop,
+	permissions.play_fortunes            AS play_fortunes
  FROM
     users
  INNER JOIN

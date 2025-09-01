@@ -8,6 +8,8 @@ sub ascii_initialize {
         'RETURN'    => chr(13),
         'LINEFEED'  => chr(10),
         'NEWLINE'   => chr(13) . chr(10),
+		'BACKSPACE' => chr(8),
+		'DELETE'    => chr(127),
         'CLS'       => chr(12), # Formfeed
         'CLEAR'     => chr(12),
 		'RING BELL' => chr(7),
