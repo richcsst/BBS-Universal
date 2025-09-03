@@ -15,8 +15,8 @@ sub ansi_initialize {
 		'BACKSPACE' => chr(8),
 		'DELETE'    => chr(127),
 
-        'CLEAR'      => $esc . '2J',
-        'CLS'        => $esc . '2J',
+        'CLEAR'      => $esc . '2J' . locate(1,1),
+        'CLS'        => $esc . '2J' . locate(1,1),
         'CLEAR LINE' => $esc . '0K',
         'CLEAR DOWN' => $esc . '0J',
         'CLEAR UP'   => $esc . '1J',
@@ -178,23 +178,35 @@ sub ansi_output {
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 
-    foreach my $count (0 .. $s_len) {
-        my $char = substr($text, $count, 1);
-        if ($char eq "\n") {
-            if ($char eq "\n") {
-				if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-					$char = $nl;
-				}
-				$lines--;
-				if ($lines <= 0) {
-					$lines = $mlines;
-					last unless ($self->scroll($nl));
-					next;
-				}
+	# cl_socket
+	if ($self->{'local_mode'} || $self->{'sysop'} || $self->{'USER'}->{'baud_rate'} eq 'FULL') {
+			$text =~ s/\n/$nl/gs;
+		if ($self->{'local_mode'} || $self->{'sysop'}) {
+			print STDOUT $text;
+		} else {
+			my $handle = $self->{'cl_socket'};
+			print $handle $text;
+		}
+		$|=1;
+	} else {
+		foreach my $count (0 .. $s_len) {
+			my $char = substr($text, $count, 1);
+			if ($char eq "\n") {
+				if ($char eq "\n") {
+					if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+						$char = $nl;
+					}
+					$lines--;
+					if ($lines <= 0) {
+						$lines = $mlines;
+						last unless ($self->scroll($nl));
+						next;
+					}
+				} ## end if ($char eq "\n")
 			} ## end if ($char eq "\n")
-        } ## end if ($char eq "\n")
-        $self->send_char($char);
-    } ## end foreach my $count (0 .. $s_len)
+			$self->send_char($char);
+		} ## end foreach my $count (0 .. $s_len)
+	}
     return (TRUE);
 } ## end sub ansi_output
 1;

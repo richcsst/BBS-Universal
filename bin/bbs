@@ -61,6 +61,7 @@ my $RESTART        = FALSE;
 my @CALL           = @ARGV;
 my $SINGLE         = FALSE;
 my $MPLAYER        = FALSE;
+my $NOSOUND        = FALSE;
 
 # Shared with threads
 
@@ -70,6 +71,7 @@ GetOptions(
     'test|sysop' => \$TEST,
     'debug=s'    => \$LEVEL,
     'single'     => \$SINGLE,
+	'nosound'    => \$NOSOUND,
 );
 
 $LEVEL = uc($LEVEL);
@@ -79,8 +81,8 @@ my $DEBUG = Debug::Easy->new(
 );
 
 ############## BBS Core ###################
-print cls;
-my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL });
+print cls,locate(1,1),'Initializing...';
+my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'nosound' => $NOSOUND });
 my $CACHE   = Cache::Memcached::Fast->new(
     {
         'servers' => [
@@ -104,6 +106,7 @@ $CACHE->set_multi(
 	['ROW_ADJUST',      0],
 	['START_ROW',       7],
 	['SHOW_STATUS',     TRUE],
+	['NOSOUND',         $NOSOUND],
 );
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };

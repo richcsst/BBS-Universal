@@ -5,6 +5,8 @@ sub sysop_initialize {
     my $self = shift;
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+	$self->{'wsize'} = $wsize;
+	$self->{'hsize'} = $hsize;
     #### Format Versions for display
     my $sections;
     if ($wsize <= 80) {
@@ -17,9 +19,9 @@ sub sysop_initialize {
         $sections = 4;
     } elsif ($wsize <= 240) {
         $sections = 5;
-    } elsif ($wsize >= 280) {
-        $sections = 6;
-    }
+    } else {
+		$sections = 6;
+	}
     my $versions     = $self->sysop_versions_format($sections, FALSE);
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
     my $esc          = chr(27) . '[';
@@ -93,31 +95,51 @@ sub sysop_initialize {
             my $self = shift;
             my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
             my @sys = (sort(keys %{$main::SYSOP_COMMANDS}));
-            my @usr = (sort(keys %{ $self->{'COMMANDS'} }), (sort(keys %{ $self->{'COMMANDS'} })));
+			my @stkn = (sort(keys %{ $self->{'sysop_tokens'} }));
+            my @usr = (sort(keys %{ $self->{'COMMANDS'} }));
+            my @tkn = (sort(keys %{ $self->{'TOKENS'} }));
             my $x   = 1;
+			my $xt  = 1;
             my $y   = 1;
+			my $z   = 1;
             foreach my $s (@sys) {
                 $x = max(length($s), $x);
+            }
+            foreach my $st (@stkn) {
+                $xt = max(length($st), $xt);
             }
             foreach my $u (@usr) {
                 $y = max(length($u), $y);
             }
-            my $table = Text::SimpleTable->new($x, $y);
-            $table->row('SYSOP MENU COMMANDS', 'USER MENU COMMANDS');
+			foreach my $t (@tkn) {
+				$z = max(length($t), $z);
+			}
+            my $table = Text::SimpleTable->new($x, $xt, $y, $z);
+            $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS');
             $table->hr();
-            my ($sysop_names, $user_names);
-            while (scalar(@sys) || scalar(@usr)) {
+            my ($sysop_names, $sysop_tokens, $user_names, $token_names);
+            while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn)) {
                 if (scalar(@sys)) {
                     $sysop_names = shift(@sys);
                 } else {
                     $sysop_names = ' ';
+                }
+                if (scalar(@stkn)) {
+                    $sysop_tokens = shift(@stkn);
+                } else {
+                    $sysop_tokens = ' ';
                 }
                 if (scalar(@usr)) {
                     $user_names = shift(@usr);
                 } else {
                     $user_names = ' ';
                 }
-                $table->row($sysop_names, $user_names);
+                if (scalar(@tkn)) {
+                    $token_names = shift(@tkn);
+                } else {
+                    $token_names = ' ';
+                }
+                $table->row($sysop_names, $sysop_tokens, $user_names, $token_names);
             } ## end while (scalar(@sys) || scalar...)
             return ($self->center($table->boxes->draw(), $wsize));
         },
@@ -125,45 +147,48 @@ sub sysop_initialize {
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          email
-          birthday
-          location
-          baud_rate
-          text_mode
-          max_columns
-          max_rows
-          timeout
-          retro_systems
-          accomplishments
-          prefer_nickname
-          view_files
-          upload_files
-          download_files
-          remove_files
-          read_message
-          post_message
-          remove_message
-          sysop
-          page_sysop
-          login_time
-          logout_time
+			id
+			fullname
+			username
+			given
+			family
+			nickname
+			email
+			birthday
+			location
+			access_level
+			date_format
+			baud_rate
+			text_mode
+			max_columns
+			max_rows
+			timeout
+			retro_systems
+			accomplishments
+			prefer_nickname
+			view_files
+			upload_files
+			download_files
+			remove_files
+			play_fortunes
+			read_message
+			post_message
+			remove_message
+			sysop
+			page_sysop
+			login_time
+			logout_time
         )
     ];
     $self->{'SYSOP ORDER ABBREVIATED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          text_mode
+			id
+			fullname
+			username
+			given
+			family
+			nickname
+			text_mode
         )
     ];
     $self->{'SYSOP HEADING WIDTHS'} = {
@@ -176,6 +201,8 @@ sub sysop_initialize {
         'email'           => 20,
         'birthday'        => 10,
         'location'        => 20,
+		'date_format'     => 14,
+		'access_level'    => 11,
         'baud_rate'       => 4,
         'login_time'      => 10,
         'logout_time'     => 10,
@@ -193,6 +220,7 @@ sub sysop_initialize {
         'read_message'    => 2,
         'post_message'    => 2,
         'remove_message'  => 2,
+		'play_fortunes'   => 2,
         'sysop'           => 2,
         'page_sysop'      => 2,
         'password'        => 64,
@@ -226,7 +254,7 @@ sub sysop_versions_format {
             $heading .= "\n";
         }
     } ## end for (my $count = $sections...)
-    $heading = colored(['bold yellow on_red'], $heading);
+    $heading = colored(['bold bright_yellow on_red'], $heading);
     foreach my $v (@{ $self->{'VERSIONS'} }) {
         next if ($bbs_only && $v !~ /^BBS/);
         $versions .= "\t\t $v";
@@ -252,7 +280,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     foreach my $line (@free) {
         next if ($line =~ /tmp|boot/);
         if ($line =~ /^Filesystem/) {
-            $diskfree .= "\t" . colored(['bold yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n";    # Make the heading the right width
+            $diskfree .= "\t" . colored(['bold bright_yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n";    # Make the heading the right width
         } else {
             $diskfree .= "\t\t\t $line\n";
         }
@@ -463,6 +491,7 @@ sub sysop_list_users {
     my $self      = shift;
     my $list_mode = shift;
 
+    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $table;
     $self->{'debug'}->DEBUG($list_mode);
     my $date_format = $self->configuration('DATE FORMAT');
@@ -470,46 +499,13 @@ sub sysop_list_users {
 	$date_format =~ s/MONTH/\%m/;
 	$date_format =~ s/DAY/\%d/;
     my $name_width  = 15;
-    my $value_width = 60;
+    my $value_width = $wsize - 22;
     my $sth;
     my @order;
     my $sql;
 
     if ($list_mode =~ /DETAILED/) {
-        $sql = q{
-            SELECT
-			  id,
-			  username,
-			  fullname,
-			  given,
-			  family,
-			  nickname,
-              email,
-			  birthday,
-			  location,
-			  baud_rate,
-			  login_time,
-			  logout_time,
-			  text_mode,
-			  forum_category,
-			  file_category,
-			  max_columns,
-			  max_rows,
-			  timeout,
-			  retro_systems,
-			  accomplishments,
-			  prefer_nickname,
-			  view_files,
-			  upload_files,
-			  download_files,
-			  remove_files,
-			  read_message,
-			  post_message,
-			  remove_message,
-			  sysop,
-			  page_sysop
-			  FROM
-			  users_view };
+        $sql = q{ SELECT * FROM users_view };
         $sth   = $self->{'dbh'}->prepare($sql);
         @order = @{ $self->{'SYSOP ORDER DETAILED'} };
     } else {
@@ -664,7 +660,7 @@ sub sysop_select_file_category {
     print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (< = Nevermind)');
     my $line;
     do {
-        $line = uc($self->sysop_get_line(3));
+        $line = uc($self->sysop_get_line(ECHO,3));
     } until ($line =~ /^(\d+|\<)/i);
     if ($line eq '<') {
         return (FALSE);
@@ -694,7 +690,7 @@ sub sysop_edit_file_categories {
     print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
     my $line;
     do {
-        $line = uc($self->sysop_get_line(3));
+        $line = uc($self->sysop_get_line(ECHO,3));
     } until ($line =~ /^(\d+|A|\<)/i);
     if ($line eq 'A') {    # Add
         print "\nADD NEW FILE CATEGORY\n";
@@ -703,10 +699,10 @@ sub sysop_edit_file_categories {
         $table->row('DESCRIPTION', "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
         print "\n",                                  $table->boxes->draw();
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
-        my $title = $self->sysop_get_line(80);
+        my $title = $self->sysop_get_line(ECHO,80);
         if ($title ne '') {
             print "\r", $self->{'ansi_sequences'}->{'DOWN'}, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
-            my $description = $self->sysop_get_line(80);
+            my $description = $self->sysop_get_line(ECHO,80);
             if ($description ne '') {
                 $sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description) VALUES (?,?)');
                 $sth->execute($title, $description);
@@ -866,27 +862,91 @@ sub sysop_edit_configuration {
         'MEMCACHED PORT'      => 5,
         'DATE FORMAT'         => 10,
     };
-    my $string = $self->sysop_get_line($sizes->{ $conf[$choice] });
+    my $string = $self->sysop_get_line(ECHO,$sizes->{ $conf[$choice] });
     return (FALSE) if ($string eq '');
     $self->{'debug'}->DEBUGMAX(["New value $conf[$choice] = $string"]);
     $self->configuration($conf[$choice], $string);
     return (TRUE);
 } ## end sub sysop_edit_configuration
 
+sub sysop_get_key {
+	my $self     = shift;
+	my $echo     = shift;
+	my $blocking = shift;
+
+	my $key = undef;
+	local $/ = "\x{00}";
+	ReadMode 'ultra-raw';
+	$key = ($blocking) ? ReadKey(0) : ReadKey(-1);
+	ReadMode 'restore';
+	$self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)."  BLOCKING=$blocking"]);
+	return($key) if ($key eq chr(13));
+	$key = $self->{'backspace'} if ($key eq chr(127));
+	if ($echo == NUMERIC && defined($key)) {
+		if ($key =~ /[0-9]/ || $key eq $self->{'backspace'}) {
+			$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
+			print STDOUT $key;
+		} else {
+			$key = '';
+		}
+	} elsif ($echo == ECHO && defined($key)) {
+		$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
+		print STDOUT $key;
+	} elsif ($echo == PASSWORD && defined($key)) {
+		print STDOUT '*';
+	}
+	return ($key);
+} ## end sub get_key
+
 sub sysop_get_line {
-    my $self  = shift;
-    my $width = shift;
+	my $self  = shift;
+	my $echo  = shift;
+	my $limit = min(shift, 65535);
+	my $line  = shift || '';
+	my $key;
 
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
+	$self->output($line) if ($line ne '');
+	while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
+		if (length($line) < $limit) {
+			$key = $self->sysop_get_key($echo, BLOCKING);
+			return('') if (defined($key) && $key eq chr(3));
+			if (defined($key) && $key ne '' && $self->is_connected()) {
+				if ($key eq $self->{'backspace'} || $key eq chr(127)) {
+					$self->output(" $key");
+					my $len = length($line);
+					if ($len > 0) {
+						$line = substr($line,0, $len - 1);
+					}
+				} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+					$line .= $key;
+				}
+			} ## end if (defined($key) && $key...)
+		} else {
+			$key = $self->get_key(SILENT, BLOCKING);
+			return('') if (defined($key) && $key eq chr(3));
+			if (defined($key) && $key eq $self->{'backspace'} || $key eq chr(127)) {
+				$key = $self->{'backspace'};
+				$self->output("$key $key");
+				chop($line);
+			} else {
+				$self->output('[% RING BELL %]');
+			}
+		}
+		threads->yield();
+	} ## end while ($self->is_connected...)
 
-    #    print savepos . $self->{'ansi_characters'}->{'DOWN'} . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
-    print savepos . down . $self->{'ansi_characters'}->{'OVERLINE'} x $width . loadpos;
-    chomp(my $response = <STDIN>);
+	$line = '' if ($key eq chr(3));
+	if ($echo) {
+		$self->{'debug'}->DEBUG(['User entered a line of text']);
+		$self->{'debug'}->DEBUGMAX([$line]);
+	} else {
+		$self->{'debug'}->DEBUG(['User entered a password']);
+	}
     $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
-
-    # TEMP
-    return ($response);
-} ## end sub sysop_get_line
+	print STDOUT "\n";
+	return ($line);
+} ## end sub get_line
 
 sub sysop_user_delete {
     my $self = shift;
@@ -901,7 +961,7 @@ sub sysop_user_delete {
     my ($key_exit) = (keys %{$mapping});
     my $key;
     print $self->sysop_prompt('Please enter the username or account number');
-    my $search = $self->sysop_get_line(20);
+    my $search = $self->sysop_get_line(ECHO,20);
     return (FALSE) if ($search eq '' || $search eq 'sysop' || $search eq '1');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
     $sth->execute($search, $search);
@@ -945,7 +1005,7 @@ sub sysop_user_edit {
     my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y );
     my $key;
     print $self->sysop_prompt('Please enter the username or account number');
-    my $search = $self->sysop_get_line(20);
+    my $search = $self->sysop_get_line(ECHO,20);
     return (FALSE) if ($search eq '');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
     $sth->execute($search, $search);
@@ -953,8 +1013,14 @@ sub sysop_user_edit {
     $sth->finish();
 
     if (defined($user_row)) {
+		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+		my $valsize = 1;
+		foreach my $fld (keys %{ $user_row }) {
+			$valsize = max($valsize,length($user_row->{$fld}));
+		}
+		$valsize = min($valsize,$wsize - 29);
         $self->{'debug'}->DEBUGMAX($user_row);
-        my $table = Text::SimpleTable->new(6, 16, 60);
+        my $table = Text::SimpleTable->new(6, 16, $valsize);
         $table->row('CHOICE', 'FIELD', 'VALUE');
         $table->hr();
         my $count = 0;
@@ -984,7 +1050,7 @@ sub sysop_user_edit {
         } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
         if ($key !~ /$key_exit/i) {
             print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
-            my $new = $self->sysop_get_line(1 + $self->{'SYSOP HEADING WIDTHS'}->{ $choice{$key} });
+            my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP HEADING WIDTHS'}->{ $choice{$key} }, $choice{$key});
             unless ($new eq '') {
                 $new =~ s/^(Yes|On)$/1/i;
                 $new =~ s/^(No|Off)$/0/i;
@@ -1028,7 +1094,7 @@ sub sysop_user_add {
     my $mapping = $self->sysop_load_menu($row, $file);
     $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
-    my $table = Text::SimpleTable->new(15, 80);
+    my $table = Text::SimpleTable->new(15, 64);
     my $user_template;
     push(@{ $self->{'SYSOP ORDER DETAILED'} }, 'password');
 
@@ -1314,7 +1380,7 @@ sub sysop_edit_bbs {
     my @choices = (qw( bbs_id bbs_name bbs_hostname bbs_port ));
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to edit');
     my $search;
-    $search = $self->sysop_get_line(50);
+    $search = $self->sysop_get_line(ECHO,50);
     return (FALSE) if ($search eq '');
     print "\r", cldown, "\n";
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
@@ -1347,7 +1413,7 @@ sub sysop_edit_bbs {
         }
         print "\n", $self->sysop_prompt($choices[$choice] . ' (' . $bbs->{ $choices[$choice] } . ') ');
         my $width = ($choices[$choice] eq 'bbs_port') ? 5 : 50;
-        my $new   = $self->sysop_get_line($width);
+        my $new   = $self->sysop_get_line(ECHO,$width);
         return (FALSE) if ($new eq '');
         $sth = $self->{'dbh'}->prepare('UPDATE bbs_listing SET ' . $choices[$choice] . '=? WHERE bbs_id=?');
         $sth->execute($new, $bbs->{'bbs_id'});
@@ -1375,13 +1441,13 @@ sub sysop_add_bbs {
     my $index = 0;
     print $table->boxes->draw();
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-    $bbs->{'bbs_name'} = $self->sysop_get_line(50);
+    $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO,50);
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
         print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-        $bbs->{'bbs_hostname'} = $self->sysop_get_line(50);
+        $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO,50);
         if ($bbs->{'bbs_hostname'} ne '' && length($bbs->{'bbs_hostname'}) > 5) {
             print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-            $bbs->{'bbs_port'} = $self->sysop_get_line(5);
+            $bbs->{'bbs_port'} = $self->sysop_get_line(ECHO,5);
             if ($bbs->{'bbs_port'} ne '' && $bbs->{'bbs_port'} =~ /^\d+$/) {
                 my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
                 $sth->execute($bbs->{'bbs_name'}, $bbs->{'bbs_hostname'}, $bbs->{'bbs_port'});
@@ -1402,7 +1468,7 @@ sub sysop_delete_bbs {
     my $self = shift;
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
-    $search = $self->sysop_get_line(50);
+    $search = $self->sysop_get_line(ECHO,50);
     return (FALSE) if ($search eq '');
     print "\r", cldown, "\n";
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');

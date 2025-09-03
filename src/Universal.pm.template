@@ -24,6 +24,25 @@ use constant {
     ATASCII => 1,
     PETSCII => 2,
     ANSI    => 3,
+
+	LINEMODE          => 34,
+
+    SE                => 240,
+    NOP               => 214,
+    DATA_MARK         => 242,
+    BREAK             => 243,
+    INTERRUPT_PROCESS => 244,
+    ABORT_OUTPUT      => 245,
+    ARE_YOU_THERE     => 246,
+    ERASE_CHARACTER   => 247,
+    ERASE_LINE        => 248,
+    GO_AHEAD          => 249,
+    SB                => 250,
+    WILL              => 251,
+    WONT              => 252,
+    DO                => 253,
+    DONT              => 254,
+    IAC               => 255,
 };
 use open qw(:std :utf8);
 
@@ -149,22 +168,22 @@ sub new {    # Always call with the socket as a parameter
 			'SYSOP'        => 3,
 		},
 		'telnet_commands' => [
-			'SE (Subnegotiation end) - End of negotiation (or data block) of a sub-service of a protocol mechanism',
-			'NOP (No operation) - Data packet that does nothing',
+			'SE (Subnegotiation end)',
+			'NOP (No operation)',
 			'Data Mark',
 			'Break',
-			'Interrupt Process - Request that other party ends current process',
-			'Abort output - Request that other party stops sending output',
+			'Interrupt Process',
+			'Abort output',
 			'Are you there?',
 			'Erase character',
 			'Erase Line',
 			'Go ahead',
-			'SB (Subnegotiation begin) - Initiate the negotiation of a sub-service of a protocol mechanism',
-			'WILL - Informs othqer party that this party will use a protocol mechanism',
-			"WON'T - Informs other party that this party will not use a protocol mechanism",
-			'DO - Instruct other party to use a protocol mechanism',
-			"DON'T - Instruct other party to not use a protocol mechanism",
-			'IAC - Sequence Initializer/Escape Character',
+			'SB (Subnegotiation begin)',
+			'WILL',
+			"WON'T",
+			'DO',
+			"DON'T",
+			'IAC',
 		],
 		'telnet_options'  => [
 			'Binary Transmission',
@@ -604,6 +623,8 @@ sub run {
     $self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
+	my $handle = $self->{'cl_socket'};
+	print $handle chr(IAC) . chr(WONT) . chr(LINEMODE) unless($self->{'localmode'} || $self->{'sysop'});$|=1;
     if ($self->greeting()) {    # Greeting also logs in
         $self->main_menu('files/main/menu');
     }
@@ -616,6 +637,7 @@ sub greeting {
 
     $self->{'debug'}->DEBUG(['Sending greeting']);
     # Load and print greetings message here
+	$self->output("\n\n");
     my $text = $self->files_load_file('files/main/greeting');
     $self->{'debug'}->DEBUGMAX([$text]);
     $self->output($text);
@@ -883,8 +905,44 @@ sub parse_telnet_escape {
 	my $self    = shift;
 	my $command = shift;
 	my $option  = shift;
+	my $handle  = $self->{'cl_socket'};
 
-	return(sprintf('%s - %s',$self->{'telnet_commands'}->[($command - 240)],$self->{'telnet_options'}->[$option]));
+	if ($command == WILL) {
+		if ($option == ECHO) { # WON'T ECHO
+			$self->{'debug'}->DEBUG(['Received IAC WILL ECHO']);
+			print $handle chr(IAC) . chr(WONT) . chr(ECHO);
+			$self->{'debug'}->DEBUG(['Sent IAC WONT ECHO']);
+		} elsif ($option == LINEMODE) {
+			$self->{'debug'}->DEBUG(['Received IAC WILL LINEMODE']);
+			print $handle chr(IAC) . chr(WONT) . chr(LINEMODE);
+			$self->{'debug'}->DEBUG(['Sent IAC WONT LINEMODE']);
+		}
+	} elsif ($command == DO) {
+		if ($option == ECHO) { # DON'T ECHO
+			$self->{'debug'}->DEBUG(['Received IAC DO ECHO']);
+			print $handle chr(IAC) . chr(DONT) . chr(ECHO);
+			$self->{'debug'}->DEBUG(['Sent IAC DONT ECHO']);
+		} elsif ($option == LINEMODE) {
+			$self->{'debug'}->DEBUG(['Received IAC DO LINEMODE']);
+			print $handle chr(IAC) . chr(DONT) . chr(LINEMODE);
+			$self->{'debug'}->DEBUG(['Sent IAC DONT LINEMODE']);
+		}
+	} else {
+		$self->{'debug'}->DEBUG(['Recreived IAC Request - ' . $self->{'telnet_commands'}->[$command - 240] . ' : ' . $self->{'telnet_options'}->[$option]]);
+	}
+	return(TRUE);
+}
+
+sub flush_input {
+	my $self = shift;
+	my $key;
+	my $handle = $self->{'cl_socket'};
+	ReadMode 'ultra-raw', $handle;
+	do {
+		$key = ReadKey(-1,$handle);
+	} until (! defined($key) || $key eq '');
+	ReadMode 'restore', $handle;
+	return(TRUE);
 }
 
 sub get_key {
@@ -899,20 +957,19 @@ sub get_key {
         $key = ($blocking) ? ReadKey(0) : ReadKey(-1);
         ReadMode 'restore';
     } elsif ($self->is_connected()) {
-		my $escape = FALSE;
-		ReadMode 'noecho', $self->{'cl_socket'};
+		my $handle = $self->{'cl_socket'};
+		ReadMode 'ultra-raw', $self->{'cl_socket'};
+		my $escape;
 		do {
-			$key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'}) : ReadKey(-1, $self->{'cl_socket'});
-			if ($key eq chr(255)) { # Ignore Telnet escapes
-				$self->{'debug'}->DEBUG(['IAC Telnet Escape Sequence']);
+			$escape = FALSE;
+			$key = ($blocking) ? ReadKey($self->{'USER'}->{'timeout'} * 60, $handle) : ReadKey(-1, $handle);
+			if ($key eq chr(255)) { # IAC sequence
+				my $command = ReadKey($self->{'USER'}->{'timeout'} * 60, $handle);
+				my $option  = ReadKey($self->{'USER'}->{'timeout'} * 60, $handle);
+				$self->parse_telnet_escape(ord($command),ord($option));
 				$escape = TRUE;
-				my $command = ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'});
-				my $option  = ReadKey($self->{'USER'}->{'timeout'} * 60, $self->{'cl_socket'});
-				$self->{'debug'}->DEBUG([$self->parse_telnet_escape(ord($command),ord($option))]);
-			} else {
-				$escape = FALSE;
 			}
-		} until (! $escape || ! $self->is_connected());
+		} until (! $escape || $self->is_connected());
 		ReadMode 'restore', $self->{'cl_socket'};
     } ## end elsif ($self->is_connected...)
     $self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)."  ECHO=$echo  BLOCKING=$blocking"]);
@@ -921,15 +978,15 @@ sub get_key {
 	if ($echo == NUMERIC && defined($key)) {
 		if ($key =~ /[0-9]/ || $key eq $self->{'backspace'}) {
 			$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
-			$self->output($key);
+			$self->send_char($key);
 		} else {
 			$key = '';
 		}
     } elsif ($echo == ECHO && defined($key)) {
 		$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
-        $self->output($key);
+        $self->send_char($key);
     } elsif ($echo == PASSWORD && defined($key)) {
-        $self->output('*');
+        $self->send_char('*');
     }
     return ($key);
 } ## end sub get_key
@@ -941,6 +998,7 @@ sub get_line {
     my $line  = shift || '';
     my $key;
 
+	$self->flush_input();
 	$self->output($line) if ($line ne '');
     while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
 		if (length($line) < $limit) {
@@ -1233,6 +1291,7 @@ sub parse_versions {
 		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
 		"BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
 		"BBS::Universal::DB            $BBS::Universal::DB_VERSION",
+		"BBS::Universal::Text_Editor   $BBS::Universal::TEXT_EDITOR_VERSION",
 		"DBI                           $DBI::VERSION",
 		"DBD::mysql                    $DBD::mysql::VERSION",
 		"DateTime                      $DateTime::VERSION",
@@ -1325,8 +1384,10 @@ sub get_fortune {
 sub playit {
 	my $self = shift;
 	my $file = shift;
-	if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
-		system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+	unless($self->{'nosound'}) {
+		if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
+			system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+		}
 	}
 }
 
