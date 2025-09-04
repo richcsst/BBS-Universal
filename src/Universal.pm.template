@@ -455,27 +455,32 @@ sub populate_common {
 		'FORUM CATEGORIES' => sub {
 			my $self = shift;
 			$self->messages_forum_categories();
-            return ($self->load_menu('files/main/forum'));
+            return ($self->load_menu('files/main/forums'));
+		},
+		'FORUM MESSAGES LIST' => sub {
+			my $self = shift;
+			$self->messages_list_messages();
+            return ($self->load_menu('files/main/forums'));
 		},
 		'FORUM MESSAGES READ' => sub {
 			my $self = shift;
 			$self->messages_read_message();
-            return ($self->load_menu('files/main/forum'));
+            return ($self->load_menu('files/main/forums'));
 		},
 		'FORUM MESSAGES EDIT' => sub {
 			my $self = shift;
 			$self->messages_edit_message('EDIT');
-            return ($self->load_menu('files/main/forum'));
+            return ($self->load_menu('files/main/forums'));
 		},
 		'FORUM MESSAGES ADD' => sub {
 			my $self = shift;
 			$self->messages_edit_message('ADD');
-            return ($self->load_menu('files/main/forum'));
+            return ($self->load_menu('files/main/forums'));
 		},
 		'FORUM MESSAGES DELETE' => sub {
 			my $self = shift;
 			$self->messages_delete_message();
-            return ($self->load_menu('files/main/forum'));
+            return ($self->load_menu('files/main/forums'));
 		},
         'UPDATE LOCATION' => sub {
             my $self = shift;
@@ -736,13 +741,13 @@ sub prompt {
 
     my $response;
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
-        $response = $text . chr(31) . ' ';
+        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
-        $response = "$text > ";
+        $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $response = $text . ' ' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . ' ';
+        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . ' ' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . ' ';
     } else {
-        $response = "$text > ";
+        $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     }
     return ($response);
 } ## end sub prompt
@@ -753,13 +758,18 @@ sub menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
-    #	print "$choice - $color - $desc\n";
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $self->output(" $choice " . chr(31) . " $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored([$color], $choice) . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored([$color], $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}) . " $desc");
+        $self->output(
+			$self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} .
+			'[% ' . $color . ' %]' . $choice . '[% RESET %]' .
+			$self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} .
+			'[% ' . $color . ' %]' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . '[% RESET %]' .
+			" $desc"
+		);
     } else {
         $self->output(" $choice > $desc");
     }
@@ -820,7 +830,7 @@ sub load_menu {
                 $k     = uc($k);
                 $cmd   = uc($cmd);
                 $color = uc($color);
-                $color =~ s/BRIGHT /BRIGHT_/g;
+#                $color =~ s/BRIGHT /BRIGHT_/g;
                 $self->{'debug'}->DEBUGMAX([$k, $cmd, $color, $t]);
                 if (exists($self->{'COMMANDS'}->{$cmd})) {
                     $mapping->{$k} = {
@@ -854,26 +864,17 @@ sub main_menu {
     while ($connected && $self->is_connected()) {
         $self->output($mapping->{'TEXT'});
         $self->show_choices($mapping);
-		my $mode = $self->{'USER'}->{'text_mode'};
-		if ($mode eq 'ANSI') {
-			$self->output("\n" . $self->prompt('(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . 'Choose'));
-		} elsif ($mode eq 'ATASCII') {
-			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
-		} elsif ($mode eq 'PETSCII') {
-			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
-		} else {
-			$self->output("\n" . $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose'));
-		}
+        $self->output("\n" . $self->prompt('Choose'));
         my $key;
         do {
             $key = uc($self->get_key(SILENT, FALSE));
         } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
         $self->output($mapping->{$key}->{'command'} . "\n");
-		if ($key eq chr(3)) {
-			$command = 'DISCONNECT';
-		} else {
-			$command = $mapping->{$key}->{'command'};
-		}
+        if ($key eq chr(3)) {
+            $command = 'DISCONNECT';
+        } else {
+            $command = $mapping->{$key}->{'command'};
+        }
         $self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
         $mapping = $self->{'COMMANDS'}->{$command}->($self);
         if (ref($mapping) ne 'HASH' || !$self->is_connected()) {
@@ -1389,6 +1390,16 @@ sub playit {
 			system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
 		}
 	}
+}
+
+sub check_access_level {
+	my $self   = shift;
+	my $access = shift;
+
+	if ($self->{'access_levels'}->{$access} <= $self->{'access_levels'}->{$self->{'USER'}->{'access_level'}}) {
+		return(TRUE);
+	}
+	return(FALSE);
 }
 
 # MANUAL IMPORT HERE #

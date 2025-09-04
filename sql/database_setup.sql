@@ -25,8 +25,8 @@ CREATE TABLE users (
     family          VARCHAR(255) NOT NULL,
     nickname        VARCHAR(255),
     email           VARCHAR(255) DEFAULT '',
-    max_columns     SMALLINT UNSIGNED DEFAULT 132,
-    max_rows        SMALLINT UNSIGNED DEFAULT 50,
+    max_columns     SMALLINT UNSIGNED DEFAULT 80,
+    max_rows        SMALLINT UNSIGNED DEFAULT 25,
     accomplishments TEXT,
     retro_systems   TEXT,
     birthday        DATE,
@@ -60,6 +60,7 @@ CREATE TABLE permissions (
 
 CREATE TABLE message_categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
     name        VARCHAR(255) NOT NULL,
     description MEDIUMTEXT NOT NULL
 );
@@ -139,48 +140,50 @@ INSERT INTO text_modes (text_mode) VALUES ('ATASCII');
 INSERT INTO text_modes (text_mode) VALUES ('PETSCII');
 INSERT INTO text_modes (text_mode) VALUES ('ANSI');
 
-INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems,birthday,access_level)
+INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems,birthday,access_level,max_columns,max_rows)
     VALUES (
-	    'sysop',
-		'SysOp',
-		SHA2('BBS::Universal',512),
-		'System','Operator',
-		(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
-		'FULL',
-		'I manage and maintain this system',
-		'Stuff',
-		now(),
-		'SYSOP'
-	);
+            'sysop',
+            'SysOp',
+            SHA2('BBS::Universal',512),
+            'System','Operator',
+            (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
+            'FULL',
+            'I manage and maintain this system',
+            'Stuff',
+            now(),
+            'SYSOP',
+			264,
+			50
+        );
 INSERT INTO permissions (id,view_files,show_email,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES (
-	    LAST_INSERT_ID(),
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
-		true,
-		65535
-	);
+            LAST_INSERT_ID(),
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            true,
+            65535
+        );
 INSERT INTO users (username,nickname,password,given,family,text_mode,accomplishments,birthday)
     VALUES (
-	    'testuser',
-		'Testmeister',
-		SHA2('test',512),
-		'Test','User',
-		(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
-		'My existence is destined to end soon',
-		now()
-	);
+            'testuser',
+            'Testmeister',
+            SHA2('test',512),
+            'Test','User',
+            (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
+            'My existence is destined to end soon',
+            now()
+        );
 INSERT INTO permissions (
     id
   )
   VALUES (
-	    LAST_INSERT_ID()
+        LAST_INSERT_ID()
   );
 
 INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');
@@ -201,8 +204,23 @@ INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discuss
 INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');
 
-
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (2,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (3,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (4,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (5,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (6,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (7,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (8,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (9,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (10,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (11,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (12,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (13,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (14,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (15,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (16,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (17,1,'First (test) Message','This is a test');
 
 INSERT INTO file_types (type, extension) VALUES ('Plain Text','TXT');
 INSERT INTO file_types (type, extension) VALUES ('ASCII Text','ASC');
@@ -305,10 +323,10 @@ INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_
 
 INSERT INTO news (
     news_title,
-	news_content
+        news_content
   ) VALUES (
     'BBS Universal Installation',
-	'BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
+        'BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
   );
 
 -- Views
@@ -362,12 +380,16 @@ CREATE VIEW messages_view
  AS
  SELECT
     messages.id                          AS id,
-    messages.from_id                     AS from_id,
-    message_categories.name              AS category_name,
-    CONCAT(users.given,' ',users.family) AS Author,
-    messages.title                       AS title,
-    messages.message                     AS message,
-    messages.created                     AS created
+	messages.from_id                     AS from_id,
+	messages.category                    AS category,
+	message_categories.name              AS category_name,
+	CONCAT(users.given,' ',users.family) AS author_fullname,
+	users.nickname                       AS author_nickname,
+	users.username                       AS author_username,
+	messages.title                       AS title,
+	messages.message                     AS message,
+	messages.created                     AS created,
+    messages.hidden                      AS hidden
  FROM
     messages
  INNER JOIN
@@ -419,3 +441,4 @@ CREATE VIEW bbs_listing_view
     users ON users.id=bbs_listing.bbs_poster_id;
 
 -- End
+
