@@ -140,7 +140,7 @@ sub sysop_initialize {
                     $token_names = ' ';
                 }
                 $table->row($sysop_names, $sysop_tokens, $user_names, $token_names);
-            } ## end while (scalar(@sys) || scalar...)
+            }
             return ($self->center($table->boxes->draw(), $wsize));
         },
     };
@@ -226,15 +226,14 @@ sub sysop_initialize {
         'password'        => 64,
     };
 
-    # $self->{'debug'}->ERROR($self);exit;
-    $self->{'debug'}->DEBUG(['Initialized SysOp object']);
     return ($self);
-} ## end sub sysop_initialize
+}
 
 sub sysop_online_count {
     my $self = shift;
 
-    return ($self->{'CACHE'}->get('ONLINE'));
+	my $count = $self->{'CACHE'}->get('ONLINE');
+    return ($count);
 }
 
 sub sysop_versions_format {
@@ -253,7 +252,7 @@ sub sysop_versions_format {
         } else {
             $heading .= "\n";
         }
-    } ## end for (my $count = $sections...)
+    }
     $heading = colored(['bold bright_yellow on_red'], $heading);
     foreach my $v (@{ $self->{'VERSIONS'} }) {
         next if ($bbs_only && $v !~ /^BBS/);
@@ -263,10 +262,10 @@ sub sysop_versions_format {
             $counter = $sections;
             $versions .= "\n\t";
         }
-    } ## end foreach my $v (@{ $self->{'VERSIONS'...}})
+    }
     chop($versions) if (substr($versions, -1, 1) eq "\t");
     return ($heading . $versions . "\n");
-} ## end sub sysop_versions_format
+}
 
 sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     my $self = shift;
@@ -284,9 +283,9 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
         } else {
             $diskfree .= "\t\t\t $line\n";
         }
-    } ## end foreach my $line (@free)
+    }
     return ($diskfree);
-} ## end sub sysop_disk_free
+}
 
 sub sysop_first_time_setup {
     my $self = shift;
@@ -301,14 +300,13 @@ sub sysop_first_time_setup {
             $found = TRUE;
             $self->db_sql_execute($file);
             last;
-        } ## end if (-e $file)
-        $self->{'debug'}->WARNING(["SQL file $file not found"]);
-    } ## end foreach my $file (@sql_files)
+        }
+    }
     unless ($found) {
         $self->{'debug'}->ERROR(['Database setup file not found', join("\n", @sql_files)]);
         exit(1);
     }
-} ## end sub sysop_first_time_setup
+}
 
 sub sysop_load_menu {
     my $self = shift;
@@ -322,7 +320,6 @@ sub sysop_load_menu {
 
     while (chomp(my $line = <$FILE>)) {
         next if ($line =~ /^\#/);
-        $self->{'debug'}->DEBUGMAX([$line]);
         if ($mode) {
             if ($line !~ /^---/) {
                 my ($k, $cmd, $color, $t) = split(/\|/, $line);
@@ -341,10 +338,10 @@ sub sysop_load_menu {
         } else {
             $mapping->{'TEXT'} .= $self->sysop_detokenize($line) . "\n";
         }
-    } ## end while (chomp(my $line = <$FILE>...))
+    }
     close($FILE);
     return ($mapping);
-} ## end sub sysop_load_menu
+}
 
 sub sysop_pager {
     my $self   = shift;
@@ -375,9 +372,9 @@ sub sysop_pager {
             $scroll = $self->sysop_scroll();
             last unless ($scroll);
         }
-    } ## end foreach my $line (@lines)
+    }
     return ($scroll);
-} ## end sub sysop_pager
+}
 
 sub sysop_parse_menu {
     my $self = shift;
@@ -385,8 +382,6 @@ sub sysop_parse_menu {
     my $file = shift;
 
     my $mapping = $self->sysop_load_menu($row, $file);
-    $self->{'debug'}->DEBUG(['Loaded SysOp Menu']);
-    $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown;
     my $scroll = $self->sysop_pager($mapping->{'TEXT'}, 3);
     my $keys   = '';
@@ -399,7 +394,7 @@ sub sysop_parse_menu {
     } until (exists($mapping->{$key}));
     print $mapping->{$key}->{'command'}, "\n";
     return ($mapping->{$key}->{'command'});
-} ## end sub sysop_parse_menu
+}
 
 sub sysop_decision {
     my $self = shift;
@@ -414,10 +409,11 @@ sub sysop_decision {
     }
     print "NO\n";
     return (FALSE);
-} ## end sub sysop_decision
+}
 
 sub sysop_keypress {
     my $self = shift;
+
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
     my $key;
     ReadMode 'ultra-raw';
@@ -428,31 +424,31 @@ sub sysop_keypress {
     ReadMode 'restore';
     $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
     return ($key);
-} ## end sub sysop_keypress
+}
 
 sub sysop_ip_address {
     my $self = shift;
 
     chomp(my $ip = `nice hostname -I`);
     return ($ip);
-} ## end sub sysop_ip_address
+}
 
 sub sysop_hostname {
     my $self = shift;
 
     chomp(my $hostname = `nice hostname`);
     return ($hostname);
-} ## end sub sysop_hostname
+}
 
 sub sysop_locate_middle {
     my $self  = shift;
-    my $color = shift || 'B_WHITE';
+    my $color = (scalar(@_)) ? shift : 'B_WHITE';
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $middle = int($wsize / 2);
     my $string = "\r" . $self->{'ansi_sequences'}->{'RIGHT'} x $middle . $self->{'ansi_sequences'}->{$color} . ' ' . $self->{'ansi_sequences'}->{'RESET'};
     return ($string);
-} ## end sub sysop_locate_middle
+}
 
 sub sysop_memory {
     my $self = shift;
@@ -472,12 +468,13 @@ sub sysop_memory {
         $output =~ s/Swap\:      /$ch/;
     }
     return ($output);
-} ## end sub sysop_memory
+}
 
 sub sysop_true_false {
     my $self    = shift;
     my $boolean = shift;
     my $mode    = shift;
+
     $boolean = $boolean + 0;
     if ($mode eq 'TF') {
         return (($boolean) ? 'TRUE' : 'FALSE');
@@ -485,7 +482,7 @@ sub sysop_true_false {
         return (($boolean) ? 'Yes' : 'No');
     }
     return ($boolean);
-} ## end sub sysop_true_false
+}
 
 sub sysop_list_users {
     my $self      = shift;
@@ -493,7 +490,6 @@ sub sysop_list_users {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $table;
-    $self->{'debug'}->DEBUG($list_mode);
     my $date_format = $self->configuration('DATE FORMAT');
 	$date_format =~ s/YEAR/\%Y/;
 	$date_format =~ s/MONTH/\%m/;
@@ -522,11 +518,9 @@ sub sysop_list_users {
                     $row->{$name} = $self->sysop_true_false($row->{$name}, 'YN');
                 }
                 $value_width = max(length($row->{$name}), $value_width);
-                $self->{'debug'}->DEBUGMAX([$row, $name_width, $value_width]);
-            } ## end foreach my $name (@order)
-        } ## end while (my $row = $sth->fetchrow_hashref...)
+            }
+        }
         $sth->finish();
-        $self->{'debug'}->DEBUG(['Populate the table']);
         $sth = $self->{'dbh'}->prepare($sql);
         $sth->execute();
         $table = Text::SimpleTable->new($name_width, $value_width);
@@ -542,23 +536,20 @@ sub sysop_list_users {
                 }
                 $self->{'debug'}->DEBUGMAX([$name, $Row->{$name}]);
                 $table->row($name . '', $Row->{$name} . '');
-            } ## end foreach my $name (@order)
-        } ## end while (my $Row = $sth->fetchrow_hashref...)
+            }
+        }
         $sth->finish();
-        $self->{'debug'}->DEBUG(['Show table']);
         my $string = $table->boxes->draw();
 		my $ch = colored(['bright_yellow'],'NAME');
 		$string =~ s/ NAME / $ch /;
 		$ch = colored(['bright_yellow'],'VALUE');
 		$string =~ s/ VALUE / $ch /;
-        $self->{'debug'}->DEBUGMAX(\$string);
         $self->sysop_pager("$string\n");
     } else {    # Horizontal
         my @hw;
         foreach my $name (@order) {
             push(@hw, $self->{'SYSOP HEADING WIDTHS'}->{$name});
         }
-        $self->{'debug'}->DEBUGMAX(\@hw);
         $table = Text::SimpleTable->new(@hw);
         if ($list_mode =~ /ABBREVIATED/) {
             $table->row(@order);
@@ -568,7 +559,7 @@ sub sysop_list_users {
                 push(@title, $self->sysop_vertical_heading($heading));
             }
             $table->row(@title);
-        } ## end else [ if ($list_mode =~ /ABBREVIATED/)]
+        }
         $table->hr();
         while (my $row = $sth->fetchrow_hashref()) {
             my @vals = ();
@@ -577,17 +568,14 @@ sub sysop_list_users {
                 $self->{'debug'}->DEBUGMAX([$name, $row->{$name}]);
             }
             $table->row(@vals);
-        } ## end while (my $row = $sth->fetchrow_hashref...)
+        }
         $sth->finish();
-        $self->{'debug'}->DEBUG(['Show table']);
         my $string = $table->boxes->draw();
-        $self->{'debug'}->DEBUGMAX(\$string);
         $self->sysop_pager("$string\n");
-    } ## end else [ if ($list_mode =~ /VERTICAL/)]
+    }
     print 'Press a key to continue ... ';
     return ($self->sysop_keypress(TRUE));
-    return (TRUE);
-} ## end sub sysop_list_users
+}
 
 sub sysop_delete_files {
     my $self = shift;
@@ -610,13 +598,11 @@ sub sysop_list_files {
             } else {
                 $sizes->{$name} = max(length("$row->{$name}"), $sizes->{$name});
             }
-        } ## end foreach my $name (keys %{$row...})
-    } ## end while (my $row = $sth->fetchrow_hashref...)
+        }
+    }
     $sth->finish();
     my $table;
     if ($wsize > 150) {
-
-        #		$self->{'debug'}->ERROR($sizes);exit;
         $table = Text::SimpleTable->new($sizes->{'filename'}, $sizes->{'title'}, $sizes->{'type'}, $sizes->{'description'}, $sizes->{'username'}, $sizes->{'file_size'}, $sizes->{'uploaded'});
         $table->row('FILENAME', 'TITLE', 'TYPE', 'DESCRIPTION', 'USER', 'SIZE', 'UPLOADED');
     } else {
@@ -635,13 +621,13 @@ sub sysop_list_files {
             $table->row($row->{'filename'}, $row->{'title'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, int($row->{'file_size'} / 1024) . 'k');
         }
         $category = $row->{'category'};
-    } ## end while (my $row = $sth->fetchrow_hashref...)
+    }
     $sth->finish();
     print "\nCATEGORY:  ", $category, "\n", $table->boxes->draw(), "\n", 'Press a Key To Continue ...';
     $self->sysop_keypress();
     print " BACK\n";
     return (TRUE);
-} ## end sub sysop_list_files
+}
 
 sub sysop_select_file_category {
     my $self = shift;
@@ -673,7 +659,7 @@ sub sysop_select_file_category {
     } else {
         return (FALSE);
     }
-} ## end sub sysop_select_file_category
+}
 
 sub sysop_edit_file_categories {
     my $self = shift;
@@ -717,7 +703,7 @@ sub sysop_edit_file_categories {
     } elsif ($line =~ /\d+/) {    # Edit
     }
     return (TRUE);
-} ## end sub sysop_edit_file_categories
+}
 
 sub sysop_vertical_heading {
     my $self = shift;
@@ -728,7 +714,7 @@ sub sysop_vertical_heading {
         $heading .= substr($text, $count, 1) . "\n";
     }
     return ($heading);
-} ## end sub sysop_vertical_heading
+}
 
 sub sysop_view_configuration {
     my $self = shift;
@@ -747,27 +733,20 @@ sub sysop_view_configuration {
             $name_width  = max(length($cnf),                    $name_width);
             $value_width = max(length($self->{'CONF'}->{$cnf}), $value_width);
         }
-    } ## end foreach my $cnf (keys %{ $self...})
-    $self->{'debug'}->DEBUGMAX([$name_width, $value_width]);
+    }
 
     # Assemble table
     my $table = ($view) ? Text::SimpleTable->new($name_width, $value_width) : Text::SimpleTable->new(6, $name_width, $value_width);
     if ($view) {
         $table->row('STATIC NAME', 'STATIC VALUE');
         $table->hr();
-
-        #    } else {
-        #        $table->row(' ', 'STATIC NAME', 'STATIC VALUE');
-    } ## end if ($view)
+    }
     foreach my $conf (sort(keys %{ $self->{'CONF'}->{'STATIC'} })) {
         next if ($conf eq 'DATABASE PASSWORD');
         if ($view) {
             $table->row($conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-
-            #        } else {
-            #            $table->row(' ', $conf, $self->{'CONF'}->{'STATIC'}->{$conf});
-        } ## end if ($view)
-    } ## end foreach my $conf (sort(keys...))
+        }
+    }
     if ($view) {
         $table->hr();
         $table->row('CONFIG NAME', 'CONFIG VALUE');
@@ -797,15 +776,15 @@ sub sysop_view_configuration {
                 $table->row(uc('  ' . sprintf('%x', $count) . ' '), $conf, $c);
                 $count++;
             }
-        } ## end else [ if ($view) ]
-    } ## end foreach my $conf (sort(keys...))
+        }
+    }
     my $output = $table->boxes->draw();
     foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
         if ($output =~ /$change/) {
             my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'], $change);
             $output =~ s/$change/$ch/gs;
         }
-    } ## end foreach my $change ('AUTHOR EMAIL'...)
+    }
     {
         my $ch = colored(['cyan'], 'CHOICE');
         $output =~ s/CHOICE/$ch/gs;
@@ -826,8 +805,8 @@ sub sysop_view_configuration {
         print $self->sysop_menu_choice('BOTTOM', '',    '');
         print $self->sysop_prompt('[% B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] Choose');
         return (TRUE);
-    } ## end else [ if ($view) ]
-} ## end sub sysop_view_configuration
+    }
+}
 
 sub sysop_edit_configuration {
     my $self = shift;
@@ -843,7 +822,6 @@ sub sysop_edit_configuration {
     }
     $choice = hex($choice);
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
-    $self->{'debug'}->DEBUGMAX(["Choice $choice $conf[$choice]"]);
     print '(Edit) ', $conf[$choice], ' ', $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}, '  ';
     my $sizes = {
         'BAUD RATE'           => 4,
@@ -864,10 +842,9 @@ sub sysop_edit_configuration {
     };
     my $string = $self->sysop_get_line(ECHO,$sizes->{ $conf[$choice] });
     return (FALSE) if ($string eq '');
-    $self->{'debug'}->DEBUGMAX(["New value $conf[$choice] = $string"]);
     $self->configuration($conf[$choice], $string);
     return (TRUE);
-} ## end sub sysop_edit_configuration
+}
 
 sub sysop_get_key {
 	my $self     = shift;
@@ -879,7 +856,6 @@ sub sysop_get_key {
 	ReadMode 'ultra-raw';
 	$key = ($blocking) ? ReadKey(0) : ReadKey(-1);
 	ReadMode 'restore';
-	$self->{'debug'}->DEBUGMAX(["Key pressed - $key - " . ord($key)."  BLOCKING=$blocking"]);
 	return($key) if ($key eq chr(13));
 	$key = $self->{'backspace'} if ($key eq chr(127));
 	if ($echo == NUMERIC && defined($key)) {
@@ -890,13 +866,12 @@ sub sysop_get_key {
 			$key = '';
 		}
 	} elsif ($echo == ECHO && defined($key)) {
-		$self->{'debug'}->DEBUGMAX(["Echoing $key"]);
 		print STDOUT $key;
 	} elsif ($echo == PASSWORD && defined($key)) {
 		print STDOUT '*';
 	}
 	return ($key);
-} ## end sub get_key
+}
 
 sub sysop_get_line {
 	my $self  = shift;
@@ -921,7 +896,7 @@ sub sysop_get_line {
 				} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
 					$line .= $key;
 				}
-			} ## end if (defined($key) && $key...)
+			}
 		} else {
 			$key = $self->get_key(SILENT, BLOCKING);
 			return('') if (defined($key) && $key eq chr(3));
@@ -934,28 +909,20 @@ sub sysop_get_line {
 			}
 		}
 		threads->yield();
-	} ## end while ($self->is_connected...)
+	}
 
 	$line = '' if ($key eq chr(3));
-	if ($echo) {
-		$self->{'debug'}->DEBUG(['User entered a line of text']);
-		$self->{'debug'}->DEBUGMAX([$line]);
-	} else {
-		$self->{'debug'}->DEBUG(['User entered a password']);
-	}
     $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
 	print STDOUT "\n";
 	return ($line);
-} ## end sub get_line
+}
 
 sub sysop_user_delete {
     my $self = shift;
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['Begin user Delete']);
     my $mapping = $self->sysop_load_menu($row, $file);
-    $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
     my ($key_exit) = (keys %{$mapping});
@@ -979,7 +946,7 @@ sub sysop_user_delete {
                 $user_row->{$field} = $user_row->{$field} . ' Minutes';
             }
             $table->row($field, $user_row->{$field} . '');
-        } ## end foreach my $field (@{ $self...})
+        }
         if ($self->sysop_pager($table->boxes->draw())) {
             print "Are you sure that you want to delete this user (Y|N)?  ";
             my $answer = $self->sysop_decision();
@@ -987,18 +954,16 @@ sub sysop_user_delete {
                 print "\n\nDeleting ", $user_row->{'username'}, " ... ";
                 $sth = $self->users_delete($user_row->{'id'});
             }
-        } ## end if ($self->sysop_pager...)
-    } ## end if (defined($user_row))
-} ## end sub sysop_user_delete
+        }
+    }
+}
 
 sub sysop_user_edit {
     my $self = shift;
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['Begin user Edit']);
     my $mapping = $self->sysop_load_menu($row, $file);
-    $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
     my ($key_exit) = (keys %{$mapping});
@@ -1019,12 +984,10 @@ sub sysop_user_edit {
 			$valsize = max($valsize,length($user_row->{$fld}));
 		}
 		$valsize = min($valsize,$wsize - 29);
-        $self->{'debug'}->DEBUGMAX($user_row);
         my $table = Text::SimpleTable->new(6, 16, $valsize);
         $table->row('CHOICE', 'FIELD', 'VALUE');
         $table->hr();
         my $count = 0;
-        $self->{'debug'}->DEBUGMAX(['HERE', $self->{'SYSOP ORDER DETAILED'}]);
         my %choice;
         foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
             if ($field =~ /_time|fullname|_category|id/) {
@@ -1039,10 +1002,9 @@ sub sysop_user_edit {
                 $table->row($choices[$count], $field, $user_row->{$field} . '');
                 $choice{ $choices[$count] } = $field;
                 $count++;
-            } ## end else [ if ($field =~ /_time|fullname|_category|id/)]
-        } ## end foreach my $field (@{ $self...})
+            }
+        }
         print $table->boxes->draw(), "\n";
-        $self->{'debug'}->DEBUGMAX([$mapping]);
         $self->sysop_show_choices($mapping);
         print "\n", $self->sysop_prompt('[% B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] Choose');
         do {
@@ -1071,7 +1033,7 @@ sub sysop_user_edit {
         print "User not found!\n\n";
     }
     return (TRUE);
-} ## end sub sysop_user_edit
+}
 
 sub sysop_user_add {
     my $self = shift;
@@ -1092,7 +1054,6 @@ sub sysop_user_add {
         'show_email'      => 'No',
     };
     my $mapping = $self->sysop_load_menu($row, $file);
-    $self->{'debug'}->DEBUGMAX([$mapping]);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     my $table = Text::SimpleTable->new(15, 64);
     my $user_template;
@@ -1124,7 +1085,7 @@ sub sysop_user_add {
             $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         }
         $user_template->{$name} = undef;
-    } ## end foreach my $name (@{ $self->...})
+    }
     print $table->boxes->draw();
     $self->sysop_show_choices($mapping);
     my $column     = 21;
@@ -1155,28 +1116,28 @@ sub sysop_user_add {
                     } else {
                         substr($user_template->{$entry}, 0, 1) = uc(substr($user_template->{$entry}, 0, 1));
                     }
-                } ## end elsif ($entry =~ /given|family/)
+                }
                 print locate($row + $adjustment, $column), $user_template->{$entry};
             } elsif ($entry =~ /prefer_|_files|_message|sysop/) {
                 $user_template->{$entry} = ucfirst($user_template->{$entry});
                 print locate($row + $adjustment, $column), $user_template->{$entry};
             }
         } until ($self->sysop_validate_fields($entry, $user_template->{$entry}, $row + $adjustment, $column));
-        $self->{'debug'}->DEBUGMAX([$entry, $user_template]);
         if ($user_template->{$entry} =~ /^(yes|on|true)$/i) {
             $user_template->{$entry} = TRUE;
         } elsif ($user_template->{$entry} =~ /^(no|off|false)$/i) {
             $user_template->{$entry} = FALSE;
         }
         $adjustment += 2;
-    } ## end foreach my $entry (@{ $self...})
+    }
     pop(@{ $self->{'SYSOP ORDER DETAILED'} });
     if ($self->users_add($user_template)) {
         print "\n\n", colored(['green'], 'SUCCESS'), "\n";
+		$self->{'debug'}->DEBUG(['sysop_user_add end']);
         return (TRUE);
     }
     return (FALSE);
-} ## end sub sysop_user_add
+}
 
 sub sysop_show_choices {
     my $self    = shift;
@@ -1191,7 +1152,7 @@ sub sysop_show_choices {
     }
     print $self->sysop_menu_choice('BOTTOM', '', '');
     return (TRUE);
-} ## end sub sysop_show_choices
+}
 
 sub sysop_validate_fields {
     my $self   = shift;
@@ -1200,7 +1161,6 @@ sub sysop_validate_fields {
     my $row    = shift;
     my $column = shift;
 
-    $self->{'debug'}->DEBUGMAX([$name, $val, $row, $column]);
     if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') {    # cannot be empty
         print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
         return (FALSE);
@@ -1221,23 +1181,23 @@ sub sysop_validate_fields {
         return (FALSE);
     } elsif ($name eq 'birthday' && $val ne '' && $val !~ /(\d\d\d\d)-(\d\d)-(\d\d)/) {
         print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' YEAR-MM-DD'), locate($row, $column);
+		$self->{'debug'}->DEBUG(['sysop_validate_fields end']);
         return (FALSE);
     }
     return (TRUE);
-} ## end sub sysop_validate_fields
+}
 
 sub sysop_prompt {
     my $self     = shift;
     my $text     = shift;
+
     my $response = $text . ' [% PINK %]' . $self->{'ansi_characters'}->{'BLACK RIGHTWARDS ARROWHEAD'} . '[% RESET %] ';
     return ($self->sysop_detokenize($response));
-} ## end sub sysop_prompt
+}
 
 sub sysop_detokenize {
     my $self = shift;
     my $text = shift;
-
-    $self->{'debug'}->DEBUGMAX([$text]);    # Before
 
     # OPERATION TOKENS
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
@@ -1248,7 +1208,7 @@ sub sysop_detokenize {
             $ch = $self->{'sysop_tokens'}->{$key};
         }
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
-    } ## end foreach my $key (keys %{ $self...})
+    }
 
     # ANSI TOKENS
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
@@ -1257,17 +1217,16 @@ sub sysop_detokenize {
             $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
         }
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
-    } ## end foreach my $name (keys %{ $self...})
+    }
 
     # SPECIAL CHARACTERS
     foreach my $char (keys %{ $self->{'ansi_characters'} }) {
         my $ch = $self->{'ansi_characters'}->{$char};
         $text =~ s/\[\%\s+$char\s+\%\]/$ch/sgi;
     }
-    $self->{'debug'}->DEBUGMAX([$text]);    # After
 
     return ($text);
-} ## end sub sysop_detokenize
+}
 
 sub sysop_menu_choice {
     my $self   = shift;
@@ -1284,12 +1243,12 @@ sub sysop_menu_choice {
         $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored(["BOLD $color"], $choice) . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . ' ' . colored([$color], $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}) . ' ' . $desc . "\n";
     }
     return ($response);
-} ## end sub sysop_menu_choice
+}
 
 sub sysop_showenv {
     my $self = shift;
-    my $MAX  = 0;
 
+    my $MAX  = 0;
     my $text = '';
     foreach my $e (keys %ENV) {
         $MAX = max(length($e), $MAX);
@@ -1318,7 +1277,7 @@ sub sysop_showenv {
                 } else {
                     $text .= "$line\n";
                 }
-            } ## end foreach my $line (@in)
+            }
         } elsif ($env eq 'SSH_CLIENT') {
             my ($ip, $p1, $p2) = split(/ /, $ENV{$env});
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ip) . ' ' . colored(['cyan'], $p1) . ' ' . colored(['yellow'], $p2) . "\n";
@@ -1335,19 +1294,21 @@ sub sysop_showenv {
         } else {
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $ENV{$env} . "\n";
         }
-    } ## end foreach my $env (sort(keys ...))
+    }
     return ($text);
-} ## end sub sysop_showenv
+}
 
 sub sysop_scroll {
     my $self = shift;
+
     print "Scroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
+		$self->{'debug'}->DEBUG(['sysop_scroll end']);
         return (FALSE);
     }
     print "\r" . clline;
     return (TRUE);
-} ## end sub sysop_scroll
+}
 
 sub sysop_list_bbs {
     my $self = shift;
@@ -1362,7 +1323,7 @@ sub sysop_list_bbs {
         $hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
         $id_size       = max(length('' . $row->{'bbs_id'}),  $id_size);
         $poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
-    } ## end while (my $row = $sth->fetchrow_hashref...)
+    }
     my $table = Text::SimpleTable->new($id_size, $name_size, $hostname_size, 5, $poster_size);
     $table->row('ID', 'NAME', 'HOSTNAME', 'PORT', 'POSTER');
     $table->hr();
@@ -1372,7 +1333,7 @@ sub sysop_list_bbs {
     print $table->boxes->draw();
     print 'Press a key to continue... ';
     $self->sysop_keypress();
-} ## end sub sysop_list_bbs
+}
 
 sub sysop_edit_bbs {
     my $self = shift;
@@ -1386,7 +1347,7 @@ sub sysop_edit_bbs {
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
     $sth->execute($search, $search, $search);
 
-    if ($sth->rows()) {
+    if ($sth->rows() > 0) {
         my $bbs = $sth->fetchrow_hashref();
         $sth->finish();
         my $table = Text::SimpleTable->new(6, 12, 50);
@@ -1400,7 +1361,7 @@ sub sysop_edit_bbs {
                 $table->row($index, $name, $bbs->{$name});
                 $index++;
             }
-        } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
+        }
         print $table->boxes->draw();
         print $self->prompt('Edit which field (Z=Nevermind)');
         my $choice;
@@ -1414,14 +1375,17 @@ sub sysop_edit_bbs {
         print "\n", $self->sysop_prompt($choices[$choice] . ' (' . $bbs->{ $choices[$choice] } . ') ');
         my $width = ($choices[$choice] eq 'bbs_port') ? 5 : 50;
         my $new   = $self->sysop_get_line(ECHO,$width);
-        return (FALSE) if ($new eq '');
+		if ($new eq '') {
+			$self->{'debug'}->DEBUG(['sysop_edit_bbs end']);
+			return (FALSE);
+		}
         $sth = $self->{'dbh'}->prepare('UPDATE bbs_listing SET ' . $choices[$choice] . '=? WHERE bbs_id=?');
         $sth->execute($new, $bbs->{'bbs_id'});
         $sth->finish();
     } else {
         $sth->finish();
     }
-} ## end sub sysop_edit_bbs
+}
 
 sub sysop_add_bbs {
     my $self = shift;
@@ -1462,19 +1426,22 @@ sub sysop_add_bbs {
         return (FALSE);
     }
     return (TRUE);
-} ## end sub sysop_add_bbs
+}
 
 sub sysop_delete_bbs {
     my $self = shift;
+
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(ECHO,50);
-    return (FALSE) if ($search eq '');
+	if ($search eq '') {
+		return (FALSE);
+	}
     print "\r", cldown, "\n";
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
     $sth->execute($search, $search, $search);
 
-    if ($sth->rows()) {
+    if ($sth->rows() > 0) {
         my $bbs = $sth->fetchrow_hashref();
         $sth->finish();
         my $table = Text::SimpleTable->new(12, 50);
@@ -1491,8 +1458,8 @@ sub sysop_delete_bbs {
         }
         $sth = $self->{'dbh'}->prepare('DELETE FROM bbs_listing WHERE bbs_id=?');
         $sth->execute($bbs->{'bbs_id'});
-    } ## end if ($sth->rows())
+    }
     $sth->finish();
     return (TRUE);
-} ## end sub sysop_delete_bbs
+}
 1;

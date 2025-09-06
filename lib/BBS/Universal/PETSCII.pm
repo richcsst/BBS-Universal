@@ -26,11 +26,11 @@ sub petscii_initialize {
         'REVERSE OFF'       => chr(hex('0x92')),
         'BROWN'             => chr(hex('0x95')),
         'PINK'              => chr(hex('0x96')),
-        'DARK CYAN'         => chr(hex('0x97')),
-        'GRAY'              => chr(hex('0x98')),
+        'CYAN'              => chr(hex('0x97')),
+        'LIGHT GREY'        => chr(hex('0x98')),
         'LIGHT GREEN'       => chr(hex('0x99')),
         'LIGHT BLUE'        => chr(hex('0x9A')),
-        'LIGHT GRAY'        => chr(hex('0x9B')),
+        'GRAY'              => chr(hex('0x9B')),
         'PURPLE'            => chr(hex('0x9C')),
         'YELLOW'            => chr(hex('0x9E')),
         'CYAN'              => chr(hex('0x9F')),
@@ -55,11 +55,9 @@ sub petscii_initialize {
         'DOTTED LEFT'       => chr(hex('0xA7')),
         'DOTED BOTTOM'      => chr(hex('0xA8')),
         'RIGHT ANGLED BARS' => chr(hex('0xA9')),
-
     };
-    $self->{'debug'}->DEBUG(['Initialized ASCII']);
     return ($self);
-} ## end sub petscii_initialize
+}
 
 sub petscii_output {
     my $self = shift;
@@ -68,7 +66,6 @@ sub petscii_output {
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
 
-    $self->{'debug'}->DEBUG(['Send PETSCII text']);
     if (length($text) > 1) {
         foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
@@ -77,8 +74,8 @@ sub petscii_output {
             } else {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
             }
-        } ## end foreach my $string (keys %{...})
-    } ## end if (length($text) > 1)
+        }
+    }
     my $s_len = length($text);
     my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
     if ($self->{'local_mode'} || $self->{'sysop'} || $self->{'USER'}->{'baud_rate'} eq 'FULL') {
@@ -102,10 +99,10 @@ sub petscii_output {
 					$lines = $mlines;
 					last unless ($self->scroll($nl));
 				}
-			} ## end if ($char eq "\n")
+			}
 			$self->send_char($char);
 		}
-    } ## end foreach my $count (0 .. $s_len)
+    }
     return (TRUE);
-} ## end sub petscii_output
+}
 1;

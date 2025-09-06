@@ -8,6 +8,7 @@ sub bbs_list_initialize {
 
 sub bbs_list_add {
     my $self  = shift;
+
     my $index = 0;
     $self->output($self->prompt('What is the BBS Name'));
     my $bbs_name = $self->get_line(ECHO, 50);
@@ -36,12 +37,11 @@ sub bbs_list_add {
         return (FALSE);
     }
     return (TRUE);
-} ## end sub bbs_list_add
+}
 
 sub bbs_list_all {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['BBS LISTING BEGIN']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
     $sth->execute();
     my @listing;
@@ -51,7 +51,7 @@ sub bbs_list_all {
         $name_size     = max(length($row->{'bbs_name'}),     $name_size);
         $hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
         $poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
-    } ## end while (my $row = $sth->fetchrow_hashref...)
+    }
     my $table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
     $table->row('NAME', 'HOSTNAME', 'PORT', 'POSTER');
     $table->hr();
@@ -64,8 +64,6 @@ sub bbs_list_all {
     } else {
         $response = $table->draw();
     }
-    $self->{'debug'}->DEBUGMAX([$response]);
-    $self->{'debug'}->DEBUG(['BBS LISTING END']);
     return ($response);
-} ## end sub bbs_list_all
+}
 1;

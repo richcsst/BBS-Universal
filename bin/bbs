@@ -68,10 +68,10 @@ my $NOSOUND        = FALSE;
 our $TEST = FALSE;
 
 GetOptions(
-    'test|sysop' => \$TEST,
-    'debug=s'    => \$LEVEL,
-    'single'     => \$SINGLE,
-	'nosound'    => \$NOSOUND,
+    'test|sysop'     => \$TEST,
+    'debug=s'        => \$LEVEL,
+    'single'         => \$SINGLE,
+	'nosound|silent' => \$NOSOUND,
 );
 
 $LEVEL = uc($LEVEL);
@@ -299,16 +299,13 @@ sub logo {
     print locate(6, 64), colored(['on_black'],'┷');
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
-} ## end sub logo
+}
 
 sub system_menu {
     my $bbs_obj = shift;
 
-    $DEBUG->DEBUG(['Main beginning']);
     my $key = '';
-
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
-
     my ($width, $height) = ($wsize, $hsize);
     print locate($CACHE->get('START_ROW'), 1), cldown;
 
@@ -333,10 +330,8 @@ sub system_menu {
             $DEBUG->ERROR([$error, 'Local Mode Only']);
             sleep 5;
         } else {
-            $DEBUG->DEBUG(["Waiting for a connection for $bbs_obj->{'CONF'}->{host} : $bbs_obj->{'CONF'}->{port}"]);
             foreach my $thread (1 .. $MAX_THREADS) {
                 my $name = sprintf('SERVER_%02d', $thread);
-                $DEBUG->DEBUG(["$name Ready"]);
                 $SERVER_THREADS->{$name} = threads->create(
                     \&run_bbs,
                     $bbs_obj,
@@ -349,8 +344,7 @@ sub system_menu {
                 );
                 $CACHE->set('UPDATE', TRUE);
                 servers_status($bbs_obj, FALSE);
-            } ## end foreach my $thread (1 .. $MAX_THREADS)
-            $DEBUG->DEBUGMAX([keys %{$SERVER_THREADS}]);
+            }
             $SIG{'ALRM'} = sub { servers_status($bbs_obj, TRUE); };
             $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, TRUE);    # This is a sub not a method, so we pass the object conventionally
@@ -367,10 +361,9 @@ sub system_menu {
             ($wsize, $hsize, $wpixels, $hpixels) = logo();
             ($width, $height) = ($wsize, $hsize);
             servers_status($bbs_obj, TRUE) unless ($TEST);
-        } ## end if ($wsize != $width ||...)
+        }
         my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANS');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
-            $DEBUG->DEBUG(["Running command $command"]);
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
                 $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
             } else {
@@ -378,14 +371,13 @@ sub system_menu {
                 $command = 'BACK';
             }
             threads->yield();
-        } ## end while ($command !~ /BACK/...)
-    } ## end while ($CACHE->get('RUNNING'...))
+        }
+    }
     $socket->close() if (defined($socket));
     $CACHE->set('RUNNING', FALSE);
     finish($bbs_obj);
-    $DEBUG->DEBUG(['Main End']);
     shutdown_message();
-} ## end sub system_menu
+}
 
 sub servers_status {
     my $bbs_obj    = shift;
@@ -435,10 +427,10 @@ sub servers_status {
 					$table->row(@row);
 					@row = ();
 					$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-				} ## end if ($steps == 0)
+				}
 				$count++;
 				threads->yield();
-			} ## end foreach my $name (sort(keys...))
+			}
 			if (scalar(@row)) {
 				while ($steps >= 0) {
 					push(@row, ' ');
@@ -448,7 +440,7 @@ sub servers_status {
 				$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
 				$table->row(@row);
 				$CACHE->set('UPDATE', FALSE);
-			} ## end if (scalar(@row))
+			}
 			if (defined($table)) {
 				my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
 				my $cn  = colored(['green'],   'CONNECTED');
@@ -466,10 +458,10 @@ sub servers_status {
 					print $tbl;
 				}
 			}
-		} ## end if ($CACHE->get('UPDATE'...))
+		}
 	}
     return (TRUE);
-} ## end sub servers_status
+}
 
 sub run_bbs {
     my $bbs_obj = shift;
@@ -486,8 +478,6 @@ sub run_bbs {
         'Prefix'          => '%Date% %Time% %Benchmark% %Loglevel% ' . $thread_name . ' [%Subroutine%][%Lastline%] ',
         'DEBUGMAX-Prefix' => '%Date% %Time% %Benchmark% %Loglevel% ' . $thread_name . ' [%Module%][%Lines%] ',
     );
-    $debug->DEBUG(["BBS Server Thread $thread_name Started"]);
-    $debug->DEBUGMAX([$params]);
 
     while ($CACHE->get('RUNNING')) {
         $CACHE->set($thread_name, 'IDLE');
@@ -498,21 +488,17 @@ sub run_bbs {
 				[$thread_name, 'CONNECTED'],
 				['UPDATE',     TRUE],
 			);
-            $debug->DEBUG(['Client connected from ' . $client_socket->peerhost() . ':' . $client_socket->peerport()]);
-            $debug->DEBUG(['Creating new BBS::Universal object']);
             my $bbs = BBS::Universal->new(
                 {
                     'thread_name'   => $thread_name,
                     'thread_number' => $thread_number,
                     'socket'        => $socket,
                     'client_socket' => $client_socket,
-                    'debug'         => $debug,
+                    'debug'         => $DEBUG,
                     'debuglevel'    => $params->{'debuglevel'},
                 }
             );
-            $debug->DEBUG(['BBS::Universal object created', 'Running connection process']);
             $bbs->run(FALSE);
-            $debug->DEBUG(['Shutdown client socket']);
             $client_socket->shutdown(SHUT_RDWR);    # Hang up
             $CACHE->set_multi(
 				[$thread_name, 'IDLE'],
@@ -525,10 +511,9 @@ sub run_bbs {
 			);
         }
         threads->yield();
-    } ## end while ($CACHE->get('RUNNING'...))
+    }
     $CACHE->set($thread_name, 'TERMINATED');
-    $debug->INFO(["Thread $thread_name shutting down"]);
-} ## end sub run_bbs
+}
 
 sub run_bbs_sysop {
     my $bbs_obj = shift;
@@ -548,7 +533,7 @@ sub run_bbs_sysop {
     $bbs->run($sysop);
 	delete($bbs_obj->{'LOCAL LOGIN'});
     threads->yield() if (!$TEST);    # Be friendly
-} ## end sub run_bbs_sysop
+}
 
 sub clean_joinable {
     my $bbs_obj = shift;
@@ -560,17 +545,17 @@ sub clean_joinable {
             servers_status($bbs_obj, FALSE);
             alarm 0;
             threads->yield();
-        } ## end foreach my $thread (threads...)
+        }
         threads->yield();
-    } ## end while (threads->list(threads::running...))
+    }
     foreach my $thread (threads->list(threads::joinable)) {
         $thread->join();
         $CACHE->set('UPDATE', TRUE);
         servers_status($bbs_obj, FALSE);
         alarm 0;
         threads->yield();
-    } ## end foreach my $thread (threads...)
-} ## end sub clean_joinable
+    }
+}
 
 sub finish {
     my $bbs_obj = shift;
@@ -582,7 +567,7 @@ sub finish {
     chdir($OLDDIR);
     system('reset');
     alarm(0);
-} ## end sub finish
+}
 
 sub hard_finish {
     my $bbs_obj = shift;
@@ -593,7 +578,6 @@ sub hard_finish {
 
     $CACHE->set('RUNNING', FALSE);
 
-    $DEBUG->WARNING(['Forcing Shutdown...']);
     alarm(0);
     sleep 1;
     if ($TEST) {
@@ -603,13 +587,13 @@ sub hard_finish {
             $thread->kill('KILL');
         }
         clean_joinable();
-    } ## end else [ if ($TEST) ]
+    }
     $DEBUG->INFO(['Hard Shutdown Complete']);
     chdir($OLDDIR);
     system('reset');
     shutdown_message();
     exit(1);
-} ## end sub hard_finish
+}
 
 __END__
 

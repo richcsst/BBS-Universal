@@ -4,9 +4,8 @@ BEGIN { our $VERSION = '0.003'; }
 sub news_initialize {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['News Initialized']);
     return ($self);
-} ## end sub news_initialize
+}
 
 sub news_display {
     my $self = shift;
@@ -35,7 +34,7 @@ sub news_display {
                 $news .= "* $today - Today is the author's birthday!\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
             }
             $news .= "\n";
-        } ## end if ($dt->month == 7 &&...)
+        }
     }
 	my $df = $self->{'USER'}->{'date_format'};
 	$df =~ s/YEAR/\%Y/;
@@ -60,7 +59,7 @@ sub news_display {
                 $news .= '* ' . $fields->{'newsdate'} . ' - ' . $fields->{'news_title'} . "\n\n" . $format->format($fields->{'news_content'});
             }
             $news .= "\n";
-        } ## end while (my $row = $sth->fetchrow_hashref...)
+        }
     } else {
         $news = "No News\n\n";
     }
@@ -69,17 +68,15 @@ sub news_display {
     $self->output("Press a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
     return (TRUE);
-} ## end sub news_display
+}
 
 sub news_summary {
     my $self = shift;
 
 	my $format = $self->{'USER'}->{'date_format'};
-#	warn "DATE FORMAT $format";
 	$format =~ s/YEAR/\%Y/;
 	$format =~ s/MONTH/\%m/;
 	$format =~ s/DAY/\%d/;
-#	warn "DATE FORMAT $format";exit;
     my $sql = q{
 		SELECT
 		  news_id,
@@ -114,5 +111,5 @@ sub news_summary {
     $self->output("\nPress a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
     return (TRUE);
-} ## end sub news_summary
+}
 1;

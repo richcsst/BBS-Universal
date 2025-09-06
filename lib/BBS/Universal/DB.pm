@@ -4,10 +4,8 @@ BEGIN { our $VERSION = '0.002'; }
 sub db_initialize {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Initialized DB']);
-
     return ($self);
-} ## end sub db_initialize
+}
 
 sub db_connect {
     my $self = shift;
@@ -44,14 +42,13 @@ sub db_connect {
             },
         ) or $errors = $DBI::errstr;
         last if ($errors eq '');
-    } ## end foreach my $host (@dbhosts)
+    }
     if ($errors ne '') {
         $self->{'debug'}->ERROR(["Database Host not found!\n$errors"]);
         exit(1);
     }
-    $self->{'debug'}->DEBUG(["Connected to DB $self->{dsn}"]);
     return (TRUE);
-} ## end sub db_connect
+}
 
 sub db_count_users {
     my $self = shift;
@@ -61,30 +58,11 @@ sub db_count_users {
     }
     my $response = $self->{'dbh'}->do('SELECT COUNT(id) FROM users');
     return ($response);
-} ## end sub db_count_users
+}
 
 sub db_disconnect {
     my $self = shift;
-
     $self->{'dbh'}->disconnect() if (defined($self->{'dbh'}));
     return (TRUE);
-} ## end sub db_disconnect
-
-sub db_insert {
-    my $self  = shift;
-    my $table = shift;
-    my $hash  = shift;
-
-    return (TRUE);
-} ## end sub db_insert
-
-sub db_sql_execute {
-    my $self = shift;
-    my $file = shift;
-
-    print "Executing $file\n";
-    system('mysql --user=' . $self->{'CONF'}->{'DATABASE USERNAME'} . ' --password=' . $self->{'CONF'}->{'DATABASE PASSWORD'} . " < $file");
-    print "Done!\n";
-    return (TRUE);
-} ## end sub db_sql_execute
+}
 1;

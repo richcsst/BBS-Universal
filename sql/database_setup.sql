@@ -4,6 +4,13 @@ DROP DATABASE IF EXISTS BBSUniversal;
 CREATE DATABASE BBSUniversal CHARACTER SET utf8;
 USE BBSUniversal;
 
+-- Type | Maximum length
+-- -----------+-------------------------------------
+--   TINYTEXT |           255 bytes
+--       TEXT |        65,535 bytes = 64 KiB
+-- MEDIUMTEXT |    16,777,215 bytes = 16 MiB
+--   LONGTEXT | 4,294,967,295 bytes =  4 GiB
+
 -- Tables
 
 CREATE TABLE config (
@@ -62,7 +69,7 @@ CREATE TABLE message_categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
     name        VARCHAR(255) NOT NULL,
-    description MEDIUMTEXT NOT NULL
+    description TEXT NOT NULL
 );
 
 CREATE TABLE messages (
@@ -70,15 +77,15 @@ CREATE TABLE messages (
     category INT UNSIGNED NOT NULL,
     from_id  INT UNSIGNED NOT NULL,
     title    VARCHAR(255) NOT NULL,
-    message  MEDIUMTEXT NOT NULL,
     hidden   BOOLEAN DEFAULT FALSE,
+        message  TEXT NOT NULL,
     created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 CREATE TABLE file_categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,
-    description MEDIUMTEXT
+    description TEXT
 );
 
 CREATE TABLE files (
@@ -88,7 +95,7 @@ CREATE TABLE files (
     user_id      INT UNSIGNED NOT NULL DEFAULT 1,
     category     INT UNSIGNED NOT NULL DEFAULT 1,
     file_type    SMALLINT NOT NULL,
-    description  MEDIUMTEXT NOT NULL,
+    description  TEXT NOT NULL,
     file_size    BIGINT UNSIGNED NOT NULL,
     uploaded     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     endorsements INT UNSIGNED DEFAULT 0
@@ -152,8 +159,8 @@ INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,a
             'Stuff',
             now(),
             'SYSOP',
-			264,
-			50
+                        264,
+                        50
         );
 INSERT INTO permissions (id,view_files,show_email,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES (
@@ -205,6 +212,7 @@ INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Dis
 INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');
 
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message 2','This is a test too');
 INSERT INTO messages (category,from_id,title,message) VALUES (2,1,'First (test) Message','This is a test');
 INSERT INTO messages (category,from_id,title,message) VALUES (3,1,'First (test) Message','This is a test');
 INSERT INTO messages (category,from_id,title,message) VALUES (4,1,'First (test) Message','This is a test');
@@ -380,22 +388,19 @@ CREATE VIEW messages_view
  AS
  SELECT
     messages.id                          AS id,
-	messages.from_id                     AS from_id,
-	messages.category                    AS category,
-	message_categories.name              AS category_name,
-	CONCAT(users.given,' ',users.family) AS author_fullname,
-	users.nickname                       AS author_nickname,
-	users.username                       AS author_username,
-	messages.title                       AS title,
-	messages.message                     AS message,
-	messages.created                     AS created,
-    messages.hidden                      AS hidden
+    messages.from_id                     AS from_id,
+    messages.category                    AS category,
+    CONCAT(users.given,' ',users.family) AS author_fullname,
+    users.nickname                       AS author_nickname,
+    users.username                       AS author_username,
+    messages.title                       AS title,
+    messages.message                     AS message,
+    messages.created                     AS created
  FROM
     messages
- INNER JOIN
-    message_categories ON messages.id=message_categories.id
- INNER JOIN
-    users ON messages.from_id=users.id;
+ LEFT JOIN
+    users ON messages.from_id=users.id
+ WHERE messages.hidden=FALSE;
 
 CREATE VIEW files_view
 AS
@@ -440,5 +445,5 @@ CREATE VIEW bbs_listing_view
   INNER JOIN
     users ON users.id=bbs_listing.bbs_poster_id;
 
--- End
+-- END
 

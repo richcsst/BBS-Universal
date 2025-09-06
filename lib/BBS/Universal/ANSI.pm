@@ -128,7 +128,7 @@ sub ansi_initialize {
             $self->{'ansi_sequences'}->{"GREY$num"}   = $esc . '38;5;' . $count . 'm';
             $self->{'ansi_sequences'}->{"B_GREY$num"} = $esc . '48;5;' . $count . 'm';
         }
-    } ## end foreach my $count (0 .. 255)
+    }
 
     # Generate symbols
     my $start  = 0x2010;
@@ -142,7 +142,7 @@ sub ansi_initialize {
         my $char = charnames::string_vianame($name);
         $char = '?' unless (defined($char));
         $self->{'ansi_characters'}->{$name} = $char;
-    } ## end foreach my $u ($start .. $finish)
+    }
     $start  = 0x1F300;
     $finish = 0x1FBFF;
     foreach my $u ($start .. $finish) {
@@ -151,17 +151,16 @@ sub ansi_initialize {
         my $char = charnames::string_vianame($name);
         $char = '?' unless (defined($char));
         $self->{'ansi_characters'}->{$name} = $char;
-    } ## end foreach my $u ($start .. $finish)
-    $self->{'debug'}->DEBUG(['Initialized ANSI']);
+    }
     return ($self);
-} ## end sub ansi_initialize
+}
 
 sub ansi_output {
     my $self   = shift;
     my $text   = shift;
+
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
-    $self->{'debug'}->DEBUG(['Send ANSI text']);
     if (length($text) > 1) {
         foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
@@ -170,11 +169,11 @@ sub ansi_output {
             } else {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
             }
-        } ## end foreach my $string (keys %{...})
+        }
         foreach my $string (keys %{ $self->{'ansi_characters'} }) {
             $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_characters'}->{$string}/gi;
         }
-    } ## end if (length($text) > 1)
+    }
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 
@@ -202,11 +201,11 @@ sub ansi_output {
 						last unless ($self->scroll($nl));
 						next;
 					}
-				} ## end if ($char eq "\n")
-			} ## end if ($char eq "\n")
+				}
+			}
 			$self->send_char($char);
-		} ## end foreach my $count (0 .. $s_len)
+		}
 	}
     return (TRUE);
-} ## end sub ansi_output
+}
 1;

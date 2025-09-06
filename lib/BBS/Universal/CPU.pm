@@ -39,10 +39,8 @@ sub cpu_info {
         'CPU LOAD'     => $load_average,
         'HARDWARE'     => $cpu->{'HARDWARE'}->{'Hardware'},
     };
-    $self->{'debug'}->DEBUGMAX([$response]);
-
     return ($response);
-} ## end sub cpu_info
+}
 
 sub cpu_identify {
     my $self = shift;
@@ -69,9 +67,9 @@ sub cpu_identify {
                 } else {
                     $cpu_identity->[$index]->{$name} = $val;
                 }
-            } ## end else [ if ($name =~ /^(Hardware|Revision|Serial)/i)]
-        } ## end if ($line ne '')
-    } ## end foreach my $line (@cpuinfo)
+            }
+        }
+    }
     my $response = {
         'CPU'      => $cpu_identity,
         'HARDWARE' => $hardware,
@@ -83,9 +81,8 @@ sub cpu_identify {
         my $lscpu_long = ($lscpu_version >= 2.38) ? `lscpu --hierarchic` : `lscpu`;
         $response->{'lscpu'}->{'short'} = $lscpu_short;
         $response->{'lscpu'}->{'long'}  = $lscpu_long;
-    } ## end if (-e '/usr/bin/lscpu'...)
-    $self->{'debug'}->DEBUGMAX($response);
+    }
     $self->{'CPUINFO'} = $response;    # Cache this stuff
     return ($response);
-} ## end sub cpu_identify
+}
 1;

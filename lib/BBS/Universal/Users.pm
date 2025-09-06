@@ -5,12 +5,12 @@ sub users_initialize {
     my $self = shift;
 
     $self->{'USER'}->{'mode'} = ASCII;
-    $self->{'debug'}->DEBUG(['Users initialized']);
     return ($self);
-} ## end sub users_initialize
+}
 
 sub users_change_access_level {
 	my $self = shift;
+
 	my $mapping = {
 		'TEXT' => '',
 		'Z' => {
@@ -49,7 +49,6 @@ sub users_change_access_level {
 	$self->output($mapping->{$key}->{'command'} . "\n");
 	unless ($key eq 'Z' || $key eq chr(3)) {
 		my $command = $mapping->{$key}->{'command'};
-		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
 		my $sth = $self->{'dbh'}->prepare('UPDATE users SET date_format=? WHERE id=?');
 		$sth->execute($command,$self->{'USER'}->{'id'});
 		$sth->finish;
@@ -60,6 +59,7 @@ sub users_change_access_level {
 
 sub users_change_date_format {
 	my $self = shift;
+
 	my $mapping = {
 		'TEXT' => '',
 		'Z' => {
@@ -98,7 +98,6 @@ sub users_change_date_format {
 	$self->output($mapping->{$key}->{'command'} . "\n");
 	unless ($key eq 'Z' || $key eq chr(3)) {
 		my $command = $mapping->{$key}->{'command'};
-		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
 		my $sth = $self->{'dbh'}->prepare('UPDATE users SET date_format=? WHERE id=?');
 		$sth->execute($command,$self->{'USER'}->{'id'});
 		$sth->finish;
@@ -109,6 +108,7 @@ sub users_change_date_format {
 
 sub users_change_baud_rate {
 	my $self = shift;
+
 	my $mapping = {
 		'TEXT' => '',
 		'Z' => {
@@ -147,7 +147,6 @@ sub users_change_baud_rate {
 	$self->output($mapping->{$key}->{'command'} . "\n");
 	unless ($key eq 'Z' || $key eq chr(3)) {
 		my $command = $mapping->{$key}->{'command'};
-		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
 		my $sth = $self->{'dbh'}->prepare('UPDATE users SET baud_rate=? WHERE id=?');
 		$sth->execute($command,$self->{'USER'}->{'id'});
 		$sth->finish;
@@ -180,6 +179,7 @@ sub users_change_screen_size {
 
 sub users_update_retro_systems {
     my $self = shift;
+
 	$self->output($self->prompt("\nName your retro computers"));
 	my $retro = $self->get_line(ECHO,65535,$self->{'USER'}->{'retro_systems'});
 	if (length($retro) >= 5 && $retro ne $self->{'USER'}->{'retro_systems'} && $self->is_connected()) {
@@ -193,6 +193,7 @@ sub users_update_retro_systems {
 
 sub users_update_email {
     my $self = shift;
+
 	$self->output($self->prompt("\nEnter email address"));
 	my $email = $self->get_line(ECHO,255,$self->{'USER'}->{'email'});
 	if (length($email) > 5 && $email ne $self->{'USER'}->{'email'} && $self->is_connected()) {
@@ -207,6 +208,7 @@ sub users_update_email {
 sub users_toggle_permission {
     my $self  = shift;
     my $field = shift;
+
     if (0 + $self->{'USER'}->{$field}) {
         $self->{'USER'}->{$field} = FALSE;
     } else {
@@ -215,13 +217,13 @@ sub users_toggle_permission {
     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $field . '=? WHERE id=?');
     $sth->execute($self->{'USER'}->{$field}, $self->{'USER'}->{'id'});
     $self->{'dbh'}->commit;
-    $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]) if ($self->{'dbh'}->err);
     $sth->finish();
     return (TRUE);
-} ## end sub users_toggle_permission
+}
 
 sub users_update_location {
     my $self = shift;
+
 	$self->output($self->prompt("\nEnter your location"));
 	my $location = $self->get_line(ECHO,255,$self->{'USER'}->{'location'});
 	if (length($location) >= 4 && $location ne $self->{'USER'}->{'location'} && $self->is_connected()) {
@@ -235,6 +237,7 @@ sub users_update_location {
 
 sub users_update_accomplishments {
     my $self = shift;
+
 	$self->output($self->prompt("\nEnter your accomplishments"));
 	my $accomplishments = $self->get_line(ECHO,255,$self->{'USER'}->{'accomplishments'});
 	if (length($accomplishments) >= 4 && $accomplishments ne $self->{'USER'}->{'accomplishments'} && $self->is_connected()) {
@@ -290,7 +293,6 @@ sub users_update_text_mode {
 	$self->output($mapping->{$key}->{'command'} . "\n");
 	unless ($key eq 'Z' || $key eq chr(3)) {
 		my $command = $mapping->{$key}->{'command'};
-		$self->{'debug'}->DEBUGMAX([$key, $mapping->{$key}]);
 		my $sth = $self->{'dbh'}->prepare('UPDATE users SET text_mode=? WHERE id=?');
 		$sth->execute($command,$self->{'USER'}->{'id'});
 		$sth->finish;
@@ -314,7 +316,6 @@ sub users_load {
     }
     my $results = $sth->fetchrow_hashref();
     if (defined($results)) {
-        $self->{'debug'}->DEBUG(["$username found"]);
         $self->{'USER'} = $results;
         delete($self->{'USER'}->{'password'});
         foreach my $field (    # For numeric values
@@ -332,14 +333,14 @@ sub users_load {
             )
         ) {
             $self->{'USER'}->{$field} = 0 + $self->{'USER'}->{$field};
-        } ## end foreach my $field (  qw( show_email...))
+        }
         return (TRUE);
-    } ## end if (defined($results))
+    }
     return (FALSE);
-} ## end sub users_load
+}
 
 sub users_get_date {
-	my $self = shift;
+	my $self     = shift;
 	my $old_date = shift;
 
 	if ($old_date =~ / /) {
@@ -414,8 +415,7 @@ sub users_list {
             my ($year, $month, $day) = split('-', $results->{'birthday'});
             $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $results->{'given'} . ' ' . $results->{'family'}), sprintf('%-32s', $results->{'location'}), sprintf('%-40s', $results->{'retro_systems'}), sprintf('%02d/%02d', $month, $day), sprintf('%-100s', $results->{'accomplishments'}));
         }
-    } ## end while (my $results = $sth...)
-    $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]) if ($self->{'dbh'}->err);
+    }
     $sth->finish;
     my $text;
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
@@ -428,7 +428,7 @@ sub users_list {
         $text = $table->draw();
     }
     return ($text);
-} ## end sub users_list
+}
 
 sub users_add {
     my $self          = shift;
@@ -453,7 +453,6 @@ sub users_add {
 			  VALUES (?,?,?,?,?,?,DATE(?),?,?,(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode=?),SHA2(?,512))
 		}
     );
-    $self->{'debug'}->DEBUGMAX($user_template);
     $sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'});
 	$sth->finish;
     $sth = $self->{'dbh'}->prepare(
@@ -479,19 +478,13 @@ sub users_add {
 
     if ($self->{'dbh'}->err) {
         $self->{'dbh'}->rollback;
-        $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
         $sth->finish();
         return (FALSE);
     } else {
         $self->{'dbh'}->commit;
-        $self->{'debug'}->DEBUG(['Success']);
         $sth->finish();
         return (TRUE);
-    } ## end else [ if ($self->{'dbh'}->err)]
-} ## end sub users_add
-
-sub users_edit {
-    my $self = shift;
+    }
 }
 
 sub users_delete {
@@ -499,7 +492,6 @@ sub users_delete {
     my $id   = shift;
 
     $self->{'debug'}->WARNING(["Delete user $id"]);
-    $self->{'debug'}->DEBUG(['Delete Permissions first']);
     $self->{'dbh'}->begin_work();
     my $sth = $self->{'dbh'}->prepare('DELETE FROM permissions WHERE id=?');
     $sth->execute($id);
@@ -510,7 +502,6 @@ sub users_delete {
         return (FALSE);
     } else {
         $sth->finish();
-        $self->{'debug'}->DEBUG(['Permissions deleted, now the user']);
         $sth = $self->{'dbh'}->prepare('DELETE FROM users WHERE id=?');
         $sth->execute($id);
         if ($self->{'dbh'}->err) {
@@ -520,12 +511,11 @@ sub users_delete {
             return (FALSE);
         } else {
             $self->{'dbh'}->commit();
-            $self->{'debug'}->DEBUG(['Success']);
             $sth->finish();
             return (TRUE);
-        } ## end else [ if ($self->{'dbh'}->err)]
-    } ## end else [ if ($self->{'dbh'}->err)]
-} ## end sub users_delete
+        }
+    }
+}
 
 sub users_file_category {
     my $self = shift;
@@ -535,7 +525,7 @@ sub users_file_category {
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
     return ($category);
-} ## end sub users_file_category
+}
 
 sub users_forum_category {
     my $self = shift;
@@ -545,10 +535,11 @@ sub users_forum_category {
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
     return ($category);
-} ## end sub users_forum_category
+}
 
 sub users_find {
     my $self = shift;
+	return(TRUE);
 }
 
 sub users_count {
@@ -556,7 +547,7 @@ sub users_count {
     return (0);
 }
 
-sub user_info {
+sub users_info {
     my $self = shift;
 
     my $table;
@@ -649,7 +640,7 @@ sub user_info {
 		$table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'});
         $table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
-    } ## end else [ if ((($width + 22) * 2...))]
+    }
 
 	if ($self->{'USER'}->{'max_columns'} <= 40) {
 		$text = $table;
@@ -671,7 +662,6 @@ sub user_info {
     } else {
         $text = $table->draw();
     }
-
     return ($text);
-} ## end sub user_info
+}
 1;

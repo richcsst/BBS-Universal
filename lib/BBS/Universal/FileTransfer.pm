@@ -4,23 +4,20 @@ BEGIN { our $VERSION = '0.002'; }
 sub filetransfer_initialize {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['FileTransfer initialized']);
     return ($self);
-} ## end sub filetransfer_initialize
+}
 
 sub files_load_file {
     my $self = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(["Load $file"]);
     my $filename = sprintf('%s.%s', $file, substr($self->{'USER'}->{'text_mode'},0,3));
-    $self->{'debug'}->DEBUG(["Load actual $filename"]);
     open(my $FILE, '<', $filename);
     my @text = <$FILE>;
     close($FILE);
     chomp(@text);
     return (join("\n", @text));
-} ## end sub load_file
+}
 
 sub files_list_summary {
     my $self   = shift;
@@ -65,7 +62,7 @@ sub files_list_summary {
     $self->output("\nPress a key to continue ...");
     $self->get_key(ECHO, BLOCKING);
     return (TRUE);
-} ## end sub files_list_summary
+}
 
 sub files_list_detailed {
     my $self   = shift;
@@ -96,7 +93,7 @@ sub files_list_detailed {
             } else {
                 $max_uploader = max(length($row->{'username'}), $max_uploader);
             }
-        } ## end while (my $row = $sth->fetchrow_hashref...)
+        }
         my $table = Text::SimpleTable->new($max_filename, $max_title, $max_uploader);
         $table->row('FILENAME', 'TITLE', 'UPLOADER');
         $table->hr();
@@ -106,7 +103,7 @@ sub files_list_detailed {
             } else {
                 $table->row($record->{'filename'}, $record->{'title'}, $record->{'username'});
             }
-        } ## end foreach my $record (@files)
+        }
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
             $self->output($table->boxes->draw());
         } else {
@@ -120,7 +117,7 @@ sub files_list_detailed {
     $self->output("\nPress a key to continue ...");
     $self->get_key(ECHO, BLOCKING);
     return (TRUE);
-} ## end sub files_list_detailed
+}
 
 sub save_file {
     my $self = shift;
