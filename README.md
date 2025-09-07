@@ -14,21 +14,6 @@ A Perl based TCP-IP BBS catering to retro computers and that modem experience.
         make veryclean
 ```
 
-## DATABASE
-
-Typically MySQL is used, but you can use any database.  Just set your configuration accordingly.
-
-For MySQL, please use the plugin "mysql_native_password" when creating the "bbssystem" user.  We do not use SSL with MySQL.
-
-```bash
-      CREATE USER 'bbssystem'@'%' IDENTIFIED WITH mysql_native_password BY 'yourpassword';
-	  GRANT ALL PRIVILEGES ON BBSUniversal.* TO 'bbsystem'@'%';
-```
-
-If you want to enable SSL, well... you are on your own.  The connect code is in BBS::Universal::DB.pm and you must rebuild the installation.
-
-* NOTE:  Recent MySQL versions have changed how to add user accounts and privileges (really Oracle?).
-
 ## LICENSE AND COPYRIGHT
 
 Copyright © 2023-2025 Richard Kelsch
