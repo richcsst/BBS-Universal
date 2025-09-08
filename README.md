@@ -4,6 +4,10 @@
 
 A Perl based TCP-IP BBS catering to retro computers and that modem experience.
 
+## CODE NOT EVEN CLOSE TO STABLE YET
+
+Installing is at your own risk and likely will not be very useful to you at the moment, but if you want to track progress, then go ahead.
+
 ## INSTALLING
 
 ```bash
