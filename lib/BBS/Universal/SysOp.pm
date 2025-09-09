@@ -246,7 +246,7 @@ sub sysop_versions_format {
     my $counter  = $sections;
 
     for (my $count = $sections - 1; $count > 0; $count--) {
-        $heading .= ' NAME                          VERSION ';
+        $heading .= ' NAME                         VERSION ';
         if ($count) {
             $heading .= "\t\t";
         } else {
@@ -254,9 +254,9 @@ sub sysop_versions_format {
         }
     }
     $heading = colored(['bold bright_yellow on_red'], $heading);
-    foreach my $v (@{ $self->{'VERSIONS'} }) {
+    foreach my $v (keys %{ $self->{'VERSIONS'} }) {
         next if ($bbs_only && $v !~ /^BBS/);
-        $versions .= "\t\t $v";
+        $versions .= "\t\t " . sprintf('%-28s %.03f',$v,$self->{'VERSIONS'}->{$v});
         $counter--;
         if ($counter <= 1) {
             $counter = $sections;
@@ -270,20 +270,25 @@ sub sysop_versions_format {
 sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     my $self = shift;
 
-    my @free     = split(/\n/, `nice df -h -T`);    # Get human readable disk free showing type
     my $diskfree = '';
-    my $width    = 1;
-    foreach my $l (@free) {
-        $width = max(length($l), $width);           # find the width of the widest line
-    }
-    foreach my $line (@free) {
-        next if ($line =~ /tmp|boot/);
-        if ($line =~ /^Filesystem/) {
-            $diskfree .= "\t" . colored(['bold bright_yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n";    # Make the heading the right width
-        } else {
-            $diskfree .= "\t\t\t $line\n";
-        }
-    }
+	if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF')) {
+		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+		$diskfree = "\n" . `duf -theme ansi -width $wsize`;
+	} else {
+		my @free     = split(/\n/, `nice df -h -T`);    # Get human readable disk free showing type
+		my $width    = 1;
+		foreach my $l (@free) {
+			$width = max(length($l), $width);           # find the width of the widest line
+		}
+		foreach my $line (@free) {
+			next if ($line =~ /tmp|boot/);
+			if ($line =~ /^Filesystem/) {
+				$diskfree .= "\t" . colored(['bold bright_yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n";    # Make the heading the right width
+			} else {
+				$diskfree .= "\t\t\t $line\n";
+			}
+		}
+	}
     return ($diskfree);
 }
 

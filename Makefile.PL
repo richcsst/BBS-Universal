@@ -93,12 +93,16 @@ WriteMakefile(
 	clean     => { FILES    => 'BBS-Universal-* _build* *bak *old' },
 	LICENSE   => 'gpl_3',    # GNU Public License Version 3
 );
+
 print chr(27) . '[0m', color('reset');
 sleep 1 unless ($fast);
+
 baud_print("\nProcess complete\n\n");
 sleep 1 unless ($fast);
+
 baud_print("Disconnecting...");
 sleep 1 unless ($fast);
+
 print "\n\n";
 
 exit(0);
@@ -128,7 +132,7 @@ sub merge {    # Perl sometimes is a pain in the ...
         my $shortfile = "$file";
         $shortfile =~ s/\.pm//;
         $shortfile = uc($shortfile) . '_VERSION';
-        open(my $FILE, "lib/BBS/Universal/$file");
+        open(my $FILE, '<', "lib/BBS/Universal/$file");
         chomp(my @lines = <$FILE>);
         close($FILE);
         my $text = '';
@@ -140,14 +144,15 @@ sub merge {    # Perl sometimes is a pain in the ...
                 $line   =~ s/BEGIN \{ //;
                 $line   =~ s/ \}//;
                 $line   =~ s/\$VERSION/\$$shortfile/;
-                $master =~ s/BEGIN \{(.*?)\} \#/BEGIN \{$1    $line\n\} #/s;
+                $master =~ s/(\# VERSIONS \#)/    $line\n$1/s;
             } else {
                 $text .= "$line\n";
             }
         } ## end foreach my $line (@lines)
         $master =~ s/\# MANUAL IMPORT HERE #/$text \n\n\# MANUAL IMPORT HERE \#/;
+
     } ## end foreach my $file (sort(@dir...))
-    $master =~ s/\# MANUAL IMPORT HERE \#//;
+    $master =~ s/\# (VERSIONS|MANUAL IMPORT HERE) \#\n//s;
     while ($master =~ /\n\n\n+/s) {
         $master =~ s/\n\n\n+/\n\n/gs;
     }

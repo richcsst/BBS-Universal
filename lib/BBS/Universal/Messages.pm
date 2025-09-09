@@ -1,5 +1,5 @@
 package BBS::Universal::Messages;
-BEGIN { our $VERSION = '0.001'; }
+BEGIN { our $VERSION = '0.002'; }
 
 sub messages_initialize {
     my $self = shift;
@@ -82,7 +82,7 @@ sub messages_list_messages {
 		$sth->finish();
 
 		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output('[% CLEAR %][% BRIGHT B_GREEN %][% BLACK %] FORUM CATEGORY [% RESET %] [% MAGENTA %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FORUM CATEGORY %]' . "\n\n");
+			$self->output('[% CLEAR %][% BRIGHT B_CYAN %][% BLACK %] FORUM CATEGORY [% RESET %] [% MAGENTA %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FORUM CATEGORY %]' . "\n\n");
 			$self->output('[% INVERT %]  Author [% RESET %]  ' . $result->{'author_fullname'} . ' (' . $result->{'author_username'} . ')' . "\n");
 			$self->output('[% INVERT %]   Title [% RESET %]  ' . $result->{'title'} . "\n");
 			$self->output('[% INVERT %] Created [% RESET %]  ' . $self->users_get_date($result->{'created'}) . "\n\n");
@@ -187,7 +187,7 @@ sub messages_edit_message {
 				$self->output('Message Saved');
 			}
 			$message->{'id'} = $sth->last_insert_id();
-			sleep 2;
+			sleep 1;
 		}
 	} elsif ($mode eq 'REPLY') {
         $self->output("Edit Message\n");
@@ -209,23 +209,32 @@ sub messages_edit_message {
 				$message->{'message'}
 			);
 			$sth->finish();
+			if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+				$self->output('[% GREEN %]Message Saved[% RESET %]');
+			} else {
+				$self->output('Message Saved');
+			}
 			$message->{'id'} = $sth->last_insert_id();
+			sleep 1;
 		}
     } else { # EDIT
         $self->output("Edit Message\n");
 		$self->output('-' x $self->{'USER'}->{'max_columns'} . "\n");
         $message = $self->messages_text_editor($old_message);
 		if (defined($message)) {
-			my $sth = $self->{'dbh'}->prepare('UPDATE messages SET category=?, from_id=?, title=?, message=? WHERE id=>');
+			my $sth = $self->{'dbh'}->prepare('UPDATE messages SET message=? WHERE id=>');
 			$sth->execute(
-				$message->{'category'},
-				$message->{'from_id'},
-				$message->{'title'},
 				$message->{'message'},
 				$message->{'id'}
 			);
 			$sth->finish();
 			$message->{'id'} = $old_message->{'id'};
+			if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+				$self->output('[% GREEN %]Message Saved[% RESET %]');
+			} else {
+				$self->output('Message Saved');
+			}
+			sleep 1;
 		}
     }
     return($message);

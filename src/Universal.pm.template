@@ -69,6 +69,21 @@ use List::Util qw(min max);
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
 
+# The overhead of pulling these into the BBS::Universal namespace was a nightmare, so I just pulled them into the source at build time
+# use BBS::Universal::ANSI;
+# use BBS::Universal::ASCII;
+# use BBS::Universal::ATASCII;
+# use BBS::Universal::PETSCII;
+# use BBS::Universal::BBS_List;
+# use BBS::Universal::CPU;
+# use BBS::Universal::DB;
+# use BBS::Universal::FileTransfer;
+# use BBS::Universal::Messages;
+# use BBS::Universal::News;
+# use BBS::Universal::SysOp;
+# use BBS::Universal::Text_Editor;
+# use BBS::Universal::Users;
+
 BEGIN {
     require Exporter;
 
@@ -112,6 +127,7 @@ BEGIN {
     );
     our @EXPORT_OK = qw();
     binmode(STDOUT, ":encoding(UTF-8)");
+# VERSIONS #
 }
 
 sub DESTROY {
@@ -186,7 +202,7 @@ sub new {    # Always call with the socket as a parameter
 			'USER'         => 0,
 			'VETERAN'      => 1,
 			'JUNIOR SYSOP' => 2,
-			'SYSOP'        => 3,
+			'SYSOP'        => 65535,
 		},
 		'telnet_commands' => [
 			'SE (Subnegotiation end)',
@@ -322,8 +338,8 @@ sub populate_common {
         'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
         'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
         'OS'           => $os,
-        'PERL VERSION' => $self->{'VERSIONS'}->[0],
-        'BBS VERSION'  => $self->{'VERSIONS'}->[1],
+        'PERL VERSION' => $self->{'VERSIONS'}->{'Perl'},
+        'BBS VERSION'  => $self->{'VERSIONS'}->{'BBS Executable'},
         'SYSOP'        => sub {
             my $self = shift;
             if ($self->{'sysop'}) {
@@ -1040,8 +1056,8 @@ sub detokenize_text {    # Detokenize text markup
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
 			if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
 				my $versions = '';
-				foreach my $names (@{ $self->{'VERSIONS'} }) {
-					$versions .= $names . "\n";
+				foreach my $names (keys %{ $self->{'VERSIONS'} }) {
+					$versions .= sprintf('%-28s %.03f',$names, $self->{'VERSIONS'}->{$names}) . "\n";
 				}
 				$text =~ s/\[\%\s+$key\s+\%\]/$versions/g;
 			} elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE' && $text =~ /\[\%\s+$key\s+\%\]/) {
@@ -1221,14 +1237,20 @@ sub configuration {
         my $name = shift;
 
         my $sth    = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
-        my $result = $sth->execute($name);
+        $sth->execute($name);
+		my ($result) = $sth->fetchrow_array();
         $sth->finish();
+		if ($result eq 'TRUE') {
+			$result = TRUE;
+		} elsif ($result eq 'FALSE') {
+			$result = FALSE;
+		}
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
         my $sth = $self->{'dbh'}->prepare('UPDATE config SET config_value=? WHERE config_name=?');
-        my $result = $sth->execute($fval, $name);
+        $sth->execute($fval, $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
         return (TRUE);
@@ -1250,34 +1272,34 @@ sub parse_versions {
     my $self = shift;
 
 ###
-    my $versions = [
-		"Perl                          $OLD_PERL_VERSION",
-		"BBS Executable                $main::VERSION",
-		"BBS::Universal                $BBS::Universal::VERSION",
-		"BBS::Universal::ASCII         $BBS::Universal::ASCII_VERSION",
-		"BBS::Universal::ATASCII       $BBS::Universal::ATASCII_VERSION",
-		"BBS::Universal::PETSCII       $BBS::Universal::PETSCII_VERSION",
-		"BBS::Universal::ANSI          $BBS::Universal::ANSI_VERSION",
-		"BBS::Universal::BBS_List      $BBS::Universal::BBS_LIST_VERSION",
-		"BBS::Universal::CPU           $BBS::Universal::CPU_VERSION",
-		"BBS::Universal::Messages      $BBS::Universal::MESSAGES_VERSION",
-		"BBS::Universal::SysOp         $BBS::Universal::SYSOP_VERSION",
-		"BBS::Universal::FileTransfer  $BBS::Universal::FILETRANSFER_VERSION",
-		"BBS::Universal::Users         $BBS::Universal::USERS_VERSION",
-		"BBS::Universal::DB            $BBS::Universal::DB_VERSION",
-		"BBS::Universal::Text_Editor   $BBS::Universal::TEXT_EDITOR_VERSION",
-		"DBI                           $DBI::VERSION",
-		"DBD::mysql                    $DBD::mysql::VERSION",
-		"DateTime                      $DateTime::VERSION",
-		"Debug::Easy                   $Debug::Easy::VERSION",
-		"File::Basename                $File::Basename::VERSION",
-		"Time::HiRes                   $Time::HiRes::VERSION",
-		"Term::ReadKey                 $Term::ReadKey::VERSION",
-		"Term::ANSIScreen              $Term::ANSIScreen::VERSION",
-		"Text::Format                  $Text::Format::VERSION",
-		"Text::SimpleTable             $Text::SimpleTable::VERSION",
-		"IO::Socket                    $IO::Socket::VERSION",
-	];
+    my $versions = {
+		'Perl'                          => $OLD_PERL_VERSION,
+		'BBS Executable'                => $main::VERSION,
+		'BBS::Universal'                => $BBS::Universal::VERSION,
+		'BBS::Universal::ASCII'         => $BBS::Universal::ASCII_VERSION,
+		'BBS::Universal::ATASCII'       => $BBS::Universal::ATASCII_VERSION,
+		'BBS::Universal::PETSCII'       => $BBS::Universal::PETSCII_VERSION,
+		'BBS::Universal::ANSI'          => $BBS::Universal::ANSI_VERSION,
+		'BBS::Universal::BBS_List'      => $BBS::Universal::BBS_LIST_VERSION,
+		'BBS::Universal::CPU'           => $BBS::Universal::CPU_VERSION,
+		'BBS::Universal::Messages'      => $BBS::Universal::MESSAGES_VERSION,
+		'BBS::Universal::SysOp'         => $BBS::Universal::SYSOP_VERSION,
+		'BBS::Universal::FileTransfer'  => $BBS::Universal::FILETRANSFER_VERSION,
+		'BBS::Universal::Users'         => $BBS::Universal::USERS_VERSION,
+		'BBS::Universal::DB'            => $BBS::Universal::DB_VERSION,
+		'BBS::Universal::Text_Editor'   => $BBS::Universal::TEXT_EDITOR_VERSION,
+		'DBI'                           => $DBI::VERSION,
+		'DBD::mysql'                    => $DBD::mysql::VERSION,
+		'DateTime'                      => $DateTime::VERSION,
+		'Debug::Easy'                   => $Debug::Easy::VERSION,
+		'File::Basename'                => $File::Basename::VERSION,
+		'Time::HiRes'                   => $Time::HiRes::VERSION,
+		'Term::ReadKey'                 => $Term::ReadKey::VERSION,
+		'Term::ANSIScreen'              => $Term::ANSIScreen::VERSION,
+		'Text::Format'                  => $Text::Format::VERSION,
+		'Text::SimpleTable'             => $Text::SimpleTable::VERSION,
+		'IO::Socket'                    => $IO::Socket::VERSION,
+	};
 ###
     return ($versions);
 }

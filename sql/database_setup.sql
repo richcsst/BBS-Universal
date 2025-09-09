@@ -141,6 +141,7 @@ INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED HOST','localho
 INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED PORT','11211');
 INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED NAMESPACE','BBSUniversal::');
 INSERT INTO config (config_name, config_value) VALUES ('PLAY SYSOP SOUNDS','TRUE');
+INSERT INTO config (config_name, config_value) VALUES ('USE DUF','FALSE'); -- Use "duf" or instead "df"?
 
 INSERT INTO text_modes (text_mode) VALUES ('ASCII');
 INSERT INTO text_modes (text_mode) VALUES ('ATASCII');
