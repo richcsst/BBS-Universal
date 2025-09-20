@@ -205,7 +205,7 @@ INSERT INTO message_categories (name,description) VALUES ('Heathkit','Heathkit C
 INSERT INTO message_categories (name,description) VALUES ('CP/M','CP/M Computers');
 INSERT INTO message_categories (name,description) VALUES ('TRS-80','TRS-80 Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Apple II','Apple 8 Bit Computers');
-INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh','Macintosh Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh','Apple Macintosh Discussion');
 INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Windows','Windows Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discussion');

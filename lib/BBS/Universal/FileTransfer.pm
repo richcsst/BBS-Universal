@@ -50,9 +50,9 @@ sub files_list_summary {
             $table->row($record->{'filename'}, $record->{'title'});
         }
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output($table->boxes->draw());
+            $self->output("\n" . $table->boxes->draw());
         } else {
-            $self->output($table->draw());
+            $self->output("\n" . $table->draw());
         }
     } elsif ($search) {
         $self->output("\nSorry '$filter' not found");
@@ -105,9 +105,9 @@ sub files_list_detailed {
             }
         }
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output($table->boxes->draw());
+            $self->output("\n" . $table->boxes->draw());
         } else {
-            $self->output($table->draw());
+            $self->output("\n" . $table->draw());
         }
     } elsif ($search) {
         $self->output("\nSorry '$filter' not found");

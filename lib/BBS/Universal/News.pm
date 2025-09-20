@@ -88,7 +88,7 @@ sub news_summary {
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($format);
     if ($sth->rows > 0) {
-        my $table = Text::SimpleTable->new(10, $self->{'USER'}->{'max_columns'} - 13);
+        my $table = Text::SimpleTable->new(10, $self->{'USER'}->{'max_columns'} - 14);
         $table->row('DATE', 'TITLE');
         $table->hr();
         while (my $row = $sth->fetchrow_hashref()) {

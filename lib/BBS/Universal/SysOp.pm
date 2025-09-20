@@ -7,6 +7,7 @@ sub sysop_initialize {
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 	$self->{'wsize'} = $wsize;
 	$self->{'hsize'} = $hsize;
+	$self->{'debug'}->INFO(["Screen Size is $wsize x $hsize"]);
     #### Format Versions for display
     my $sections;
     if ($wsize <= 80) {
@@ -25,6 +26,20 @@ sub sysop_initialize {
     my $versions     = $self->sysop_versions_format($sections, FALSE);
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
     my $esc          = chr(27) . '[';
+
+	$self->{'flags_default'} = {
+        'prefer_nickname' => 'Yes',
+        'view_files'      => 'Yes',
+        'upload_files'    => 'No',
+        'download_files'  => 'Yes',
+        'remove_files'    => 'No',
+        'read_message'    => 'Yes',
+        'post_message'    => 'Yes',
+        'remove_message'  => 'No',
+        'sysop'           => 'No',
+        'page_sysop'      => 'Yes',
+        'show_email'      => 'No',
+    };
 
     $self->{'sysop_tokens'} = {
 
@@ -61,7 +76,9 @@ sub sysop_initialize {
         },
         'UPTIME' => sub {
             my $self = shift;
-            return ($self->get_uptime());
+			my $uptime = `uptime -p`;
+			chomp($uptime);
+            return($uptime);
         },
         'DISK FREE SPACE' => sub {
             my $self = shift;
@@ -98,27 +115,56 @@ sub sysop_initialize {
 			my @stkn = (sort(keys %{ $self->{'sysop_tokens'} }));
             my @usr = (sort(keys %{ $self->{'COMMANDS'} }));
             my @tkn = (sort(keys %{ $self->{'TOKENS'} }));
+			my @anstkn = grep(!/ANSI|GREY|FONT/,(keys %{ $self->{'ansi_sequences'} }));
+			push(@anstkn,'ANSI0 - ANSI231');
+			push(@anstkn,'GREY0 - GREY23');
+			push(@anstkn,'B_ANSI0 - B_ANSI231');
+			push(@anstkn,'B_GREY0 - B_GREY23');
+			push(@anstkn,'FONT0 - FONT9');
+			@anstkn = sort(@anstkn);
+			my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} }));
+			my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} }));
+			my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} }));
             my $x   = 1;
 			my $xt  = 1;
             my $y   = 1;
 			my $z   = 1;
-            foreach my $s (@sys) {
-                $x = max(length($s), $x);
-            }
-            foreach my $st (@stkn) {
-                $xt = max(length($st), $xt);
-            }
-            foreach my $u (@usr) {
-                $y = max(length($u), $y);
-            }
-			foreach my $t (@tkn) {
-				$z = max(length($t), $z);
+			my $ans = 1;
+			my $ata = 1;
+			my $pet = 1;
+			my $asc = 12;
+			{
+				my $cell;
+				foreach $cell (@sys) {
+					$x = max(length($cell), $x);
+				}
+				foreach $cell (@stkn) {
+					$xt = max(length($cell), $xt);
+				}
+				foreach $cell (@usr) {
+					$y = max(length($cell), $y);
+				}
+				foreach $cell (@tkn) {
+					$z = max(length($cell), $z);
+				}
+				foreach $cell (@anstkn) {
+					$ans = max(length($cell), $ans);
+				}
+				foreach $cell (@atatkn) {
+					$ata = max(length($cell), $ata);
+				}
+				foreach $cell (@pettkn) {
+					$pet = max(length($cell), $pet);
+				}
+				foreach $cell (@asctkn) {
+					$asc = max(length($cell), $asc);
+				}
 			}
-            my $table = Text::SimpleTable->new($x, $xt, $y, $z);
-            $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS');
+            my $table = Text::SimpleTable->new($x, $xt, $y, $z, $ans, $ata, $pet, $asc);
+            $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS','ASCII TOKENS');
             $table->hr();
-            my ($sysop_names, $sysop_tokens, $user_names, $token_names);
-            while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn)) {
+            my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
+            while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
                 if (scalar(@sys)) {
                     $sysop_names = shift(@sys);
                 } else {
@@ -139,9 +185,31 @@ sub sysop_initialize {
                 } else {
                     $token_names = ' ';
                 }
-                $table->row($sysop_names, $sysop_tokens, $user_names, $token_names);
+                if (scalar(@anstkn)) {
+                    $ansi_tokens = shift(@anstkn);
+                } else {
+                    $ansi_tokens = ' ';
+                }
+                if (scalar(@atatkn)) {
+                    $atascii_tokens = shift(@atatkn);
+                } else {
+                    $atascii_tokens = ' ';
+                }
+                if (scalar(@pettkn)) {
+                    $petscii_tokens = shift(@pettkn);
+                } else {
+                    $petscii_tokens = ' ';
+                }
+                if (scalar(@asctkn)) {
+                    $ascii_tokens = shift(@asctkn);
+                } else {
+                    $ascii_tokens = ' ';
+                }
+                $table->row($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
             }
-            return ($self->center($table->boxes->draw(), $wsize));
+			my $text = $self->center($table->boxes->draw(), $wsize);
+			$text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
+            return ($text);
         },
     };
 
@@ -233,6 +301,7 @@ sub sysop_online_count {
     my $self = shift;
 
 	my $count = $self->{'CACHE'}->get('ONLINE');
+	$self->{'debug'}->INFO(["SysOp Online Count $count"]);
     return ($count);
 }
 
@@ -241,6 +310,7 @@ sub sysop_versions_format {
     my $sections = shift;
     my $bbs_only = shift;
 
+	$self->{'debug'}->INFO(['SysOp Versions Format']);
     my $versions = "\n\t";
     my $heading  = "\t";
     my $counter  = $sections;
@@ -270,6 +340,7 @@ sub sysop_versions_format {
 sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Disk Free']);
     my $diskfree = '';
 	if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF')) {
 		my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -296,6 +367,7 @@ sub sysop_first_time_setup {
     my $self = shift;
     my $row  = shift;
 
+	$self->{'debug'}->INFO(['SysOp First Time Setup']);
     print locate($row, 1), cldown;
     my $found     = FALSE;
     my @sql_files = ('./sql/database_setup.sql', '~/.bbs_universal/database_setup.sql');
@@ -318,6 +390,7 @@ sub sysop_load_menu {
     my $row  = shift;
     my $file = shift;
 
+	$self->{'debug'}->INFO(["SysOp Load Menu $file"]);
     my $mapping = { 'TEXT' => '' };
     my $mode    = 1;
     my $text    = locate($row, 1) . cldown;
@@ -353,6 +426,7 @@ sub sysop_pager {
     my $text   = shift;
     my $offset = shift;
 
+	$self->{'debug'}->INFO(['SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my @lines  = split(/\n/, $text);
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
@@ -386,6 +460,7 @@ sub sysop_parse_menu {
     my $row  = shift;
     my $file = shift;
 
+	$self->{'debug'}->INFO(["SysOp Parse Menu $file"]);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown;
     my $scroll = $self->sysop_pager($mapping->{'TEXT'}, 3);
@@ -410,8 +485,10 @@ sub sysop_decision {
     } until ($response =~ /Y|N/i || $response eq chr(13));
     if ($response eq 'Y') {
         print "YES\n";
+		$self->{'debug'}->INFO(['SysOp Decision YES']);
         return (TRUE);
     }
+	$self->{'debug'}->INFO(['SysOp Decision NO']);
     print "NO\n";
     return (FALSE);
 }
@@ -435,6 +512,7 @@ sub sysop_ip_address {
     my $self = shift;
 
     chomp(my $ip = `nice hostname -I`);
+	$self->{'debug'}->INFO(["SysOp IP Address:  $ip"]);
     return ($ip);
 }
 
@@ -442,6 +520,7 @@ sub sysop_hostname {
     my $self = shift;
 
     chomp(my $hostname = `nice hostname`);
+	$self->{'debug'}->INFO(["SysOp Hostname:  $hostname"]);
     return ($hostname);
 }
 
@@ -458,6 +537,7 @@ sub sysop_locate_middle {
 sub sysop_memory {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Memory']);
     my $memory = `nice free`;
     my @mem    = split(/\n/, $memory);
     my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ') . "\n";
@@ -493,6 +573,7 @@ sub sysop_list_users {
     my $self      = shift;
     my $list_mode = shift;
 
+	$self->{'debug'}->INFO(['SysOp List Users']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $table;
     my $date_format = $self->configuration('DATE FORMAT');
@@ -585,12 +666,14 @@ sub sysop_list_users {
 sub sysop_delete_files {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Delete Files']);
     return (TRUE);
 }
 
 sub sysop_list_files {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp List Files']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
     $sth->execute();
@@ -637,6 +720,7 @@ sub sysop_list_files {
 sub sysop_select_file_category {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Select File Category']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
     $sth->execute();
     my $table = Text::SimpleTable->new(3, 30, 50);
@@ -669,6 +753,7 @@ sub sysop_select_file_category {
 sub sysop_edit_file_categories {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Edit File Categories']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
     $sth->execute();
     my $table = Text::SimpleTable->new(3, 30, 50);
@@ -725,6 +810,7 @@ sub sysop_view_configuration {
     my $self = shift;
     my $view = shift;
 
+	$self->{'debug'}->INFO(['SysOp View Configuration']);
     # Get maximum widths
     my $name_width  = 6;
     my $value_width = 45;
@@ -816,6 +902,7 @@ sub sysop_view_configuration {
 sub sysop_edit_configuration {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Edit Configuration']);
     $self->sysop_view_configuration(FALSE);
     my $choice;
     do {
@@ -885,6 +972,7 @@ sub sysop_get_line {
 	my $line  = shift || '';
 	my $key;
 
+	$self->{'debug'}->INFO(['SysOp Get Line']);
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
 	$self->output($line) if ($line ne '');
 	while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
@@ -927,6 +1015,7 @@ sub sysop_user_delete {
     my $row  = shift;
     my $file = shift;
 
+	$self->{'debug'}->INFO(['SysOp User Delete']);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
@@ -968,6 +1057,7 @@ sub sysop_user_edit {
     my $row  = shift;
     my $file = shift;
 
+	$self->{'debug'}->INFO(['SysOp User Edit']);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
@@ -1045,19 +1135,8 @@ sub sysop_user_add {
     my $row  = shift;
     my $file = shift;
 
-    my $flags_default = {
-        'prefer_nickname' => 'Yes',
-        'view_files'      => 'Yes',
-        'upload_files'    => 'No',
-        'download_files'  => 'Yes',
-        'remove_files'    => 'No',
-        'read_message'    => 'Yes',
-        'post_message'    => 'Yes',
-        'remove_message'  => 'No',
-        'sysop'           => 'No',
-        'page_sysop'      => 'Yes',
-        'show_email'      => 'No',
-    };
+	$self->{'debug'}->INFO(['SysOp User Add']);
+    my $flags_default = $self->{'flags_default'};
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     my $table = Text::SimpleTable->new(15, 64);
@@ -1253,6 +1332,7 @@ sub sysop_menu_choice {
 sub sysop_showenv {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp ShowENV']);
     my $MAX  = 0;
     my $text = '';
     foreach my $e (keys %ENV) {
@@ -1306,6 +1386,7 @@ sub sysop_showenv {
 sub sysop_scroll {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Scroll?']);
     print "Scroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
 		$self->{'debug'}->DEBUG(['sysop_scroll end']);
@@ -1318,6 +1399,7 @@ sub sysop_scroll {
 sub sysop_list_bbs {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp List BBS']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view');
     $sth->execute();
     my @listing;
@@ -1343,6 +1425,7 @@ sub sysop_list_bbs {
 sub sysop_edit_bbs {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Edit BBS']);
     my @choices = (qw( bbs_id bbs_name bbs_hostname bbs_port ));
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to edit');
     my $search;
@@ -1395,6 +1478,7 @@ sub sysop_edit_bbs {
 sub sysop_add_bbs {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Add BBS']);
     my $table = Text::SimpleTable->new(12, 50);
     foreach my $name (qw(bbs_name bbs_hostname bbs_port)) {
         my $count = ($name eq 'bbs_port') ? 5 : 50;
@@ -1436,6 +1520,7 @@ sub sysop_add_bbs {
 sub sysop_delete_bbs {
     my $self = shift;
 
+	$self->{'debug'}->INFO(['SysOp Delete BBS']);
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(ECHO,50);

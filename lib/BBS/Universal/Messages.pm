@@ -86,14 +86,16 @@ sub messages_list_messages {
 			$self->output('[% INVERT %]  Author [% RESET %]  ' . $result->{'author_fullname'} . ' (' . $result->{'author_username'} . ')' . "\n");
 			$self->output('[% INVERT %]   Title [% RESET %]  ' . $result->{'title'} . "\n");
 			$self->output('[% INVERT %] Created [% RESET %]  ' . $self->users_get_date($result->{'created'}) . "\n\n");
-			$self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
+			$self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+#			$self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
 		} else {
 			$self->output('[% CLEAR %] FORUM CATEGORY > [% FORUM CATEGORY %]' . "\n\n");
 			$self->output(' Author:  ' . $result->{'author_fullname'} . ' (' . $result->{'author_username'} . ')' . "\n");
 			$self->output('  Title:  ' . $result->{'title'} . "\n");
 			$self->output('Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");
-			$self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
-		}
+			$self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+#			$self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});	
+	}
 		$self->output("\n");
 		my $mapping = {
 			'Z' => {
@@ -265,12 +267,12 @@ sub messages_text_editor {
 			$title = $message->{'title'};
 			$text  = $message->{'message'};
 			$self->output($self->prompt('Message'));
-			$text  = $self->messages_text_edit($text);
+			$text  = $self->messages_text_edit($title,$text);
 		} else {
 			$self->output($self->prompt('Title'));
 			$title = $self->get_line(ECHO, 255);
 			$self->output($self->prompt('Message'));
-			$text  = $self->messages_text_edit();
+			$text  = $self->messages_text_edit($title);
 		}
 		if (defined($text) && defined($title)) {
 			return(
@@ -285,8 +287,9 @@ sub messages_text_editor {
 }
 
 sub messages_text_edit {
-	my $self = shift;
-	my $text = (scalar(@_)) ? shift : undef;
+	my $self  = shift;
+	my $title = (scalar(@_)) ? shift : undef;
+	my $text  = (scalar(@_)) ? shift : undef;
 
 	my $columns = $self->{'USER'}->{'max_columns'};
 	my $text_mode = $self->{'USER'}->{'text_mode'};
@@ -300,20 +303,35 @@ sub messages_text_edit {
 		my $counter = 0;
 		if ($text_mode eq 'ANSI') {
 			$self->output('[% CLEAR %][% BRIGHT GREEN %]' . '=' x $columns . '[% RESET %]' . "\n");
+			$self->output('[% CYAN %]Subject[% RESET %]:  ' . $title . "\n");
+			$self->output('[% BRIGHT GREEN %]' . '-' x $columns . '[% RESET %]' . "\n");
 			$self->output("Type a command on a line by itself\n");
 			$self->output('  :[% YELLOW %]S[% RESET %] = Save and exit' . "\n");
-			$self->output("  :[% RED %]Q[% RESET %] = Cancel, do not save\n");
-			$self->output("  :[% BRIGHT BLUE %]E[% RESET %] = Edit a specific line number (:E5 edits line 5)\n");
+			$self->output('  :[% RED %]Q[% RESET %] = Cancel, do not save' . "\n");
+			$self->output('  :[% BRIGHT BLUE %]E[% RESET %] = Edit a specific line number (:E5 edits line 5)' . "\n");
 			$self->output('[% BRIGHT GREEN %]' . '=' x $columns . '[% RESET %]' . "\n");
 		} elsif ($text_mode eq 'PETSCII') {
+			$self->output('[% CLEAR %][% LIGHT GREEN %]' . '=' x $columns . "\n");
+			$self->output('[% CYAN %]Subject[% WHITE %]:  ' . $title . "\n");
+			$self->output('[% LIGHT GREEN %]' . '-' x $columns . "\n");
+			$self->output('[% WHITE %]Type a command on a line by itself' . "\n");
+			$self->output('  :[% YELLOW %]S[% WHITE %] = Save and exit' . "\n");
+			$self->output('  :[% RED %]Q[% WHITE %] = Cancel, do not save' . "\n");
+			$self->output('  :[% BLUE %]E[% WHITE %] = Edit a specific line number (:E5 edits line 5)' . "\n");
+			$self->output('=' x $columns . "\n");
+		} elsif ($text_mode eq 'ATASCII') {
 			$self->output('[% CLEAR %]' . '=' x $columns . "\n");
+			$self->output("Subject:  $title\n");
+			$self->output('-' x $columns . "\n");
 			$self->output("Type a command on a line by itself\n");
 			$self->output("  :S = Save and exit\n");
 			$self->output("  :Q = Cancel, do not save\n");
 			$self->output("  :E = Edit a specific line number (:E5 edits line 5)\n");
 			$self->output('=' x $columns . "\n");
-		} else {
+		} else { # ASCII
 			$self->output('[% CLEAR %]' . '=' x $columns . "\n");
+			$self->output("Subject:  $title\n");
+			$self->output('-' x $columns . "\n");
 			$self->output("Type a command on a line by itself\n");
 			$self->output("  :S = Save and exit\n");
 			$self->output("  :Q = Cancel, do not save\n");
@@ -333,6 +351,8 @@ sub messages_text_edit {
 		do {
 			if ($text_mode eq 'ANSI') {
 				$self->output(sprintf('%s%03d%s ', '[% CYAN %]', ($counter + 1), '[% RESET %]'));
+			} elsif ($text_mode eq 'PETSCII') {
+				$self->output(sprintf('%s%03d%s ', '[% CYAN %]', ($counter + 1), '[% WHITE %]'));
 			} else {
 				$self->output(sprintf('%03d ', ($counter + 1)));
 			}
@@ -345,6 +365,8 @@ sub messages_text_edit {
 					if ($line_number > 0) {
 						if ($text_mode eq 'ANSI') {
 							$self->output("\n" . sprintf('%s%03d%s ','[% CYAN %]',$line_number, '[% RESET %]'));
+						} elsif ($text_mode eq 'PETSCII') {
+							$self->output(sprintf('%s%03d%s ', '[% CYAN %]', $line_number, '[% WHITE %]'));
 						} else {
 							$self->output("\n" . sprintf('%03d ',$line_number));
 						}

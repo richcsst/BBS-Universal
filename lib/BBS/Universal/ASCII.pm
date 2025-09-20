@@ -13,54 +13,7 @@ sub ascii_initialize {
         'CLS'       => chr(12), # Formfeed
         'CLEAR'     => chr(12),
 		'RING BELL' => chr(7),
-
-		# Color (ASCII doesn't have any, but we have placeholders
-		'NORMAL' => '',
-
-		# Foreground color
-		'BLACK'          => '',
-		'RED'            => '',
-		'PINK'           => '',
-		'ORANGE'         => '',
-		'NAVY'           => '',
-		'GREEN'          => '',
-		'YELLOW'         => '',
-		'BLUE'           => '',
-		'MAGENTA'        => '',
-		'CYAN'           => '',
-		'WHITE'          => '',
-		'DEFAULT'        => '',
-		'BRIGHT BLACK'   => '',
-		'BRIGHT RED'     => '',
-		'BRIGHT GREEN'   => '',
-		'BRIGHT YELLOW'  => '',
-		'BRIGHT BLUE'    => '',
-		'BRIGHT MAGENTA' => '',
-		'BRIGHT CYAN'    => '',
-		'BRIGHT WHITE'   => '',
-
-		# Background color
-		'B_BLACK'          => '',
-		'B_RED'            => '',
-		'B_GREEN'          => '',
-		'B_YELLOW'         => '',
-		'B_BLUE'           => '',
-		'B_MAGENTA'        => '',
-		'B_CYAN'           => '',
-		'B_WHITE'          => '',
-		'B_DEFAULT'        => '',
-		'B_PINK'           => '',
-		'B_ORANGE'         => '',
-		'B_NAVY'           => '',
-		'BRIGHT B_BLACK'   => '',
-		'BRIGHT B_RED'     => '',
-		'BRIGHT B_GREEN'   => '',
-		'BRIGHT B_YELLOW'  => '',
-		'BRIGHT B_BLUE'    => '',
-		'BRIGHT B_MAGENTA' => '',
-		'BRIGHT B_CYAN'    => '',
-		'BRIGHT B_WHITE'   => '',
-    };
+	};
     return ($self);
 }
 
