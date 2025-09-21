@@ -79,11 +79,11 @@ my $DEBUG = Debug::Easy->new(
     'LogLevel' => $LEVEL,
     'Color'    => TRUE,
 );
-$DEBUG->INFO(['Initializing BBS...']);
+$DEBUG->DEBUG(['Initializing BBS...']);
 ############## BBS Core ###################
 print cls,locate(1,1),'Initializing BBS...';
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'nosound' => $NOSOUND });
-$DEBUG->INFO(['Initializing Memcached']);
+$DEBUG->DEBUG(['Initializing Memcached']);
 my $CACHE   = Cache::Memcached::Fast->new(
     {
         'servers' => [
@@ -114,7 +114,7 @@ $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { h
 
 my $MAX_THREADS = ($SINGLE) ? 1 : min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
-$DEBUG->INFO(['Initializing SysOp Commands']);
+$DEBUG->DEBUG(['Initializing SysOp Commands']);
 our $SYSOP_COMMANDS = {
     'SYSOP SHOW ENVIRONMENT' => sub {
         my $self = shift;
@@ -264,7 +264,7 @@ our $SYSOP_COMMANDS = {
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANS'));
     },
 };
-$DEBUG->INFO(['Initialized','Starting']);
+$DEBUG->DEBUG(['Initialized','Starting']);
 $BBS_OBJ->playit('startup.mp3');
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
@@ -279,7 +279,7 @@ exit(0);
 
 sub shutdown_message {
     logo();
-	$DEBUG->INFO(['Shutdown Complete']);
+	$DEBUG->DEBUG(['Shutdown Complete']);
     print q{
  ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
  ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
@@ -290,7 +290,7 @@ sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-	$DEBUG->INFO(['Logo']);
+	$DEBUG->DEBUG(['Logo']);
     $CACHE->set('ROW_ADJUST', 0);
 
     print setscroll(1, $hsize), locate(1, 1);
@@ -308,7 +308,7 @@ sub logo {
 sub system_menu {
     my $bbs_obj = shift;
 
-	$DEBUG->INFO(['System Menu']);
+	$DEBUG->DEBUG(['System Menu']);
     my $key = '';
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
     my ($width, $height) = ($wsize, $hsize);
@@ -316,7 +316,7 @@ sub system_menu {
 
     my $socket;
     unless ($TEST) {
-		$DEBUG->INFO(['Loading Threads']);
+		$DEBUG->DEBUG(['Loading Threads']);
         print 'Loading ' . $MAX_THREADS . ' Threads ...';
         $socket = IO::Socket->new(
             'Domain'    => AF_INET,
@@ -354,10 +354,10 @@ sub system_menu {
             $SIG{'ALRM'} = sub { servers_status($bbs_obj, TRUE); };
             $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, TRUE);    # This is a sub not a method, so we pass the object conventionally
-			$DEBUG->INFO(['Threads Loaded']);
+			$DEBUG->DEBUG(['Threads Loaded']);
         }
     } else {
-		$DEBUG->INFO(['Test mode active, no server threads']);
+		$DEBUG->DEBUG(['Test mode active, no server threads']);
 	}
 	# Set up window
     print setscroll(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), $hsize);
@@ -571,9 +571,9 @@ sub finish {
     my $bbs_obj = shift;
 	$bbs_obj->playit('shutdown.mp3');
     $CACHE->set('RUNNING', FALSE);
-    $DEBUG->INFO(['Shutting Down, waiting for all sessions to end nicely...']);
+    $DEBUG->DEBUG(['Shutting Down, waiting for all sessions to end nicely...']);
     clean_joinable($bbs_obj);
-    $DEBUG->INFO(['Shutdown Complete']);
+    $DEBUG->DEBUG(['Shutdown Complete']);
     chdir($OLDDIR);
     system('reset');
     alarm(0);
@@ -598,7 +598,7 @@ sub hard_finish {
         }
         clean_joinable();
     }
-    $DEBUG->INFO(['Hard Shutdown Complete']);
+    $DEBUG->DEBUG(['Hard Shutdown Complete']);
     chdir($OLDDIR);
     system('reset');
     shutdown_message();

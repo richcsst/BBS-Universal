@@ -308,7 +308,7 @@ sub populate_common {
         'max_columns' => 80,
         'max_rows'    => 25,
     };
-	$self->{'debug'}->INFO(['Initializing all libraries']);
+	$self->{'debug'}->DEBUG(['Initializing all libraries']);
     $self->db_initialize();
     $self->ascii_initialize();
     $self->atascii_initialize();
@@ -321,7 +321,7 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
-	$self->{'debug'}->INFO(['Libraries initialized']);
+	$self->{'debug'}->DEBUG(['Libraries initialized']);
     chomp(my $os = `uname -a`);
     $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
         'FULL'  => 0,
@@ -462,7 +462,7 @@ sub populate_common {
         'UPTIME' => sub {
             my $self = shift;
             chomp(my $uptime = `uptime -p`);
-			$self->{'debug'}->INFO(["Get Uptime $uptime"]);
+			$self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
             return ($uptime);
         },
         'SHOW BBS LIST' => sub {
@@ -653,7 +653,7 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
-	$self->{'debug'}->INFO(['Main object initialized']);
+	$self->{'debug'}->DEBUG(['Main object initialized']);
 }
 
 sub run {
@@ -675,12 +675,12 @@ sub run {
 sub greeting {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Send greeting']);
+	$self->{'debug'}->DEBUG(['Send greeting']);
     # Load and print greetings message here
 	$self->output("\n\n");
     my $text = $self->files_load_file('files/main/greeting');
     $self->output($text);
-	$self->{'debug'}->INFO(['Greeting sent']);
+	$self->{'debug'}->DEBUG(['Greeting sent']);
     return ($self->login());    # Login will also create new users
 }
 
@@ -691,7 +691,7 @@ sub login {
 
     my $username;
     if ($self->{'sysop'}) {
-		$self->{'debug'}->INFO(['Login as SysOp']);
+		$self->{'debug'}->DEBUG(['Login as SysOp']);
         $username = 'sysop';
         $self->output("\n\nAuto-login of $username successful\n\n");
         $valid = $self->users_load($username, '');
@@ -700,7 +700,7 @@ sub login {
 			$self->{'USER'}->{'columns'} = $wsize;
 		}
     } else {
-		$self->{'debug'}->INFO(['Login as User']);
+		$self->{'debug'}->DEBUG(['Login as User']);
         my $tries = $self->{'CONF'}->{'LOGIN TRIES'} + 0;
         do {
             do {
@@ -712,19 +712,19 @@ sub login {
 			$self->{'debug'}->debug(["User = $username"]);
             if ($self->is_connected()) {
                 if (uc($username) eq 'NEW') {
-					$self->{'debug'}->INFO(['New user']);
+					$self->{'debug'}->DEBUG(['New user']);
                     $valid = $self->create_account();
                 } elsif ($username eq 'sysop' && !$self->{'local_mode'}) {
 					$self->{'debug'}->WARNING(['Login as SysOp attempted!']);
                     $self->output("\n\nSysOp cannot connect remotely\n\n");
                 } else {
-					$self->{'debug'}->INFO(['Asking for password']);
+					$self->{'debug'}->DEBUG(['Asking for password']);
                     $self->output("\n\nPlease enter your password > ");
                     my $password = $self->get_line(PASSWORD, 64);
                     $valid = $self->users_load($username, $password);
                 }
                 if ($valid) {
-					$self->{'debug'}->INFO(['Password valid']);
+					$self->{'debug'}->DEBUG(['Password valid']);
                     $self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
                 } else {
 					$self->{'debug'}->WARNING(['Password incorrect, try ' . $tries]);
@@ -741,7 +741,7 @@ sub login {
 sub create_account {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Create account']);
+	$self->{'debug'}->DEBUG(['Create account']);
     return (FALSE);
 }
 
@@ -768,10 +768,10 @@ sub decision {
     my $response = uc($self->get_key(SILENT, BLOCKING));
     if ($response eq 'Y') {
         $self->output("YES\n");
-		$self->{'debug'}->INFO(['Decision YES']);
+		$self->{'debug'}->DEBUG(['Decision YES']);
         return (TRUE);
     }
-	$self->{'debug'}->INFO(['Decision NO']);
+	$self->{'debug'}->DEBUG(['Decision NO']);
     $self->output("NO\n");
     return (FALSE);
 }
@@ -780,7 +780,7 @@ sub prompt {
     my $self = shift;
     my $text = shift;
 
-	$self->{'debug'}->INFO(["Prompt > $text"]);
+	$self->{'debug'}->DEBUG(["Prompt > $text"]);
     my $response;
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
@@ -800,7 +800,7 @@ sub menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
-	$self->{'debug'}->INFO(['Menu Choice']);
+	$self->{'debug'}->DEBUG(['Menu Choice']);
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $self->output(" $choice " . chr(31) . " $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
@@ -822,7 +822,7 @@ sub show_choices {
     my $self    = shift;
     my $mapping = shift;
 
-	$self->{'debug'}->INFO(['Show Choices']);
+	$self->{'debug'}->DEBUG(['Show Choices']);
     my $keys = '';
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND LEFT'} . "\n");
@@ -843,7 +843,7 @@ sub show_choices {
 sub header {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Header']);
+	$self->{'debug'}->DEBUG(['Header']);
     my $width = $self->{'USER'}->{'max_columns'};
     my $name  = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
 
@@ -861,7 +861,7 @@ sub load_menu {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->INFO(["Load Menu $file"]);
+	$self->{'debug'}->DEBUG(["Load Menu $file"]);
     my $orig    = $self->files_load_file($file);
     my @Text    = split(/\n/, $orig);
     my $mapping = { 'TEXT' => '' };
@@ -900,7 +900,7 @@ sub main_menu {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->INFO(['Main Menu']);
+	$self->{'debug'}->DEBUG(['Main Menu']);
     my $connected = TRUE;
     my $command   = '';
     my $mapping = $self->load_menu($file);
@@ -928,7 +928,7 @@ sub main_menu {
 sub disconnect {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Disconnect']);
+	$self->{'debug'}->DEBUG(['Disconnect']);
     # Load and print disconnect message here
     my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
@@ -941,7 +941,7 @@ sub parse_telnet_escape {
 	my $option  = shift;
 	my $handle  = $self->{'cl_socket'};
 
-	$self->{'debug'}->INFO(['Parse Telnet Escape']);
+	$self->{'debug'}->DEBUG(['Parse Telnet Escape']);
 	if ($command == WILL) {
 		if ($option == ECHO) { # WON'T ECHO
 			print $handle chr(IAC) . chr(WONT) . chr(ECHO);
@@ -1032,7 +1032,7 @@ sub get_line {
     my $line  = (scalar(@_)) ? shift : '';
     my $key;
 
-	$self->{'debug'}->INFO(['Get Line']);
+	$self->{'debug'}->DEBUG(['Get Line']);
 	$self->flush_input();
 	$self->output($line) if ($line ne '');
     while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
@@ -1074,7 +1074,7 @@ sub detokenize_text {    # Detokenize text markup
     my $self = shift;
     my $text = shift;
 
-	$self->{'debug'}->INFO(['Detokenize Text']);
+	$self->{'debug'}->DEBUG(['Detokenize Text']);
     if (defined($text) && length($text) > 1) {
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
 			if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
@@ -1096,7 +1096,7 @@ sub detokenize_text {    # Detokenize text markup
 
 sub output {
     my $self = shift;
-	$self->{'debug'}->INFO(['Output']);
+	$self->{'debug'}->DEBUG(['Output']);
     my $text = $self->detokenize_text(shift);
 
 	if (defined($text) && $text ne '') {
@@ -1156,7 +1156,7 @@ sub scroll {
     my $self = shift;
     my $nl   = shift;
 
-	$self->{'debug'}->INFO(['Scroll?']);
+	$self->{'debug'}->DEBUG(['Scroll?']);
     my $string;
     if ($self->{'local_mode'}) {
         $string = "\nScroll?  ";
@@ -1175,7 +1175,7 @@ sub static_configuration {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->INFO(['Static Configuration']);
+	$self->{'debug'}->DEBUG(['Static Configuration']);
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'}     = 'Richard Kelsch';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'}    = 'Richard Kelsch <rich@rk-internet.com>';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Central Utah - USA';
@@ -1194,7 +1194,7 @@ sub static_configuration {
 sub choose_file_category {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Choose File Category']);
+	$self->{'debug'}->DEBUG(['Choose File Category']);
     my $table;
     my $choices = [qw(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)];
     my $hchoice = {};
@@ -1298,7 +1298,7 @@ sub configuration {
 sub parse_versions {
     my $self = shift;
 
-	$self->{'debug'}->INFO(['Parse Versions']);
+	$self->{'debug'}->DEBUG(['Parse Versions']);
 ###
     my $versions = {
 		'Perl'                          => $OLD_PERL_VERSION,
@@ -1398,7 +1398,7 @@ sub trim {
 
 sub get_fortune {
 	my $self = shift;
-	$self->{'debug'}->INFO(['Get Fortune']);
+	$self->{'debug'}->DEBUG(['Get Fortune']);
 	return(($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
 }
 
@@ -1407,7 +1407,7 @@ sub playit {
 	my $file = shift;
 
 	unless($self->{'nosound'}) {
-		$self->{'debug'}->INFO(["Play Sound $file"]);
+		$self->{'debug'}->DEBUG(["Play Sound $file"]);
 		if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
 			system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
 		}
