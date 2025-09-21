@@ -126,7 +126,7 @@ sub merge {    # Perl sometimes is a pain in the ...
     chomp(@dir = readdir($DIR));
     closedir($DIR);
 
-    my $master = slurp_file('src/Universal.pm.template');
+    my $master = slurp_file('src/Universal.pm');
     foreach my $file (sort(@dir)) {
         next if ($file !~ /\.pm$/);
         my $shortfile = "$file";
