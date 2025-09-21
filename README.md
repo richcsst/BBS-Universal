@@ -18,7 +18,13 @@ Installing is at your own risk and likely will not be very useful to you at the 
         make veryclean
 ```
 
-You will need a properly configured MySQL server.  You need to modify the "conf/bbs.rc" to reflect your MySQL installation and make sure the file is not world readable.  You also need to run the "sql/database_setup.sql" file.
+You will need a properly configured MySQL server.  You also need to modify the "conf/bbs.rc" to reflect your MySQL installation and make sure the file is not world readable.  You also need to run the "sql/database_setup.sql" file in mysql:
+
+```bash
+        sudo mysql -u root --skip-password < sql/database_setup.sql
+```
+
+You can use the default menu files or change them to your own taste.  See the manual for details.
 
 ## LICENSE AND COPYRIGHT
 
