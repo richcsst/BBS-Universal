@@ -30,7 +30,5 @@ You can use the default menu files or change them to your own taste.  See the ma
 
 Copyright © 2023-2025 Richard Kelsch
 
-This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License Version 3 as published by the Free Software Foundation.
-
-See the LICENSE file for a copy of this license.
+This program is free software; you can redistribute it and/or modify it under the terms of the Perl Artistic License.
 
