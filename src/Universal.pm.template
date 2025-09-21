@@ -87,7 +87,7 @@ use Cache::Memcached::Fast;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.005';
+    our $VERSION = '0.006';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
 		TRUE

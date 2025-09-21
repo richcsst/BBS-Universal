@@ -1,5 +1,5 @@
 package BBS::Universal::ANSI;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub ansi_initialize {
     my $self = shift;
@@ -134,10 +134,8 @@ sub ansi_initialize {
     my $start  = 0x2010;
     my $finish = 0x2BFF;
 
-    my $name = charnames::viacode(0x1F341);    # Maple Leaf
-    $self->{'ansi_characters'}->{$name} = charnames::string_vianame($name);
     foreach my $u ($start .. $finish) {
-        $name = charnames::viacode($u);
+        my $name = charnames::viacode($u);
         next if ($name eq '');
         my $char = charnames::string_vianame($name);
         $char = '?' unless (defined($char));
@@ -146,7 +144,7 @@ sub ansi_initialize {
     $start  = 0x1F300;
     $finish = 0x1FBFF;
     foreach my $u ($start .. $finish) {
-        $name = charnames::viacode($u);
+        my $name = charnames::viacode($u);
         next if ($name eq '');
         my $char = charnames::string_vianame($name);
         $char = '?' unless (defined($char));

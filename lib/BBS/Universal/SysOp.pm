@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.003'; }
+BEGIN { our $VERSION = '0.004'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -115,15 +115,16 @@ sub sysop_initialize {
 			my @stkn = (sort(keys %{ $self->{'sysop_tokens'} }));
             my @usr = (sort(keys %{ $self->{'COMMANDS'} }));
             my @tkn = (sort(keys %{ $self->{'TOKENS'} }));
-			my @anstkn = grep(!/ANSI|GREY|FONT/,(keys %{ $self->{'ansi_sequences'} }));
+			my @anstkn = grep(!/ANSI|GREY|FONT|HORIZONTAL RULE/,(keys %{ $self->{'ansi_sequences'} }));
 			push(@anstkn,'ANSI0 - ANSI231');
 			push(@anstkn,'GREY0 - GREY23');
 			push(@anstkn,'B_ANSI0 - B_ANSI231');
 			push(@anstkn,'B_GREY0 - B_GREY23');
 			push(@anstkn,'FONT0 - FONT9');
+			push(@anstkn,'HORIZONTAL RULE [color]');
 			@anstkn = sort(@anstkn);
-			my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} }));
-			my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} }));
+			my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} }));
+			my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} }));
 			my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} }));
             my $x   = 1;
 			my $xt  = 1;
@@ -209,6 +210,61 @@ sub sysop_initialize {
             }
 			my $text = $self->center($table->boxes->draw(), $wsize);
 			$text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
+			$text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
+			$text =~ s/│(\s+)(REVERSE|FAINT|INVERT|SLOW BLINK|RAPID BLINK|OVERLINE|ITALIC|BRIGHT BLACK|NAVY|B_NAVY|BOLD|ORANGE|B_ORANGE|RED|GREEN|YELLOW|MAGENTA|CYAN|BLUE|PINK|BRIGHT RED|BRIGHT GREEN|BRIGHT YELLOW|BRIGHT MAGENTA|BRIGHT CYAN|BRIGHT BLUE|BRIGHT WHITE|B_RED|B_GREEN|B_YELLOW|B_MAGENTA|B_CYAN|B_BLUE|B_PINK|BRIGHT B_RED|BRIGHT B_GREEN|BRIGHT B_YELLOW|BRIGHT B_MAGENTA|BRIGHT B_CYAN|BRIGHT B_BLUE|BRIGHT B_WHITE|BRIGHT B_BLACK)/│$1\[\% $2 \%\]$2\[\% RESET \%\]/g;
+			$text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (LIGHT GRAY)/│   \[\% GREY13 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (PURPLE)/│   \[\% ANSI127 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (DARK PURPLE)/│   \[\% ANSI53 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (GRAY)/│   \[\% GREY9 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (BROWN)/│   \[\% ANSI94 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
+			$text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
+			$text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
+			$text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
+			$text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
+			$text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
+			$text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
+			$text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
+			$text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
+			$text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
+			$text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
+			$text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g; # Why twice?  Ask Perl as one doesn't replace all
+			$text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
+			$text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
+			$text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
+			$text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
+			$text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
+			$text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
+			$text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
+			$text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
+			$text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
+			$text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
+			$text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
+			$text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
+			$text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
+			$text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
+			$text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
+			$text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
+			$text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
+			$text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
+			$text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
+			$text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
+			$text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+			$text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+			$text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
+			$text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
+			$text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+			$text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
+			$text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
+			$text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+			$text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
+			$text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
+			$text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
             return ($text);
         },
     };
