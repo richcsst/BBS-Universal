@@ -1,14 +1,14 @@
 # Key | Command | Color | Description
 1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
+B|SYSOP BBS LISTINGS MANAGER|BRIGHT BLUE|BBS Listings Manager
 C|SYSOP LOGIN|WHITE|Connect as another user
 D|SYSOP STATISTICS|MAGENTA|Display Statistics
-L|SYSOP LIST COMMANDS|ANSI202|Commands & Tokens Reference
-U|SYSOP USER MANAGER|CYAN|User Manager
-F|SYSOP FILE MANAGER|YELLOW|File Manager
-B|SYSOP BBS LISTINGS MANAGER|BRIGHT BLUE|BBS Listings Manager
-S|SYSOP SETTINGS|ANSI125|Change System Settings
 E|SYSOP SHOW ENVIRONMENT|GREEN|Show Environmental Variables
+F|SYSOP FILE MANAGER|YELLOW|File Manager
+L|SYSOP LIST COMMANDS|COLOR 202|Commands & Tokens Reference
 R|SYSOP RESTART|WHITE|Restart BBS
+S|SYSOP SETTINGS|COLOR 125|Change System Settings
+U|SYSOP USER MANAGER|CYAN|User Manager
 X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 ---
 [% RED     %]     #[% BRIGHT WHITE %]  ____            _                   __  __[% RESET %]

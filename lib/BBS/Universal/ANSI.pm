@@ -160,12 +160,10 @@ sub ansi_initialize {
     return ($self);
 }
 
-sub ansi_output {
-    my $self   = shift;
-    my $text   = shift;
+sub ansi_decode {
+	my $self = shift;
+	my $text = shift;
 
-    my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
-    my $lines  = $mlines;
     if (length($text) > 1) {
         while ($text =~ /\[\% SCROLL UP (\d+)\s+\%\]/) {
             my $s = $1;
@@ -224,6 +222,16 @@ sub ansi_output {
             }
         }
     }
+	return($text);
+}
+
+sub ansi_output {
+    my $self   = shift;
+    my $text   = shift;
+
+    my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+    my $lines  = $mlines;
+	$text = $self->ansi_decode($text);
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 

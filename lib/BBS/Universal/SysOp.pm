@@ -115,12 +115,14 @@ sub sysop_initialize {
 			my @stkn = (sort(keys %{ $self->{'sysop_tokens'} }));
             my @usr = (sort(keys %{ $self->{'COMMANDS'} }));
             my @tkn = (sort(keys %{ $self->{'TOKENS'} }));
-			my @anstkn = grep(!/ANSI|GREY|FONT|HORIZONTAL RULE/,(keys %{ $self->{'ansi_sequences'} }));
-			push(@anstkn,'ANSI0 - ANSI231');
-			push(@anstkn,'GREY0 - GREY23');
-			push(@anstkn,'B_ANSI0 - B_ANSI231');
-			push(@anstkn,'B_GREY0 - B_GREY23');
-			push(@anstkn,'FONT0 - FONT9');
+			my @anstkn = grep(!/RGB|COLOR|GREY|FONT|HORIZONTAL RULE/,(keys %{ $self->{'ansi_sequences'} }));
+			push(@anstkn,'RGB 0,0,0 - RGB 255,255,255');
+			push(@anstkn,'B_RGB 0,0,0 - B_RGB 255,255,255');
+			push(@anstkn,'COLOR 0 - COLOR 231');
+			push(@anstkn,'GREY 0 - GREY 23');
+			push(@anstkn,'B_COLOR 0 - B_COLOR 231');
+			push(@anstkn,'B_GREY 0 - B_GREY 23');
+			push(@anstkn,'FONT 0 - FONT 9');
 			push(@anstkn,'HORIZONTAL RULE [color]');
 			@anstkn = sort(@anstkn);
 			my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} }));
@@ -216,12 +218,12 @@ sub sysop_initialize {
 			$text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
-			$text =~ s/│   (LIGHT GRAY)/│   \[\% GREY13 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (LIGHT GRAY)/│   \[\% GREY 13 \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-			$text =~ s/│   (PURPLE)/│   \[\% ANSI127 \%\]$1\[\% RESET \%\]/g;
-			$text =~ s/│   (DARK PURPLE)/│   \[\% ANSI53 \%\]$1\[\% RESET \%\]/g;
-			$text =~ s/│   (GRAY)/│   \[\% GREY9 \%\]$1\[\% RESET \%\]/g;
-			$text =~ s/│   (BROWN)/│   \[\% ANSI94 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (GRAY)/│   \[\% GREY 9 \%\]$1\[\% RESET \%\]/g;
+			$text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
 			$text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
 			$text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
@@ -465,7 +467,6 @@ sub sysop_load_menu {
                     'color'   => $color,
                     'text'    => $t,
                 };
-                $mapping->{$k}->{'color'} =~ s/(BRIGHT) /${1}_/;    # Make it Term::ANSIColor friendly
             } else {
                 $mode = 0;
             }
@@ -1353,7 +1354,7 @@ sub sysop_detokenize {
     # ANSI TOKENS
     foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
         my $ch = $self->{'ansi_sequences'}->{$name};
-        if ($name eq 'CLEAR') {
+        if ($name eq 'CLS') {
             $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
         }
         $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
@@ -1380,7 +1381,7 @@ sub sysop_menu_choice {
     } elsif ($choice eq 'BOTTOM') {
         $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'} . "\n";
     } else {
-        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . colored(["BOLD $color"], $choice) . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . ' ' . colored([$color], $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}) . ' ' . $desc . "\n";
+        $response = $self->ansi_decode($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . '[% BOLD %][% ' . $color . ' %]' . $choice . '[% RESET %]' . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . ' [% ' . $color . ' %]' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . '[% RESET %] ' . $desc . "\n");
     }
     return ($response);
 }
