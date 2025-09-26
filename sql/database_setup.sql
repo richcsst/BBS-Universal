@@ -14,8 +14,8 @@ USE BBSUniversal;
 -- Tables
 
 CREATE TABLE config (
-    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    config_name  VARCHAR(255),
+--    id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    config_name  VARCHAR(255) PRIMARY KEY,
     config_value VARCHAR(255)
 );
 

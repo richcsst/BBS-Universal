@@ -15,7 +15,11 @@ my $speed = 0.0025;                     # For sleep to simulate 2400 baud
 
 $| = 1;                                 # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
-print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
+if ($fast) {
+	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 57,600 bps\n";
+} else {
+	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
+}
 sleep 1 unless ($fast);
 baud_print('> ');
 sleep 1 unless ($fast);
@@ -23,7 +27,11 @@ baud_print("ATDT BBS::Universal\n\n");
 sleep 2 unless ($fast);
 baud_print('Connected ... ');
 sleep 1 unless ($fast);
-baud_print("2400 baud...\n\n");
+if ($fast) {
+	print "57,600 baud...\n\n";
+} else {
+	baud_print("2400 baud...\n\n");
+}
 sleep 1 unless ($fast);
 baud_print("Welcome to...\n\n");
 sleep 1 unless ($fast);

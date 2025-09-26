@@ -300,8 +300,24 @@ sub new {    # Always call with the socket as a parameter
 sub populate_common {
     my $self = shift;
 
+    if (exists($ENV{'EDITOR'})) {
+		$self->{'EDITOR'} = $ENV{'EDITOR'};
+	} else {
+		foreach my $editor ('/usr/bin/jed','/usr/local/bin/jed','/usr/bin/nano','/usr/local/bin/nano','/usr/bin/vim','/usr/local/bin/vim','/usr/bin/ed','/usr/local/bin/ed') {
+			if (-e $editor) {
+				$self->{'EDITOR'} = $editor;
+				last;
+			}
+		}
+	}
+	$self->{'debug'}->DEBUGMAX(['EDITOR: ' . $self->{'EDITOR'}]);
     $self->{'CPU'}      = $self->cpu_info();
     $self->{'CONF'}     = $self->configuration();
+	if (exists($self->{'CONF'}->{'EDITOR'})) { # Configuration override
+		$self->{'EDITOR'} = $self->{'CONF'}->{'EDITOR'};
+	} else {
+		$self->configuration('EDITOR',$self->{'EDITOR'});
+	}
     $self->{'VERSIONS'} = $self->parse_versions();
     $self->{'USER'}     = {
         'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
@@ -1196,7 +1212,7 @@ sub choose_file_category {
 
 	$self->{'debug'}->DEBUG(['Choose File Category']);
     my $table;
-    my $choices = [qw(0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y Z)];
+    my $choices = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 0 1 2 3 4 5 6 7 8 9)];
     my $hchoice = {};
     my @categories;
     if ($self->{'USER'}->{'max_columns'} <= 40) {
@@ -1220,12 +1236,12 @@ sub choose_file_category {
         } else {
             $self->output($table->draw());
         }
-        $self->output("\n" . $self->prompt('Choose Category (< = Nevermind)'));
+        $self->output("\n" . $self->prompt('Choose Category (Z = Nevermind)'));
         my $response;
         do {
             $response = uc($self->get_key(SILENT, BLOCKING));
-        } until (exists($hchoice->{$response}) || $response eq '<' || !$self->is_connected());
-        if ($response ne '<') {
+        } until (exists($hchoice->{$response}) || $response =~ /^\<|Z$/ || !$self->is_connected());
+        if ($response !~ /\<|Z/) {
             $self->{'USER'}->{'file_category'} = $hchoice->{$response};
             $self->output($categories[$hchoice->{$response} - 1] . "\n");
             $sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=?');
@@ -1276,7 +1292,7 @@ sub configuration {
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
-        my $sth = $self->{'dbh'}->prepare('UPDATE config SET config_value=? WHERE config_name=?');
+        my $sth = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
         $sth->execute($fval, $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
