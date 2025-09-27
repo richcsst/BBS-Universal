@@ -68,6 +68,7 @@ use Text::SimpleTable;
 use List::Util qw(min max);
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
+use Number::Format 'format_number';
 
 # The overhead of pulling these into the BBS::Universal namespace was a nightmare, so I just pulled them into the source at build time
 # use BBS::Universal::ANSI;
@@ -154,6 +155,8 @@ sub small_new {
             'utf8'      => TRUE,
         }
     );
+	$self->{'sysop'}      = TRUE;
+	$self->{'local_mode'} = TRUE;
     return ($self);
 }
 
@@ -1007,12 +1010,14 @@ sub get_key {
     my $blocking = shift;
 
     my $key = undef;
+	my $mode = $self->{'USER'}->{'text_mode'};
 	my $timeout = $self->{'USER'}->{'timeout'} * 60;
     local $/ = "\x{00}";
-    if ($self->{'local_mode'}) {
+    if ($self->{'local_mode'} || $self->{'sysop'}) {
         ReadMode 'ultra-raw';
         $key = ($blocking) ? ReadKey($timeout) : ReadKey(-1);
         ReadMode 'restore';
+		threads->yield;
     } elsif ($self->is_connected()) {
 		my $handle = $self->{'cl_socket'};
 		ReadMode 'ultra-raw', $self->{'cl_socket'};
@@ -1028,12 +1033,24 @@ sub get_key {
 			}
 		} until (! $escape || $self->is_connected());
 		ReadMode 'restore', $self->{'cl_socket'};
+		threads->yield;
     }
 	return($key) if ($key eq chr(13));
-	$key = $self->{'backspace'} if ($key eq chr(127));
+	if ($key eq chr(127)) {
+		if ($mode eq 'ANSI') {
+			$key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+		} elsif ($mode eq 'ATASCII') {
+			$key = $self->{'atascii_sequences'}->{'BACKSPACE'};
+		} elsif ($mode eq 'PETSCII') {
+			$key = $self->{'petscii_sequences'}->{'BACKSPACE'};
+		} else {
+			$key = $self->{'ascii_sequences'}->{'BACKSPACE'};
+		}
+		$self->output("$key ") if ($echo);
+	}
 	if ($echo == NUMERIC && defined($key)) {
-		if ($key =~ /[0-9]/ || $key eq $self->{'backspace'}) {
-			$self->send_char($key);
+		if ($key =~ /[0-9]/) {
+			$self->output("$key");
 		} else {
 			$key = '';
 		}
@@ -1042,6 +1059,7 @@ sub get_key {
     } elsif ($echo == PASSWORD && defined($key)) {
         $self->send_char('*');
     }
+	threads->yield;
     return ($key);
 }
 
@@ -1055,12 +1073,23 @@ sub get_line {
 	$self->{'debug'}->DEBUG(['Get Line']);
 	$self->flush_input();
 	$self->output($line) if ($line ne '');
-    while ($self->is_connected() && $key ne chr(13) && $key ne chr(3)) {
+	my $mode = $self->{'USER'}->{'text_mode'};
+	my $bs;
+	if ($mode eq 'ANSI') {
+		$bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
+	} elsif ($mode eq 'ATASCII') {
+		$bs = $self->{'atascii_sequences'}->{'BACKSPACE'};
+	} elsif ($mode eq 'PETSCII') {
+		$bs = $self->{'petscii_sequences'}->{'BACKSPACE'};
+	} else {
+		$bs = $self->{'ascii_sequences'}->{'BACKSPACE'};
+	}
+    while (($self->is_connected() || $self->{'local_mode'} || $self->{'sysop'}) && $key ne chr(13) && $key ne chr(3)) {
 		if (length($line) < $limit) {
 			$key = $self->get_key($echo, BLOCKING);
 			return('') if (defined($key) && $key eq chr(3));
 			if (defined($key) && $key ne '' && $self->is_connected()) {
-				if ($key eq $self->{'backspace'} || $key eq chr(127)) {
+				if ($key eq $bs) {
 					$self->output(" $key");
 					my $len = length($line);
 					if ($len > 0) {
@@ -1074,10 +1103,10 @@ sub get_line {
 			$key = $self->get_key(SILENT, BLOCKING);
 			if (defined($key) && $key eq chr(3)) {
 				return('');
-			 }
-			if (defined($key) && $key eq $self->{'backspace'} || $key eq chr(127)) {
-				$key = $self->{'backspace'};
-				$self->output("$key $key");
+			}
+			if (defined($key) && ($key eq $bs)) {
+				$key = $bs;
+				$self->output(" $key");
 				chop($line);
 			} else {
 				$self->output('[% RING BELL %]');

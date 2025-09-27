@@ -120,6 +120,11 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANS'));
     },
+	'SYSOP ADD FILE' => sub {
+		my $self = shift;
+		$self->sysop_add_file();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+	},
     'SYSOP BBS LISTINGS MANAGER' => sub {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
@@ -239,14 +244,6 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP SETTINGS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
-    },
-    'SYSOP FIRST TIME SETUP' => sub {
-        my $self = shift;
-        print "\nThis is for first time setup, if you do this on an already configured system,\nit will wipe everything clean.  Are you sure you want to do this [Y/N]?  ";
-        if ($self->sysop_decision()) {
-            $self->sysop_first_time_setup(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')));
-        }
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
     'SYSOP VIEW CONFIGURATION' => sub {

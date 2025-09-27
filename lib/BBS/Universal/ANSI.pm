@@ -9,16 +9,18 @@ sub ansi_initialize {
 
     $self->{'ansi_prefix'}    = $csi;
     $self->{'ansi_sequences'} = {
-        'SS2'      => $esc . 'N',
-        'SS3'      => $esc . 'O',
-        'CSI'      => $esc . '[',
-        'OSC'      => $esc . ']',
-        'SOS'      => $esc . 'X',
-        'ST'       => $esc . "\\",
-        'DCS'      => $esc . 'P',
-        'RETURN'   => chr(13),
-        'LINEFEED' => chr(10),
-        'NEWLINE'  => chr(13) . chr(10),
+        'SS2'       => $esc . 'N',
+        'SS3'       => $esc . 'O',
+        'CSI'       => $esc . '[',
+        'OSC'       => $esc . ']',
+        'SOS'       => $esc . 'X',
+        'ST'        => $esc . "\\",
+        'DCS'       => $esc . 'P',
+		'RING BELL' => chr(7),
+		'BACKSPACE' => chr(8),
+        'RETURN'    => chr(13),
+        'LINEFEED'  => chr(10),
+        'NEWLINE'   => chr(13) . chr(10),
 
         'CLS'        => $csi . '2J' . $csi . 'H',
         'CLEAR'      => $csi . '2J',

@@ -417,9 +417,9 @@ SELECT
     files.file_size                      AS file_size,
     files.uploaded                       AS uploaded,
     files.endorsements                   AS endorsements,
-    permissions.prefer_nickname          AS prefer_nickname,
     users.username                       AS username,
-    users.nickname                       AS nickname,
+	users.nickname                       AS nickname,
+	permissions.prefer_nickname          AS prefer_nickname,
     CONCAT(users.given,' ',users.family) AS fullname
 
 FROM
