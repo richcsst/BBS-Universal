@@ -427,6 +427,10 @@ sub populate_common {
                 return ('[HIDDEN]');
             }
         },
+		'USER COUNT' => sub {
+			my $self = shift;
+			return($self->users_count());
+		},
         'USER COLUMNS' => sub {
             my $self = shift;
             return ($self->{'USER'}->{'max_columns'});
@@ -803,7 +807,7 @@ sub prompt {
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . ' ' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . ' ';
+        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . ' ' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . ' ';
     } else {
         $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     }
@@ -823,10 +827,10 @@ sub menu_choice {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(
-			$self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} .
+			charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') .
 			'[% ' . $color . ' %]' . $choice . '[% RESET %]' .
-			$self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} .
-			'[% ' . $color . ' %]' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . '[% RESET %]' .
+			charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') .
+			'[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' .
 			" $desc"
 		);
     } else {
@@ -841,7 +845,7 @@ sub show_choices {
 	$self->{'debug'}->DEBUG(['Show Choices']);
     my $keys = '';
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND LEFT'} . "\n");
+        $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n");
     }
 	my $odd = 0;
     foreach my $kmenu (sort(keys %{$mapping})) {
@@ -852,7 +856,7 @@ sub show_choices {
 		}
     }
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'});
+        $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT'));
     }
 }
 

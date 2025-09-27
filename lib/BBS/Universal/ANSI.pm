@@ -50,10 +50,10 @@ sub ansi_initialize {
         'UNDERLINE'               => $csi . '4m',
         'FRAMED'                  => $csi . '51m',
         'FRAMED OFF'              => $csi . '54m',
-        'ENCIRCLED'               => $csi . '52m',
-        'ENCIRCLED OFF'           => $csi . '54m',
-        'OVERLINED'               => $csi . '53m',
-        'OVERLINED OFF'           => $csi . '55m',
+        'ENCIRCLE'                => $csi . '52m',
+        'ENCIRCLE OFF'            => $csi . '54m',
+        'OVERLINE'                => $csi . '53m',
+        'OVERLINE OFF'            => $csi . '55m',
         'DEFAULT UNDERLINE COLOR' => $csi . '59m',
         'SUPERSCRIPT'             => $csi . '73m',
         'SUBSCRIPT'               => $csi . '74m',
@@ -140,23 +140,24 @@ sub ansi_initialize {
     # Generate symbols
     my $start  = 0x2010;
     my $finish = 0x2BFF;
-
-    foreach my $u ($start .. $finish) {
-        my $name = charnames::viacode($u);
-        next if ($name eq '');
-        my $char = charnames::string_vianame($name);
-        $char = '?' unless (defined($char));
-        $self->{'ansi_characters'}->{$name} = $char;
-    }
-    $start  = 0x1F300;
-    $finish = 0x1FBFF;
-    foreach my $u ($start .. $finish) {
-        my $name = charnames::viacode($u);
-        next if ($name eq '');
-        my $char = charnames::string_vianame($name);
-        $char = '?' unless (defined($char));
-        $self->{'ansi_characters'}->{$name} = $char;
-    }
+	if (0) {
+		foreach my $u ($start .. $finish) {
+			my $name = charnames::viacode($u);
+			next if ($name eq '');
+			my $char = charnames::string_vianame($name);
+			$char = '?' unless (defined($char));
+			$self->{'ansi_characters'}->{$name} = $char;
+		}
+		$start  = 0x1F300;
+		$finish = 0x1FBFF;
+		foreach my $u ($start .. $finish) {
+			my $name = charnames::viacode($u);
+			next if ($name eq '');
+			my $char = charnames::string_vianame($name);
+			$char = '?' unless (defined($char));
+			$self->{'ansi_characters'}->{$name} = $char;
+		}
+	}
     return ($self);
 }
 
@@ -165,62 +166,73 @@ sub ansi_decode {
 	my $text = shift;
 
     if (length($text) > 1) {
-        while ($text =~ /\[\% SCROLL UP (\d+)\s+\%\]/) {
+        while ($text =~ /\[\%\s+LOCATE (\d+),(\d+)\s+\%\]/) {
+            my ($r,$c) = ($1,$2);
+            my $replace = $self->{'ansi_sequences'}->{'CSI'} . "$r;$c" . 'H';
+            $text =~ s/\[\%\s+LOCATE $r,$c\s+\%\]/$replace/g;
+        }
+        while ($text =~ /\[\%\s+SCROLL UP (\d+)\s+\%\]/) {
             my $s = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'S';
-            $text =~ s/\[\% SCROLL UP $s\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+SCROLL UP $s\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% SCROLL DOWN (\d+)\s+\%\]/) {
+        while ($text =~ /\[\%\s+SCROLL DOWN (\d+)\s+\%\]/) {
             my $s = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'T';
-            $text =~ s/\[\% SCROLL DOWN $s\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+SCROLL DOWN $s\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r,$g,$b) = ($1,$2,$3);
+        while ($text =~ /\[\%\s+RGB (\d+),(\d+),(\d+)\s+\%\]/) {
+            my ($r,$g,$b) = ($1 & 255, $2 & 255, $3 & 255);
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:2:$r:$g:$b" . 'm';
-            $text =~ s/\[\% RGB $r,$g,$b\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+RGB $r,$g,$b\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% B_RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r,$g,$b) = ($1,$2,$3);
+        while ($text =~ /\[\%\s+B_RGB (\d+),(\d+),(\d+)\s+\%\]/) {
+            my ($r,$g,$b) = ($1 & 255, $2 & 255, $3 & 255);
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:2:$r:$g:$b" . 'm';
-            $text =~ s/\[\% B_RGB $r,$g,$b\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+B_RGB $r,$g,$b\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% COLOR (\d+)\s+\%\]/) {
-            my $c = $1;
+        while ($text =~ /\[\%\s+(COLOR|COLOUR) (\d+)\s+\%\]/) {
+			my $n = $1;
+            my $c = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:5:$c" . 'm';
-            $text =~ s/\[\% COLOR $c\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% B_COLOR (\d+)\s+\%\]/) {
-            my $c = $1;
+        while ($text =~ /\[\%\s+(B_COLOR|B_COLOUR) (\d+)\s+\%\]/) {
+			my $n = $1;
+            my $c = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:5:$c" . 'm';
-            $text =~ s/\[\% B_COLOR $c\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% GREY (\d+)\s+\%\]/) {
+        while ($text =~ /\[\%\s+GREY (\d+)\s+\%\]/) {
             my $g = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . '38:5:' . (232 + $g) . 'm';
-            $text =~ s/\[\% GREY $g\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+GREY $g\s+\%\]/$replace/gi;
         }
-        while ($text =~ /\[\% B_GREY (\d+)\s+\%\]/) {
+        while ($text =~ /\[\%\s+B_GREY (\d+)\s+\%\]/) {
             my $g = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . '48:5:' . (232 + $g) . 'm';
-            $text =~ s/\[\% B_GREY $g\s+\%\]/$replace/g;
+            $text =~ s/\[\%\s+B_GREY $g\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+BOX (.*?),(\d+),(\d+),(\d+),(\d+),(.*?)\s+\%\](.*?)\[\%\s+ENDBOX\s+\%\]/i) {
             my $replace = $self->box($1, $2, $3, $4, $5, $6, $7);
             $text =~ s/\[\%\s+BOX.*?\%\].*?\[\%\s+ENDBOX.*?\%\]/$replace/i;
         }
-        foreach my $string (keys %{ $self->{'ansi_characters'} }) {
-            $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_characters'}->{$string}/gi;
-        }
 
-        foreach my $string (keys %{ $self->{'ansi_sequences'} }) {
-            if ($string =~ /CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
-                my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
-                $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-            } else {
-                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
-            }
-        }
+		while ($text =~ /\[\%\s+(.*?)\s+\%\]/ && (exists($self->{'ansi_sequences'}->{$1}) || defined(charnames::string_vianame($1)))) {
+			my $string = $1;
+			if (exists($self->{'ansi_sequences'}->{$string})) {
+				if ($string =~ /CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+					my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+					$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+				} else {
+					$text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
+				}
+			} else {
+				my $char = charnames::string_vianame($string);
+				$char = '?' unless (defined($char));
+				$text =~ s/\[\%\s+$string\s+\%\]/$char/gi;
+			}
+		}
     }
 	return($text);
 }

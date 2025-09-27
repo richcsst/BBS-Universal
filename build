@@ -1,0 +1,3 @@
+#!/bin/bash
+
+perl Makefile.PL 1 && make && sudo make install && make veryclean && ./fix && bbs $@

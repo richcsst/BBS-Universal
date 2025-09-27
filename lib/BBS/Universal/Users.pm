@@ -491,6 +491,10 @@ sub users_delete {
     my $self = shift;
     my $id   = shift;
 
+	if ($id == 1) {
+		$self->{'debug'}->ERROR(['Attempt to delete SysOp user']);
+		return(FALSE);
+	}
     $self->{'debug'}->WARNING(["Delete user $id"]);
     $self->{'dbh'}->begin_work();
     my $sth = $self->{'dbh'}->prepare('DELETE FROM permissions WHERE id=?');
@@ -544,7 +548,11 @@ sub users_find {
 
 sub users_count {
     my $self = shift;
-    return (0);
+    $self->{'dbh'}->begin_work();
+    my $sth = $self->{'dbh'}->prepare('SELECT COUNT(*) FROM users');
+	$sth->execute();
+	my ($count) = ($sth->fetchrow_array());
+    return ($count);
 }
 
 sub users_info {

@@ -1,5 +1,4 @@
 bin/bbs
-build.sh
 Changes
 conf/bbs.rc
 files/files/BBS_Universal.png
@@ -76,7 +75,7 @@ Makefile.PL
 MANIFEST			This list of files
 README.md
 sql/database_setup.sql
-src/Universal.pm.template
+src/Universal.pm
 sysop_sounds/shutdown.mp3
 sysop_sounds/startup.mp3
 t/01-tests.t

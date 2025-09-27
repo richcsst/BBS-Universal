@@ -116,6 +116,7 @@ sub sysop_initialize {
             my @usr = (sort(keys %{ $self->{'COMMANDS'} }));
             my @tkn = (sort(keys %{ $self->{'TOKENS'} }));
 			my @anstkn = grep(!/RGB|COLOR|GREY|FONT|HORIZONTAL RULE/,(keys %{ $self->{'ansi_sequences'} }));
+			push(@anstkn,'LOCATE row,column');
 			push(@anstkn,'RGB 0,0,0 - RGB 255,255,255');
 			push(@anstkn,'B_RGB 0,0,0 - B_RGB 255,255,255');
 			push(@anstkn,'COLOR 0 - COLOR 231');
@@ -214,7 +215,7 @@ sub sysop_initialize {
 			$text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
 			$text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
-			$text =~ s/│(\s+)(REVERSE|FAINT|INVERT|SLOW BLINK|RAPID BLINK|OVERLINE|ITALIC|BRIGHT BLACK|NAVY|B_NAVY|BOLD|ORANGE|B_ORANGE|RED|GREEN|YELLOW|MAGENTA|CYAN|BLUE|PINK|BRIGHT RED|BRIGHT GREEN|BRIGHT YELLOW|BRIGHT MAGENTA|BRIGHT CYAN|BRIGHT BLUE|BRIGHT WHITE|B_RED|B_GREEN|B_YELLOW|B_MAGENTA|B_CYAN|B_BLUE|B_PINK|BRIGHT B_RED|BRIGHT B_GREEN|BRIGHT B_YELLOW|BRIGHT B_MAGENTA|BRIGHT B_CYAN|BRIGHT B_BLUE|BRIGHT B_WHITE|BRIGHT B_BLACK)/│$1\[\% $2 \%\]$2\[\% RESET \%\]/g;
+			$text =~ s/│(\s+)(REVERSE|FAINT|INVERT|SLOW BLINK|RAPID BLINK|ITALIC|BRIGHT BLACK|NAVY|B_NAVY|BOLD|ORANGE|B_ORANGE|RED|GREEN|YELLOW|MAGENTA|CYAN|BLUE|PINK|BRIGHT RED|BRIGHT GREEN|BRIGHT YELLOW|BRIGHT MAGENTA|BRIGHT CYAN|BRIGHT BLUE|BRIGHT WHITE|B_RED|B_GREEN|B_YELLOW|B_MAGENTA|B_CYAN|B_BLUE|B_PINK|BRIGHT B_RED|BRIGHT B_GREEN|BRIGHT B_YELLOW|BRIGHT B_MAGENTA|BRIGHT B_CYAN|BRIGHT B_BLUE|BRIGHT B_WHITE|BRIGHT B_BLACK)/│$1\[\% $2 \%\]$2\[\% RESET \%\]/g;
 			$text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
 			$text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
@@ -266,8 +267,11 @@ sub sysop_initialize {
 			$text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
 			$text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
 			$text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
+			$text =~ s/│(\s+)(OVERLINE)  /│$1\[\% OVERLINE \%\]$2\[\% RESET \%\]  /g;
+			$text =~ s/│(\s+)(SUPERSCRIPT)  /│$1\[\% SUPERSCRIPT \%\]$2\[\% RESET \%\]  /g;
+			$text =~ s/│(\s+)(SUBSCRIPT)  /│$1\[\% SUBSCRIPT \%\]$2\[\% RESET \%\]  /g;
 			$text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-            return ($text);
+            return ($self->ansi_decode($text));
         },
     };
 
@@ -806,7 +810,6 @@ sub sysop_select_file_category {
         return (FALSE);
     }
 }
-
 sub sysop_edit_file_categories {
     my $self = shift;
 
@@ -828,8 +831,8 @@ sub sysop_edit_file_categories {
     if ($line eq 'A') {    # Add
         print "\nADD NEW FILE CATEGORY\n";
         $table = Text::SimpleTable->new(11, 80);
-        $table->row('TITLE',       "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
-        $table->row('DESCRIPTION', "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x 80);
+        $table->row('TITLE',       "\n" . charnames::string_vianame('OVERLINE') x 80);
+        $table->row('DESCRIPTION', "\n" . charnames::string_vianame('OVERLINE') x 80);
         print "\n",                                  $table->boxes->draw();
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(ECHO,80);
@@ -971,7 +974,7 @@ sub sysop_edit_configuration {
     }
     $choice = hex($choice);
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
-    print '(Edit) ', $conf[$choice], ' ', $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'}, '  ';
+    print '(Edit) ', $conf[$choice], ' ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
     my $sizes = {
         'BAUD RATE'           => 4,
         'BBS NAME'            => 50,
@@ -1203,27 +1206,27 @@ sub sysop_user_add {
     foreach my $name (@{ $self->{'SYSOP ORDER DETAILED'} }) {
         next if ($name =~ /id|fullname|_time|max_|_category/);
         if ($name eq 'timeout') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name eq 'baud_rate') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /username|given|family|password/) {
             if ($name eq 'given') {
-                $table->row("$name (first)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (first)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             } elsif ($name eq 'family') {
-                $table->row("$name (last)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (last)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             } else {
-                $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
             }
         } elsif ($name eq 'text_mode') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name eq 'birthday') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/) {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         } elsif ($name =~ /location|retro_systems|accomplishments/) {
-            $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
+            $table->row($name, "\n" . charnames::string_vianame('OVERLINE') x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
         } else {
-            $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, "\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
         }
         $user_template->{$name} = undef;
     }
@@ -1332,7 +1335,7 @@ sub sysop_prompt {
     my $self     = shift;
     my $text     = shift;
 
-    my $response = $text . ' [% PINK %]' . $self->{'ansi_characters'}->{'BLACK RIGHTWARDS ARROWHEAD'} . '[% RESET %] ';
+    my $response = $text . ' [% PINK %]' . charnames::string_vianame('BLACK RIGHTWARDS ARROWHEAD') . '[% RESET %] ';
     return ($self->sysop_detokenize($response));
 }
 
@@ -1351,20 +1354,7 @@ sub sysop_detokenize {
         $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     }
 
-    # ANSI TOKENS
-    foreach my $name (keys %{ $self->{'ansi_sequences'} }) {
-        my $ch = $self->{'ansi_sequences'}->{$name};
-        if ($name eq 'CLS') {
-            $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
-        }
-        $text =~ s/\[\%\s+$name\s+\%\]/$ch/sgi;
-    }
-
-    # SPECIAL CHARACTERS
-    foreach my $char (keys %{ $self->{'ansi_characters'} }) {
-        my $ch = $self->{'ansi_characters'}->{$char};
-        $text =~ s/\[\%\s+$char\s+\%\]/$ch/sgi;
-    }
+	$text = $self->ansi_decode($text);
 
     return ($text);
 }
@@ -1377,11 +1367,11 @@ sub sysop_menu_choice {
 
     my $response;
     if ($choice eq 'TOP') {
-        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC DOWN AND LEFT'} . "\n";
+        $response = charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n";
     } elsif ($choice eq 'BOTTOM') {
-        $response = $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND RIGHT'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT HORIZONTAL'} . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT ARC UP AND LEFT'} . "\n";
+        $response = charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT') . "\n";
     } else {
-        $response = $self->ansi_decode($self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . '[% BOLD %][% ' . $color . ' %]' . $choice . '[% RESET %]' . $self->{'ansi_characters'}->{'BOX DRAWINGS LIGHT VERTICAL'} . ' [% ' . $color . ' %]' . $self->{'ansi_characters'}->{'BLACK RIGHT-POINTING TRIANGLE'} . '[% RESET %] ' . $desc . "\n");
+        $response = $self->ansi_decode(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% BOLD %][% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . ' [% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %] ' . $desc . "\n");
     }
     return ($response);
 }
@@ -1539,7 +1529,7 @@ sub sysop_add_bbs {
     my $table = Text::SimpleTable->new(12, 50);
     foreach my $name (qw(bbs_name bbs_hostname bbs_port)) {
         my $count = ($name eq 'bbs_port') ? 5 : 50;
-        $table->row($name, "\n" . $self->{'ansi_characters'}->{'OVERLINE'} x $count);
+        $table->row($name, "\n" . charnames::string_vianame('OVERLINE') x $count);
         $table->hr() unless ($name eq 'bbs_port');
     }
     my @order = (qw(bbs_name bbs_hostname bbs_port));
