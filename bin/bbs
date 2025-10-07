@@ -246,11 +246,6 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
     },
-    'SYSOP VIEW CONFIGURATION' => sub {
-        my $self = shift;
-        $self->sysop_view_configuration(TRUE);
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
-    },
     'SYSOP EDIT CONFIGURATION' => sub {
         my $self = shift;
         $self->sysop_edit_configuration();

@@ -1,5 +1,4 @@
 # Key | Command | Color | Description
-V|SYSOP VIEW CONFIGURATION|GREEN|View The System Configuration
 E|SYSOP EDIT CONFIGURATION|MAGENTA|Edit The System Configuration
 Z|BACK|WHITE|Return to System Menu
 ---
@@ -9,4 +8,4 @@ Z|BACK|WHITE|Return to System Menu
 [% MAGENTA %]  ####[% RESET %][% RED %]  ___) |  __/ |_| |_| | | | | (_| \__ \
 [% BLUE    %] #####[% RESET %][% RED %] |____/ \___|\__|\__|_|_| |_|\__, |___/
 [% CYAN    %]######[% RESET %][% RED %]                             |___/
-[% RESET %]
+[% RESET %][% SYSOP VIEW CONFIGURATION %]

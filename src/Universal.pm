@@ -16,9 +16,13 @@ use constant {
     BLOCKING    => 1,
     NONBLOCKING => 0,
     PASSWORD    => -1,
-    ECHO        => 1,
     SILENT      => 0,
-	NUMERIC     => 2,
+    ECHO        => 1,
+	STRING      => 1,
+    NUMERIC     => 2,
+    RADIO       => 3,
+	TOGGLE      => 4,
+	HOST        => 5,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -88,7 +92,7 @@ use Number::Format 'format_number';
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.006';
+    our $VERSION = '0.007';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
 		TRUE
@@ -1046,7 +1050,7 @@ sub get_key {
 		} else {
 			$key = $self->{'ascii_sequences'}->{'BACKSPACE'};
 		}
-		$self->output("$key ") if ($echo);
+		$self->output("$key $key") if ($echo);
 	}
 	if ($echo == NUMERIC && defined($key)) {
 		if ($key =~ /[0-9]/) {
@@ -1316,11 +1320,11 @@ sub configuration {
         $sth->execute($name);
 		my ($result) = $sth->fetchrow_array();
         $sth->finish();
-		if ($result eq 'TRUE') {
-			$result = TRUE;
-		} elsif ($result eq 'FALSE') {
-			$result = FALSE;
-		}
+#		if ($result eq 'TRUE') {
+#			$result = TRUE;
+#		} elsif ($result eq 'FALSE') {
+#			$result = FALSE;
+#		}
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;

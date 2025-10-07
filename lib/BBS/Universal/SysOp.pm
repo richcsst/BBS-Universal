@@ -108,6 +108,10 @@ sub sysop_initialize {
             my ($result) = $sth->fetchrow_array();
             return ($result);
         },
+		'SYSOP VIEW CONFIGURATION' => sub {
+			my $self = shift;
+			return($self->sysop_view_configuration('string'));
+		},
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
             my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -404,7 +408,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
 
     $self->{'debug'}->DEBUG(['SysOp Disk Free']);
     my $diskfree = '';
-    if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF')) {
+    if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF') eq 'TRUE') {
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         $diskfree = "\n" . `duf -theme ansi -width $wsize`;
     } else {
@@ -774,7 +778,7 @@ sub sysop_select_file_category {
     print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (< = Nevermind)');
     my $line;
     do {
-        $line = uc($self->sysop_get_line(ECHO,3));
+        $line = uc($self->sysop_get_line(ECHO,3,''));
     } until ($line =~ /^(\d+|\<)/i);
     if ($line eq '<') {
         return (FALSE);
@@ -804,7 +808,7 @@ sub sysop_edit_file_categories {
     print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
     my $line;
     do {
-        $line = uc($self->sysop_get_line(ECHO,3));
+        $line = uc($self->sysop_get_line(ECHO,3,''));
     } until ($line =~ /^(\d+|A|\<)/i);
     if ($line eq 'A') {    # Add
         print "\nADD NEW FILE CATEGORY\n";
@@ -813,10 +817,10 @@ sub sysop_edit_file_categories {
         $table->row('DESCRIPTION', "\n" . charnames::string_vianame('OVERLINE') x 80);
         print "\n",                                  $table->boxes->draw();
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
-        my $title = $self->sysop_get_line(ECHO,80);
+        my $title = $self->sysop_get_line(ECHO,80,'');
         if ($title ne '') {
             print "\r", $self->{'ansi_sequences'}->{'DOWN'}, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
-            my $description = $self->sysop_get_line(ECHO,80);
+            my $description = $self->sysop_get_line(ECHO,80,'');
             if ($description ne '') {
                 $sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description) VALUES (?,?)');
                 $sth->execute($title, $description);
@@ -885,6 +889,7 @@ sub sysop_view_configuration {
     $table->hr();
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
+		my $choice = ($count >= 10) ? chr(55 + $count) : $count;
         next if ($conf eq 'STATIC');
         my $c = $self->{'CONF'}->{$conf};
         if ($conf eq 'DEFAULT TIMEOUT') {
@@ -901,8 +906,8 @@ sub sysop_view_configuration {
         } else {
             if ($conf =~ /AUTHOR/) {
                 $table->row(' ', $conf, $c);
-            } else {
-                $table->row(uc('  ' . sprintf('%x', $count) . ' '), $conf, $c);
+			} else {
+				$table->row($choice, $conf, $c);
                 $count++;
             }
         }
@@ -924,11 +929,14 @@ sub sysop_view_configuration {
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
     }
-    print $self->sysop_detokenize($output);
-    if ($view) {
+	if ("$view" eq 'string') {
+		return($output);
+    } elsif ($view == TRUE) {
+		print $self->sysop_detokenize($output);
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
-    } else {
+    } elsif ($view == FALSE) {
+		print $self->sysop_detokenize($output);
         print $self->sysop_menu_choice('TOP',    '',    '');
         print $self->sysop_menu_choice('Z',      'RED', 'Return to Settings Menu');
         print $self->sysop_menu_choice('BOTTOM', '',    '');
@@ -942,35 +950,103 @@ sub sysop_edit_configuration {
 
     $self->{'debug'}->DEBUG(['SysOp Edit Configuration']);
     $self->sysop_view_configuration(FALSE);
+	my $types = {
+		'BBS NAME'            => {
+			'max'  => 50,
+			'type' => STRING,
+		},
+		'BBS ROOT'            => {
+			'max'  => 60,
+			'type' => STRING,
+		},
+        'HOST'                => {
+			'max'  => 20,
+			'type' => HOST,
+		},
+        'THREAD MULTIPLIER'   => {
+			'max'  => 2,
+			'type' => NUMERIC,
+		},
+        'PORT'                => {
+			'max'  => 5,
+			'type' => NUMERIC,
+		},
+        'DEFAULT BAUD RATE'   => {
+			'max'     => 5,
+			'type'    => RADIO,
+			'choices' => ['300', '1200', '2400', '4800', '9600', '19200', 'FULL'],
+		},
+        'DEFAULT TEXT MODE'   => {
+			'max'     => 7,
+			'type'    => RADIO,
+			'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'],
+		},
+        'DEFAULT TIMEOUT'     => {
+			'max'  => 3,
+			'type' => NUMERIC,
+		},
+        'FILES PATH'          => {
+			'max'  => 60,
+			'type' => STRING,
+		},
+        'LOGIN TRIES'         => {
+			'max'  => 1,
+			'type' => NUMERIC,
+		},
+        'MEMCACHED HOST'      => {
+			'max'  => 20,
+			'type' => HOST,
+		},
+        'MEMCACHED NAMESPACE' => {
+			'max'  => 32,
+			'type' => STRING,
+		},
+        'MEMCACHED PORT'      => {
+			'max'  => 5,
+			'type' => NUMERIC,
+		},
+        'DATE FORMAT'         => {
+			'max'     => 14,
+			'type'    => RADIO,
+			'choices' => [
+				'MONTH/DAY/YEAR',
+				'DAY/MONTH/YEAR',
+				'YEAR/MONTH/DAY',
+			],
+		},
+		'USE DUF'             => {
+			'max'     => 5,
+			'type'    => RADIO,
+			'choices' => ['TRUE', 'FALSE'],
+		},
+		'PLAY SYSOP SOUNDS'   => {
+			'max'     => 5,
+			'type'    => RADIO,
+			'choices' => ['TRUE', 'FALSE'],
+		},
+	};
     my $choice;
     do {
-        $choice = $self->sysop_keypress(TRUE);
-    } until ($choice =~ /\d|[A-F]|Z/i);
+        $choice = uc($self->sysop_keypress(TRUE));
+    } until ($choice =~ /\d|[A-G]|Z/i);
     if ($choice =~ /Z/i) {
         print "BACK\n";
         return (FALSE);
     }
-    $choice = hex($choice);
+
+    $choice = ("$choice" =~ /[A-Y]/i) ? $choice = (ord($choice) - 55) : $choice;
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
-    print '(Edit) ', $conf[$choice], ' ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
-    my $sizes = {
-        'BAUD RATE'           => 4,
-        'BBS NAME'            => 50,
-        'BBS ROOT'            => 60,
-        'HOST'                => 20,
-        'THREAD MULTIPLIER'   => 2,
-        'PORT'                => 5,
-        'DEFAULT BAUD RATE'   => 5,
-        'DEFAULT TEXT MODE'   => 7,
-        'DEFAULT TIMEOUT'     => 3,
-        'FILES PATH'          => 60,
-        'LOGIN TRIES'         => 1,
-        'MEMCACHED HOST'      => 20,
-        'MEMCACHED NAMESPACE' => 32,
-        'MEMCACHED PORT'      => 5,
-        'DATE FORMAT'         => 10,
-    };
-    my $string = $self->sysop_get_line(ECHO,$sizes->{ $conf[$choice] });
+	if ($types->{$conf[$choice]}->{'type'} == RADIO) {
+		print '(Edit) ', $conf[$choice], ' (' . join(' ',@{$types->{$conf[$choice]}->{'choices'}}) . ') ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
+	} else {
+		print '(Edit) ', $conf[$choice], ' ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
+	}
+    my $string;
+	$self->{'debug'}->DEBUGMAX([$self->configuration()]);
+	$string = $self->sysop_get_line(
+		$types->{$conf[$choice]},
+		$self->configuration($conf[$choice])
+	);
     return(FALSE) if ($string eq '');
     $self->configuration($conf[$choice], $string);
     return(TRUE);
@@ -978,16 +1054,202 @@ sub sysop_edit_configuration {
 
 sub sysop_get_key {
     my $self     = shift;
-	return($self->get_key(@_));
+	my $echo     = shift;
+	my $blocking = shift;
+
+	my $key = undef;
+	my $mode = $self->{'USER'}->{'text_mode'};
+	my $timeout = $self->{'USER'}->{'timeout'} * 60;
+	local $/ = "\x{00}";
+	ReadMode 'ultra-raw';
+	$key = ($blocking) ? ReadKey($timeout) : ReadKey(-1);
+	ReadMode 'restore';
+	threads->yield;
+	return($key) if ($key eq chr(13));
+	if ($key eq chr(127)) {
+		$key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+	}
+	if ($echo == NUMERIC && defined($key)) {
+		unless ($key =~ /[0-9]/) {
+			$key = '';
+		}
+	}
+	threads->yield;
+	return ($key);
 }
 
 sub sysop_get_line {
-    my $self  = shift;
+    my $self = shift;
+	my $echo = shift;
+	my $type = $echo;
+
+	my $line;
+	my $limit;
+	my $choices;
+	my $key;
+
 	$self->{'CACHE'}->set('SHOW_STATUS', FALSE);
-	my $response = $self->get_line(@_);
+	$self->{'debug'}->DEBUG(['SysOp Get Line']);
+	$self->flush_input();
+
+	if (ref($type) eq 'HASH') {
+		$limit = $type->{'max'};
+		if (exists($type->{'choices'})) {
+			$choices = $type->{'choices'};
+			$line  = shift;
+		}
+		$echo = $type->{'type'};
+	} else {
+		if ($echo == STRING || $echo == ECHO || $echo == NUMERIC || $echo == HOST) {
+			$limit = shift;
+		}
+		$line  = shift;
+	}
+
+	$self->{'debug'}->DEBUGMAX([$type,$echo,$line]);
+	$self->output($line) if ($line ne '');
+	my $mode = 'ANSI';
+	my $bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
+	if ($echo == RADIO) {
+        my $regexp = join('',@{$type->{'choices'}});
+		$self->{'debug'}->DEBUGMAX([$regexp]);
+		while ($key ne chr(13) && $key ne chr(3)) {
+		    if (length($line) <= $limit) {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				return('') if (defined($key) && $key eq chr(3));
+				if (defined($key) && $key ne '') {
+					if ($key eq $bs || $key eq chr(127)) {
+						my $len = length($line);
+						if ($len > 0) {
+							$self->output("$key $key");
+							chop($line);
+						}
+					} elsif ($regexp =~ /$key/i) {
+						$self->output(uc($key));
+						$line .= uc($key);
+					} else {
+						$self->output('[% RING BELL %]');
+					}
+				}
+			} else {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				if (defined($key) && $key eq chr(3)) {
+					return('');
+				}
+				if (defined($key) && ($key eq $bs)) {
+					$key = $bs;
+					$self->output("$key $key");
+					chop($line);
+				} else {
+					$self->output('[% RING BELL %]');
+				}
+			}
+		}
+	} elsif ($echo == NUMERIC) {
+		while ($key ne chr(13) && $key ne chr(3)) {
+			if (length($line) <= $limit) {
+				$key = $self->sysop_get_key(NUMERIC, BLOCKING);
+				return('') if (defined($key) && $key eq chr(3));
+				if (defined($key) && $key ne '') {
+					if ($key eq $bs || $key eq chr(127)) {
+						my $len = length($line);
+						if ($len > 0) {
+							$self->output("$key $key");
+							chop($line);
+						}
+					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]/) {
+						$self->output($key);
+						$line .= $key;
+					} else {
+						$self->output('[% RING BELL %]');
+					}
+				}
+			} else {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				if (defined($key) && $key eq chr(3)) {
+					return('');
+				}
+				if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+					$key = $bs;
+					$self->output("$key $key");
+					chop($line);
+				} else {
+					$self->output('[% RING BELL %]');
+				}
+			}
+		}
+	} elsif ($echo == HOST) {
+		while ($key ne chr(13) && $key ne chr(3)) {
+			if (length($line) <= $limit) {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				return('') if (defined($key) && $key eq chr(3));
+				if (defined($key) && $key ne '') {
+					if ($key eq $bs || $key eq chr(127)) {
+						my $len = length($line);
+						if ($len > 0) {
+							$self->output("$key $key");
+							chop($line);
+						}
+					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
+						$self->output(lc($key));
+						$line .= lc($key);
+					} else {
+						$self->output('[% RING BELL %]');
+					}
+				}
+			} else {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				if (defined($key) && $key eq chr(3)) {
+					return('');
+				}
+				if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+					$key = $bs;
+					$self->output("$key $key");
+					chop($line);
+				} else {
+					$self->output('[% RING BELL %]');
+				}
+			}
+		}
+	} else {
+		while ($key ne chr(13) && $key ne chr(3)) {
+			if (length($line) <= $limit) {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				return('') if (defined($key) && $key eq chr(3));
+				if (defined($key) && $key ne '') {
+					if ($key eq $bs) {
+						my $len = length($line);
+						if ($len > 0) {
+							$self->output("$key $key");
+							chop($line);
+						}
+					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+						$self->output($key);
+						$line .= $key;
+					} else {
+						$self->output('[% RING BELL %]');
+					}
+				}
+			} else {
+				$key = $self->sysop_get_key(SILENT, BLOCKING);
+				if (defined($key) && $key eq chr(3)) {
+					return('');
+				}
+				if (defined($key) && ($key eq $bs)) {
+					$key = $bs;
+					$self->output("$key $key");
+					chop($line);
+				} else {
+					$self->output('[% RING BELL %]');
+				}
+			}
+		}
+	}
+	threads->yield();
+	$line = '' if ($key eq chr(3));
 	print "\n";
 	$self->{'CACHE'}->set('SHOW_STATUS', TRUE);
-	return($response);
+	return($line);
 }
 
 sub sysop_user_delete {
@@ -1002,7 +1264,7 @@ sub sysop_user_delete {
     my ($key_exit) = (keys %{$mapping});
     my $key;
     print $self->sysop_prompt('Please enter the username or account number');
-    my $search = $self->sysop_get_line(ECHO,20);
+    my $search = $self->sysop_get_line(ECHO,20,'');
     return (FALSE) if ($search eq '' || $search eq 'sysop' || $search eq '1');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
     $sth->execute($search, $search);
@@ -1045,7 +1307,7 @@ sub sysop_user_edit {
     my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y );
     my $key;
     print $self->sysop_prompt('Please enter the username or account number');
-    my $search = $self->sysop_get_line(ECHO,20);
+    my $search = $self->sysop_get_line(ECHO,20,'');
     return (FALSE) if ($search eq '');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
     $sth->execute($search, $search);
@@ -1396,7 +1658,7 @@ sub sysop_edit_bbs {
     my @choices = (qw( bbs_id bbs_name bbs_hostname bbs_port ));
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to edit');
     my $search;
-    $search = $self->sysop_get_line(ECHO,50);
+    $search = $self->sysop_get_line(ECHO,50,'');
     return (FALSE) if ($search eq '');
     print "\r", cldown, "\n";
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_id=? OR bbs_name=? OR bbs_hostname=?');
@@ -1429,7 +1691,7 @@ sub sysop_edit_bbs {
         }
         print "\n", $self->sysop_prompt($choices[$choice] . ' (' . $bbs->{ $choices[$choice] } . ') ');
         my $width = ($choices[$choice] eq 'bbs_port') ? 5 : 50;
-        my $new   = $self->sysop_get_line(ECHO,$width);
+        my $new   = $self->sysop_get_line(ECHO,$width,'');
         if ($new eq '') {
             $self->{'debug'}->DEBUG(['sysop_edit_bbs end']);
             return (FALSE);
@@ -1461,13 +1723,13 @@ sub sysop_add_bbs {
     my $index = 0;
     print $table->boxes->draw();
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-    $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO,50);
+    $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO,50,'');
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
         print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-        $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO,50);
+        $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO,50,'');
         if ($bbs->{'bbs_hostname'} ne '' && length($bbs->{'bbs_hostname'}) > 5) {
             print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 17;
-            $bbs->{'bbs_port'} = $self->sysop_get_line(ECHO,5);
+            $bbs->{'bbs_port'} = $self->sysop_get_line(ECHO,5,'');
             if ($bbs->{'bbs_port'} ne '' && $bbs->{'bbs_port'} =~ /^\d+$/) {
                 my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
                 $sth->execute($bbs->{'bbs_name'}, $bbs->{'bbs_hostname'}, $bbs->{'bbs_port'});
@@ -1490,7 +1752,7 @@ sub sysop_delete_bbs {
     $self->{'debug'}->DEBUG(['SysOp Delete BBS']);
     print $self->prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
-    $search = $self->sysop_get_line(ECHO,50);
+    $search = $self->sysop_get_line(ECHO,50,'');
     if ($search eq '') {
         return (FALSE);
     }
@@ -1570,11 +1832,11 @@ sub sysop_add_file {
 			my $filename = "$root/$files_path/$search";
 			if (-e $filename) {
 				print $self->sysop_prompt('               What is the Title?');
-				my $title       = $self->sysop_get_line(ECHO, 255);
+				my $title       = $self->sysop_get_line(ECHO, 255, '');
 
 				if (defined($title) && $title ne '') {
 					print $self->sysop_prompt('                Add a description');
-					my $description = $self->sysop_get_line(ECHO, 65535);
+					my $description = $self->sysop_get_line(ECHO, 65535, '');
 
 					if (defined(description) && $description ne '') {
 						my $head = "\n" .
