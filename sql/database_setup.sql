@@ -77,7 +77,7 @@ CREATE TABLE messages (
     from_id  INT UNSIGNED NOT NULL,
     title    VARCHAR(255) NOT NULL,
     hidden   BOOLEAN DEFAULT FALSE,
-        message  TEXT NOT NULL,
+    message  TEXT NOT NULL,
     created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
