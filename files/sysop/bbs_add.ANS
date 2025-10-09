@@ -1,8 +1,7 @@
 Z|BACK|BRIGHT BLUE|Return to BBS Listing Manager
 ---
-[% RED     %]    #[% YELLOW %]     _       _     _   ____  ____ ____  
-[% YELLOW  %]   ##[% YELLOW %]    / \   __| | __| | | __ )| __ ) ___| 
-[% GREEN   %]  ###[% YELLOW %]   / _ \ / _` |/ _` | |  _ \|  _ \___ \ 
-[% MAGENTA %] ####[% YELLOW %]  / ___ \ (_| | (_| | | |_) | |_) |__) |
-[$ BLUE    %]#####[% YELLOW %] /_/   \_\__,_|\__,_| |____/|____/____/[% RESET %]
-
+[% RED     %]    #[% YELLOW %]     _       _     _   ____  ____ ____[% RESET %]
+[% YELLOW  %]   ##[% YELLOW %]    / \   __| | __| | | __ )| __ ) ___|[% RESET %]
+[% GREEN   %]  ###[% YELLOW %]   / _ \ / _` |/ _` | |  _ \|  _ \___ \[% RESET %]
+[% MAGENTA %] ####[% YELLOW %]  / ___ \ (_| | (_| | | |_) | |_) |__) |[% RESET %]
+[% BLUE    %]#####[% YELLOW %] /_/   \_\__,_|\__,_| |____/|____/____/[% RESET %]

@@ -2,19 +2,18 @@
 R|SYSOP STATISTICS|MAGENTA|Refresh Statistics
 Z|BACK|WHITE|Return to System Menu
 ---
-[% RED     %]    # [% MAGENTA %] ____  _        _   _     _   _
-[% YELLOW  %]   ## [% MAGENTA %]/ ___|| |_ __ _| |_(_)___| |_(_) ___ ___
-[% GREEN   %]  ### [% MAGENTA %]\___ \| __/ _` | __| / __| __| |/ __/ __|
-[% MAGENTA %] #### [% MAGENTA %] ___) | || (_| | |_| \__ \ |_| | (__\__ \
-[% BLUE    %]##### [% MAGENTA %]|____/ \__\__,_|\__|_|___/\__|_|\___|___/
-[% RESET %]
+[% RED     %]    # [% MAGENTA %] ____  _        _   _     _   _[% RESET %]
+[% YELLOW  %]   ## [% MAGENTA %]/ ___|| |_ __ _| |_(_)___| |_(_) ___ ___[% RESET %]
+[% GREEN   %]  ### [% MAGENTA %]\___ \| __/ _` | __| / __| __| |/ __/ __|[% RESET %]
+[% MAGENTA %] #### [% MAGENTA %] ___) | || (_| | |_| \__ \ |_| | (__\__ \[% RESET %]
+[% BLUE    %]##### [% MAGENTA %]|____/ \__\__,_|\__|_|___/\__|_|\___|___/[% RESET %]
 BBS Name          ▰▰▰   [% BBS NAME      %][% MIDDLE VERTICAL RULE MAGENTA %]  System Uptime     ▰▰▰  [% UPTIME %]
 Hardware          ▰▰▰   [% HARDWARE      %][% MIDDLE VERTICAL RULE MAGENTA %]  Hostname          ▰▰▰  [% HOSTNAME %]
 CPU Type          ▰▰▰   [% CPU IDENTITY  %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Speed         ▰▰▰  [% CPU SPEED %]
 CPU Cores         ▰▰▰   [% CPU CORES     %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Load          ▰▰▰  [% CPU LOAD %]
 CPU Threads       ▰▰▰   [% CPU THREADS   %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Bits          ▰▰▰  [% CPU BITS %]
 Servers Running   ▰▰▰   [% THREADS COUNT %][% MIDDLE VERTICAL RULE MAGENTA %]  User Count        ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
-IP Address        ▰▰▰   [% IP ADDRESS   %]
+IP Address        ▰▰▰   [% IP ADDRESS %]
 Memory            ▰▰▰  [% MEMORY %]
 Versions          ▰▰▰ [% BBS VERSIONS %]
 Disk Free         ▰▰▰ [% DISK FREE SPACE %]
