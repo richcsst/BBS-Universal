@@ -149,48 +149,48 @@ INSERT INTO text_modes (text_mode) VALUES ('ANSI');
 
 INSERT INTO users (username,nickname,password,given,family,text_mode,baud_rate,accomplishments,retro_systems,birthday,access_level,max_columns,max_rows)
     VALUES (
-            'sysop',
-            'SysOp',
-            SHA2('BBS::Universal',512),
-            'System','Operator',
-            (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
-            'FULL',
-            'I manage and maintain this system',
-            'Stuff',
-            now(),
-            'SYSOP',
-                        264,
-                        50
-        );
+        'sysop',
+        'SysOp',
+        SHA2('BBS::Universal',512),
+        'System','Operator',
+        (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
+        'FULL',
+        'I manage and maintain this system',
+        'Stuff',
+        now(),
+        'SYSOP',
+        264,
+        50
+    );
 INSERT INTO permissions (id,view_files,show_email,upload_files,download_files,remove_files,read_message,post_message,remove_message,sysop,timeout)
     VALUES (
-            LAST_INSERT_ID(),
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            true,
-            65535
-        );
+        LAST_INSERT_ID(),
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        65535
+    );
 INSERT INTO users (username,nickname,password,given,family,text_mode,accomplishments,birthday)
     VALUES (
-            'testuser',
-            'Testmeister',
-            SHA2('test',512),
-            'Test','User',
-            (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
-            'My existence is destined to end soon',
-            now()
-        );
+        'testuser',
+        'Testmeister',
+        SHA2('test',512),
+        'Test','User',
+        (SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode='ANSI'),
+        'My existence is destined to end soon',
+        now()
+    );
 INSERT INTO permissions (
     id
   )
   VALUES (
-        LAST_INSERT_ID()
+      LAST_INSERT_ID()
   );
 
 INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');
@@ -446,4 +446,3 @@ CREATE VIEW bbs_listing_view
     users ON users.id=bbs_listing.bbs_poster_id;
 
 -- END
-
