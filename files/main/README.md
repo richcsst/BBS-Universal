@@ -1,5 +1,7 @@
 # Creating Custom Menu Files
 
+The files in "files/main/" are specifically for the server side of the software that users will see
+
 ## Naming
 
 The file must have the suffix that describes the text mode it will be used for processing.
