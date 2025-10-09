@@ -4,7 +4,7 @@ L|FORUM MESSAGES LIST|GREEN|USER|List Messages
 C|FORUM CATEGORIES|GREEN|USER|Change or List Sub-Forums
 Z|BACK|WHITE|USER|Main Menu
 ---
- ___                      
-| __|__ _ _ _  _ _ __  ___
-| _/ _ \ '_| || | '  \(_-<
-|_|\___/_|  \_,_|_|_|_/__/
+  ## # ##    ___
+  ## # ##   | __|__ _ _ _  _ _ __  ___
+ ### # ###  | _/ _ \ '_| || | '  \(_-<
+###  #  ### |_|\___/_|  \_,_|_|_|_/__/

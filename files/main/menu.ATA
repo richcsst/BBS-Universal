@@ -8,8 +8,8 @@ A|ABOUT|WHITE|USER|About This BBS
 U|LIST USERS|BRIGHT WHITE|USER|List Users
 X|DISCONNECT|WHITE|USER|Disconnect
 ---
- __  __
-|  \/  |___ _ _ _  _
-| |\/| / -_) ' \ || |
-|_|  |_\___|_||_\_,_|
+  ## # ##    __  __
+  ## # ##   |  \/  |___ _ _ _  _
+ ### # ###  | |\/| / -_) ' \ || |
+###  #  ### |_|  |_\___|_||_\_,_|
 [% FORTUNE %]

@@ -1,9 +1,10 @@
 # KEY|COMMAND|COLOR|ACCESS LEVELS|DESCRIPTION
 Z|BACK|WHITE|USER|Return to the Main Menu
 ---
-  _     _     _     _   _
- | |   (_)___| |_  | | | |___  ___ _ __ ___
- | |   | / __| __| | | | / __|/ _ \ '__/ __|
- | |___| \__ \ |_  | |_| \__ \  __/ |  \__ \
- |_____|_|___/\__|  \___/|___/\___|_|  |___/
+[% BRIGHT WHITE %]  _     _     _     _   _[% RESET %]
+[% BRIGHT WHITE %] | |   (_)___| |_  | | | |___  ___ _ __ ___[% RESET %]
+[% BRIGHT WHITE %] | |   | / __| __| | | | / __|/ _ \ '__/ __|[% RESET %]
+[% BRIGHT WHITE %] | |___| \__ \ |_  | |_| \__ \  __/ |  \__ \[% RESET %]
+[% BRIGHT WHITE %] |_____|_|___/\__|  \___/|___/\___|_|  |___/[% RESET %]
+
 [% SHOW USERS LIST %]

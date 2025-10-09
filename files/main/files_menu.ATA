@@ -5,9 +5,9 @@ S|SEARCH FILES SUMMARY|GREEN|USER|Search for file (short format)
 D|SEARCH FILES DETAILED|RED|USER|Search for file (long format)
 Z|BACK|GREEN|USER|Main Menu
 ---
- ___ _ _        
-| __(_) |___ ___
-| _|| | / -_|_-<
-|_| |_|_\___/__/
+  ** * **    ___ _ _
+  ** * **   | __(_) |___ ___
+ *** * ***  | _|| | / -_|_-<
+***  *  *** |_| |_|_\___/__/
 
 Current Category:  [% FILE CATEGORY %]
