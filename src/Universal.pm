@@ -92,7 +92,7 @@ use Number::Format 'format_number';
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.007';
+    our $VERSION = '0.008';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
 		TRUE

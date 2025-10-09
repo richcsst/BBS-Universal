@@ -29,6 +29,13 @@ Custom menus follow a specific format
 
 Note: All menu keys will be sorted on output
 
+#### Access Levels
+
+* USER         - The access level for the average user.  The lowest level possible, the default.  It is recommended to use this as a read-only access level.
+* VETERAN      - Can be treated as a level for approved users, giving them normal access.
+* JUNIOR SYSOP - A higher level the SysOp can give a special user with mod level style access.
+* SYSOP        - Full access to everything.
+
 ### Divider
 
 The divider MUST be "---" on a line by itself.  This signals to the menu processor the end of the menu descriptors.
