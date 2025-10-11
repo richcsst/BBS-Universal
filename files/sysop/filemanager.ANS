@@ -5,11 +5,11 @@ E|SYSOP EDIT FILE CATEGORIES|YELLOW|Edit File Categories
 D|SYSOP DELETE FILES|CYAN|Delete Files
 Z|BACK|WHITE|Return To Main Menu
 ---
-[% RED     %]     #[% YELLOW %] _____ _ _        __  __[% RESET %] 
-[% YELLOW  %]    ##[% YELLOW %]|  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
-[% GREEN   %]   ###[% YELLOW %]| |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
-[% MAGENTA %]  ####[% YELLOW %]|  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
-[% BLUE    %] #####[% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
-[% CYAN    %]######[% YELLOW %]                                           |___/[% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %] [% RESET %] [% YELLOW %] _____ _ _        __  __[% RESET %] 
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %]  [% RESET %] [% YELLOW %]|  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]   [% RESET %] [% YELLOW %]| |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]    [% RESET %] [% YELLOW %]|  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %] [% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
+[% YELLOW %]                                            |___/[% RESET %]
 
 [% B_WHITE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]

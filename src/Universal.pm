@@ -749,6 +749,9 @@ sub login {
                     $self->output("\n\nPlease enter your password > ");
                     my $password = $self->get_line(PASSWORD, 64);
                     $valid = $self->users_load($username, $password);
+					if ($self->{'USER'}->{'banned'}) {
+						$valid = FALSE;
+					}
                 }
                 if ($valid) {
 					$self->{'debug'}->DEBUG(['Password valid']);
@@ -1320,11 +1323,6 @@ sub configuration {
         $sth->execute($name);
 		my ($result) = $sth->fetchrow_array();
         $sth->finish();
-#		if ($result eq 'TRUE') {
-#			$result = TRUE;
-#		} elsif ($result eq 'FALSE') {
-#			$result = FALSE;
-#		}
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;

@@ -330,6 +330,9 @@ sub users_load {
             post_message
             remove_message
             page_sysop
+			play_fortunes
+			banned
+			sysop
             )
         ) {
             $self->{'USER'}->{$field} = 0 + $self->{'USER'}->{$field};
@@ -379,6 +382,7 @@ sub users_list {
 			  birthday,
 			  location
 			  FROM users_view
+			  WHERE banned=FALSE
 			  ORDER BY username;
 		}
     );
@@ -434,7 +438,9 @@ sub users_add {
     my $self          = shift;
     my $user_template = shift;
 
-    $self->{'dbh'}->begin_work;
+	$self->{'debug'}->DEBUG(['USERS ADD']);
+	$self->{'debug'}->DEBUGMAX([$user_template]);
+#    $self->{'dbh'}->begin_work;
     my $sth = $self->{'dbh'}->prepare(
         q{
 			INSERT INTO users (
@@ -450,10 +456,23 @@ sub users_add {
 				baud_rate,
 				text_mode,
 				password)
-			  VALUES (?,?,?,?,?,?,DATE(?),?,?,(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode=?),SHA2(?,512))
+			  VALUES (?,?,?,?,?,?,?,DATE(?),?,?,(SELECT text_modes.id FROM text_modes WHERE text_modes.text_mode=?),SHA2(?,512))
 		}
     );
-    $sth->execute($user_template->{'username'}, $user_template->{'given'}, $user_template->{'family'}, $user_template->{'nickname'}, $user_template->{'email'}, $user_template->{'accomplishments'}, $user_template->{'retro_systems'}, $user_template->{'birthday'}, $user_template->{'location'}, $user_template->{'baud_rate'}, $user_template->{'text_mode'}, $user_template->{'password'});
+    $sth->execute(
+		$user_template->{'username'},
+		$user_template->{'given'},
+		$user_template->{'family'},
+		$user_template->{'nickname'},
+		$user_template->{'email'},
+		$user_template->{'accomplishments'},
+		$user_template->{'retro_systems'},
+		$user_template->{'birthday'},
+		$user_template->{'location'},
+		$user_template->{'baud_rate'},
+		$user_template->{'text_mode'},
+		$user_template->{'password'},
+	);
 	$sth->finish;
     $sth = $self->{'dbh'}->prepare(
         q{
@@ -470,18 +489,33 @@ sub users_add {
 				remove_message,
 				sysop,
 				page_sysop,
+				play_fortunes,
 				timeout)
-			  VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?);
+			  VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?,?,?);
 		}
     );
-    $sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'timeout'});
+    $sth->execute(
+		$user_template->{'prefer_nickname'},
+		$user_template->{'view_files'},
+		$user_template->{'upload_files'},
+		$user_template->{'download_files'},
+		$user_template->{'remove_files'},
+		$user_template->{'read_message'},
+		$user_template->{'show_email'},
+		$user_template->{'post_message'},
+		$user_template->{'remove_message'},
+		$user_template->{'sysop'},
+		$user_template->{'page_sysop'},
+		$user_template->{'play_fortunes'},
+		$user_template->{'timeout'},
+	);
 
     if ($self->{'dbh'}->err) {
-        $self->{'dbh'}->rollback;
+#        $self->{'dbh'}->rollback;
         $sth->finish();
         return (FALSE);
     } else {
-        $self->{'dbh'}->commit;
+#        $self->{'dbh'}->commit;
         $sth->finish();
         return (TRUE);
     }

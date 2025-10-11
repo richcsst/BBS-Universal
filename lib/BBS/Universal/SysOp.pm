@@ -310,6 +310,7 @@ sub sysop_initialize {
             remove_message
             sysop
             page_sysop
+			banned
             login_time
             logout_time
         )
@@ -325,39 +326,305 @@ sub sysop_initialize {
             text_mode
         )
     ];
-    $self->{'SYSOP HEADING WIDTHS'} = {
-        'id'              => 2,
-        'username'        => 16,
-        'fullname'        => 20,
-        'given'           => 12,
-        'family'          => 12,
-        'nickname'        => 12,
-        'email'           => 20,
-        'birthday'        => 10,
-        'location'        => 20,
-        'date_format'     => 14,
-        'access_level'    => 11,
-        'baud_rate'       => 4,
-        'login_time'      => 10,
-        'logout_time'     => 10,
-        'text_mode'       => 9,
-        'max_rows'        => 5,
-        'max_columns'     => 5,
-        'timeout'         => 5,
-        'retro_systems'   => 20,
-        'accomplishments' => 20,
-        'prefer_nickname' => 2,
-        'view_files'      => 2,
-        'upload_files'    => 2,
-        'download_files'  => 2,
-        'remove_files'    => 2,
-        'read_message'    => 2,
-        'post_message'    => 2,
-        'remove_message'  => 2,
-        'play_fortunes'   => 2,
-        'sysop'           => 2,
-        'page_sysop'      => 2,
-        'password'        => 64,
+
+    $self->{'SYSOP FIELD TYPES'} = {
+        'id'              => {
+			'type' => NUMERIC,
+			'max'  => 2,
+		},
+        'username'        => {
+			'type' => HOST,
+			'max'  => 32,
+		},
+        'fullname'        => {
+			'type' => STRING,
+			'max'  => 20,
+		},
+        'given'           => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'family'          => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'nickname'        => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'email'           => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'birthday'        => {
+			'type' => STRING,
+			'max'  => 10,
+		},
+        'location'        => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'date_format'     => {
+			'type'    => RADIO,
+			'max'     => 14,
+			'choices' => [
+				'MONTH/DAY/YEAR',
+				'DAY/MONTH/YEAR',
+				'YEAR/MONTH/DAY',
+			],
+			'default' => 'DAY/MONTH/YEAR',
+		},
+        'access_level'    => {
+			'type' => RADIO,
+			'max'  => 12,
+			'choices' => [
+				'USER',
+				'VETERAN',
+				'JUNIOR SYSOP',
+				'SYSOP',
+			],
+			'default' => 'USER',
+		},
+        'baud_rate'       => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'FULL',
+				'19200',
+				'9600',
+				'4800',
+				'2400',
+				'1200',
+				'300',
+			],
+			'default' => 'FULL',
+		},
+        'login_time'      => {
+			'type' => STRING,
+			'max'  => 10,
+		},
+        'logout_time'     => {
+			'type' => STRING,
+			'max'  => 10,
+		},
+        'text_mode'       => {
+			'type' => RADIO,
+			'max'  => 7,
+			'choices' => [
+				'ANSI',
+				'ASCII',
+				'ATASCII',
+				'PETSCII',
+			],
+			'default' => 'ASCII',
+		},
+        'max_rows'        => {
+			'type'    => NUMERIC,
+			'max'     => 3,
+			'default' => 25,
+		},
+        'max_columns'     => {
+			'type'    => NUMERIC,
+			'max'     => 3,
+			'default' => 80,
+		},
+        'timeout'         => {
+			'type'    => NUMERIC,
+			'max'     => 5,
+			'default' => 10,
+		},
+        'retro_systems'   => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'accomplishments' => {
+			'type' => STRING,
+			'max'  => 120,
+		},
+        'prefer_nickname' => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'view_files'      => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'YES',
+		},
+        'banned'      => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'upload_files'    => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'download_files'  => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'remove_files'    => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'read_message'    => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'YES',
+		},
+        'post_message'    => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'remove_message'  => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'play_fortunes'   => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'YES',
+		},
+        'sysop'           => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'page_sysop'      => {
+			'type' => RADIO,
+			'max'  => 5,
+			'choices' => [
+				'TRUE',
+				'FALSE',
+				'YES',
+				'NO',
+				'ON',
+				'OFF',
+				'1',
+				'0',
+			],
+			'default' => 'NO',
+		},
+        'password'        => {
+			'type' => STRING,
+			'max'  => 64,
+		},
     };
 
     return ($self);
@@ -677,7 +944,7 @@ sub sysop_list_users {
     } else {    # Horizontal
         my @hw;
         foreach my $name (@order) {
-            push(@hw, $self->{'SYSOP HEADING WIDTHS'}->{$name});
+            push(@hw, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
         }
         $table = Text::SimpleTable->new(@hw);
         if ($list_mode =~ /ABBREVIATED/) {
@@ -1096,7 +1363,11 @@ sub sysop_get_line {
 		$limit = $type->{'max'};
 		if (exists($type->{'choices'})) {
 			$choices = $type->{'choices'};
-			$line  = shift;
+			if (exists($type->{'default'})) {
+				$line = $type->{'default'};
+			} else {
+				$line  = shift;
+			}
 		}
 		$echo = $type->{'type'};
 	} else {
@@ -1349,7 +1620,7 @@ sub sysop_user_edit {
         } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
         if ($key !~ /$key_exit/i) {
             print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
-            my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP HEADING WIDTHS'}->{ $choice{$key} }, $choice{$key});
+            my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $choice{$key});
             unless ($new eq '') {
                 $new =~ s/^(Yes|On)$/1/i;
                 $new =~ s/^(No|Off)$/0/i;
@@ -1381,48 +1652,58 @@ sub sysop_user_add {
     my $flags_default = $self->{'flags_default'};
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
-    my $table = Text::SimpleTable->new(15, 64);
+    my $table = Text::SimpleTable->new(15, 150);
     my $user_template;
-    push(@{ $self->{'SYSOP ORDER DETAILED'} }, 'password');
+	my @tmp = grep(!/id|banned|fullname|_time|max_|_category/,@{$self->{'SYSOP ORDER DETAILED'}});
+    push(@tmp, 'password');
 
-    foreach my $name (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-        next if ($name =~ /id|fullname|_time|max_|_category/);
+    foreach my $name (@tmp) {
+		my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
         if ($name eq 'timeout') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Minutes\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, '_' x $size . '   Minutes');
         } elsif ($name eq 'baud_rate') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (300,1200,2400,4800,9600,FULL)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, '_' x $size . '   300 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL');
         } elsif ($name =~ /username|given|family|password/) {
             if ($name eq 'given') {
-                $table->row("$name (first)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (first)", '_' x $size . '   Cannot be empty');
             } elsif ($name eq 'family') {
-                $table->row("$name (last)", ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row("$name (last)", '_' x $size . '   Cannot be empty');
             } else {
-                $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " Cannot be empty\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+                $table->row($name, '_' x $size . '   Cannot be empty');
             }
+		} elsif ($name eq 'date_format') {
+			$table->row($name, '_' x $size . '   YEAR/MONTH/DAY or MONTH/DAY/YEAR or DAY/MONTH/YEAR');
+		} elsif ($name eq 'access_level') {
+			$table->row($name, '_' x $size . '   USER or VETERAN or JUNIOR SYSOP or SYSOP');
         } elsif ($name eq 'text_mode') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (ASCII,ATASCII,PETSCII,ANSI)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, '_' x $size . '   ANSI or ASCII or ATASCII or PETSCII');
         } elsif ($name eq 'birthday') {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " YEAR-MM-DD\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
-        } elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/) {
-            $table->row($name, ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}) . " (Yes/No or On/Off or 1/0)\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, '_' x $size . '   YEAR-MM-DD');
+        } elsif ($name =~ /(prefer_nickname|_files|_message|sysop|fortunes)/) {
+            $table->row($name, '_' x $size . '   Yes/No or True/False or On/Off or 1/0');
         } elsif ($name =~ /location|retro_systems|accomplishments/) {
-            $table->row($name, "\n" . charnames::string_vianame('OVERLINE') x ($self->{'SYSOP HEADING WIDTHS'}->{$name} * 4));
+            $table->row($name, '_' x ($self->{'SYSOP FIELD TYPES'}->{$name}->{'max'}));
         } else {
-            $table->row($name, "\n" . charnames::string_vianame('OVERLINE') x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}));
+            $table->row($name, '_' x $size);
         }
         $user_template->{$name} = undef;
     }
-    print $table->boxes->draw();
+	my $string = $table->boxes->draw();
+    while ($string =~ / (Cannot be empty|YEAR.MM.DD|USER or VETERAN or JUNIOR SYSOP or SYSOP|YEAR.MONTH.DAY or MONTH.DAY.YEAR or DAY.MONTH.YEAR|300 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL|ANSI or ASCII or ATASCII or PETSCII|Minutes|Yes.No or True.False or On.Off or 1.0) /) {
+	    my $ch = $1;
+		my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
+		$string =~ s/$ch/$new/gs;
+	}
+    $self->output($string);
     $self->sysop_show_choices($mapping);
     my $column     = 21;
-    my $adjustment = 7;
-    foreach my $entry (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-        next if ($entry =~ /id|fullname|_time/);
+    my $adjustment = $self->{'CACHE'}->get('START_ROW') - 1;
+    foreach my $entry (@tmp) {
         do {
-            print locate($row + $adjustment, $column), ' ' x max(3, $self->{'SYSOP HEADING WIDTHS'}->{$entry}), locate($row + $adjustment, $column);
-            chomp($user_template->{$entry} = <STDIN>);
-            return ('BACK') if ($user_template->{$entry} eq '<');
-            if ($entry =~ /text_mode|baud_rate|timeout|prefer|_files|_message|sysop|given|family/) {
+            print locate($row + $adjustment, $column), '_' x max(3, $self->{'SYSOP FIELD TYPES'}->{$entry}->{'max'}), locate($row + $adjustment, $column);
+            chomp($user_template->{$entry} = $self->sysop_get_line($self->{'SYSOP FIELD TYPES'}->{$entry}));
+            return ('BACK') if ($user_template->{$entry} eq '<' || $user_template->{$entry} eq chr(3));
+            if ($entry =~ /text_mode|baud_rate|timeout|given|family/) {
                 if ($user_template->{$entry} eq '') {
                     if ($entry eq 'text_mode') {
                         $user_template->{$entry} = 'ASCII';
@@ -1430,7 +1711,7 @@ sub sysop_user_add {
                         $user_template->{$entry} = 'FULL';
                     } elsif ($entry eq 'timeout') {
                         $user_template->{$entry} = $self->{'CONF'}->{'DEFAULT TIMEOUT'};
-                    } elsif ($entry =~ /prefer|_files|_message|sysop/) {
+                    } elsif ($entry =~ /prefer|_files|_message|sysop|_fortunes/) {
                         $user_template->{$entry} = $flags_default->{$entry};
                     } else {
                         $user_template->{$entry} = uc($user_template->{$entry});
@@ -1444,19 +1725,19 @@ sub sysop_user_add {
                     }
                 }
                 print locate($row + $adjustment, $column), $user_template->{$entry};
-            } elsif ($entry =~ /prefer_|_files|_message|sysop/) {
-                $user_template->{$entry} = ucfirst($user_template->{$entry});
+            } elsif ($entry =~ /prefer_|_files|_message|sysop|_fortunes/) {
+                $user_template->{$entry} = uc($user_template->{$entry});
                 print locate($row + $adjustment, $column), $user_template->{$entry};
             }
         } until ($self->sysop_validate_fields($entry, $user_template->{$entry}, $row + $adjustment, $column));
-        if ($user_template->{$entry} =~ /^(yes|on|true)$/i) {
+        if ($user_template->{$entry} =~ /^(yes|on|true|1)$/i) {
             $user_template->{$entry} = TRUE;
-        } elsif ($user_template->{$entry} =~ /^(no|off|false)$/i) {
+        } elsif ($user_template->{$entry} =~ /^(no|off|false|0)$/i) {
             $user_template->{$entry} = FALSE;
         }
-        $adjustment += 2;
+        $adjustment++;
     }
-    pop(@{ $self->{'SYSOP ORDER DETAILED'} });
+	$self->{'debug'}->DEBUGMAX([$user_template]);
     if ($self->users_add($user_template)) {
         print "\n\n", colored(['green'], 'SUCCESS'), "\n";
         $self->{'debug'}->DEBUG(['sysop_user_add end']);
@@ -1487,26 +1768,27 @@ sub sysop_validate_fields {
     my $row    = shift;
     my $column = shift;
 
+	my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
     if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') {    # cannot be empty
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
         return (FALSE);
     } elsif ($name eq 'baud_rate' && $val !~ /^(300|1200|2400|4800|9600|FULL)$/i) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Only 300,1200,2400,4800,9600,FULL'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Only 300,1200,2400,4800,9600,FULL'), locate($row, $column);
         return (FALSE);
     } elsif ($name =~ /max_/ && $val =~ /\D/i) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Only Numeric Values'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Only Numeric Values'), locate($row, $column);
         return (FALSE);
     } elsif ($name eq 'timeout' && $val =~ /\D/) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Must be numeric'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Must be numeric'), locate($row, $column);
         return (FALSE);
     } elsif ($name eq 'text_mode' && $val !~ /^(ASCII|ATASCII|PETSCII|ANSI)$/) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Only ASCII,ATASCII,PETSCII,ANSI'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Only ASCII,ATASCII,PETSCII,ANSI'), locate($row, $column);
         return (FALSE);
     } elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/ && $val !~ /^(yes|no|true|false|on|off|0|1)$/i) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' Only Yes/No or On/Off or 1/0'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' Only Yes/No or On/Off or 1/0'), locate($row, $column);
         return (FALSE);
     } elsif ($name eq 'birthday' && $val ne '' && $val !~ /(\d\d\d\d)-(\d\d)-(\d\d)/) {
-        print locate($row, ($column + max(3, $self->{'SYSOP HEADING WIDTHS'}->{$name}))), colored(['red'], ' YEAR-MM-DD'), locate($row, $column);
+        print locate($row, ($column + $size)), colored(['red'], ' YEAR-MM-DD'), locate($row, $column);
         $self->{'debug'}->DEBUG(['sysop_validate_fields end']);
         return (FALSE);
     }

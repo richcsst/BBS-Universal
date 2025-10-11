@@ -61,6 +61,7 @@ CREATE TABLE permissions (
     page_sysop      BOOLEAN DEFAULT TRUE,
     prefer_nickname BOOLEAN DEFAULT FALSE,
     play_fortunes   BOOLEAN DEFAULT FALSE,
+	banned          BOOLEAN DEFAULT FALSE,
     timeout         SMALLINT UNSIGNED DEFAULT 10
 );
 
@@ -331,11 +332,11 @@ INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_
 
 INSERT INTO news (
     news_title,
-        news_content
+    news_content
   ) VALUES (
     'BBS Universal Installation',
-        'BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
-  );
+    'BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
+);
 
 -- Views
 
@@ -376,7 +377,8 @@ CREATE VIEW users_view
     permissions.remove_message           AS remove_message,
     permissions.sysop                    AS sysop,
     permissions.page_sysop               AS page_sysop,
-    permissions.play_fortunes            AS play_fortunes
+    permissions.play_fortunes            AS play_fortunes,
+	permissions.banned                   AS banned
  FROM
     users
  INNER JOIN

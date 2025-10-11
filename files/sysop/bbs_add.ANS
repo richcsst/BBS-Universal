@@ -1,7 +1,7 @@
 Z|BACK|BRIGHT BLUE|Return to BBS Listing Manager
 ---
-[% RED     %]    #[% YELLOW %]     _       _     _   ____  ____ ____[% RESET %]
-[% YELLOW  %]   ##[% YELLOW %]    / \   __| | __| | | __ )| __ ) ___|[% RESET %]
-[% GREEN   %]  ###[% YELLOW %]   / _ \ / _` |/ _` | |  _ \|  _ \___ \[% RESET %]
-[% MAGENTA %] ####[% YELLOW %]  / ___ \ (_| | (_| | | |_) | |_) |__) |[% RESET %]
-[% BLUE    %]#####[% YELLOW %] /_/   \_\__,_|\__,_| |____/|____/____/[% RESET %]
+[% BRIGHT RED     %]       [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %] [% RESET %][% YELLOW %]     _       _     _   ____  ____ ____[% RESET %]
+[% BRIGHT YELLOW  %]      [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %]  [% RESET %][% YELLOW %]    / \   __| | __| | | __ )| __ ) ___|[% RESET %]
+[% BRIGHT GREEN   %]     [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]   [% RESET %][% YELLOW %]   / _ \ / _` |/ _` | |  _ \|  _ \___ \[% RESET %]
+[% BRIGHT MAGENTA %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]    [% RESET %][% YELLOW %]  / ___ \ (_| | (_| | | |_) | |_) |__) |[% RESET %]
+[% BRIGHT BLUE    %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %][% YELLOW %] /_/   \_\__,_|\__,_| |____/|____/____/[% RESET %]

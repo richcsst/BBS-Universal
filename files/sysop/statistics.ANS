@@ -2,11 +2,12 @@
 R|SYSOP STATISTICS|MAGENTA|Refresh Statistics
 Z|BACK|WHITE|Return to System Menu
 ---
-[% RED     %]    # [% MAGENTA %] ____  _        _   _     _   _[% RESET %]
-[% YELLOW  %]   ## [% MAGENTA %]/ ___|| |_ __ _| |_(_)___| |_(_) ___ ___[% RESET %]
-[% GREEN   %]  ### [% MAGENTA %]\___ \| __/ _` | __| / __| __| |/ __/ __|[% RESET %]
-[% MAGENTA %] #### [% MAGENTA %] ___) | || (_| | |_| \__ \ |_| | (__\__ \[% RESET %]
-[% BLUE    %]##### [% MAGENTA %]|____/ \__\__,_|\__|_|___/\__|_|\___|___/[% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %] [% RESET %] [% MAGENTA %] ____  _        _   _     _   _[% RESET %]
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %]  [% RESET %] [% MAGENTA %]/ ___|| |_ __ _| |_(_)___| |_(_) ___ ___[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]   [% RESET %] [% MAGENTA %]\___ \| __/ _` | __| / __| __| |/ __/ __|[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]    [% RESET %] [% MAGENTA %] ___) | || (_| | |_| \__ \ |_| | (__\__ \[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %] [% MAGENTA %]|____/ \__\__,_|\__|_|___/\__|_|\___|___/[% RESET %]
+
 BBS Name          ▰▰▰   [% BBS NAME      %][% MIDDLE VERTICAL RULE MAGENTA %]  System Uptime     ▰▰▰  [% UPTIME %]
 Hardware          ▰▰▰   [% HARDWARE      %][% MIDDLE VERTICAL RULE MAGENTA %]  Hostname          ▰▰▰  [% HOSTNAME %]
 CPU Type          ▰▰▰   [% CPU IDENTITY  %][% MIDDLE VERTICAL RULE MAGENTA %]  CPU Speed         ▰▰▰  [% CPU SPEED %]
