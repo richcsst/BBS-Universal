@@ -23,6 +23,7 @@ use Config;
 use open qw(:std :utf8);
 no warnings;
 
+# use Carp::Always;
 # Use threads first, so others inherit
 use threads (
     'yield',
@@ -199,6 +200,11 @@ our $SYSOP_COMMANDS = {
         $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANS');
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
     },
+    'SYSOP EDIT NEW USERS' => sub {
+        my $self = shift;
+        $self->sysop_new_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANS');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+    },
     'SYSOP ADD USER' => sub {
         my $self = shift;
         $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANS');
@@ -225,11 +231,11 @@ our $SYSOP_COMMANDS = {
         $RESTART = TRUE;
     },
     'SYSOP LOGIN SYSOP' => sub {
-        run_bbs_sysop(shift, TRUE);
+        run_bbs_sysop(shift, TRUE, $DEBUG, $LEVEL);
         return ('BACK');
     },
-    'SYSOP LOGIN' => sub {
-        run_bbs_sysop(shift, FALSE);
+    'SYSOP LOGIN USER' => sub {
+        run_bbs_sysop(shift, FALSE, $DEBUG, $LEVEL);
         return ('BACK');
     },
     'SYSOP STATISTICS' => sub {
@@ -520,6 +526,8 @@ sub run_bbs {
 sub run_bbs_sysop {
     my $bbs_obj = shift;
     my $sysop   = shift;
+	my $debug   = shift;
+	my $level   = shift;
 
 	$bbs_obj->{'LOCAL LOGIN'} = TRUE;
     # Only allow the main program to respond to signals, not the threads
@@ -528,7 +536,8 @@ sub run_bbs_sysop {
     my $bbs = BBS::Universal->new(
         {
             'thread_name' => 'CONSOLE',
-            'debug'       => $DEBUG,
+            'debug'       => $debug,
+			'debuglevel'  => $level,
             'local_mode'  => TRUE,
         }
     );

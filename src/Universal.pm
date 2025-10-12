@@ -9,27 +9,28 @@ no warnings;
 # use Carp::Always;
 use utf8;
 use constant {
-    TRUE        => 1,
-    FALSE       => 0,
-    YES         => 1,
-    NO          => 0,
-    BLOCKING    => 1,
-    NONBLOCKING => 0,
+    TRUE        =>  1,
+    FALSE       =>  0,
+    YES         =>  1,
+    NO          =>  0,
+    BLOCKING    =>  1,
+    NONBLOCKING =>  0,
     PASSWORD    => -1,
-    SILENT      => 0,
-    ECHO        => 1,
-	STRING      => 1,
-    NUMERIC     => 2,
-    RADIO       => 3,
-	TOGGLE      => 4,
-	HOST        => 5,
+    SILENT      =>  0,
+    ECHO        =>  1,
+    STRING      =>  1,
+    NUMERIC     =>  2,
+    RADIO       =>  3,
+    TOGGLE      =>  4,
+    HOST        =>  5,
+    DATE        =>  6,
 
     ASCII   => 0,
     ATASCII => 1,
     PETSCII => 2,
     ANSI    => 3,
 
-	LINEMODE          => 34,
+    LINEMODE => 34,
 
     SE                => 240,
     NOP               => 214,
@@ -95,45 +96,46 @@ BEGIN {
     our $VERSION = '0.008';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
-		TRUE
-		FALSE
-		YES
-		NO
-		BLOCKING
-		NONBLOCKING
-		PASSWORD
-		ECHO
-		SILENT
-		NUMERIC
+      TRUE
+      FALSE
+      YES
+      NO
+      BLOCKING
+      NONBLOCKING
+      PASSWORD
+      ECHO
+      SILENT
+      NUMERIC
 
-		ASCII
-		ATASCII
-		PETSCII
-		ANSI
+      ASCII
+      ATASCII
+      PETSCII
+      ANSI
 
-		LINEMODE
+      LINEMODE
 
-		SE
-		NOP
-		DATA_MARK
-		BREAK
-		INTERRUPT_PROCESS
-		ABORT_OUTPUT
-		ARE_YOU_THERE
-		ERASE_CHARACTER
-		ERASE_LINE
-		GO_AHEAD
-		SB
-		WILL
-		WONT
-		DO
-		DONT
-		IAC
+      SE
+      NOP
+      DATA_MARK
+      BREAK
+      INTERRUPT_PROCESS
+      ABORT_OUTPUT
+      ARE_YOU_THERE
+      ERASE_CHARACTER
+      ERASE_LINE
+      GO_AHEAD
+      SB
+      WILL
+      WONT
+      DO
+      DONT
+      IAC
     );
     our @EXPORT_OK = qw();
     binmode(STDOUT, ":encoding(UTF-8)");
-# VERSIONS #
-}
+
+    # VERSIONS #
+} ## end BEGIN
 
 sub DESTROY {
     my $self = shift;
@@ -159,10 +161,10 @@ sub small_new {
             'utf8'      => TRUE,
         }
     );
-	$self->{'sysop'}      = TRUE;
-	$self->{'local_mode'} = TRUE;
+    $self->{'sysop'}      = TRUE;
+    $self->{'local_mode'} = TRUE;
     return ($self);
-}
+} ## end sub small_new
 
 sub new {    # Always call with the socket as a parameter
     my $class = shift;
@@ -205,86 +207,14 @@ sub new {    # Always call with the socket as a parameter
         'suffixes'        => [qw( ASC ATA PET ANS )],
         'host'            => undef,
         'port'            => undef,
-		'access_levels'   => {
-			'USER'         => 0,
-			'VETERAN'      => 1,
-			'JUNIOR SYSOP' => 2,
-			'SYSOP'        => 65535,
-		},
-		'telnet_commands' => [
-			'SE (Subnegotiation end)',
-			'NOP (No operation)',
-			'Data Mark',
-			'Break',
-			'Interrupt Process',
-			'Abort output',
-			'Are you there?',
-			'Erase character',
-			'Erase Line',
-			'Go ahead',
-			'SB (Subnegotiation begin)',
-			'WILL',
-			"WON'T",
-			'DO',
-			"DON'T",
-			'IAC',
-		],
-		'telnet_options'  => [
-			'Binary Transmission',
-			'Echo',
-			'Reconnection',
-			'Suppress Go Ahead',
-			'Approx Message Size Negotiation',
-			'Status',
-			'Timing Mark',
-			'Remote Controlled Trans and Echo',
-			'Output Line Width',
-			'Output Page Size',
-			'Output Carriage-Return Disposition',
-			'Output Horizontal Tab Stops',
-			'Output Horizontal Tab Disposition',
-			'Output Formfeed Disposition',
-			'Output Vertical Tabstops',
-			'Output Vertical Tab Disposition',
-			'Output Linefeed Disposition',
-			'Extended ASCII',
-			'Logout',
-			'Byte Macro',
-			'Data Entry Terminal',
-			'RFC 1043',
-			'RFC 732',
-			'SUPDUP',
-			'RFC 736',
-			'RFC 734',
-			'SUPDUP Output',
-			'Send Location',
-			'Terminal Type',
-			'End of Record',
-			'TACACS User Identification',
-			'Output Marking',
-			'Terminal Location Number',
-			'Telnet 3270 Regime',
-			'30X.3 PAD',
-			'Negotiate About Window Size',
-			'Terminal Speed',
-			'Remote Flow Control',
-			'Linemode',
-			'X Display Location',
-			'Environment Option',
-			'Authentication Option',
-			'Encryption Option',
-			'New Environment Option',
-			'TN3270E',
-			'XAUTH',
-			'CHARSET',
-			'Telnet Remote Serial Port (RSP)',
-			'Com Port Control Option',
-			'Telnet Suppress Local Echo',
-			'Telnet Start TLS',
-			'KERMIT',
-			'SEND-URL',
-			'FORWARD_',
-		],
+        'access_levels'   => {
+            'USER'         => 0,
+            'VETERAN'      => 1,
+            'JUNIOR SYSOP' => 2,
+            'SYSOP'        => 65535,
+        },
+        'telnet_commands' => ['SE (Subnegotiation end)', 'NOP (No operation)', 'Data Mark', 'Break', 'Interrupt Process', 'Abort output', 'Are you there?', 'Erase character', 'Erase Line', 'Go ahead', 'SB (Subnegotiation begin)', 'WILL', "WON'T", 'DO', "DON'T", 'IAC',],
+        'telnet_options'  => ['Binary Transmission',     'Echo', 'Reconnection', 'Suppress Go Ahead', 'Approx Message Size Negotiation', 'Status', 'Timing Mark', 'Remote Controlled Trans and Echo', 'Output Line Width', 'Output Page Size', 'Output Carriage-Return Disposition', 'Output Horizontal Tab Stops', 'Output Horizontal Tab Disposition', 'Output Formfeed Disposition', 'Output Vertical Tabstops', 'Output Vertical Tab Disposition', 'Output Linefeed Disposition', 'Extended ASCII', 'Logout', 'Byte Macro', 'Data Entry Terminal', 'RFC 1043', 'RFC 732', 'SUPDUP', 'RFC 736', 'RFC 734', 'SUPDUP Output', 'Send Location', 'Terminal Type', 'End of Record', 'TACACS User Identification', 'Output Marking', 'Terminal Location Number', 'Telnet 3270 Regime', '30X.3 PAD', 'Negotiate About Window Size', 'Terminal Speed', 'Remote Flow Control', 'Linemode', 'X Display Location', 'Environment Option', 'Authentication Option', 'Encryption Option', 'New Environment Option', 'TN3270E', 'XAUTH', 'CHARSET', 'Telnet Remote Serial Port (RSP)', 'Com Port Control Option', 'Telnet Suppress Local Echo', 'Telnet Start TLS', 'KERMIT', 'SEND-URL', 'FORWARD_',],
     };
 
     bless($self, $class);
@@ -308,30 +238,30 @@ sub populate_common {
     my $self = shift;
 
     if (exists($ENV{'EDITOR'})) {
-		$self->{'EDITOR'} = $ENV{'EDITOR'};
-	} else {
-		foreach my $editor ('/usr/bin/jed','/usr/local/bin/jed','/usr/bin/nano','/usr/local/bin/nano','/usr/bin/vim','/usr/local/bin/vim','/usr/bin/ed','/usr/local/bin/ed') {
-			if (-e $editor) {
-				$self->{'EDITOR'} = $editor;
-				last;
-			}
-		}
-	}
-	$self->{'debug'}->DEBUGMAX(['EDITOR: ' . $self->{'EDITOR'}]);
-    $self->{'CPU'}      = $self->cpu_info();
-    $self->{'CONF'}     = $self->configuration();
-	if (exists($self->{'CONF'}->{'EDITOR'})) { # Configuration override
-		$self->{'EDITOR'} = $self->{'CONF'}->{'EDITOR'};
-	} else {
-		$self->configuration('EDITOR',$self->{'EDITOR'});
-	}
+        $self->{'EDITOR'} = $ENV{'EDITOR'};
+    } else {
+        foreach my $editor ('/usr/bin/jed', '/usr/local/bin/jed', '/usr/bin/nano', '/usr/local/bin/nano', '/usr/bin/vim', '/usr/local/bin/vim', '/usr/bin/ed', '/usr/local/bin/ed') {
+            if (-e $editor) {
+                $self->{'EDITOR'} = $editor;
+                last;
+            }
+        } ## end foreach my $editor ('/usr/bin/jed'...)
+    } ## end else [ if (exists($ENV{'EDITOR'...}))]
+    $self->{'debug'}->DEBUGMAX(['EDITOR: ' . $self->{'EDITOR'}]);
+    $self->{'CPU'}  = $self->cpu_info();
+    $self->{'CONF'} = $self->configuration();
+    if (exists($self->{'CONF'}->{'EDITOR'})) {    # Configuration override
+        $self->{'EDITOR'} = $self->{'CONF'}->{'EDITOR'};
+    } else {
+        $self->configuration('EDITOR', $self->{'EDITOR'});
+    }
     $self->{'VERSIONS'} = $self->parse_versions();
     $self->{'USER'}     = {
         'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
         'max_columns' => 80,
         'max_rows'    => 25,
     };
-	$self->{'debug'}->DEBUG(['Initializing all libraries']);
+    $self->{'debug'}->DEBUG(['Initializing all libraries']);
     $self->db_initialize();
     $self->ascii_initialize();
     $self->atascii_initialize();
@@ -344,11 +274,12 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
-	$self->{'debug'}->DEBUG(['Libraries initialized']);
+    $self->{'debug'}->DEBUG(['Libraries initialized']);
     chomp(my $os = `uname -a`);
     $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
         'FULL'  => 0,
         '300'   => 0.02,
+        '600'   => 0.01,
         '1200'  => 0.005,
         '2400'  => 0.0025,
         '4800'  => 0.00125,
@@ -356,8 +287,8 @@ sub populate_common {
         '19200' => 0.0003125,
     };
 
-	$self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
-    $self->{'TOKENS'} = {
+    $self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
+    $self->{'TOKENS'}  = {
         'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
         'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
@@ -373,10 +304,10 @@ sub populate_common {
                 return ('USER CREDENTIALS');
             }
         },
-		'FORTUNE' => sub {
-			my $self = shift;
-			return($self->get_fortune);
-		},
+        'FORTUNE' => sub {
+            my $self = shift;
+            return ($self->get_fortune);
+        },
         'BANNER' => sub {
             my $self   = shift;
             my $banner = $self->files_load_file('files/main/banner');
@@ -434,10 +365,10 @@ sub populate_common {
                 return ('[HIDDEN]');
             }
         },
-		'USER COUNT' => sub {
-			my $self = shift;
-			return($self->users_count());
-		},
+        'USERS COUNT' => sub {
+            my $self = shift;
+            return ($self->users_count());
+        },
         'USER COLUMNS' => sub {
             my $self = shift;
             return ($self->{'USER'}->{'max_columns'});
@@ -489,7 +420,7 @@ sub populate_common {
         'UPTIME' => sub {
             my $self = shift;
             chomp(my $uptime = `uptime -p`);
-			$self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
+            $self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
             return ($uptime);
         },
         'SHOW BBS LIST' => sub {
@@ -511,69 +442,69 @@ sub populate_common {
     $self->{'COMMANDS'} = {
         'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
-			$self->users_update_accomplishments();
+            $self->users_update_accomplishments();
             return ($self->load_menu('files/main/account'));
         },
-		'FORUM CATEGORIES' => sub {
-			my $self = shift;
-			$self->messages_forum_categories();
+        'FORUM CATEGORIES' => sub {
+            my $self = shift;
+            $self->messages_forum_categories();
             return ($self->load_menu('files/main/forums'));
-		},
-		'FORUM MESSAGES LIST' => sub {
-			my $self = shift;
-			$self->messages_list_messages();
+        },
+        'FORUM MESSAGES LIST' => sub {
+            my $self = shift;
+            $self->messages_list_messages();
             return ($self->load_menu('files/main/forums'));
-		},
-		'FORUM MESSAGES READ' => sub {
-			my $self = shift;
-			$self->messages_read_message();
+        },
+        'FORUM MESSAGES READ' => sub {
+            my $self = shift;
+            $self->messages_read_message();
             return ($self->load_menu('files/main/forums'));
-		},
-		'FORUM MESSAGES EDIT' => sub {
-			my $self = shift;
-			$self->messages_edit_message('EDIT');
+        },
+        'FORUM MESSAGES EDIT' => sub {
+            my $self = shift;
+            $self->messages_edit_message('EDIT');
             return ($self->load_menu('files/main/forums'));
-		},
-		'FORUM MESSAGES ADD' => sub {
-			my $self = shift;
-			$self->messages_edit_message('ADD');
+        },
+        'FORUM MESSAGES ADD' => sub {
+            my $self = shift;
+            $self->messages_edit_message('ADD');
             return ($self->load_menu('files/main/forums'));
-		},
-		'FORUM MESSAGES DELETE' => sub {
-			my $self = shift;
-			$self->messages_delete_message();
+        },
+        'FORUM MESSAGES DELETE' => sub {
+            my $self = shift;
+            $self->messages_delete_message();
             return ($self->load_menu('files/main/forums'));
-		},
+        },
         'UPDATE LOCATION' => sub {
             my $self = shift;
-			$self->users_update_location();
+            $self->users_update_location();
             return ($self->load_menu('files/main/account'));
         },
         'UPDATE EMAIL' => sub {
             my $self = shift;
-			$self->users_update_email();
+            $self->users_update_email();
             return ($self->load_menu('files/main/account'));
         },
         'UPDATE RETRO SYSTEMS' => sub {
             my $self = shift;
-			$self->users_update_retro_systems();
+            $self->users_update_retro_systems();
             return ($self->load_menu('files/main/account'));
         },
-		'CHANGE ACCESS LEVEL' => sub {
-			my $self = shift;
-			$self->users_change_access_level();
-			return($self->load_menu('files/main/account'));
-		},
-		'CHANGE BAUD RATE' => sub {
-			my $self = shift;
-			$self->users_change_baud_rate();
-			return($self->load_menu('files/main/account'));
-		},
-		'CHANGE DATE FORMAT' => sub {
-			my $self = shift;
-			$self->users_change_date_format();
-			return($self->load_menu('files/main/account'));
-		},
+        'CHANGE ACCESS LEVEL' => sub {
+            my $self = shift;
+            $self->users_change_access_level();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE BAUD RATE' => sub {
+            my $self = shift;
+            $self->users_change_baud_rate();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE DATE FORMAT' => sub {
+            my $self = shift;
+            $self->users_change_date_format();
+            return ($self->load_menu('files/main/account'));
+        },
         'CHANGE SCREEN SIZE' => sub {
             my $self = shift;
             $self->users_change_screen_size();
@@ -581,7 +512,7 @@ sub populate_common {
         },
         'CHOOSE TEXT MODE' => sub {
             my $self = shift;
-			$self->users_update_text_mode();
+            $self->users_update_text_mode();
             return ($self->load_menu('files/main/account'));
         },
         'TOGGLE SHOW EMAIL' => sub {
@@ -608,10 +539,10 @@ sub populate_common {
             my $self = shift;
             return ($self->load_menu('files/main/bbs_listing'));
         },
-		'LIST USERS' => sub {
-			my $self = shift;
-			return($self->load_menu('files/main/list_users'));
-		},
+        'LIST USERS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/list_users'));
+        },
         'ACCOUNT MANAGER' => sub {
             my $self = shift;
             return ($self->load_menu('files/main/account'));
@@ -680,8 +611,8 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
-	$self->{'debug'}->DEBUG(['Main object initialized']);
-}
+    $self->{'debug'}->DEBUG(['Main object initialized']);
+} ## end sub populate_common
 
 sub run {
     my $self  = shift;
@@ -690,9 +621,13 @@ sub run {
     $self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
-	my $handle = $self->{'cl_socket'};
-	print $handle chr(IAC) . chr(WONT) . chr(LINEMODE) unless($self->{'localmode'} || $self->{'sysop'});$|=1;
-    if ($self->greeting()) {    # Greeting also logs in
+    unless ($self->{'sysop'} || $self->{'local_mode'}) {
+        my $handle = $self->{'cl_socket'};
+        print $handle chr(IAC) . chr(WONT) . chr(LINEMODE);
+    }
+    $| = 1;
+    $self->greeting();
+    if ($self->login()) {
         $self->main_menu('files/main/menu');
     }
     $self->disconnect();
@@ -702,14 +637,15 @@ sub run {
 sub greeting {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Send greeting']);
+    $self->{'debug'}->DEBUG(['Send greeting']);
+
     # Load and print greetings message here
-	$self->output("\n\n");
+    $self->output("\n\n");
     my $text = $self->files_load_file('files/main/greeting');
     $self->output($text);
-	$self->{'debug'}->DEBUG(['Greeting sent']);
-    return ($self->login());    # Login will also create new users
-}
+    $self->{'debug'}->DEBUG(['Greeting sent']);
+    return (TRUE);    # Login will also create new users
+} ## end sub greeting
 
 sub login {
     my $self = shift;
@@ -718,16 +654,16 @@ sub login {
 
     my $username;
     if ($self->{'sysop'}) {
-		$self->{'debug'}->DEBUG(['Login as SysOp']);
+        $self->{'debug'}->DEBUG(['Login as SysOp']);
         $username = 'sysop';
         $self->output("\n\nAuto-login of $username successful\n\n");
         $valid = $self->users_load($username, '');
-		if ($self->{'local_mode'}) { # override DB values
-			my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-			$self->{'USER'}->{'columns'} = $wsize;
-		}
+        if ($self->{'sysop'} || $self->{'local_mode'}) {    # override DB values
+            my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+            $self->{'USER'}->{'columns'} = $wsize;
+        }
     } else {
-		$self->{'debug'}->DEBUG(['Login as User']);
+        $self->{'debug'}->DEBUG(['Login as User']);
         my $tries = $self->{'CONF'}->{'LOGIN TRIES'} + 0;
         do {
             do {
@@ -736,61 +672,136 @@ sub login {
                 $tries-- if ($username eq '');
                 last     if ($tries <= 0 || !$self->is_connected());
             } until ($username ne '');
-			$self->{'debug'}->debug(["User = $username"]);
+            $self->{'debug'}->debug(["User = $username"]);
             if ($self->is_connected()) {
                 if (uc($username) eq 'NEW') {
-					$self->{'debug'}->DEBUG(['New user']);
+                    $self->{'debug'}->DEBUG(['New user']);
                     $valid = $self->create_account();
                 } elsif ($username eq 'sysop' && !$self->{'local_mode'}) {
-					$self->{'debug'}->WARNING(['Login as SysOp attempted!']);
+                    $self->{'debug'}->WARNING(['Login as SysOp attempted!']);
                     $self->output("\n\nSysOp cannot connect remotely\n\n");
                 } else {
-					$self->{'debug'}->DEBUG(['Asking for password']);
+                    $self->{'debug'}->DEBUG(['Asking for password']);
                     $self->output("\n\nPlease enter your password > ");
                     my $password = $self->get_line(PASSWORD, 64);
                     $valid = $self->users_load($username, $password);
-					if ($self->{'USER'}->{'banned'}) {
-						$valid = FALSE;
-					}
-                }
+                    if ($self->{'USER'}->{'banned'}) {
+                        $valid = FALSE;
+                    }
+                } ## end else [ if (uc($username) eq 'NEW')]
                 if ($valid) {
-					$self->{'debug'}->DEBUG(['Password valid']);
+                    $self->{'debug'}->DEBUG(['Password valid']);
                     $self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
                 } else {
-					$self->{'debug'}->WARNING(['Password incorrect, try ' . $tries]);
+                    $self->{'debug'}->WARNING(['Password incorrect, try ' . $tries]);
                     $self->output("\n\nLogin incorrect\n\n");
                     $tries--;
                 }
-            }
+            } ## end if ($self->is_connected...)
             last unless ($self->{'CACHE'}->get('RUNNING') && $self->is_connected());
         } until ($valid || $tries <= 0);
-    }
+    } ## end else [ if ($self->{'sysop'}) ]
     return ($valid);
-}
+} ## end sub login
 
 sub create_account {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Create account']);
+    $self->{'debug'}->DEBUG(['Create account']);
+    my $heading = '[% CLS %]CREATE ACCOUNT' . "\n\n";
+    $self->output($heading);
+
+    my $username;
+    my $given;
+    my $family;
+    my $nickname;
+    my $max_columns;
+    my $max_rows;
+    my $text_mode;
+    my $birthday;
+    my $location;
+    my $date_format;
+    my $accomplishments;
+    my $email;
+    my $baud_rate;
+    my $password;
+    my $password2;
+
+    $self->output('Desired username:  ');
+
+    if ($self->is_connected()) {
+        $username = $self->get_line({ 'type' => HOST, 'max' => 132 }, '');
+        $self->output("\nFirst (given) name:  ");
+        $given = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $self->output("\nLast (family) name:  ");
+        $family = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
+        if ($self->decision()) {
+            $self->output("\nNickname:  ");
+            $nickname = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        }
+        $self->output("\nScreen width (in columns):  ");
+        $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 40);
+        $self->output("\nScreen height (in columns):  ");
+        $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 25);
+        $self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
+        $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'] }, 'ASCII');
+        $self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
+        $birthday = $self->get_line({ 'type' => DATE, 'max' => 10 }, '');
+        $self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
+        $location = $self->get_line({ 'type' => STRING, 'max' => 255 }, '');
+        $self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
+        $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'] }, 'YEAR/MONTH/DAY');
+        $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
+        $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'] }, 'FULL');
+        my $tries = 3;
+        do {
+            $self->output("\nPlease enter your password:  ");
+            $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $self->output("\nEnter it again:  ");
+            $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $self->output("\nPasswords do not match!  Try again\n");
+            $tries--;
+        } until (($self->is_connected() && $password eq $password2) || $tries <= 0);
+        if ($self->is_connected() && $password eq $password2) {
+            my $tree = {
+                'username'    => $username,
+                'given'       => $given,
+                'family'      => $family,
+                'nickname'    => $nickname . '',
+                'max_columns' => $max_columns,
+                'max_rows'    => $max_rows,
+                'text_mode'   => $text_mode,
+                'birthday'    => $birthday,
+                'location'    => $location,
+                'date_format' => $date_format,
+                'baud_rate'   => $baud_rate,
+                'password'    => $password,
+            };
+            if ($self->users_add($tree)) {
+                return ($self->users_load($username, $password));
+            }
+        } ## end if ($self->is_connected...)
+    } ## end if ($self->is_connected...)
     return (FALSE);
-}
+} ## end sub create_account
 
 sub is_connected {
     my $self = shift;
 
-	if ($self->{'local_mode'}) {
-		return(TRUE);
-	} elsif ($self->{'CACHE'}->get('RUNNING') && ($self->{'sysop'} || defined($self->{'cl_socket'}))) {
+    if ($self->{'sysop'} || $self->{'local_mode'}) {
+        return (TRUE);
+    } elsif ($self->{'CACHE'}->get('RUNNING') && defined($self->{'cl_socket'})) {
         $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'CONNECTED');
-        $self->{'CACHE'}->set('UPDATE', TRUE);
+        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
         return (TRUE);
     } else {
-		$self->{'debug'}->WARNING(['User disconnected']);
+        $self->{'debug'}->WARNING(['User disconnected']);
         $self->{'CACHE'}->set(sprintf('SERVER_%02d', $self->{'thread_number'}), 'IDLE');
-        $self->{'CACHE'}->set('UPDATE', TRUE);
+        $self->{'CACHE'}->set('UPDATE',                                         TRUE);
         return (FALSE);
-    }
-}
+    } ## end else [ if ($self->{'sysop'} ||...)]
+} ## end sub is_connected
 
 sub decision {
     my $self = shift;
@@ -798,31 +809,31 @@ sub decision {
     my $response = uc($self->get_key(SILENT, BLOCKING));
     if ($response eq 'Y') {
         $self->output("YES\n");
-		$self->{'debug'}->DEBUG(['Decision YES']);
+        $self->{'debug'}->DEBUG(['Decision YES']);
         return (TRUE);
     }
-	$self->{'debug'}->DEBUG(['Decision NO']);
+    $self->{'debug'}->DEBUG(['Decision NO']);
     $self->output("NO\n");
     return (FALSE);
-}
+} ## end sub decision
 
 sub prompt {
     my $self = shift;
     my $text = shift;
 
-	$self->{'debug'}->DEBUG(["Prompt > $text"]);
+    $self->{'debug'}->DEBUG(["Prompt > $text"]);
     my $response;
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
-        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
+        $response = '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $response = '(' . colored(['bright_yellow'],$self->{'USER'}->{'username'}) . ') ' . $text . ' ' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . ' ';
+        $response = '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . ' ' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . ' ';
     } else {
         $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     }
     return ($response);
-}
+} ## end sub prompt
 
 sub menu_choice {
     my $self   = shift;
@@ -830,50 +841,44 @@ sub menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
-	$self->{'debug'}->DEBUG(['Menu Choice']);
+    $self->{'debug'}->DEBUG(['Menu Choice']);
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $self->output(" $choice " . chr(31) . " $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output(
-			charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') .
-			'[% ' . $color . ' %]' . $choice . '[% RESET %]' .
-			charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') .
-			'[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' .
-			" $desc"
-		);
+        $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc");
     } else {
         $self->output(" $choice > $desc");
     }
-}
+} ## end sub menu_choice
 
 sub show_choices {
     my $self    = shift;
     my $mapping = shift;
 
-	$self->{'debug'}->DEBUG(['Show Choices']);
+    $self->{'debug'}->DEBUG(['Show Choices']);
     my $keys = '';
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n");
     }
-	my $odd = 0;
+    my $odd = 0;
     foreach my $kmenu (sort(keys %{$mapping})) {
         next if ($kmenu eq 'TEXT');
-		if ($self->{'access_level'}->{$mapping->{$kmenu}->{'access_level'}} <= $self->{'access_level'}->{$self->{'USER'}->{'access_level'}} ) {
-			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-			$self->output("\n");
-		}
-    }
+        if ($self->{'access_level'}->{ $mapping->{$kmenu}->{'access_level'} } <= $self->{'access_level'}->{ $self->{'USER'}->{'access_level'} }) {
+            $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+            $self->output("\n");
+        }
+    } ## end foreach my $kmenu (sort(keys...))
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT'));
     }
-}
+} ## end sub show_choices
 
 sub header {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Header']);
+    $self->{'debug'}->DEBUG(['Header']);
     my $width = $self->{'USER'}->{'max_columns'};
     my $name  = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
 
@@ -885,13 +890,13 @@ sub header {
         $text =~ s/\#/$char/g;
     }
     return ($self->detokenize_text('[% CLS %]' . $text));
-}
+} ## end sub header
 
 sub load_menu {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->DEBUG(["Load Menu $file"]);
+    $self->{'debug'}->DEBUG(["Load Menu $file"]);
     my $orig    = $self->files_load_file($file);
     my @Text    = split(/\n/, $orig);
     my $mapping = { 'TEXT' => '' };
@@ -899,7 +904,7 @@ sub load_menu {
     my $text    = '';
     foreach my $line (@Text) {
         if ($mode) {
-			next if ($line =~ /^\#/);
+            next if ($line =~ /^\#/);
             if ($line !~ /^---/) {
                 my ($k, $cmd, $color, $access, $t) = split(/\|/, $line);
                 $k     = uc($k);
@@ -909,7 +914,7 @@ sub load_menu {
                     $mapping->{$k} = {
                         'command'      => $cmd,
                         'color'        => $color,
-						'access_level' => $access,
+                        'access_level' => $access,
                         'text'         => $t,
                     };
                 } else {
@@ -921,19 +926,19 @@ sub load_menu {
         } else {
             $mapping->{'TEXT'} .= $self->detokenize_text($line) . "\n";
         }
-    }
+    } ## end foreach my $line (@Text)
     $mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
     return ($mapping);
-}
+} ## end sub load_menu
 
 sub main_menu {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->DEBUG(['Main Menu']);
+    $self->{'debug'}->DEBUG(['Main Menu']);
     my $connected = TRUE;
     my $command   = '';
-    my $mapping = $self->load_menu($file);
+    my $mapping   = $self->load_menu($file);
     while ($connected && $self->is_connected()) {
         $self->output($mapping->{'TEXT'});
         $self->show_choices($mapping);
@@ -952,241 +957,442 @@ sub main_menu {
         if (ref($mapping) ne 'HASH' || !$self->is_connected()) {
             $connected = FALSE;
         }
-    }
-}
+    } ## end while ($connected && $self...)
+} ## end sub main_menu
 
 sub disconnect {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Disconnect']);
+    $self->{'debug'}->DEBUG(['Disconnect']);
+
     # Load and print disconnect message here
     my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
     return (TRUE);
-}
+} ## end sub disconnect
 
 sub parse_telnet_escape {
-	my $self    = shift;
-	my $command = shift;
-	my $option  = shift;
-	my $handle  = $self->{'cl_socket'};
+    my $self    = shift;
+    my $command = shift;
+    my $option  = shift;
+    my $handle  = $self->{'cl_socket'};
 
-	$self->{'debug'}->DEBUG(['Parse Telnet Escape']);
-	if ($command == WILL) {
-		if ($option == ECHO) { # WON'T ECHO
-			print $handle chr(IAC) . chr(WONT) . chr(ECHO);
-		} elsif ($option == LINEMODE) {
-			print $handle chr(IAC) . chr(WONT) . chr(LINEMODE);
-		}
-	} elsif ($command == DO) {
-		if ($option == ECHO) { # DON'T ECHO
-			print $handle chr(IAC) . chr(DONT) . chr(ECHO);
-		} elsif ($option == LINEMODE) {
-			print $handle chr(IAC) . chr(DONT) . chr(LINEMODE);
-		}
-	} else {
-		$self->{'debug'}->DEBUG(['Recreived IAC Request - ' . $self->{'telnet_commands'}->[$command - 240] . ' : ' . $self->{'telnet_options'}->[$option]]);
-	}
-	return(TRUE);
-}
+    $self->{'debug'}->DEBUG(['Parse Telnet Escape']);
+    if ($command == WILL) {
+        if ($option == ECHO) {    # WON'T ECHO
+            print $handle chr(IAC) . chr(WONT) . chr(ECHO);
+        } elsif ($option == LINEMODE) {
+            print $handle chr(IAC) . chr(WONT) . chr(LINEMODE);
+        }
+    } elsif ($command == DO) {
+        if ($option == ECHO) {    # DON'T ECHO
+            print $handle chr(IAC) . chr(DONT) . chr(ECHO);
+        } elsif ($option == LINEMODE) {
+            print $handle chr(IAC) . chr(DONT) . chr(LINEMODE);
+        }
+    } else {
+        $self->{'debug'}->DEBUG(['Recreived IAC Request - ' . $self->{'telnet_commands'}->[$command - 240] . ' : ' . $self->{'telnet_options'}->[$option]]);
+    }
+    return (TRUE);
+} ## end sub parse_telnet_escape
 
 sub flush_input {
-	my $self = shift;
+    my $self = shift;
 
-	my $key;
-	unless ($self->{'local_mode'} || $self->{'sysop'}) {
-		my $handle = $self->{'cl_socket'};
-		ReadMode 'noecho', $handle;
-		do {
-			$key = ReadKey(-1,$handle);
-		} until (! defined($key) || $key eq '');
-		ReadMode 'restore', $handle;
-	} else {
-		ReadMode 'ultra-raw';
-		do {
-			$key = ReadKey(-1);
-		} until (! defined($key) || $key eq '');
-		ReadMode 'restore';
-	}
-	return(TRUE);
-}
+    my $key;
+    unless ($self->{'sysop'} || $self->{'local_mode'}) {
+        my $handle = $self->{'cl_socket'};
+        ReadMode 'noecho', $handle;
+        do {
+            $key = ReadKey(-1, $handle);
+        } until (!defined($key) || $key eq '');
+        ReadMode 'restore', $handle;
+    } else {
+        ReadMode 'ultra-raw';
+        do {
+            $key = ReadKey(-1);
+        } until (!defined($key) || $key eq '');
+        ReadMode 'restore';
+    } ## end else
+    return (TRUE);
+} ## end sub flush_input
 
 sub get_key {
     my $self     = shift;
     my $echo     = shift;
     my $blocking = shift;
 
-    my $key = undef;
-	my $mode = $self->{'USER'}->{'text_mode'};
-	my $timeout = $self->{'USER'}->{'timeout'} * 60;
+    my $key     = undef;
+    my $mode    = $self->{'USER'}->{'text_mode'};
+    my $timeout = $self->{'USER'}->{'timeout'} * 60;
     local $/ = "\x{00}";
-    if ($self->{'local_mode'} || $self->{'sysop'}) {
+    if ($self->{'sysop'} || $self->{'local_mode'}) {
         ReadMode 'ultra-raw';
         $key = ($blocking) ? ReadKey($timeout) : ReadKey(-1);
         ReadMode 'restore';
-		threads->yield;
+        threads->yield;
     } elsif ($self->is_connected()) {
-		my $handle = $self->{'cl_socket'};
-		ReadMode 'ultra-raw', $self->{'cl_socket'};
-		my $escape;
-		do {
-			$escape = FALSE;
-			$key = ($blocking) ? ReadKey($timeout, $handle) : ReadKey(-1, $handle);
-			if ($key eq chr(255)) { # IAC sequence
-				my $command = ReadKey($timeout, $handle);
-				my $option  = ReadKey($timeout, $handle);
-				$self->parse_telnet_escape(ord($command),ord($option));
-				$escape = TRUE;
-			}
-		} until (! $escape || $self->is_connected());
-		ReadMode 'restore', $self->{'cl_socket'};
-		threads->yield;
-    }
-	return($key) if ($key eq chr(13));
-	if ($key eq chr(127)) {
-		if ($mode eq 'ANSI') {
-			$key = $self->{'ansi_sequences'}->{'BACKSPACE'};
-		} elsif ($mode eq 'ATASCII') {
-			$key = $self->{'atascii_sequences'}->{'BACKSPACE'};
-		} elsif ($mode eq 'PETSCII') {
-			$key = $self->{'petscii_sequences'}->{'BACKSPACE'};
-		} else {
-			$key = $self->{'ascii_sequences'}->{'BACKSPACE'};
-		}
-		$self->output("$key $key") if ($echo);
-	}
-	if ($echo == NUMERIC && defined($key)) {
-		if ($key =~ /[0-9]/) {
-			$self->output("$key");
-		} else {
-			$key = '';
-		}
+        my $handle = $self->{'cl_socket'};
+        ReadMode 'ultra-raw', $self->{'cl_socket'};
+        my $escape;
+        do {
+            $escape = FALSE;
+            $key    = ($blocking) ? ReadKey($timeout, $handle) : ReadKey(-1, $handle);
+            if ($key eq chr(255)) {    # IAC sequence
+                my $command = ReadKey($timeout, $handle);
+                my $option  = ReadKey($timeout, $handle);
+                $self->parse_telnet_escape(ord($command), ord($option));
+                $escape = TRUE;
+            } ## end if ($key eq chr(255))
+        } until (!$escape || $self->is_connected());
+        ReadMode 'restore', $self->{'cl_socket'};
+        threads->yield;
+    } ## end elsif ($self->is_connected...)
+    return ($key) if ($key eq chr(13));
+    if ($key eq chr(127)) {
+        if ($mode eq 'ANSI') {
+            $key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+        } elsif ($mode eq 'ATASCII') {
+            $key = $self->{'atascii_sequences'}->{'BACKSPACE'};
+        } elsif ($mode eq 'PETSCII') {
+            $key = $self->{'petscii_sequences'}->{'BACKSPACE'};
+        } else {
+            $key = $self->{'ascii_sequences'}->{'BACKSPACE'};
+        }
+        $self->output("$key $key") if ($echo);
+    } ## end if ($key eq chr(127))
+    if ($echo == NUMERIC && defined($key)) {
+        if ($key =~ /[0-9]/) {
+            $self->output("$key");
+        } else {
+            $key = '';
+        }
     } elsif ($echo == ECHO && defined($key)) {
         $self->send_char($key);
     } elsif ($echo == PASSWORD && defined($key)) {
         $self->send_char('*');
     }
-	threads->yield;
+    threads->yield;
     return ($key);
-}
+} ## end sub get_key
 
 sub get_line {
-    my $self  = shift;
-    my $echo  = shift;
-    my $limit = (scalar(@_)) ? min(shift, 65535) : 65535;
-    my $line  = (scalar(@_)) ? shift : '';
+    my $self = shift;
+    my $echo = shift;
+    my $type = $echo;
+
+    my $line;
+    my $limit;
+    my $choices;
     my $key;
 
-	$self->{'debug'}->DEBUG(['Get Line']);
-	$self->flush_input();
-	$self->output($line) if ($line ne '');
-	my $mode = $self->{'USER'}->{'text_mode'};
-	my $bs;
-	if ($mode eq 'ANSI') {
-		$bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
-	} elsif ($mode eq 'ATASCII') {
-		$bs = $self->{'atascii_sequences'}->{'BACKSPACE'};
-	} elsif ($mode eq 'PETSCII') {
-		$bs = $self->{'petscii_sequences'}->{'BACKSPACE'};
-	} else {
-		$bs = $self->{'ascii_sequences'}->{'BACKSPACE'};
-	}
-    while (($self->is_connected() || $self->{'local_mode'} || $self->{'sysop'}) && $key ne chr(13) && $key ne chr(3)) {
-		if (length($line) < $limit) {
-			$key = $self->get_key($echo, BLOCKING);
-			return('') if (defined($key) && $key eq chr(3));
-			if (defined($key) && $key ne '' && $self->is_connected()) {
-				if ($key eq $bs) {
-					$self->output(" $key");
-					my $len = length($line);
-					if ($len > 0) {
-						$line = substr($line,0, $len - 1);
-					}
-				} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
-					$line .= $key;
-				}
-			}
-		} else {
-			$key = $self->get_key(SILENT, BLOCKING);
-			if (defined($key) && $key eq chr(3)) {
-				return('');
-			}
-			if (defined($key) && ($key eq $bs)) {
-				$key = $bs;
-				$self->output(" $key");
-				chop($line);
-			} else {
-				$self->output('[% RING BELL %]');
-			}
-		}
-        threads->yield();
+    $self->{'debug'}->DEBUG(['Get Line']);
+    $self->flush_input();
+
+    if (ref($type) eq 'HASH') {
+        $limit = $type->{'max'};
+        if (exists($type->{'choices'})) {
+            $choices = $type->{'choices'};
+            if (exists($type->{'default'})) {
+                $line = $type->{'default'};
+            } else {
+                $line = shift;
+            }
+        } ## end if (exists($type->{'choices'...}))
+        $echo = $type->{'type'};
+    } else {
+        if ($echo == STRING || $echo == ECHO || $echo == NUMERIC || $echo == HOST) {
+            $limit = shift;
+        }
+        $line = shift;
+    } ## end else [ if (ref($type) eq 'HASH')]
+
+    my $key;
+
+    $self->{'debug'}->DEBUG(['Get Line']);
+    $self->flush_input();
+    $self->output($line) if ($line ne '');
+    my $mode = $self->{'USER'}->{'text_mode'};
+    my $bs;
+    if ($mode eq 'ANSI') {
+        $bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
+    } elsif ($mode eq 'ATASCII') {
+        $bs = $self->{'atascii_sequences'}->{'BACKSPACE'};
+    } elsif ($mode eq 'PETSCII') {
+        $bs = $self->{'petscii_sequences'}->{'BACKSPACE'};
+    } else {
+        $bs = $self->{'ascii_sequences'}->{'BACKSPACE'};
     }
 
-	$line = '' if ($key eq chr(3));
+    if ($echo == RADIO) {
+        my $regexp = join('', @{ $type->{'choices'} });
+        $self->{'debug'}->DEBUGMAX([$regexp]);
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($regexp =~ /$key/i) {
+                        $self->output(uc($key));
+                        $line .= uc($key);
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == NUMERIC) {
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]/) {
+                        $self->output($key);
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == DATE) {
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]|\//) {
+                        $self->output($key);
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == HOST) {
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
+                        $self->output(lc($key));
+                        $line .= lc($key);
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+	} elsif ($type == PASSWORD) {
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+                        $self->output('*');
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } else {
+        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+                        $self->output($key);
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } ## end else [ if ($echo == RADIO) ]
+    threads->yield();
+    $line = '' if ($key eq chr(3));
+    $self->output("\n");
     return ($line);
-}
+
+} ## end sub get_line
 
 sub detokenize_text {    # Detokenize text markup
     my $self = shift;
     my $text = shift;
 
-	$self->{'debug'}->DEBUG(['Detokenize Text']);
+    $self->{'debug'}->DEBUG(['Detokenize Text']);
     if (defined($text) && length($text) > 1) {
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
-			if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
-				my $versions = '';
-				foreach my $names (keys %{ $self->{'VERSIONS'} }) {
-					$versions .= sprintf('%-28s %.03f',$names, $self->{'VERSIONS'}->{$names}) . "\n";
-				}
-				$text =~ s/\[\%\s+$key\s+\%\]/$versions/g;
-			} elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE' && $text =~ /\[\%\s+$key\s+\%\]/) {
-				my $ch = $self->{'TOKENS'}->{$key}->($self);    # Code call
-				$text =~ s/\[\%\s+$key\s+\%\]/$ch/g;
-			} else {
-				$text =~ s/\[\%\s+$key\s+\%\]/$self->{'TOKENS'}->{$key}/g;
-			}
-        }
-    }
+            if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
+                my $versions = '';
+                foreach my $names (keys %{ $self->{'VERSIONS'} }) {
+                    $versions .= sprintf('%-28s %.03f', $names, $self->{'VERSIONS'}->{$names}) . "\n";
+                }
+                $text =~ s/\[\%\s+$key\s+\%\]/$versions/g;
+            } elsif (ref($self->{'TOKENS'}->{$key}) eq 'CODE' && $text =~ /\[\%\s+$key\s+\%\]/) {
+                my $ch = $self->{'TOKENS'}->{$key}->($self);    # Code call
+                $text =~ s/\[\%\s+$key\s+\%\]/$ch/g;
+            } else {
+                $text =~ s/\[\%\s+$key\s+\%\]/$self->{'TOKENS'}->{$key}/g;
+            }
+        } ## end foreach my $key (keys %{ $self...})
+    } ## end if (defined($text) && ...)
     return ($text);
-}
+} ## end sub detokenize_text
 
 sub output {
     my $self = shift;
-	$self->{'debug'}->DEBUG(['Output']);
+    $self->{'debug'}->DEBUG(['Output']);
     my $text = $self->detokenize_text(shift);
 
-	if (defined($text) && $text ne '') {
-		if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
-			my $format = Text::Format->new(
-				'columns'     => $self->{'USER'}->{'max_columns'} - 1,
-				'tabstop'     => 4,
-				'extraSpace'  => TRUE,
-				'firstIndent' => 0,
-			);
-			my $header;
-			($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
-			if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
-				$text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
-				$format->justify(TRUE);
-			}
-			$text = $format->format($text);
-			$text = $header . $text;
-		}
-		my $mode = $self->{'USER'}->{'text_mode'};
-		if ($mode eq 'ATASCII') {
-			$self->atascii_output($text);
-		} elsif ($mode eq 'PETSCII') {
-			$self->petscii_output($text);
-		} elsif ($mode eq 'ANSI') {
-			$self->ansi_output($text);
-		} else {    # ASCII (always the default)
-			$self->ascii_output($text);
-		}
-	} else {
-		return(FALSE);
-	}
-	return (TRUE);
-}
+    if (defined($text) && $text ne '') {
+        if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+            my $format = Text::Format->new(
+                'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+                'tabstop'     => 4,
+                'extraSpace'  => TRUE,
+                'firstIndent' => 0,
+            );
+            my $header;
+            ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
+            if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+                $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+                $format->justify(TRUE);
+            }
+            $text = $format->format($text);
+            $text = $header . $text;
+        } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
+        my $mode = $self->{'USER'}->{'text_mode'};
+        if ($mode eq 'ATASCII') {
+            $self->atascii_output($text);
+        } elsif ($mode eq 'PETSCII') {
+            $self->petscii_output($text);
+        } elsif ($mode eq 'ANSI') {
+            $self->ansi_output($text);
+        } else {    # ASCII (always the default)
+            $self->ascii_output($text);
+        }
+    } else {
+        return (FALSE);
+    }
+    return (TRUE);
+} ## end sub output
 
 sub send_char {
     my $self = shift;
@@ -1195,11 +1401,11 @@ sub send_char {
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print STDOUT $char;
-		$| = 1;
+        $| = 1;
     } else {
-		my $handle = $self->{'cl_socket'};
+        my $handle = $self->{'cl_socket'};
         print $handle $char;
-		$| = 1;
+        $| = 1;
     }
 
     # Send at the chosen baud rate by delaying the output by a fraction of a second
@@ -1212,9 +1418,9 @@ sub scroll {
     my $self = shift;
     my $nl   = shift;
 
-	$self->{'debug'}->DEBUG(['Scroll?']);
+    $self->{'debug'}->DEBUG(['Scroll?']);
     my $string;
-    if ($self->{'local_mode'}) {
+    if ($self->{'sysop'} || $self->{'local_mode'}) {
         $string = "\nScroll?  ";
     } else {
         $string = "$nl" . 'Scroll?  ';
@@ -1223,15 +1429,15 @@ sub scroll {
     if ($self->get_key(ECHO, BLOCKIMG) =~ /N/i) {
         return (FALSE);
     }
-	$self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
+    $self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
     return (TRUE);
-}
+} ## end sub scroll
 
 sub static_configuration {
     my $self = shift;
     my $file = shift;
 
-	$self->{'debug'}->DEBUG(['Static Configuration']);
+    $self->{'debug'}->DEBUG(['Static Configuration']);
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'}     = 'Richard Kelsch';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'}    = 'Richard Kelsch <rich@rk-internet.com>';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Central Utah - USA';
@@ -1244,13 +1450,13 @@ sub static_configuration {
             my ($name, $val) = split(/\s+=\s+/, $line);
             $self->{'CONF'}->{'STATIC'}->{$name} = $val;
         }
-    }
-}
+    } ## end if (-e $file)
+} ## end sub static_configuration
 
 sub choose_file_category {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Choose File Category']);
+    $self->{'debug'}->DEBUG(['Choose File Category']);
     my $table;
     my $choices = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 0 1 2 3 4 5 6 7 8 9)];
     my $hchoice = {};
@@ -1290,8 +1496,8 @@ sub choose_file_category {
         } else {
             $self->output("Nevermind\n");
         }
-    }
-}
+    } ## end if ($sth->rows > 0)
+} ## end sub choose_file_category
 
 sub configuration {
     my $self = shift;
@@ -1307,27 +1513,27 @@ sub configuration {
             } else {
                 $self->{'debug'}->WARNING(["$file not found, trying the next file in the list"]);
             }
-        }
+        } ## end foreach my $file (@static_file)
         unless ($found) {
             $self->{'debug'}->ERROR(['BBS Static Configuration file not found', join("\n", @static_file)]);
             exit(1);
         }
         $self->db_connect();
-    }
+    } ## end unless (exists($self->{'CONF'...}))
     #######################################################
     my $count = scalar(@_);
     if ($count == 1) {    # Get single value
         my $name = shift;
 
-        my $sth    = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
+        my $sth = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
         $sth->execute($name);
-		my ($result) = $sth->fetchrow_array();
+        my ($result) = $sth->fetchrow_array();
         $sth->finish();
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
-        my $sth = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
+        my $sth  = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
         $sth->execute($fval, $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
@@ -1343,45 +1549,45 @@ sub configuration {
         }
         $sth->finish();
         return ($self->{'CONF'});
-    }
-}
+    } ## end elsif ($count == 0)
+} ## end sub configuration
 
 sub parse_versions {
     my $self = shift;
 
-	$self->{'debug'}->DEBUG(['Parse Versions']);
+    $self->{'debug'}->DEBUG(['Parse Versions']);
 ###
     my $versions = {
-		'Perl'                          => $OLD_PERL_VERSION,
-		'BBS Executable'                => $main::VERSION,
-		'BBS::Universal'                => $BBS::Universal::VERSION,
-		'BBS::Universal::ASCII'         => $BBS::Universal::ASCII_VERSION,
-		'BBS::Universal::ATASCII'       => $BBS::Universal::ATASCII_VERSION,
-		'BBS::Universal::PETSCII'       => $BBS::Universal::PETSCII_VERSION,
-		'BBS::Universal::ANSI'          => $BBS::Universal::ANSI_VERSION,
-		'BBS::Universal::BBS_List'      => $BBS::Universal::BBS_LIST_VERSION,
-		'BBS::Universal::CPU'           => $BBS::Universal::CPU_VERSION,
-		'BBS::Universal::Messages'      => $BBS::Universal::MESSAGES_VERSION,
-		'BBS::Universal::SysOp'         => $BBS::Universal::SYSOP_VERSION,
-		'BBS::Universal::FileTransfer'  => $BBS::Universal::FILETRANSFER_VERSION,
-		'BBS::Universal::Users'         => $BBS::Universal::USERS_VERSION,
-		'BBS::Universal::DB'            => $BBS::Universal::DB_VERSION,
-		'BBS::Universal::Text_Editor'   => $BBS::Universal::TEXT_EDITOR_VERSION,
-		'DBI'                           => $DBI::VERSION,
-		'DBD::mysql'                    => $DBD::mysql::VERSION,
-		'DateTime'                      => $DateTime::VERSION,
-		'Debug::Easy'                   => $Debug::Easy::VERSION,
-		'File::Basename'                => $File::Basename::VERSION,
-		'Time::HiRes'                   => $Time::HiRes::VERSION,
-		'Term::ReadKey'                 => $Term::ReadKey::VERSION,
-		'Term::ANSIScreen'              => $Term::ANSIScreen::VERSION,
-		'Text::Format'                  => $Text::Format::VERSION,
-		'Text::SimpleTable'             => $Text::SimpleTable::VERSION,
-		'IO::Socket'                    => $IO::Socket::VERSION,
-	};
+        'Perl'                         => $OLD_PERL_VERSION,
+        'BBS Executable'               => $main::VERSION,
+        'BBS::Universal'               => $BBS::Universal::VERSION,
+        'BBS::Universal::ASCII'        => $BBS::Universal::ASCII_VERSION,
+        'BBS::Universal::ATASCII'      => $BBS::Universal::ATASCII_VERSION,
+        'BBS::Universal::PETSCII'      => $BBS::Universal::PETSCII_VERSION,
+        'BBS::Universal::ANSI'         => $BBS::Universal::ANSI_VERSION,
+        'BBS::Universal::BBS_List'     => $BBS::Universal::BBS_LIST_VERSION,
+        'BBS::Universal::CPU'          => $BBS::Universal::CPU_VERSION,
+        'BBS::Universal::Messages'     => $BBS::Universal::MESSAGES_VERSION,
+        'BBS::Universal::SysOp'        => $BBS::Universal::SYSOP_VERSION,
+        'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
+        'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
+        'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
+        'BBS::Universal::Text_Editor'  => $BBS::Universal::TEXT_EDITOR_VERSION,
+        'DBI'                          => $DBI::VERSION,
+        'DBD::mysql'                   => $DBD::mysql::VERSION,
+        'DateTime'                     => $DateTime::VERSION,
+        'Debug::Easy'                  => $Debug::Easy::VERSION,
+        'File::Basename'               => $File::Basename::VERSION,
+        'Time::HiRes'                  => $Time::HiRes::VERSION,
+        'Term::ReadKey'                => $Term::ReadKey::VERSION,
+        'Term::ANSIScreen'             => $Term::ANSIScreen::VERSION,
+        'Text::Format'                 => $Text::Format::VERSION,
+        'Text::SimpleTable'            => $Text::SimpleTable::VERSION,
+        'IO::Socket'                   => $IO::Socket::VERSION,
+    };
 ###
     return ($versions);
-}
+} ## end sub parse_versions
 
 sub yes_no {
     my $self  = shift;
@@ -1400,8 +1606,8 @@ sub yes_no {
         } else {
             return ('NO');
         }
-    }
-}
+    } ## end else [ if ($color && $self->{...})]
+} ## end sub yes_no
 
 sub pad_center {
     my $self  = shift;
@@ -1414,18 +1620,18 @@ sub pad_center {
         if ($padding > 0) {
             $text = ' ' x $padding . $text;
         }
-    }
+    } ## end if (defined($text) && ...)
     return ($text);
-}
+} ## end sub pad_center
 
 sub center {
     my $self  = shift;
     my $text  = shift;
     my $width = shift;
 
-	unless (defined($text) && $text ne '') {
-		return ($text);
-	}
+    unless (defined($text) && $text ne '') {
+        return ($text);
+    }
     if ($text =~ /\n/s) {
         chomp(my @lines = split(/\n/, $text));
         $text = '';
@@ -1436,7 +1642,7 @@ sub center {
     } else {
         return ($self->pad_center($text, $width));
     }
-}
+} ## end sub center
 
 sub trim {
     my $self = shift;
@@ -1445,50 +1651,50 @@ sub trim {
     $text =~ s/^\s+//;
     $text =~ s/\s+$//;
     return ($text);
-}
+} ## end sub trim
 
 sub get_fortune {
-	my $self = shift;
-	$self->{'debug'}->DEBUG(['Get Fortune']);
-	return(($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
+    my $self = shift;
+    $self->{'debug'}->DEBUG(['Get Fortune']);
+    return (($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
 }
 
 sub playit {
-	my $self = shift;
-	my $file = shift;
+    my $self = shift;
+    my $file = shift;
 
-	unless($self->{'nosound'}) {
-		$self->{'debug'}->DEBUG(["Play Sound $file"]);
-		if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
-			system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
-		}
-	}
-}
+    unless ($self->{'nosound'}) {
+        $self->{'debug'}->DEBUG(["Play Sound $file"]);
+        if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
+            system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+        }
+    } ## end unless ($self->{'nosound'})
+} ## end sub playit
 
 sub check_access_level {
-	my $self   = shift;
-	my $access = shift;
+    my $self   = shift;
+    my $access = shift;
 
-	if ($self->{'access_levels'}->{$access} <= $self->{'access_levels'}->{$self->{'USER'}->{'access_level'}}) {
-		return(TRUE);
-	}
-	return(FALSE);
-}
+    if ($self->{'access_levels'}->{$access} <= $self->{'access_levels'}->{ $self->{'USER'}->{'access_level'} }) {
+        return (TRUE);
+    }
+    return (FALSE);
+} ## end sub check_access_level
 
 =head1 LICENSE
 
 This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (2.0). You may obtain a copy of the full license at:
-  
+
 L<http://www.perlfoundation.org/artistic_license_2_0>
-  
+
 Any use, modification, and distribution of the Standard or Modified Versions is governed by this Artistic License. By using, modifying or distributing the Package, you accept this license. Do not use, modify, or distribute the Package, if you do not accept this license.
-  
+
 If your Modified Version has been derived from a Modified Version made by someone other than you, you are nevertheless required to ensure that your Modified Version complies with the requirements of this license.
-  
+
 This license does not grant you the right to use any trademark, service mark, tradename, or logo of the Copyright Holder.
-  
+
 This license includes the non-exclusive, worldwide, free-of-charge patent license to make, have made, use, offer to sell, sell, import and otherwise transfer the Package with respect to any patent claims licensable by the Copyright Holder that are necessarily infringed by the Package. If you institute patent litigation (including a cross-claim or counterclaim) against any party alleging that the Package constitutes direct or contributory patent infringement, then this Artistic License to you shall terminate on the date that such litigation is filed.
-  
+
 Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONTRIBUTORS "AS IS' AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES. THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, OR NON-INFRINGEMENT ARE DISCLAIMED TO THE EXTENT PERMITTED BY YOUR LOCAL LAW. UNLESS REQUIRED BY LAW, NO COPYRIGHT HOLDER OR CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =cut

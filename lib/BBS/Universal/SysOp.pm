@@ -108,10 +108,10 @@ sub sysop_initialize {
             my ($result) = $sth->fetchrow_array();
             return ($result);
         },
-		'SYSOP VIEW CONFIGURATION' => sub {
-			my $self = shift;
-			return($self->sysop_view_configuration('string'));
-		},
+        'SYSOP VIEW CONFIGURATION' => sub {
+            my $self = shift;
+            return($self->sysop_view_configuration('string'));
+        },
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
             my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -310,7 +310,7 @@ sub sysop_initialize {
             remove_message
             sysop
             page_sysop
-			banned
+            banned
             login_time
             logout_time
         )
@@ -329,302 +329,336 @@ sub sysop_initialize {
 
     $self->{'SYSOP FIELD TYPES'} = {
         'id'              => {
-			'type' => NUMERIC,
-			'max'  => 2,
-		},
+            'type' => NUMERIC,
+            'max'  => 2,
+            'min'  => 2,
+        },
         'username'        => {
-			'type' => HOST,
-			'max'  => 32,
-		},
+            'type' => HOST,
+            'max'  => 32,
+            'min'  => 16,
+        },
         'fullname'        => {
-			'type' => STRING,
-			'max'  => 20,
-		},
+            'type' => STRING,
+            'max'  => 20,
+            'min'  => 15,
+        },
         'given'           => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 32,
+        },
         'family'          => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 32,
+        },
         'nickname'        => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 32,
+        },
         'email'           => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 32,
+        },
         'birthday'        => {
-			'type' => STRING,
-			'max'  => 10,
-		},
+            'type' => STRING,
+            'max'  => 10,
+            'min'  => 10,
+        },
         'location'        => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 40,
+        },
         'date_format'     => {
-			'type'    => RADIO,
-			'max'     => 14,
-			'choices' => [
-				'MONTH/DAY/YEAR',
-				'DAY/MONTH/YEAR',
-				'YEAR/MONTH/DAY',
-			],
-			'default' => 'DAY/MONTH/YEAR',
-		},
+            'type'    => RADIO,
+            'max'     => 14,
+            'min'     => 14,
+            'choices' => [
+                'MONTH/DAY/YEAR',
+                'DAY/MONTH/YEAR',
+                'YEAR/MONTH/DAY',
+            ],
+            'default' => 'DAY/MONTH/YEAR',
+        },
         'access_level'    => {
-			'type' => RADIO,
-			'max'  => 12,
-			'choices' => [
-				'USER',
-				'VETERAN',
-				'JUNIOR SYSOP',
-				'SYSOP',
-			],
-			'default' => 'USER',
-		},
+            'type' => RADIO,
+            'max'  => 12,
+            'min'  => 12,
+            'choices' => [
+                'USER',
+                'VETERAN',
+                'JUNIOR SYSOP',
+                'SYSOP',
+            ],
+            'default' => 'USER',
+        },
         'baud_rate'       => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'FULL',
-				'19200',
-				'9600',
-				'4800',
-				'2400',
-				'1200',
-				'300',
-			],
-			'default' => 'FULL',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'FULL',
+                '19200',
+                '9600',
+                '4800',
+                '2400',
+                '1200',
+				'600',
+                '300',
+            ],
+            'default' => 'FULL',
+        },
         'login_time'      => {
-			'type' => STRING,
-			'max'  => 10,
-		},
+            'type' => STRING,
+            'max'  => 10,
+            'min'  => 10,
+        },
         'logout_time'     => {
-			'type' => STRING,
-			'max'  => 10,
-		},
+            'type' => STRING,
+            'max'  => 10,
+            'min'  => 10,
+        },
         'text_mode'       => {
-			'type' => RADIO,
-			'max'  => 7,
-			'choices' => [
-				'ANSI',
-				'ASCII',
-				'ATASCII',
-				'PETSCII',
-			],
-			'default' => 'ASCII',
-		},
+            'type' => RADIO,
+            'max'  => 7,
+            'min'  => 7,
+            'choices' => [
+                'ANSI',
+                'ASCII',
+                'ATASCII',
+                'PETSCII',
+            ],
+            'default' => 'ASCII',
+        },
         'max_rows'        => {
-			'type'    => NUMERIC,
-			'max'     => 3,
-			'default' => 25,
-		},
+            'type'    => NUMERIC,
+            'max'     => 3,
+            'min'     => 3,
+            'default' => 25,
+        },
         'max_columns'     => {
-			'type'    => NUMERIC,
-			'max'     => 3,
-			'default' => 80,
-		},
+            'type'    => NUMERIC,
+            'max'     => 3,
+            'min'     => 3,
+            'default' => 80,
+        },
         'timeout'         => {
-			'type'    => NUMERIC,
-			'max'     => 5,
-			'default' => 10,
-		},
+            'type'    => NUMERIC,
+            'max'     => 5,
+            'min'     => 5,
+            'default' => 10,
+        },
         'retro_systems'   => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 40,
+        },
         'accomplishments' => {
-			'type' => STRING,
-			'max'  => 120,
-		},
+            'type' => STRING,
+            'max'  => 120,
+            'min'  => 40,
+        },
         'prefer_nickname' => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'view_files'      => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'YES',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'YES',
+        },
         'banned'      => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'upload_files'    => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'download_files'  => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'remove_files'    => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'read_message'    => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'YES',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'YES',
+        },
         'post_message'    => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'remove_message'  => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'play_fortunes'   => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'YES',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'YES',
+        },
         'sysop'           => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'page_sysop'      => {
-			'type' => RADIO,
-			'max'  => 5,
-			'choices' => [
-				'TRUE',
-				'FALSE',
-				'YES',
-				'NO',
-				'ON',
-				'OFF',
-				'1',
-				'0',
-			],
-			'default' => 'NO',
-		},
+            'type' => RADIO,
+            'max'  => 5,
+            'min'  => 5,
+            'choices' => [
+                'TRUE',
+                'FALSE',
+                'YES',
+                'NO',
+                'ON',
+                'OFF',
+                '1',
+                '0',
+            ],
+            'default' => 'NO',
+        },
         'password'        => {
-			'type' => STRING,
-			'max'  => 64,
-		},
+            'type' => STRING,
+            'max'  => 64,
+            'min'  => 32,
+        },
     };
 
     return ($self);
@@ -944,7 +978,7 @@ sub sysop_list_users {
     } else {    # Horizontal
         my @hw;
         foreach my $name (@order) {
-            push(@hw, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
+            push(@hw, $self->{'SYSOP FIELD TYPES'}->{$name}->{'min'});
         }
         $table = Text::SimpleTable->new(@hw);
         if ($list_mode =~ /ABBREVIATED/) {
@@ -1156,13 +1190,13 @@ sub sysop_view_configuration {
     $table->hr();
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
-		my $choice = ($count >= 10) ? chr(55 + $count) : $count;
+        my $choice = ($count >= 10) ? chr(55 + $count) : $count;
         next if ($conf eq 'STATIC');
         my $c = $self->{'CONF'}->{$conf};
         if ($conf eq 'DEFAULT TIMEOUT') {
             $c .= ' Minutes';
         } elsif ($conf eq 'DEFAULT BAUD RATE') {
-            $c .= ' bps - 300,1200,2400,4800,9600,19200,FULL';
+            $c .= ' bps - 300,600,1200,2400,4800,9600,19200,FULL';
         } elsif ($conf eq 'THREAD MULTIPLIER') {
             $c .= ' x CPU Cores';
         } elsif ($conf eq 'DEFAULT TEXT MODE') {
@@ -1173,14 +1207,14 @@ sub sysop_view_configuration {
         } else {
             if ($conf =~ /AUTHOR/) {
                 $table->row(' ', $conf, $c);
-			} else {
-				$table->row($choice, $conf, $c);
+            } else {
+                $table->row($choice, $conf, $c);
                 $count++;
             }
         }
     }
     my $output = $table->boxes->draw();
-    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
+    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,600,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
         if ($output =~ /$change/) {
             my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'], $change);
             $output =~ s/$change/$ch/gs;
@@ -1196,14 +1230,14 @@ sub sysop_view_configuration {
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
     }
-	if ("$view" eq 'string') {
-		return($output);
+    if ("$view" eq 'string') {
+        return($output);
     } elsif ($view == TRUE) {
-		print $self->sysop_detokenize($output);
+        print $self->sysop_detokenize($output);
         print 'Press a key to continue ... ';
         return ($self->sysop_keypress(TRUE));
     } elsif ($view == FALSE) {
-		print $self->sysop_detokenize($output);
+        print $self->sysop_detokenize($output);
         print $self->sysop_menu_choice('TOP',    '',    '');
         print $self->sysop_menu_choice('Z',      'RED', 'Return to Settings Menu');
         print $self->sysop_menu_choice('BOTTOM', '',    '');
@@ -1217,81 +1251,81 @@ sub sysop_edit_configuration {
 
     $self->{'debug'}->DEBUG(['SysOp Edit Configuration']);
     $self->sysop_view_configuration(FALSE);
-	my $types = {
-		'BBS NAME'            => {
-			'max'  => 50,
-			'type' => STRING,
-		},
-		'BBS ROOT'            => {
-			'max'  => 60,
-			'type' => STRING,
-		},
+    my $types = {
+        'BBS NAME'            => {
+            'max'  => 50,
+            'type' => STRING,
+        },
+        'BBS ROOT'            => {
+            'max'  => 60,
+            'type' => STRING,
+        },
         'HOST'                => {
-			'max'  => 20,
-			'type' => HOST,
-		},
+            'max'  => 20,
+            'type' => HOST,
+        },
         'THREAD MULTIPLIER'   => {
-			'max'  => 2,
-			'type' => NUMERIC,
-		},
+            'max'  => 2,
+            'type' => NUMERIC,
+        },
         'PORT'                => {
-			'max'  => 5,
-			'type' => NUMERIC,
-		},
+            'max'  => 5,
+            'type' => NUMERIC,
+        },
         'DEFAULT BAUD RATE'   => {
-			'max'     => 5,
-			'type'    => RADIO,
-			'choices' => ['300', '1200', '2400', '4800', '9600', '19200', 'FULL'],
-		},
+            'max'     => 5,
+            'type'    => RADIO,
+            'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'],
+        },
         'DEFAULT TEXT MODE'   => {
-			'max'     => 7,
-			'type'    => RADIO,
-			'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'],
-		},
+            'max'     => 7,
+            'type'    => RADIO,
+            'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'],
+        },
         'DEFAULT TIMEOUT'     => {
-			'max'  => 3,
-			'type' => NUMERIC,
-		},
+            'max'  => 3,
+            'type' => NUMERIC,
+        },
         'FILES PATH'          => {
-			'max'  => 60,
-			'type' => STRING,
-		},
+            'max'  => 60,
+            'type' => STRING,
+        },
         'LOGIN TRIES'         => {
-			'max'  => 1,
-			'type' => NUMERIC,
-		},
+            'max'  => 1,
+            'type' => NUMERIC,
+        },
         'MEMCACHED HOST'      => {
-			'max'  => 20,
-			'type' => HOST,
-		},
+            'max'  => 20,
+            'type' => HOST,
+        },
         'MEMCACHED NAMESPACE' => {
-			'max'  => 32,
-			'type' => STRING,
-		},
+            'max'  => 32,
+            'type' => STRING,
+        },
         'MEMCACHED PORT'      => {
-			'max'  => 5,
-			'type' => NUMERIC,
-		},
+            'max'  => 5,
+            'type' => NUMERIC,
+        },
         'DATE FORMAT'         => {
-			'max'     => 14,
-			'type'    => RADIO,
-			'choices' => [
-				'MONTH/DAY/YEAR',
-				'DAY/MONTH/YEAR',
-				'YEAR/MONTH/DAY',
-			],
-		},
-		'USE DUF'             => {
-			'max'     => 5,
-			'type'    => RADIO,
-			'choices' => ['TRUE', 'FALSE'],
-		},
-		'PLAY SYSOP SOUNDS'   => {
-			'max'     => 5,
-			'type'    => RADIO,
-			'choices' => ['TRUE', 'FALSE'],
-		},
-	};
+            'max'     => 14,
+            'type'    => RADIO,
+            'choices' => [
+                'MONTH/DAY/YEAR',
+                'DAY/MONTH/YEAR',
+                'YEAR/MONTH/DAY',
+            ],
+        },
+        'USE DUF'             => {
+            'max'     => 5,
+            'type'    => RADIO,
+            'choices' => ['TRUE', 'FALSE'],
+        },
+        'PLAY SYSOP SOUNDS'   => {
+            'max'     => 5,
+            'type'    => RADIO,
+            'choices' => ['TRUE', 'FALSE'],
+        },
+    };
     my $choice;
     do {
         $choice = uc($self->sysop_keypress(TRUE));
@@ -1303,17 +1337,17 @@ sub sysop_edit_configuration {
 
     $choice = ("$choice" =~ /[A-Y]/i) ? $choice = (ord($choice) - 55) : $choice;
     my @conf = grep(!/STATIC|AUTHOR/, sort(keys %{ $self->{'CONF'} }));
-	if ($types->{$conf[$choice]}->{'type'} == RADIO) {
-		print '(Edit) ', $conf[$choice], ' (' . join(' ',@{$types->{$conf[$choice]}->{'choices'}}) . ') ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
-	} else {
-		print '(Edit) ', $conf[$choice], ' ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
-	}
+    if ($types->{$conf[$choice]}->{'type'} == RADIO) {
+        print '(Edit) ', $conf[$choice], ' (' . join(' ',@{$types->{$conf[$choice]}->{'choices'}}) . ') ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
+    } else {
+        print '(Edit) ', $conf[$choice], ' ', charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE'), '  ';
+    }
     my $string;
-	$self->{'debug'}->DEBUGMAX([$self->configuration()]);
-	$string = $self->sysop_get_line(
-		$types->{$conf[$choice]},
-		$self->configuration($conf[$choice])
-	);
+    $self->{'debug'}->DEBUGMAX([$self->configuration()]);
+    $string = $self->sysop_get_line(
+        $types->{$conf[$choice]},
+        $self->configuration($conf[$choice])
+    );
     return(FALSE) if ($string eq '');
     $self->configuration($conf[$choice], $string);
     return(TRUE);
@@ -1321,206 +1355,206 @@ sub sysop_edit_configuration {
 
 sub sysop_get_key {
     my $self     = shift;
-	my $echo     = shift;
-	my $blocking = shift;
+    my $echo     = shift;
+    my $blocking = shift;
 
-	my $key = undef;
-	my $mode = $self->{'USER'}->{'text_mode'};
-	my $timeout = $self->{'USER'}->{'timeout'} * 60;
-	local $/ = "\x{00}";
-	ReadMode 'ultra-raw';
-	$key = ($blocking) ? ReadKey($timeout) : ReadKey(-1);
-	ReadMode 'restore';
-	threads->yield;
-	return($key) if ($key eq chr(13));
-	if ($key eq chr(127)) {
-		$key = $self->{'ansi_sequences'}->{'BACKSPACE'};
-	}
-	if ($echo == NUMERIC && defined($key)) {
-		unless ($key =~ /[0-9]/) {
-			$key = '';
-		}
-	}
-	threads->yield;
-	return ($key);
+    my $key = undef;
+    my $mode = $self->{'USER'}->{'text_mode'};
+    my $timeout = $self->{'USER'}->{'timeout'} * 60;
+    local $/ = "\x{00}";
+    ReadMode 'ultra-raw';
+    $key = ($blocking) ? ReadKey($timeout) : ReadKey(-1);
+    ReadMode 'restore';
+    threads->yield;
+    return($key) if ($key eq chr(13));
+    if ($key eq chr(127)) {
+        $key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+    }
+    if ($echo == NUMERIC && defined($key)) {
+        unless ($key =~ /[0-9]/) {
+            $key = '';
+        }
+    }
+    threads->yield;
+    return ($key);
 }
 
 sub sysop_get_line {
     my $self = shift;
-	my $echo = shift;
-	my $type = $echo;
+    my $echo = shift;
+    my $type = $echo;
 
-	my $line;
-	my $limit;
-	my $choices;
-	my $key;
+    my $line;
+    my $limit;
+    my $choices;
+    my $key;
 
-	$self->{'CACHE'}->set('SHOW_STATUS', FALSE);
-	$self->{'debug'}->DEBUG(['SysOp Get Line']);
-	$self->flush_input();
+    $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
+    $self->{'debug'}->DEBUG(['SysOp Get Line']);
+    $self->flush_input();
 
-	if (ref($type) eq 'HASH') {
-		$limit = $type->{'max'};
-		if (exists($type->{'choices'})) {
-			$choices = $type->{'choices'};
-			if (exists($type->{'default'})) {
-				$line = $type->{'default'};
-			} else {
-				$line  = shift;
-			}
-		}
-		$echo = $type->{'type'};
-	} else {
-		if ($echo == STRING || $echo == ECHO || $echo == NUMERIC || $echo == HOST) {
-			$limit = shift;
-		}
-		$line  = shift;
-	}
+    if (ref($type) eq 'HASH') {
+        $limit = $type->{'max'};
+        if (exists($type->{'choices'})) {
+            $choices = $type->{'choices'};
+            if (exists($type->{'default'})) {
+                $line = $type->{'default'};
+            } else {
+                $line  = shift;
+            }
+        }
+        $echo = $type->{'type'};
+    } else {
+        if ($echo == STRING || $echo == ECHO || $echo == NUMERIC || $echo == HOST) {
+            $limit = shift;
+        }
+        $line  = shift;
+    }
 
-	$self->{'debug'}->DEBUGMAX([$type,$echo,$line]);
-	$self->output($line) if ($line ne '');
-	my $mode = 'ANSI';
-	my $bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
-	if ($echo == RADIO) {
+    $self->{'debug'}->DEBUGMAX([$type,$echo,$line]);
+    $self->output($line) if ($line ne '');
+    my $mode = 'ANSI';
+    my $bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
+    if ($echo == RADIO) {
         my $regexp = join('',@{$type->{'choices'}});
-		$self->{'debug'}->DEBUGMAX([$regexp]);
-		while ($key ne chr(13) && $key ne chr(3)) {
-		    if (length($line) <= $limit) {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				return('') if (defined($key) && $key eq chr(3));
-				if (defined($key) && $key ne '') {
-					if ($key eq $bs || $key eq chr(127)) {
-						my $len = length($line);
-						if ($len > 0) {
-							$self->output("$key $key");
-							chop($line);
-						}
-					} elsif ($regexp =~ /$key/i) {
-						$self->output(uc($key));
-						$line .= uc($key);
-					} else {
-						$self->output('[% RING BELL %]');
-					}
-				}
-			} else {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				if (defined($key) && $key eq chr(3)) {
-					return('');
-				}
-				if (defined($key) && ($key eq $bs)) {
-					$key = $bs;
-					$self->output("$key $key");
-					chop($line);
-				} else {
-					$self->output('[% RING BELL %]');
-				}
-			}
-		}
-	} elsif ($echo == NUMERIC) {
-		while ($key ne chr(13) && $key ne chr(3)) {
-			if (length($line) <= $limit) {
-				$key = $self->sysop_get_key(NUMERIC, BLOCKING);
-				return('') if (defined($key) && $key eq chr(3));
-				if (defined($key) && $key ne '') {
-					if ($key eq $bs || $key eq chr(127)) {
-						my $len = length($line);
-						if ($len > 0) {
-							$self->output("$key $key");
-							chop($line);
-						}
-					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]/) {
-						$self->output($key);
-						$line .= $key;
-					} else {
-						$self->output('[% RING BELL %]');
-					}
-				}
-			} else {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				if (defined($key) && $key eq chr(3)) {
-					return('');
-				}
-				if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-					$key = $bs;
-					$self->output("$key $key");
-					chop($line);
-				} else {
-					$self->output('[% RING BELL %]');
-				}
-			}
-		}
-	} elsif ($echo == HOST) {
-		while ($key ne chr(13) && $key ne chr(3)) {
-			if (length($line) <= $limit) {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				return('') if (defined($key) && $key eq chr(3));
-				if (defined($key) && $key ne '') {
-					if ($key eq $bs || $key eq chr(127)) {
-						my $len = length($line);
-						if ($len > 0) {
-							$self->output("$key $key");
-							chop($line);
-						}
-					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
-						$self->output(lc($key));
-						$line .= lc($key);
-					} else {
-						$self->output('[% RING BELL %]');
-					}
-				}
-			} else {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				if (defined($key) && $key eq chr(3)) {
-					return('');
-				}
-				if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-					$key = $bs;
-					$self->output("$key $key");
-					chop($line);
-				} else {
-					$self->output('[% RING BELL %]');
-				}
-			}
-		}
-	} else {
-		while ($key ne chr(13) && $key ne chr(3)) {
-			if (length($line) <= $limit) {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				return('') if (defined($key) && $key eq chr(3));
-				if (defined($key) && $key ne '') {
-					if ($key eq $bs) {
-						my $len = length($line);
-						if ($len > 0) {
-							$self->output("$key $key");
-							chop($line);
-						}
-					} elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
-						$self->output($key);
-						$line .= $key;
-					} else {
-						$self->output('[% RING BELL %]');
-					}
-				}
-			} else {
-				$key = $self->sysop_get_key(SILENT, BLOCKING);
-				if (defined($key) && $key eq chr(3)) {
-					return('');
-				}
-				if (defined($key) && ($key eq $bs)) {
-					$key = $bs;
-					$self->output("$key $key");
-					chop($line);
-				} else {
-					$self->output('[% RING BELL %]');
-				}
-			}
-		}
-	}
-	threads->yield();
-	$line = '' if ($key eq chr(3));
-	print "\n";
-	$self->{'CACHE'}->set('SHOW_STATUS', TRUE);
-	return($line);
+        $self->{'debug'}->DEBUGMAX([$regexp]);
+        while ($key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                return('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($regexp =~ /$key/i) {
+                        $self->output(uc($key));
+                        $line .= uc($key);
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                }
+            } else {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            }
+        }
+    } elsif ($echo == NUMERIC) {
+        while ($key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->sysop_get_key(NUMERIC, BLOCKING);
+                return('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]/) {
+                        $self->output($key);
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                }
+            } else {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            }
+        }
+    } elsif ($echo == HOST) {
+        while ($key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                return('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
+                        $self->output(lc($key));
+                        $line .= lc($key);
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                }
+            } else {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            }
+        }
+    } else {
+        while ($key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                return('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+                        $self->output($key);
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                }
+            } else {
+                $key = $self->sysop_get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            }
+        }
+    }
+    threads->yield();
+    $line = '' if ($key eq chr(3));
+    print "\n";
+    $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
+    return($line);
 }
 
 sub sysop_user_delete {
@@ -1587,58 +1621,172 @@ sub sysop_user_edit {
 
     if (defined($user_row)) {
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-        my $valsize = 1;
-        foreach my $fld (keys %{ $user_row }) {
-            $valsize = max($valsize,length($user_row->{$fld}));
-        }
-        $valsize = min($valsize,$wsize - 29);
-        my $table = Text::SimpleTable->new(6, 16, $valsize);
-        $table->row('CHOICE', 'FIELD', 'VALUE');
-        $table->hr();
-        my $count = 0;
-        my %choice;
-        foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
-            if ($field =~ /_time|fullname|_category|id/) {
-                $table->row(' ', $field, $user_row->{$field} . '');
-            } else {
-                if ($field ne 'id' && $user_row->{$field} =~ /^(0|1)$/) {
-                    $user_row->{$field} = $self->sysop_true_false($user_row->{$field}, 'YN');
-                } elsif ($field eq 'timeout') {
-                    $user_row->{$field} = $user_row->{$field} . ' Minutes';
-                }
-                $count++ if ($key_exit eq $choices[$count]);
-                $table->row($choices[$count], $field, $user_row->{$field} . '');
-                $choice{ $choices[$count] } = $field;
-                $count++;
-            }
-        }
-        print $table->boxes->draw(), "\n";
-        $self->sysop_show_choices($mapping);
-        print "\n", $self->sysop_prompt('Choose');
-        do {
-            $key = uc($self->sysop_keypress());
-        } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
-        if ($key !~ /$key_exit/i) {
-            print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
-            my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $choice{$key});
-            unless ($new eq '') {
-                $new =~ s/^(Yes|On)$/1/i;
-                $new =~ s/^(No|Off)$/0/i;
-            }
-            if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
-                my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice { $key } . '=? WHERE id=?');
-                $sth->execute($new, $user_row->{'id'});
-                $sth->finish();
-            } else {
-                my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
-                $sth->execute($new, $user_row->{'id'});
-                $sth->finish();
-            }
-        } else {
-            print "BACK\n";
-        }
+		do {
+			my $valsize = 1;
+			foreach my $fld (keys %{ $user_row }) {
+				$valsize = max($valsize,length($user_row->{$fld}));
+			}
+			$valsize = min($valsize,$wsize - 29);
+			my $table = Text::SimpleTable->new(6, 16, $valsize);
+			$table->row('CHOICE', 'FIELD', 'VALUE');
+			$table->hr();
+			my $count = 0;
+			my %choice;
+			foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
+				if ($field =~ /_time|fullname|_category|id/) {
+					$table->row(' ', $field, $user_row->{$field} . '');
+				} else {
+					if ($user_row->{$field} =~ /^(0|1)$/) {
+						$table->row($choices[$count], $field, $self->sysop_true_false($user_row->{$field}, 'YN'));
+					} elsif ($field eq 'access_level') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  USER, VETERAN, JUNIOR SYSOP, SYSOP');
+					} elsif ($field eq 'date_format') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
+					} elsif ($field eq 'baud_rate') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
+					} elsif ($field eq 'text_mode') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  ASCII, ANSI, ATASCII, PETSCII');
+					} elsif ($field eq 'timeout') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  Minutes');
+					} else {
+						$table->row($choices[$count], $field, $user_row->{$field} . '');
+					}
+					$count++ if ($key_exit eq $choices[$count]);
+					$choice{ $choices[$count] } = $field;
+					$count++;
+				}
+			}
+			my $tbl = $table->boxes->draw();
+			while($tbl =~ / (USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
+				my $ch = $1;
+				my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
+				$tbl =~ s/$ch/ $new /g;
+			}
+			$self->output('[% CLS %]' . $tbl . "\n");
+			$self->sysop_show_choices($mapping);
+			print "\n", $self->sysop_prompt('Choose');
+			do {
+				$key = uc($self->sysop_keypress());
+			} until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
+			if ($key !~ /$key_exit/i) {
+				print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
+				my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{$choice{$key}});
+				unless ($new eq '') {
+					$new =~ s/^(Yes|On)$/1/i;
+					$new =~ s/^(No|Off)$/0/i;
+				}
+				$user_row->{$choice{$key}} = $new;
+				if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
+					my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice { $key } . '=? WHERE id=?');
+					$sth->execute($new, $user_row->{'id'});
+					$sth->finish();
+				} else {
+					my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
+					$sth->execute($new, $user_row->{'id'});
+					$sth->finish();
+				}
+			} else {
+				print "BACK\n";
+			}
+		} until ($key =~ /$key_exit/i);
     } elsif ($search ne '') {
         print "User not found!\n\n";
+    }
+    return (TRUE);
+}
+
+sub sysop_new_user_edit {
+    my $self = shift;
+    my $row  = shift;
+    my $file = shift;
+
+    $self->{'debug'}->DEBUG(['SysOp User Edit']);
+    my $mapping = $self->sysop_load_menu($row, $file);
+    print locate($row, 1), cldown, $mapping->{'TEXT'};
+    delete($mapping->{'TEXT'});
+    my ($key_exit) = (keys %{$mapping});
+    my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y );
+    my $key;
+	my @responses;
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE access_level=?');
+    $sth->execute('USER');
+	my $user_row;
+    while($user_row = $sth->fetchrow_hashref()) {
+		push(@responses,$user_row);
+	}
+    $sth->finish();
+
+	$self->{'debug'}->DEBUGMAX(\@responses);
+	my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+    while ($user_row = pop(@responses)) {
+		do {
+			my $valsize = 1;
+			foreach my $fld (keys %{ $user_row }) {
+				$valsize = max($valsize,length($user_row->{$fld}));
+			}
+			$valsize = min($valsize,$wsize - 29);
+			my $table = Text::SimpleTable->new(6, 16, $valsize);
+			$table->row('CHOICE', 'FIELD', 'VALUE');
+			$table->hr();
+			my $count = 0;
+			my %choice;
+			foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
+				if ($field =~ /_time|fullname|_category|id/) {
+					$table->row(' ', $field, $user_row->{$field} . '');
+				} else {
+					if ($user_row->{$field} =~ /^(0|1)$/) {
+						$table->row($choices[$count], $field, $self->sysop_true_false($user_row->{$field}, 'YN'));
+					} elsif ($field eq 'access_level') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  USER, VETERAN, JUNIOR SYSOP, SYSOP');
+					} elsif ($field eq 'date_format') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
+					} elsif ($field eq 'baud_rate') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
+					} elsif ($field eq 'text_mode') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  ASCII, ANSI, ATASCII, PETSCII');
+					} elsif ($field eq 'timeout') {
+						$table->row($choices[$count], $field, $user_row->{$field} . '  Minutes');
+					} else {
+						$table->row($choices[$count], $field, $user_row->{$field} . '');
+					}
+					$count++ if ($key_exit eq $choices[$count]);
+					$choice{ $choices[$count] } = $field;
+					$count++;
+				}
+			}
+			my $tbl = $table->boxes->draw();
+			while($tbl =~ / (USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
+				my $ch = $1;
+				my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
+				$tbl =~ s/$ch/ $new /g;
+			}
+			$self->output('[% CLS %]' . $tbl . "\n");
+			$self->sysop_show_choices($mapping);
+			$self->output("\n" . $self->sysop_prompt('Choose'));
+			do {
+				$key = uc($self->sysop_keypress());
+			} until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
+			if ($key !~ /$key_exit/i) {
+				print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
+				my $new = $self->sysop_get_line(ECHO,1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{$choice{$key}});
+				unless ($new eq '') {
+					$new =~ s/^(Yes|On)$/1/i;
+					$new =~ s/^(No|Off)$/0/i;
+				}
+				$user_row->{$choice{$key}} = $new;
+				if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
+					my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice { $key } . '=? WHERE id=?');
+					$sth->execute($new, $user_row->{'id'});
+					$sth->finish();
+				} else {
+					my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
+					$sth->execute($new, $user_row->{'id'});
+					$sth->finish();
+				}
+			} else {
+				print "BACK\n";
+			}
+		} until($key =~ /$key_exit/i);
     }
     return (TRUE);
 }
@@ -1654,15 +1802,15 @@ sub sysop_user_add {
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     my $table = Text::SimpleTable->new(15, 150);
     my $user_template;
-	my @tmp = grep(!/id|banned|fullname|_time|max_|_category/,@{$self->{'SYSOP ORDER DETAILED'}});
+    my @tmp = grep(!/id|banned|fullname|_time|max_|_category/,@{$self->{'SYSOP ORDER DETAILED'}});
     push(@tmp, 'password');
 
     foreach my $name (@tmp) {
-		my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
+        my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
         if ($name eq 'timeout') {
             $table->row($name, '_' x $size . '   Minutes');
         } elsif ($name eq 'baud_rate') {
-            $table->row($name, '_' x $size . '   300 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL');
+            $table->row($name, '_' x $size . '   300 or 600 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL');
         } elsif ($name =~ /username|given|family|password/) {
             if ($name eq 'given') {
                 $table->row("$name (first)", '_' x $size . '   Cannot be empty');
@@ -1671,10 +1819,10 @@ sub sysop_user_add {
             } else {
                 $table->row($name, '_' x $size . '   Cannot be empty');
             }
-		} elsif ($name eq 'date_format') {
-			$table->row($name, '_' x $size . '   YEAR/MONTH/DAY or MONTH/DAY/YEAR or DAY/MONTH/YEAR');
-		} elsif ($name eq 'access_level') {
-			$table->row($name, '_' x $size . '   USER or VETERAN or JUNIOR SYSOP or SYSOP');
+        } elsif ($name eq 'date_format') {
+            $table->row($name, '_' x $size . '   YEAR/MONTH/DAY or MONTH/DAY/YEAR or DAY/MONTH/YEAR');
+        } elsif ($name eq 'access_level') {
+            $table->row($name, '_' x $size . '   USER or VETERAN or JUNIOR SYSOP or SYSOP');
         } elsif ($name eq 'text_mode') {
             $table->row($name, '_' x $size . '   ANSI or ASCII or ATASCII or PETSCII');
         } elsif ($name eq 'birthday') {
@@ -1688,12 +1836,12 @@ sub sysop_user_add {
         }
         $user_template->{$name} = undef;
     }
-	my $string = $table->boxes->draw();
-    while ($string =~ / (Cannot be empty|YEAR.MM.DD|USER or VETERAN or JUNIOR SYSOP or SYSOP|YEAR.MONTH.DAY or MONTH.DAY.YEAR or DAY.MONTH.YEAR|300 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL|ANSI or ASCII or ATASCII or PETSCII|Minutes|Yes.No or True.False or On.Off or 1.0) /) {
-	    my $ch = $1;
-		my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
-		$string =~ s/$ch/$new/gs;
-	}
+    my $string = $table->boxes->draw();
+    while ($string =~ / (Cannot be empty|YEAR.MM.DD|USER or VETERAN or JUNIOR SYSOP or SYSOP|YEAR.MONTH.DAY or MONTH.DAY.YEAR or DAY.MONTH.YEAR|300 or 600 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL|ANSI or ASCII or ATASCII or PETSCII|Minutes|Yes.No or True.False or On.Off or 1.0) /) {
+        my $ch = $1;
+        my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
+        $string =~ s/$ch/$new/gs;
+    }
     $self->output($string);
     $self->sysop_show_choices($mapping);
     my $column     = 21;
@@ -1737,7 +1885,7 @@ sub sysop_user_add {
         }
         $adjustment++;
     }
-	$self->{'debug'}->DEBUGMAX([$user_template]);
+    $self->{'debug'}->DEBUGMAX([$user_template]);
     if ($self->users_add($user_template)) {
         print "\n\n", colored(['green'], 'SUCCESS'), "\n";
         $self->{'debug'}->DEBUG(['sysop_user_add end']);
@@ -1768,12 +1916,12 @@ sub sysop_validate_fields {
     my $row    = shift;
     my $column = shift;
 
-	my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
+    my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
     if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') {    # cannot be empty
         print locate($row, ($column + $size)), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
         return (FALSE);
-    } elsif ($name eq 'baud_rate' && $val !~ /^(300|1200|2400|4800|9600|FULL)$/i) {
-        print locate($row, ($column + $size)), colored(['red'], ' Only 300,1200,2400,4800,9600,FULL'), locate($row, $column);
+    } elsif ($name eq 'baud_rate' && $val !~ /^(300|600|1200|2400|4800|9600|FULL)$/i) {
+        print locate($row, ($column + $size)), colored(['red'], ' Only 300,600,1200,2400,4800,9600,FULL'), locate($row, $column);
         return (FALSE);
     } elsif ($name =~ /max_/ && $val =~ /\D/i) {
         print locate($row, ($column + $size)), colored(['red'], ' Only Numeric Values'), locate($row, $column);
@@ -2075,13 +2223,13 @@ sub sysop_add_file {
     my $sw = 0;
     my $tw = 0;
     my $sth = $self->{'dbh'}->prepare('SELECT id FROM files WHERE filename=?');
-	my $search;
-	my $root = $self->configuration('BBS ROOT');
-	my $files_path = $self->configuration('FILES PATH');
-	my $file_category = $self->{'USER'}->{'file_category'};
+    my $search;
+    my $root = $self->configuration('BBS ROOT');
+    my $files_path = $self->configuration('FILES PATH');
+    my $file_category = $self->{'USER'}->{'file_category'};
     foreach my $file (@dir) {
         $sth->execute($file);
-		my $rows = $sth->rows();
+        my $rows = $sth->rows();
         if ($rows <= 0) {
             $nw = max(length($file),$nw);
             my $raw_size = (-s "$root/$files_path/$file");
@@ -2089,15 +2237,15 @@ sub sysop_add_file {
             $sw = max(length("$size"),$sw);
             my ($ext,$type) = $self->files_type($file);
             $tw = max(length($type),$tw);
-			$list->{$file}->{'raw_size'} = $raw_size;
+            $list->{$file}->{'raw_size'} = $raw_size;
             $list->{$file}->{'size'}     = $size;
             $list->{$file}->{'type'}     = $type;
-			$list->{$file}->{'ext'}      = uc($ext);
+            $list->{$file}->{'ext'}      = uc($ext);
         }
     }
     $sth->finish();
     if (defined($list)) {
-		my @names = (sort(keys %{$list}));
+        my @names = (sort(keys %{$list}));
         $self->{'debug'}->DEBUGMAX($list);
         my $table = Text::SimpleTable->new($nw, $sw, $tw);
         $table->row('FILE','SIZE','TYPE');
@@ -2107,39 +2255,39 @@ sub sysop_add_file {
         }
         my $text = $table->boxes->draw();
         $self->sysop_pager($text);
-		while(scalar(@names)) {
-			($search) = shift(@names);
-			print $self->sysop_prompt('Which file would you like to add?');
-			$search = $self->sysop_get_line(ECHO, $nw, $search);
-			my $filename = "$root/$files_path/$search";
-			if (-e $filename) {
-				print $self->sysop_prompt('               What is the Title?');
-				my $title       = $self->sysop_get_line(ECHO, 255, '');
+        while(scalar(@names)) {
+            ($search) = shift(@names);
+            print $self->sysop_prompt('Which file would you like to add?');
+            $search = $self->sysop_get_line(ECHO, $nw, $search);
+            my $filename = "$root/$files_path/$search";
+            if (-e $filename) {
+                print $self->sysop_prompt('               What is the Title?');
+                my $title       = $self->sysop_get_line(ECHO, 255, '');
 
-				if (defined($title) && $title ne '') {
-					print $self->sysop_prompt('                Add a description');
-					my $description = $self->sysop_get_line(ECHO, 65535, '');
+                if (defined($title) && $title ne '') {
+                    print $self->sysop_prompt('                Add a description');
+                    my $description = $self->sysop_get_line(ECHO, 65535, '');
 
-					if (defined(description) && $description ne '') {
-						my $head = "\n" .
-						  '[% REVERSE %]    Category [% RESET %] [% FILE CATEGORY %]' . "\n" .
-						  '[% REVERSE %]   File Name [% RESET %] ' . $search . "\n" .
-						  '[% REVERSE %]       Title [% RESET %] ' . $title . "\n" .
-						  '[% REVERSE %] Description [% RESET %] ' . $description . "\n\n" .
-						  $self->sysop_prompt('Is this correct?');
-						print $self->sysop_detokenize($head);
-						if ($self->sysop_decision()) {
-							$sth = $self->{'dbh'}->prepare('INSERT INTO files (filename, title, user_id, category, file_type, description, file_size) VALUES (?,?,1,?,(SELECT id FROM file_types WHERE extension=?),?,?)');
-							$sth->execute($search, $title, $self->{'USER'}->{'file_category'}, $list->{$search}->{'ext'}, $description, $list->{$search}->{'raw_size'});
-							if ($self->{'dbh'}->err) {
-								$self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
-							}
-							$sth->finish();
-						}
-					}
-				}
-			}
-		}
+                    if (defined(description) && $description ne '') {
+                        my $head = "\n" .
+                          '[% REVERSE %]    Category [% RESET %] [% FILE CATEGORY %]' . "\n" .
+                          '[% REVERSE %]   File Name [% RESET %] ' . $search . "\n" .
+                          '[% REVERSE %]       Title [% RESET %] ' . $title . "\n" .
+                          '[% REVERSE %] Description [% RESET %] ' . $description . "\n\n" .
+                          $self->sysop_prompt('Is this correct?');
+                        print $self->sysop_detokenize($head);
+                        if ($self->sysop_decision()) {
+                            $sth = $self->{'dbh'}->prepare('INSERT INTO files (filename, title, user_id, category, file_type, description, file_size) VALUES (?,?,1,?,(SELECT id FROM file_types WHERE extension=?),?,?)');
+                            $sth->execute($search, $title, $self->{'USER'}->{'file_category'}, $list->{$search}->{'ext'}, $description, $list->{$search}->{'raw_size'});
+                            if ($self->{'dbh'}->err) {
+                                $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
+                            }
+                            $sth->finish();
+                        }
+                    }
+                }
+            }
+        }
     } else {
         print colored(['yellow'],'No unmapped files found'),"\n";
         sleep 2;

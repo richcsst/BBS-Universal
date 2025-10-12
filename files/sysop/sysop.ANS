@@ -1,6 +1,6 @@
 # Key | Command | Color | Description
 1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
-2|SYSOP LOGIN|WHITE|Connect as another user
+2|SYSOP LOGIN USER|WHITE|Connect as another user
 B|SYSOP BBS LISTINGS MANAGER|BRIGHT BLUE|BBS Listings Manager
 D|SYSOP STATISTICS|MAGENTA|Display Statistics
 E|SYSOP SHOW ENVIRONMENT|GREEN|Show Environmental Variables
