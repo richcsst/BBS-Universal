@@ -16,8 +16,8 @@ sub ansi_initialize {
         'SOS'       => $esc . 'X',
         'ST'        => $esc . "\\",
         'DCS'       => $esc . 'P',
-		'RING BELL' => chr(7),
-		'BACKSPACE' => chr(8),
+        'RING BELL' => chr(7),
+        'BACKSPACE' => chr(8),
         'RETURN'    => chr(13),
         'LINEFEED'  => chr(10),
         'NEWLINE'   => chr(13) . chr(10),
@@ -142,30 +142,30 @@ sub ansi_initialize {
     # Generate symbols
     my $start  = 0x2010;
     my $finish = 0x2BFF;
-	if (0) {
-		foreach my $u ($start .. $finish) {
-			my $name = charnames::viacode($u);
-			next if ($name eq '');
-			my $char = charnames::string_vianame($name);
-			$char = '?' unless (defined($char));
-			$self->{'ansi_characters'}->{$name} = $char;
-		}
-		$start  = 0x1F300;
-		$finish = 0x1FBFF;
-		foreach my $u ($start .. $finish) {
-			my $name = charnames::viacode($u);
-			next if ($name eq '');
-			my $char = charnames::string_vianame($name);
-			$char = '?' unless (defined($char));
-			$self->{'ansi_characters'}->{$name} = $char;
-		}
-	}
+    if (0) {
+        foreach my $u ($start .. $finish) {
+            my $name = charnames::viacode($u);
+            next if ($name eq '');
+            my $char = charnames::string_vianame($name);
+            $char = '?' unless (defined($char));
+            $self->{'ansi_characters'}->{$name} = $char;
+        }
+        $start  = 0x1F300;
+        $finish = 0x1FBFF;
+        foreach my $u ($start .. $finish) {
+            my $name = charnames::viacode($u);
+            next if ($name eq '');
+            my $char = charnames::string_vianame($name);
+            $char = '?' unless (defined($char));
+            $self->{'ansi_characters'}->{$name} = $char;
+        }
+    }
     return ($self);
 }
 
 sub ansi_decode {
-	my $self = shift;
-	my $text = shift;
+    my $self = shift;
+    my $text = shift;
 
     if (length($text) > 1) {
         while ($text =~ /\[\%\s+LOCATE (\d+),(\d+)\s+\%\]/) {
@@ -194,13 +194,13 @@ sub ansi_decode {
             $text =~ s/\[\%\s+B_RGB $r,$g,$b\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+(COLOR|COLOUR) (\d+)\s+\%\]/) {
-			my $n = $1;
+            my $n = $1;
             my $c = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:5:$c" . 'm';
             $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+(B_COLOR|B_COLOUR) (\d+)\s+\%\]/) {
-			my $n = $1;
+            my $n = $1;
             my $c = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:5:$c" . 'm';
             $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
@@ -220,23 +220,23 @@ sub ansi_decode {
             $text =~ s/\[\%\s+BOX.*?\%\].*?\[\%\s+ENDBOX.*?\%\]/$replace/i;
         }
 
-		while ($text =~ /\[\%\s+(.*?)\s+\%\]/ && (exists($self->{'ansi_sequences'}->{$1}) || defined(charnames::string_vianame($1)))) {
-			my $string = $1;
-			if (exists($self->{'ansi_sequences'}->{$string})) {
-				if ($string =~ /CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
-					my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
-					$text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-				} else {
-					$text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
-				}
-			} else {
-				my $char = charnames::string_vianame($string);
-				$char = '?' unless (defined($char));
-				$text =~ s/\[\%\s+$string\s+\%\]/$char/gi;
-			}
-		}
+        while ($text =~ /\[\%\s+(.*?)\s+\%\]/ && (exists($self->{'ansi_sequences'}->{$1}) || defined(charnames::string_vianame($1)))) {
+            my $string = $1;
+            if (exists($self->{'ansi_sequences'}->{$string})) {
+                if ($string =~ /CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
+                    my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+                    $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
+                } else {
+                    $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
+                }
+            } else {
+                my $char = charnames::string_vianame($string);
+                $char = '?' unless (defined($char));
+                $text =~ s/\[\%\s+$string\s+\%\]/$char/gi;
+            }
+        }
     }
-	return($text);
+    return($text);
 }
 
 sub ansi_output {
@@ -245,7 +245,7 @@ sub ansi_output {
 
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
-	$text = $self->ansi_decode($text);
+    $text = $self->ansi_decode($text);
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 

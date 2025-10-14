@@ -94,12 +94,25 @@ sub news_summary {
         while (my $row = $sth->fetchrow_hashref()) {
             $table->row($row->{'newsdate'}, $row->{'news_title'});
         }
-        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+		my $mode = $self->{'USER'}->{'text_mode'};
+        if ($mode eq 'ANSI') {
             my $text = $table->boxes->draw();
 			my $ch = colored(['bright_yellow'],'DATE');
 			$text =~ s/DATE/$ch/;
 			$ch = colored(['bright_yellow'],'TITLE');
 			$text =~ s/TITLE/$ch/;
+			$self->output($self->color_border($text,'BRIGHT BLUE'));
+		} elsif ($mode eq 'ATASCII') {
+            my $text = $self->color_border($table->boxes->draw(),'BLUE');
+			$self->output($text);
+		} elsif ($mode eq 'PETSCII') {
+            my $text = $table->boxes->draw();
+			while ($text =~ / (DATE|TITLE) /s) {
+				my $ch = $1;
+				my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
+				$text =~ s/ $ch / $new /gs;
+			}
+			$text = $self->color_border($text, 'LIGHT BLUE');
 			$self->output($text);
         } else {
             $self->output($table->draw());

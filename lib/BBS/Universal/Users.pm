@@ -422,12 +422,23 @@ sub users_list {
     }
     $sth->finish;
     my $text;
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+	my $mode = $self->{'USER'}->{'text_mode'};
+    if ($mode eq 'ANSI') {
         $text = $table->boxes->draw();
         foreach my $orig ('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS', 'BDAY', 'ACCOMPLISHMENTS') {
-            my $ch = colored(['bright_yellow'], $orig);
+            my $ch = '[% BRIGHT YELLOW %]' . $orig . '[% RESET %]';
             $text =~ s/$orig/$ch/gs;
         }
+		$text = $self->color_border($text,'GREEN');
+	} elsif ($mode eq 'ATASCII') {
+		$text = $self->color_border($table->boxes->draw(),'GREEN');
+	} elsif ($mode eq 'PETSCII') {
+        $text = $table->boxes->draw();
+        foreach my $orig ('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS', 'BDAY', 'ACCOMPLISHMENTS') {
+            my $ch = '[% YELLOW %]' . $orig . '[% RESET %]';
+            $text =~ s/$orig/$ch/gs;
+        }
+		$text = $self->color_border($text,'GREEN');
     } else {
         $text = $table->draw();
     }

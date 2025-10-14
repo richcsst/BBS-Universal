@@ -290,15 +290,19 @@ sub logo {
 
 	$DEBUG->DEBUG(['Logo']);
     $CACHE->set('ROW_ADJUST', 0);
-
+	my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
+	my $banner = <<'BANNER';
+  ____  ____ ____    _   _       _                          _  │ [% VERSION %]
+ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | │ Written By Richard Kelsch
+ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | │ Copyright © 2023-2025 Richard Kelsch
+ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | │ All Rights Reserved
+ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| │ Licensed Under The Perl Artistic License
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷
+BANNER
+    $banner =~ s/\[\% VERSION \%\]/$version/s;
     print setscroll(1, $hsize), locate(1, 1);
-    print colored(['red','on_black'], clline .         '  ____  ____ ____    _   _       _                          _  ') . colored(['on_black'],sprintf('│ Version %.03f', $BBS::Universal::VERSION)), "\n";
-    print colored(['yellow','on_black'], clline .      ' | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | '), colored(['on_black'], '│ Written By Richard Kelsch'), "\n";
-    print colored(['green','on_black'], clline .      q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }), colored(['on_black'], '│ Copyright © 2023-2025 Richard Kelsch'), "\n";
-    print colored(['magenta','on_black'], clline .     ' | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | '), colored(['on_black'], '│ All Rights Reserved'), "\n";
-    print colored(['bright_blue','on_black'], clline . ' |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| '), colored(['on_black'], '│ Licensed under the GNU Public License Version 3'), "\n";
-    print locate(6, 1), colored(['on_black'], '━' x $wsize);
-    print locate(6, 64), colored(['on_black'],'┷');
+	$banner .= locate(6,65) . '━' x ($wsize - 64);
+	print colored(['bright_white','on_black'],$banner);
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
 }

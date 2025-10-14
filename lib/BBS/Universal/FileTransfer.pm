@@ -65,8 +65,25 @@ sub files_list_summary {
         foreach my $record (@files) {
             $table->row($record->{'filename'}, $record->{'title'});
         }
-        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output("\n" . $table->boxes->draw());
+		my $mode = $self->{'USER'}->{'text_mode'};
+        if ($mode eq 'ANSI') {
+			my $text = $table->boxes->draw();
+			while ($text =~ / (FILENAME|TITLE) /s) {
+				my $ch = $1;
+				my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+				$text =~ s/ $ch / $new /gs;
+			}
+            $self->output("\n" . $self->color_border($text,'MAGENTA'));
+		} elsif ($mode eq 'ATASCII') {
+            $self->output("\n" . $self->color_border($table->boxes->draw(),'MAGENTA'));
+		} elsif ($mode eq 'PETSCII') {
+			my $text = $table->boxes->draw();
+			while ($text =~ / (FILENAME|TITLE) /s) {
+				my $ch = $1;
+				my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
+				$text =~ s/ $ch / $new /gs;
+			}
+            $self->output("\n" . $self->color_border($text,'PURPLE'));
         } else {
             $self->output("\n" . $table->draw());
         }
@@ -161,8 +178,25 @@ sub files_list_detailed {
 				$table->row($record->{'title'}, $record->{'filename'}, sprintf('%' . $max_size . 's',format_number($record->{'file_size'})), ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'}, $record->{'username'}, $record->{'type'}, $record->{'uploaded'}, sprintf('%u', $record->{'endorsements'}));
 			}
 		}
-        if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output("\n" . $table->boxes->draw());
+		my $mode = $self->{'USER'}->{'text_mode'};
+        if ($mode eq 'ANSI') {
+			my $text = $table->boxes->draw();
+			while ($text =~ / (FILENAME|TITLE) /s) {
+				my $ch = $1;
+				my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+				$text =~ s/ $ch / $new /gs;
+			}
+            $self->output("\n" . $self->color_border($text,'MAGENTA'));
+		} elsif ($mode eq 'ATASCII') {
+            $self->output("\n" . $self->color_border($table->boxes->draw(),'MAGENTA'));
+		} elsif ($mode eq 'PETSCII') {
+			my $text = $table->boxes->draw();
+			while ($text =~ / (FILENAME|TITLE) /s) {
+				my $ch = $1;
+				my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
+				$text =~ s/ $ch / $new /gs;
+			}
+            $self->output("\n" . $self->color_border($text,'PURPLE'));
         } else {
             $self->output("\n" . $table->draw());
         }

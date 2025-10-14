@@ -5,7 +5,7 @@ M|ACCOUNT MANAGER|WHITE|USER|Manage Your Account
 F|FILES|GREEN|USER|Go To Files
 N|NEWS|CYAN|USER|System News
 A|ABOUT|YELLOW|USER|About This BBS
-U|LIST USERS|BRIGHT WHITE|USER|List Users
+U|LIST USERS|ORANGE|USER|List Users
 X|DISCONNECT|RED|USER|Disconnect
 ---
 [% RED     %]       [% BLACK LOWER RIGHT TRIANGLE %][% B_RED     %] [% RESET %]   __  __       _          __  __                    [% B_RED     %] [% RESET %][% RED %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]

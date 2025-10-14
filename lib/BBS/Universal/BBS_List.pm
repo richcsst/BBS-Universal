@@ -45,22 +45,50 @@ sub bbs_list_all {
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
     $sth->execute();
     my @listing;
-    my ($name_size, $hostname_size, $poster_size) = (1, 1, 6);
+    my ($name_size, $hostname_size, $poster_size) = (4, 14, 6);
+	my $mode = $self->{'USER'}->{'text_mode'};
     while (my $row = $sth->fetchrow_hashref()) {
         push(@listing, $row);
         $name_size     = max(length($row->{'bbs_name'}),     $name_size);
         $hostname_size = max(length($row->{'bbs_hostname'}), $hostname_size);
         $poster_size   = max(length($row->{'bbs_poster'}),   $poster_size);
     }
-    my $table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
-    $table->row('NAME', 'HOSTNAME', 'PORT', 'POSTER');
-    $table->hr();
-    foreach my $line (@listing) {
-        $table->row($line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
-    }
-    my $response;
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+	my $table;
+	if ($self->{'USER'}->{'max_columns'} > 40) {
+		$table = Text::SimpleTable->new($name_size, $hostname_size, 5, $poster_size);
+		$table->row('NAME', 'HOSTNAME/PHONE', 'PORT', 'POSTER');
+		$table->hr();
+		foreach my $line (@listing) {
+			$table->row($line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
+		}
+	} else {
+		$table = Text::SimpleTable->new($name_size, $hostname_size);
+		$table->row('NAME', 'HOSTNAME/PHONE');
+		$table->hr();
+		foreach my $line (@listing) {
+			$table->row($line->{'bbs_name'}, $line->{'bbs_hostname'} . ':' . $line->{'bbs_port'});
+		}
+	}
+	my $response;
+    if ($mode eq 'ANSI') {
         $response = $table->boxes->draw();
+		while ($response =~ / (NAME|HOSTNAME.PHONE|PORT|POSTER) /) {
+			my $ch = $1;
+			my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+			$response =~ s/ $ch / $new /gs;
+		}
+		$response = $self->color_border($response,'BRIGHT BLUE');
+	} elsif ($mode eq 'ATASCII') {
+        $response = $table->boxes->draw();
+		$response = $self->color_border($response,'BRIGHT BLUE'); # color is ignored for ATASCII
+	} elsif ($mode eq 'PETSCII') {
+        $response = $table->boxes->draw();
+		while ($response =~ / (NAME|HOSTNAME.PHONE|PORT|POSTER) /) {
+			my $ch = $1;
+			my $new = '[% YELLOW %]' . $ch . '[% WHITE %]';
+			$response =~ s/ $ch / $new /gs;
+		}
+		$response = $self->color_border($response,'BRIGHT BLUE');
     } else {
         $response = $table->draw();
     }

@@ -12,4 +12,4 @@ Z|BACK|WHITE|Return To Main Menu
 [% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %] [% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
 [% YELLOW %]                                            |___/[% RESET %]
 
-[% B_WHITE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]
+[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]

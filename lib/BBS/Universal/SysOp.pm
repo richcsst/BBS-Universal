@@ -543,10 +543,12 @@ sub sysop_list_commands {
     $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
     $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
     $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
+    $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
     $text =~ s/│(\s+)(OVERLINE)  /│$1\[\% OVERLINE \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(SUPERSCRIPT)  /│$1\[\% SUPERSCRIPT \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(SUBSCRIPT)  /│$1\[\% SUBSCRIPT \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
+	$text = $self->sysop_color_border($text, 'PINK');
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands
 
@@ -658,7 +660,12 @@ sub sysop_pager {
 
     $self->{'debug'}->DEBUG(['SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-    my @lines  = split(/\n/, $text);
+	my @lines;
+	if ($text =~ /\[\% NEWLINE \%\]/) {
+		@lines = split(/\[\% NEWLINE \%\]/s, $text);
+	} else {
+		@lines  = split(/\n/s, $text);
+	}
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
     my $scroll = TRUE;
     my $row    = $size - $offset;
@@ -860,6 +867,7 @@ sub sysop_list_users {
         $string =~ s/ NAME / $ch /;
         $ch = colored(['bright_yellow'], 'VALUE');
         $string =~ s/ VALUE / $ch /;
+		$string = $self->sysop_color_border($string, 'CYAN');
         $self->sysop_pager("$string\n");
     } else {    # Horizontal
         my @hw;
@@ -887,6 +895,7 @@ sub sysop_list_users {
         } ## end while (my $row = $sth->fetchrow_hashref...)
         $sth->finish();
         my $string = $table->boxes->draw();
+		$string = $self->sysop_color_border($string, 'CYAN');
         $self->sysop_pager("$string\n");
     } ## end else [ if ($list_mode =~ /VERTICAL/)]
     print 'Press a key to continue ... ';
@@ -941,11 +950,83 @@ sub sysop_list_files {
         $category = $row->{'category'};
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
-    print "\nCATEGORY:  ", $category, "\n", $table->boxes->draw(), "\n", 'Press a Key To Continue ...';
+	$self->output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
+	my $tbl = $table->boxes->draw();
+	$tbl = $self->sysop_color_border($tbl, 'YELLOW');
+	while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED) /) {
+		my $ch = $1;
+		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+		$tbl =~ s/ $ch / $new /gs;
+	}
+	$self->output("\n$tbl\nPress a Key To Continue ...");
     $self->sysop_keypress();
     print " BACK\n";
     return (TRUE);
 } ## end sub sysop_list_files
+
+sub sysop_color_border {
+	my $self  = shift;
+	my $tbl   = shift;
+	my $color = shift;
+
+	$tbl =~ s/\n/[% NEWLINE %]/gs;
+	if ($tbl =~ /(─)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(│)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┌)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(└)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┬)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┐)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(├)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┘)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┼)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┤)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	if ($tbl =~ /(┴)/) {
+		my $ch = $1;
+		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		$tbl =~ s/$ch/$new/gs;
+	}
+	return($tbl);
+}
 
 sub sysop_select_file_category {
     my $self = shift;
@@ -1117,6 +1198,7 @@ sub sysop_view_configuration {
         $output =~ s/CONFIG NAME/$ch/gs;
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
+		$output = $self->sysop_color_border($output, 'RED');
     }
     if ("$view" eq 'string') {
         return ($output);
@@ -1959,7 +2041,7 @@ sub sysop_list_bbs {
     foreach my $line (@listing) {
         $table->row($line->{'bbs_id'}, $line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
     }
-    print $table->boxes->draw();
+    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
     print 'Press a key to continue... ';
     $self->sysop_keypress();
 } ## end sub sysop_list_bbs

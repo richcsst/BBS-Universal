@@ -5,67 +5,100 @@ sub petscii_initialize {
     my $self = shift;
 
     $self->{'petscii_sequences'} = {
-        'RETURN'             => chr(13),
-        'LINEFEED'           => chr(10),
-        'NEWLINE'            => chr(13) . chr(10),
-        'CLEAR'              => chr(hex('0x93')),
-        'CLS'                => chr(hex('0x93')),
-		'BACKSPACE'          => chr(20),
-		'DELETE'             => chr(20),
-        'WHITE'              => chr(5),
-        'RESET'              => chr(5),
-        'BLACK'              => chr(hex('0x90')),
-        'RED'                => chr(hex('0x1C')),
-        'GREEN'              => chr(hex('0x1E')),
-        'BLUE'               => chr(hex('0x1F')),
-        'DARK PURPLE'        => chr(hex('0x81')),
-        'UNDERLINE ON'       => chr(2),
-        'UNDERLINE OFF'      => chr(hex('0x82')),
-        'BLINK ON'           => chr(hex('0x0F')),
-        'BLINK OFF'          => chr(hex('0x8F')),
-        'REVERSE ON'         => chr(hex('0x12')),
-        'REVERSE OFF'        => chr(hex('0x92')),
-        'BROWN'              => chr(hex('0x95')),
-        'PINK'               => chr(hex('0x96')),
-        'CYAN'               => chr(hex('0x97')),
-        'LIGHT GRAY'         => chr(hex('0x98')),
-        'LIGHT GREEN'        => chr(hex('0x99')),
-        'LIGHT BLUE'         => chr(hex('0x9A')),
-        'GRAY'               => chr(hex('0x9B')),
-        'PURPLE'             => chr(hex('0x9C')),
-        'YELLOW'             => chr(hex('0x9E')),
-        'CYAN'               => chr(hex('0x9F')),
-        'UP'                 => chr(hex('0x91')),
-        'DOWN'               => chr(hex('0x11')),
-        'LEFT'               => chr(hex('0x9D')),
-        'RIGHT'              => chr(hex('0x1D')),
-        'ESC'                => chr(hex('0x1B')),
-        'LINE FEED'          => chr(hex('0x0A')),
-        'TAB'                => chr(9),
-        'RING BELL'          => chr(7),
-		'SPADE'              => chr(hex('0x61')),
-		'CENTER DOT'         => chr(hex('0x71')),
-		'HEART'              => chr(hex('0x73')),
-        'DITHERED FULL'      => chr(hex('0x7C')),
-        'DITHERED FULL REVERSE' => chr(hex('0xFC')),
-        'PIPE'               => chr(hex('0x7D')),
-        'BACK SLASH'         => chr(hex('0x7F')),
-        'LEFT HALF'          => chr(hex('0xA1')),
-        'BOTTOM BOX'         => chr(hex('0xA2')),
-        'TOP HORIZONTAL BAR'    => chr(hex('0xA3')),
-        'BOTTOM HORIZONTAL BAR' => chr(hex('0xA4')),
-        'LEFT VERTICAL BAR'  => chr(hex('0xA5')),
-        'RIGHT VERTICAL BAR' => chr(hex('0xA6')),
-        'DITHERED LEFT'      => chr(hex('0xA7')),
-        'DITHERED LEFT REVERSE' => chr(hex('0xDC')),
-        'DITHERED BOTTOM'    => chr(hex('0xA8')),
-        'DITHERED BOTTOM REVERSE' => chr(hex('0xE8')),
-        'FORWARD SLASH'      => chr(hex('0xA9')),
-		'UP ARROW'           => chr(hex('0x5E')),
-		'LEFT ARROW'         => chr(hex('0x5F')),
+        'UNDERLINE ON' => chr(2),
+        'WHITE'        => chr(5),
+        'RESET'        => chr(5),
+        'RING BELL'    => chr(7),
+        'TAB'          => chr(9),
+        'RETURN'       => chr(13),
+        'LINEFEED'     => chr(10),
+        'NEWLINE'      => chr(13) . chr(10),
+        'CLEAR'        => chr(0x93),
+        'CLS'          => chr(0x93),
+        'BACKSPACE'    => chr(20),
+        'DELETE'       => chr(20),
+
+        'BLACK'         => chr(0x90),
+        'RED'           => chr(0x1C),
+        'GREEN'         => chr(0x1E),
+        'BLUE'          => chr(0x1F),
+        'DARK PURPLE'   => chr(0x81),
+        'UNDERLINE OFF' => chr(0x82),
+        'BLINK ON'      => chr(0x0F),
+        'BLINK OFF'     => chr(0x8F),
+        'REVERSE ON'    => chr(0x12),
+        'REVERSE OFF'   => chr(0x92),
+        'BROWN'         => chr(0x95),
+        'PINK'          => chr(0x96),
+        'CYAN'          => chr(0x97),
+        'LIGHT GRAY'    => chr(0x98),
+        'LIGHT GREEN'   => chr(0x99),
+        'LIGHT BLUE'    => chr(0x9A),
+        'GRAY'          => chr(0x9B),
+        'PURPLE'        => chr(0x9C),
+        'YELLOW'        => chr(0x9E),
+        'CYAN'          => chr(0x9F),
+        'UP'            => chr(0x91),
+        'DOWN'          => chr(0x11),
+        'LEFT'          => chr(0x9D),
+        'RIGHT'         => chr(0x1D),
+        'ESC'           => chr(0x1B),
+        'LINE FEED'     => chr(0x0A),
+
+        'BRITISH POUND'                => chr(0x5C),    # £
+        'UP ARROW'                     => chr(0x5E),    # ↑
+        'LEFT ARROW'                   => chr(0x5F),    # ←
+        'HORIZONTAL BAR'               => chr(0x60),    # ─
+        'SPADE'                        => chr(0x61),    # ♠
+        'TOP RIGHT ROUNDED CORNER'     => chr(0x69),    # ╮
+        'BOTTOM LEFT ROUNDED CORNER'   => chr(0x6A),    # ╰
+        'BOTTOM RIGHT ROUNDED CORNER'  => chr(0x6B),    # ╯
+        'GIANT BACK SLASH'             => chr(0x6D),    # ╲
+        'GIANT FORWARD SLASH'          => chr(0x6E),    # ╱
+        'CENTER DOT'                   => chr(0x71),    # •
+        'HEART'                        => chr(0x73),    # ♥
+        'TOP LEFT ROUNDED CORNER'      => chr(0x75),    # ╭
+        'GIANT X'                      => chr(0x76),    # ╳
+        'THIN CIRCLE'                  => chr(0x77),    # ○
+        'CLUB'                         => chr(0x78),    # ♣
+        'DIAMOND'                      => chr(0x7A),    # ♦
+        'CROSS BAR'                    => chr(0x7B),    # ┼
+        'GIANT VERTICAL BAR'           => chr(0x7D),    # │
+        'PI'                           => chr(0x7E),    # π
+        'BOTTOM LEFT WEDGE'            => chr(0x7F),    # ◥
+        'DITHERED FULL'                => chr(0x7C),
+        'LEFT HALF'                    => chr(0xA1),    # ▌
+        'BOTTOM BOX'                   => chr(0xA2),    # ▄
+        'TOP HORIZONTAL BAR'           => chr(0xA3),    # ▔
+        'BOTTOM HORIZONTAL BAR'        => chr(0xA4),    # ▁
+        'LEFT VERTICAL BAR'            => chr(0xA5),    #
+        'DITHERED BOX'                 => chr(0xA6),    # ▒▏
+        'RIGHT VERTICAL BAR'           => chr(0xA7),    # ▕
+        'DITHERED LEFT'                => chr(0xA8),
+        'BOTTOM RIGHT WEDGE'           => chr(0xA9),    # ◤
+        'VERTICAL BAR MIDDLE LEFT'     => chr(0xAB),    # ├
+        'BOTTOM RIGHT BOX'             => chr(0xAC),    # ▗
+        'BOTTOM LEFT CORNER'           => chr(0xAD),    # └
+        'TOP RIGHT CORNER'             => chr(0xAE),    # ┐
+        'HORIZONTAL BAR BOTTOM'        => chr(0xAF),    # ▂
+        'TOP LEFT CORNER'              => chr(0xB0),    # ┌
+        'HORIZONTAL BAR MIDDLE BOTTOM' => chr(0xB1),    # ┴
+        'HORIZONTAL BAR MIDDLE TOP'    => chr(0xB2),    # ┬
+        'VERTICAL BAR MIDDLE RIGHT'    => chr(0xB3),    # ┤
+        'VERTICAL BOX LEFT'            => chr(0xB4),    # ▎
+        'LEFT HALF BOX'                => chr(0xB5),    # ▍
+        'BOTTOM HALF BOX'              => chr(0xB9),    # ▃
+        'BOTTOM LEFT BOX'              => chr(0xBB),    # ▖
+        'TOP RIGHT BOX'                => chr(0xBC),    # ▝
+        'BOTTOM RIGHT CORNER'          => chr(0xBD),    # ┘
+        'TOP LEFT BOX'                 => chr(0xBE),    # ▘
+        'TOP LEFT BOTTOM RIGHT BOX'    => chr(0xBF),    # ▚
+        'DITHERED LEFT REVERSE'        => chr(0xDC),
+        'DITHERED BOTTOM REVERSE'      => chr(0xE8),
+        'DITHERED FULL REVERSE'        => chr(0xFC),
     };
     return ($self);
-}
+} ## end sub petscii_initialize
 
 sub petscii_output {
     my $self = shift;
@@ -82,35 +115,35 @@ sub petscii_output {
             } else {
                 $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
             }
-        }
-    }
+        } ## end foreach my $string (keys %{...})
+    } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
     if ($self->{'local_mode'} || $self->{'sysop'} || $self->{'USER'}->{'baud_rate'} eq 'FULL') {
-		$text =~ s/\n/$nl/gs;
-		if ($self->{'local_mode'} || $self->{'sysop'}) {
-			print STDOUT $text;
-		} else {
-			my $handle = $self->{'cl_socket'};
-			print $handle $text;
-		}
-		$|=1;
-	} else {
-		foreach my $count (0 .. $s_len) {
-			my $char = substr($text, $count, 1);
-			if ($char eq "\n") {
-				if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-					$char = $nl;
-				}
-				$lines--;
-				if ($lines <= 0) {
-					$lines = $mlines;
-					last unless ($self->scroll($nl));
-				}
-			}
-			$self->send_char($char);
-		}
-    }
+        $text =~ s/\n/$nl/gs;
+        if ($self->{'local_mode'} || $self->{'sysop'}) {
+            print STDOUT $text;
+        } else {
+            my $handle = $self->{'cl_socket'};
+            print $handle $text;
+        }
+        $| = 1;
+    } else {
+        foreach my $count (0 .. $s_len) {
+            my $char = substr($text, $count, 1);
+            if ($char eq "\n") {
+                if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+                    $char = $nl;
+                }
+                $lines--;
+                if ($lines <= 0) {
+                    $lines = $mlines;
+                    last unless ($self->scroll($nl));
+                }
+            } ## end if ($char eq "\n")
+            $self->send_char($char);
+        } ## end foreach my $count (0 .. $s_len)
+    } ## end else [ if ($self->{'local_mode'...})]
     return (TRUE);
-}
+} ## end sub petscii_output
 1;

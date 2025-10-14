@@ -237,6 +237,7 @@ sub new {    # Always call with the socket as a parameter
 sub populate_common {
     my $self = shift;
 
+	my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     if (exists($ENV{'EDITOR'})) {
         $self->{'EDITOR'} = $ENV{'EDITOR'};
     } else {
@@ -258,8 +259,8 @@ sub populate_common {
     $self->{'VERSIONS'} = $self->parse_versions();
     $self->{'USER'}     = {
         'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
-        'max_columns' => 80,
-        'max_rows'    => 25,
+        'max_columns' => $wsize,
+        'max_rows'    => $hsize - 7,
     };
     $self->{'debug'}->DEBUG(['Initializing all libraries']);
     $self->db_initialize();
@@ -1681,6 +1682,186 @@ sub check_access_level {
     return (FALSE);
 } ## end sub check_access_level
 
+sub color_border {
+	my $self  = shift;
+	my $tbl   = shift;
+	my $color = shift;
+
+	my $mode = $self->{'USER'}->{'text_mode'};
+	$tbl =~ s/\n/[% NEWLINE %]/gs;
+	if ($mode eq 'ANSI') {
+		if ($tbl =~ /(─)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(│)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┌)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(└)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┬)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┐)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(├)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┘)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┼)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┤)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┴)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+	} elsif ($mode eq 'ATASCII') {
+		if ($tbl =~ /(─)/) {
+			my $ch = $1;
+			my $new = '[% HORIZONTAL BAR %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(│)/) {
+			my $ch = $1;
+			my $new = '[% MIDDLE VERTICAL BAR %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┌)/) {
+			my $ch = $1;
+			my $new = '[% TOP LEFT CORNER %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(└)/) {
+			my $ch = $1;
+			my $new = '[% BOTTOM LEFT CORNER %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┬)/) {
+			my $ch = $1;
+			my $new = '[% HORIZONTAL BAR MIDDLE TOP %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┐)/) {
+			my $ch = $1;
+			my $new = '[% TOP RIGHT CORNER %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(├)/) {
+			my $ch = $1;
+			my $new = '[% VERTICAL BAR MIDDLE RIGHT %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┘)/) {
+			my $ch = $1;
+			my $new = '[% BOTTOM RIGHT CORNER %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┼)/) {
+			my $ch = $1;
+			my $new = '[% CROSS BAR %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┤)/) {
+			my $ch = $1;
+			my $new = '[% VERTICAL BAR MIDDLE RIGHT %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┴)/) {
+			my $ch = $1;
+			my $new = '[% HORIZONTAL BAR MIDDLE BOTTOM %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+	} elsif ($mode eq 'PETSCII') {
+		$color = 'BROWN' if ($color eq 'ORANGE');
+		if ($tbl =~ /(─)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% HORIZONTAL BAR %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(│)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% VERTICAL BAR %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┌)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% TOP LEFT CORNER %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(└)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% BOTTOM LEFT CORNER %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┬)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE TOP %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┐)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% TOP RIGHT CORNER %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(├)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% VERTICAL BAR MIDDLE LEFT %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┘)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% BOTTOM RIGHT CORNER %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┼)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% CROSS BAR %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┤)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE RIGHT %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+		if ($tbl =~ /(┴)/) {
+			my $ch = $1;
+			my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE BOTTOM %][% RESET %]';
+			$tbl =~ s/$ch/$new/gs;
+		}
+	}
+	return($tbl);
+}
+	
 =head1 LICENSE
 
 This program is free software; you can redistribute it and/or modify it under the terms of the the Artistic License (2.0). You may obtain a copy of the full license at:
