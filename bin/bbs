@@ -50,7 +50,7 @@ use Cache::Memcached::Fast;
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.004';
+    our $VERSION = '0.005';
 }
 
 binmode(STDOUT, ':encoding(UTF-8)');
@@ -278,10 +278,10 @@ exit(0);
 sub shutdown_message {
     logo();
 	$DEBUG->DEBUG(['Shutdown Complete']);
-    print q{
+    print colored(['red'],q{
  ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
  ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
- ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸}, "\n\n";
+ ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸}), "\n\n";
 } ## end sub shutdown_message
 
 sub logo {
@@ -291,18 +291,23 @@ sub logo {
 	$DEBUG->DEBUG(['Logo']);
     $CACHE->set('ROW_ADJUST', 0);
 	my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
-	my $banner = <<'BANNER';
-  ____  ____ ____    _   _       _                          _  │ [% VERSION %]
- | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | │ Written By Richard Kelsch
- |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | │ Copyright © 2023-2025 Richard Kelsch
- | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | │ All Rights Reserved
- |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| │ Licensed Under The Perl Artistic License
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷
-BANNER
+	my $banner  = colored(['bright_white'],q{  ____  ____ ____    _   _       _                          _  }) . '│ [% VERSION %]' . "\n";
+    $banner    .= colored(['bright_white'],q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | }) . '│ Written By Richard Kelsch' . "\n";
+    $banner    .= colored(['bright_white'],q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }) . '│ Copyright © 2023-2025 Richard Kelsch' . "\n";
+    $banner    .= colored(['bright_white'],q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | }) . '│ All Rights Reserved' . "\n";
+    $banner    .= colored(['bright_white'],q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| }) . '│ Licensed Under The Perl Artistic License' . "\n";
+    $banner    .= q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷} . "\n";
+
     $banner =~ s/\[\% VERSION \%\]/$version/s;
     print setscroll(1, $hsize), locate(1, 1);
 	$banner .= locate(6,65) . '━' x ($wsize - 64);
-	print colored(['bright_white','on_black'],$banner);
+	my $horz = colored(['blue'],'━');
+	my $vert = colored(['blue'],'│');
+	my $crs  = colored(['blue'],'┷');
+	$banner =~ s/│/$vert/gs;
+	$banner =~ s/━/$horz/gs;
+	$banner =~ s/┷/$crs/gs;
+    print $banner;
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
 }

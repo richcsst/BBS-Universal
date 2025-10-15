@@ -611,7 +611,8 @@ sub users_info {
         $width = max($width, length($self->{'USER'}->{$field}));
     }
 
-	if ($self->{'USER'}->{'max_columns'} <= 40) {
+	my $columns = $self->{'USER'}->{'max_columns'};
+	if ($columns <= 40) {
 		$table = sprintf('%-15s=%-25s','FIELD','VALUE') . "\n";
 		$table .= '-' x $self->{'USER'}->{'max_columns'} . "\n";
 		$table .= sprintf('%-15s=%-25s','ACCOUNT NUMBER', $self->{'USER'}->{'id'}) . "\n";
@@ -642,7 +643,7 @@ sub users_info {
 		$table .= sprintf('%-15s=%-25s','ACCESS LEVEL',    $self->{'USER'}->{'access_level'}) . "\n";
 		$table .= sprintf('%-15s=%-25s','RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'}) . "\n";
 		$table .= sprintf('%-15s=%-25s','ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'}) . "\n";
-    } elsif ((($width + 22) * 2) <= $self->{'USER'}->{'max_columns'}) {
+    } elsif ((($width + 22) * 2) <= $columns) {
         $table = Text::SimpleTable->new(15, $width, 15, $width);
         $table->row('FIELD', 'VALUE', 'FIELD', 'VALUE');
         $table->hr();
@@ -695,9 +696,10 @@ sub users_info {
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
     }
 
-	if ($self->{'USER'}->{'max_columns'} <= 40) {
-		$text = $table;
-    } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+	my $mode = $self->{'USER'}->{'text_mode'};
+	if ($mode eq 'ATASCII') {
+		$text = $self->color_border($table->boxes->draw(),'WHITE');
+    } elsif ($mode eq 'ANSI') {
         $text = $table->boxes->draw();
         my $no    = colored(['red'],           'NO');
         my $yes   = colored(['green'],         'YES');
@@ -709,9 +711,26 @@ sub users_info {
         $text =~ s/ YES / $yes /gs;
 
         foreach $field ('PLAY FORTUNES','ACCESS LEVEL','SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
-            my $ch = colored(['cyan'], $field);
+            my $ch = colored(['yellow'], $field);
             $text =~ s/$field/$ch/gs;
         }
+		$text = $self->color_border($text, 'RGB 0,90,190');
+	} elsif ($mode eq 'PETSCII') {
+        $text = $table->boxes->draw();
+        my $no    = '[% RED %]NO[% RESET %]';
+        my $yes   = '[% GREEN %]YES[% RESET %]';
+        my $field = '[% YELLOW %]FIELD[% RESET %]';
+        my $va    = '[% YELLOW %]VALUE[% RESET %]';
+        $text =~ s/ FIELD / $field /gs;
+        $text =~ s/ VALUE / $va /gs;
+        $text =~ s/ NO / $no /gs;
+        $text =~ s/ YES / $yes /gs;
+
+        foreach $field ('PLAY FORTUNES','ACCESS LEVEL','SUFFIX','ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME','DATE FORMAT') {
+            my $ch = '[% BROWN %]' . $field . '[% RESET %]';
+            $text =~ s/$field/$ch/gs;
+        }
+		$text = $self->color_border($text, 'BLUE');
     } else {
         $text = $table->draw();
     }

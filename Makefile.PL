@@ -94,12 +94,13 @@ WriteMakefile(
 		'Debug::Easy'            => '2.11',
 		'List::Util'             => '1.40',
 		'Cache::Memcached::Fast' => '0.25',
+		'XML::RSS::LibXML'       => '0.3105',
 	},
 
 	EXE_FILES => ['bin/bbs'],
 	dist      => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
 	clean     => { FILES    => 'BBS-Universal-* _build* *bak *old' },
-	LICENSE   => 'gpl_3',    # GNU Public License Version 3
+	LICENSE   => 'artistic',
 );
 
 print chr(27) . '[0m', color('reset');

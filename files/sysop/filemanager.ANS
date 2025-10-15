@@ -5,11 +5,11 @@ E|SYSOP EDIT FILE CATEGORIES|YELLOW|Edit File Categories
 D|SYSOP DELETE FILES|CYAN|Delete Files
 Z|BACK|WHITE|Return To Main Menu
 ---
-[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %] [% RESET %] [% YELLOW %] _____ _ _        __  __[% RESET %] 
-[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %]  [% RESET %] [% YELLOW %]|  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
-[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]   [% RESET %] [% YELLOW %]| |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
-[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]    [% RESET %] [% YELLOW %]|  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
-[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %] [% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %][% RESET %] [% YELLOW %] _____ _ _        __  __[% RESET %] 
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %] [% RESET %] [% YELLOW %]|  ___(_) | ___  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]  [% RESET %] [% YELLOW %]| |_  | | |/ _ \ | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]   [% RESET %] [% YELLOW %]|  _| | | |  __/ | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]    [% RESET %] [% YELLOW %]|_|   |_|_|\___| |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
 [% YELLOW %]                                            |___/[% RESET %]
 
 [% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]

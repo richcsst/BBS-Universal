@@ -3,7 +3,7 @@ BEGIN { our $VERSION = '0.003'; }
 
 sub news_initialize {
     my $self = shift;
-
+    $self->{'rss'} = XML::RSS::LibXML->new();
     return ($self);
 }
 
@@ -36,19 +36,19 @@ sub news_display {
             $news .= "\n";
         }
     }
-	my $df = $self->{'USER'}->{'date_format'};
-	$df =~ s/YEAR/\%Y/;
-	$df =~ s/MONTH/\%m/;
-	$df =~ s/DAY/\%d/;
+    my $df = $self->{'USER'}->{'date_format'};
+    $df =~ s/YEAR/\%Y/;
+    $df =~ s/MONTH/\%m/;
+    $df =~ s/DAY/\%d/;
     my $sql = q{
-		SELECT
-		  news_id,
-		  news_title,
-		  news_content,
-		  DATE_FORMAT(news_date,?) AS newsdate
-		FROM news
-		ORDER BY news_date DESC
-	};
+        SELECT
+          news_id,
+          news_title,
+          news_content,
+          DATE_FORMAT(news_date,?) AS newsdate
+        FROM news
+        ORDER BY news_date DESC
+    };
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($df);
     if ($sth->rows > 0) {
@@ -73,18 +73,18 @@ sub news_display {
 sub news_summary {
     my $self = shift;
 
-	my $format = $self->{'USER'}->{'date_format'};
-	$format =~ s/YEAR/\%Y/;
-	$format =~ s/MONTH/\%m/;
-	$format =~ s/DAY/\%d/;
+    my $format = $self->{'USER'}->{'date_format'};
+    $format =~ s/YEAR/\%Y/;
+    $format =~ s/MONTH/\%m/;
+    $format =~ s/DAY/\%d/;
     my $sql = q{
-		SELECT
-		  news_id,
-		  news_title,
-		  news_content,
-		  DATE_FORMAT(news_date,?) AS newsdate
-		FROM news
-		ORDER BY news_date DESC};
+        SELECT
+          news_id,
+          news_title,
+          news_content,
+          DATE_FORMAT(news_date,?) AS newsdate
+        FROM news
+        ORDER BY news_date DESC};
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($format);
     if ($sth->rows > 0) {
@@ -94,26 +94,26 @@ sub news_summary {
         while (my $row = $sth->fetchrow_hashref()) {
             $table->row($row->{'newsdate'}, $row->{'news_title'});
         }
-		my $mode = $self->{'USER'}->{'text_mode'};
+        my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
             my $text = $table->boxes->draw();
-			my $ch = colored(['bright_yellow'],'DATE');
-			$text =~ s/DATE/$ch/;
-			$ch = colored(['bright_yellow'],'TITLE');
-			$text =~ s/TITLE/$ch/;
-			$self->output($self->color_border($text,'BRIGHT BLUE'));
-		} elsif ($mode eq 'ATASCII') {
+            my $ch = colored(['bright_yellow'],'DATE');
+            $text =~ s/DATE/$ch/;
+            $ch = colored(['bright_yellow'],'TITLE');
+            $text =~ s/TITLE/$ch/;
+            $self->output($self->color_border($text,'BRIGHT BLUE'));
+        } elsif ($mode eq 'ATASCII') {
             my $text = $self->color_border($table->boxes->draw(),'BLUE');
-			$self->output($text);
-		} elsif ($mode eq 'PETSCII') {
+            $self->output($text);
+        } elsif ($mode eq 'PETSCII') {
             my $text = $table->boxes->draw();
-			while ($text =~ / (DATE|TITLE) /s) {
-				my $ch = $1;
-				my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
-				$text =~ s/ $ch / $new /gs;
-			}
-			$text = $self->color_border($text, 'LIGHT BLUE');
-			$self->output($text);
+            while ($text =~ / (DATE|TITLE) /s) {
+                my $ch = $1;
+                my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
+                $text =~ s/ $ch / $new /gs;
+            }
+            $text = $self->color_border($text, 'LIGHT BLUE');
+            $self->output($text);
         } else {
             $self->output($table->draw());
         }
@@ -124,5 +124,15 @@ sub news_summary {
     $self->output("\nPress a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
     return (TRUE);
+}
+
+sub news_rss_categories {
+	my $self = shift;
+
+}
+
+sub news_rss_feed {
+	my $self = shift;
+
 }
 1;

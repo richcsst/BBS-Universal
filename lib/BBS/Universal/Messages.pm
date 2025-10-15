@@ -80,16 +80,16 @@ sub messages_list_messages {
 		$sth->execute($result->{'id'});
 		$result->{'message'} = $sth->fetchrow_array();
 		$sth->finish();
-
+		$self->output("\n\n");
 		if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-			$self->output('[% CLEAR %][% BRIGHT B_CYAN %][% BLACK %] FORUM CATEGORY [% RESET %] [% MAGENTA %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FORUM CATEGORY %]' . "\n\n");
+			$self->output('[% BRIGHT B_CYAN %][% BLACK %] FORUM CATEGORY [% RESET %] [% MAGENTA %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FORUM CATEGORY %]' . "\n\n");
 			$self->output('[% INVERT %]  Author [% RESET %]  ' . $result->{'author_fullname'} . ' (' . $result->{'author_username'} . ')' . "\n");
 			$self->output('[% INVERT %]   Title [% RESET %]  ' . $result->{'title'} . "\n");
 			$self->output('[% INVERT %] Created [% RESET %]  ' . $self->users_get_date($result->{'created'}) . "\n\n");
 			$self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
 #			$self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
 		} else {
-			$self->output('[% CLEAR %] FORUM CATEGORY > [% FORUM CATEGORY %]' . "\n\n");
+			$self->output(' FORUM CATEGORY > [% FORUM CATEGORY %]' . "\n\n");
 			$self->output(' Author:  ' . $result->{'author_fullname'} . ' (' . $result->{'author_username'} . ')' . "\n");
 			$self->output('  Title:  ' . $result->{'title'} . "\n");
 			$self->output('Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");

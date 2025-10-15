@@ -1043,7 +1043,13 @@ sub sysop_select_file_category {
         $max_id = $row->{'id'};
     }
     $sth->finish();
-    print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (< = Nevermind)');
+	my $text = $table->boxes->draw();
+	while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
+		my $ch = $1;
+		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+		$text =~ s/ $ch / $new /gs;
+	}
+    $self->output($self->sysop_color_border($text,'MAGENTA') . "\n" . $self->sysop_prompt('Choose ID (< = Nevermind)'));
     my $line;
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
@@ -1074,7 +1080,13 @@ sub sysop_edit_file_categories {
         $table->row($row->{'id'}, $row->{'title'}, $row->{'description'});
     }
     $sth->finish();
-    print $table->boxes->draw(), "\n", $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
+	my $text = $table->boxes->draw();
+	while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
+		my $ch = $1;
+		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+		$text =~ s/ $ch / $new /gs;
+	}
+    $self->output($text . "\n" . $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)'));
     my $line;
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
@@ -1084,7 +1096,13 @@ sub sysop_edit_file_categories {
         $table = Text::SimpleTable->new(11, 80);
         $table->row('TITLE',       "\n" . charnames::string_vianame('OVERLINE') x 80);
         $table->row('DESCRIPTION', "\n" . charnames::string_vianame('OVERLINE') x 80);
-        print "\n",                                  $table->boxes->draw();
+		my $text = $table->boxes->draw();
+		while ($text =~ / (TITLE|DESCRIPTION) /) {
+			my $ch = $1;
+			my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+			$text =~ s/ $ch / $new /gs;
+		}
+        $self->output("\n" . $self->sysop_color_border($text));
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(ECHO, 80, '');
         if ($title ne '') {
@@ -1552,7 +1570,7 @@ sub sysop_user_delete {
             }
             $table->row($field, $user_row->{$field} . '');
         } ## end foreach my $field (@{ $self...})
-        if ($self->sysop_pager($table->boxes->draw())) {
+        if ($self->sysop_pager($self->sysop_color_border($table->boxes->draw(),'RED'))) {
             print "Are you sure that you want to delete this user (Y|N)?  ";
             my $answer = $self->sysop_decision();
             if ($answer) {
@@ -1626,6 +1644,7 @@ sub sysop_user_edit {
                 my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
                 $tbl =~ s/$ch/ $new /g;
             }
+			$tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             print "\n", $self->sysop_prompt('Choose');
@@ -1725,6 +1744,7 @@ sub sysop_new_user_edit {
                 my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
                 $tbl =~ s/$ch/ $new /g;
             }
+			$tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             $self->output("\n" . $self->sysop_prompt('Choose'));
@@ -1807,7 +1827,7 @@ sub sysop_user_add {
         my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
         $string =~ s/$ch/$new/gs;
     }
-    $self->output($string);
+    $self->output($self->sysop_color_border($string, 'PINK'));
     $self->sysop_show_choices($mapping);
     my $column     = 21;
     my $adjustment = $self->{'CACHE'}->get('START_ROW') - 1;
@@ -2074,7 +2094,7 @@ sub sysop_edit_bbs {
                 $index++;
             }
         } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
-        print $table->boxes->draw();
+        $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
         print $self->sysop_prompt('Edit which field (Z=Nevermind)');
         my $choice;
         do {
@@ -2116,7 +2136,7 @@ sub sysop_add_bbs {
         'bbs_port'     => '',
     };
     my $index = 0;
-    print $table->boxes->draw();
+    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
@@ -2164,7 +2184,7 @@ sub sysop_delete_bbs {
         foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
             $table->row($name, $bbs->{$name});
         }
-        print $table->boxes->draw();
+        $self->output($self->sysop_color_border($table->boxes->draw(), 'RED'));
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
         unless ($choice) {
@@ -2220,7 +2240,7 @@ sub sysop_add_file {
             foreach my $file (sort(keys %{$list})) {
                 $table->row($file, $list->{$file}->{'size'}, $list->{$file}->{'type'});
             }
-            my $text = $table->boxes->draw();
+            my $text = $self->sysop_color_border($table->boxes->draw(),'GREEN');
             $self->sysop_pager($text);
             while (scalar(@names)) {
                 ($search) = shift(@names);

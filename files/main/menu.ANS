@@ -6,11 +6,12 @@ F|FILES|GREEN|USER|Go To Files
 N|NEWS|CYAN|USER|System News
 A|ABOUT|YELLOW|USER|About This BBS
 U|LIST USERS|ORANGE|USER|List Users
+R|RSS FEEDS|RED|USER|Read External News Feeds
 X|DISCONNECT|RED|USER|Disconnect
 ---
-[% RED     %]       [% BLACK LOWER RIGHT TRIANGLE %][% B_RED     %] [% RESET %]   __  __       _          __  __                    [% B_RED     %] [% RESET %][% RED %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
-[% YELLOW  %]      [% BLACK LOWER RIGHT TRIANGLE %][% B_YELLOW  %]  [% RESET %]  |  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _   [% B_YELLOW  %]  [% RESET %][% YELLOW %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
-[% GREEN   %]     [% BLACK LOWER RIGHT TRIANGLE %][% B_GREEN   %]   [% RESET %]  | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |  [% B_GREEN   %]   [% RESET %][% GREEN %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
-[% MAGENTA %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_MAGENTA %]    [% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |  [% B_MAGENTA %]    [% RESET %][% MAGENTA %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
-[% BLUE    %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BLUE    %]     [% RESET %]  |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|  [% B_BLUE    %]     [% RESET %][% BLUE %][% BLACK LOWER LEFT TRIANGLE %][% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %][% RESET %]  __  __       _          __  __
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %] [% RESET %] |  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]  [% RESET %] | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]   [% RESET %] | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]    [% RESET %] |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|
 [% FORTUNE %]

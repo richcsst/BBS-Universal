@@ -119,31 +119,20 @@ sub petscii_output {
     } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
-    if ($self->{'local_mode'} || $self->{'sysop'} || $self->{'USER'}->{'baud_rate'} eq 'FULL') {
-        $text =~ s/\n/$nl/gs;
-        if ($self->{'local_mode'} || $self->{'sysop'}) {
-            print STDOUT $text;
-        } else {
-            my $handle = $self->{'cl_socket'};
-            print $handle $text;
-        }
-        $| = 1;
-    } else {
-        foreach my $count (0 .. $s_len) {
-            my $char = substr($text, $count, 1);
-            if ($char eq "\n") {
-                if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-                    $char = $nl;
-                }
-                $lines--;
-                if ($lines <= 0) {
-                    $lines = $mlines;
-                    last unless ($self->scroll($nl));
-                }
-            } ## end if ($char eq "\n")
-            $self->send_char($char);
-        } ## end foreach my $count (0 .. $s_len)
-    } ## end else [ if ($self->{'local_mode'...})]
+	foreach my $count (0 .. $s_len) {
+		my $char = substr($text, $count, 1);
+		if ($char eq "\n") {
+			if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+				$char = $nl;
+			}
+			$lines--;
+			if ($lines <= 0) {
+				$lines = $mlines;
+				last unless ($self->scroll($nl));
+			}
+		} ## end if ($char eq "\n")
+		$self->send_char($char);
+	} ## end foreach my $count (0 .. $s_len)
     return (TRUE);
 } ## end sub petscii_output
 1;

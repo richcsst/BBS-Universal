@@ -74,6 +74,7 @@ use List::Util qw(min max);
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
 use Number::Format 'format_number';
+use XML::RSS::LibXML;
 
 # The overhead of pulling these into the BBS::Universal namespace was a nightmare, so I just pulled them into the source at build time
 # use BBS::Universal::ANSI;
@@ -441,6 +442,10 @@ sub populate_common {
     };
 
     $self->{'COMMANDS'} = {
+		'RSS FEEDS' => sub {
+			my $self = shift;
+			return($self->load_menu('files/main/rss_feeds'));
+		},
         'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
             $self->users_update_accomplishments();
@@ -1337,7 +1342,7 @@ sub detokenize_text {    # Detokenize text markup
     my $self = shift;
     my $text = shift;
 
-    $self->{'debug'}->DEBUG(['Detokenize Text']);
+#    $self->{'debug'}->DEBUG(['Detokenize Text']);
     if (defined($text) && length($text) > 1) {
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
             if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
@@ -1428,6 +1433,7 @@ sub scroll {
     }
     $self->output($string);
     if ($self->get_key(ECHO, BLOCKIMG) =~ /N/i) {
+		$self->output("\n");
         return (FALSE);
     }
     $self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);

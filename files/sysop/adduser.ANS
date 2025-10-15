@@ -1,7 +1,7 @@
 <|BACK|CYAN|Return To User Manager
 ---
-[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %] [% RESET %][% YELLOW %]     _       _     _   _   _[% RESET %]
-[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %]  [% RESET %][% YELLOW %]    / \   __| | __| | | | | |___  ___ _ __[% RESET %]
-[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]   [% RESET %][% YELLOW %]   / _ \ / _` |/ _` | | | | / __|/ _ \ '__|[% RESET %]
-[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]    [% RESET %][% YELLOW %]  / ___ \ (_| | (_| | | |_| \__ \  __/ |[% RESET %]
-[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]     [% RESET %][% YELLOW %] /_/   \_\__,_|\__,_|  \___/|___/\___|_|[% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %][% RESET %][% YELLOW %]     _       _     _   _   _[% RESET %]
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %] [% RESET %][% YELLOW %]    / \   __| | __| | | | | |___  ___ _ __[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]  [% RESET %][% YELLOW %]   / _ \ / _` |/ _` | | | | / __|/ _ \ '__|[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]   [% RESET %][% YELLOW %]  / ___ \ (_| | (_| | | |_| \__ \  __/ |[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]    [% RESET %][% YELLOW %] /_/   \_\__,_|\__,_|  \___/|___/\___|_|[% RESET %]
