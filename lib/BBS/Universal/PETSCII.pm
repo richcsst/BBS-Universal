@@ -108,7 +108,11 @@ sub petscii_output {
     my $lines  = $mlines;
 
     if (length($text) > 1) {
-        foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
+        while($text =~ /\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/) {
+			my $rule = "[% $1 %]" . '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'} . '[% RESET %]';
+			$text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$rule/gs;
+		}
+		foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
                 $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;

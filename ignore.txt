@@ -24,3 +24,4 @@ src/*.pm
 build.sh
 log.txt
 fix
+bbs2sql.pl

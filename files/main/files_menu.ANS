@@ -12,4 +12,4 @@ Z|BACK|GREEN|USER|Main Menu
 [% GREEN %]|_|   |_|_|\___| |____/ \__, |___/\__\___|_| |_| |_|[% RESET %]
 [% GREEN %]                        |___/[% RESET %]
 
-[% BLACK %][% BRIGHT B_MAGENTA %]Current Category[% RESET %] [% GREEN %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FILE CATEGORY %]
+[% BLACK %][% B_BRIGHT MAGENTA %]Current Category[% RESET %] [% GREEN %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FILE CATEGORY %]

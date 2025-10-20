@@ -1,5 +1,5 @@
 package BBS::Universal::FileTransfer;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub filetransfer_initialize {
     my $self = shift;
@@ -120,7 +120,8 @@ sub files_list_detailed {
     my $max_uploader = 8;
 	my $max_type     = 4;
 	my $max_uploaded = 8;
-	my $max_endorsements = 12;
+	my $max_thumbs_up = 9;
+	my $max_thumbs_down = 11;
 	my $max_fullname = 8;
 	my $max_username = 17;
     if ($sth->rows > 0) {
@@ -131,14 +132,15 @@ sub files_list_detailed {
             } else {
                 $max_uploader = max(length($row->{'fullname'}), $max_uploader);
             }
-			$max_size         = max(length(format_number($row->{'file_size'})), $max_size);
-            $max_filename     = max(length($row->{'filename'}), $max_filename);
-            $max_title        = max(length($row->{'title'}),    $max_title);
-			$max_type         = max(length($row->{'type'}), $max_type);
-			$max_uploaded     = max(length($row->{'uploaded'}),$max_uploaded);
-			$max_endorsements = max(length($row->{'endorsements'}), $max_endorsements);
-			$max_fullname     = max(length($row->{'fullname'}), $max_fullname);
-			$max_username     = max(length($row->{'username'}), $max_username);
+			$max_size         = max(length(format_number($row->{'file_size'})), $max_size, 4);
+            $max_filename     = max(length($row->{'filename'}),  $max_filename);
+            $max_title        = max(length($row->{'title'}),     $max_title);
+			$max_type         = max(length($row->{'type'}),      $max_type);
+			$max_uploaded     = max(length($row->{'uploaded'}),  $max_uploaded);
+			$max_thumbs_up    = max(length($row->{'thumbs_up'}), $max_thumbs_up);
+			$max_thumbs_down  = max(length($row->{'thumbs_up'}), $max_thumbs_down);
+			$max_fullname     = max(length($row->{'fullname'}),  $max_fullname);
+			$max_username     = max(length($row->{'username'}),  $max_username);
         }
 		$self->{'debug'}->DEBUGMAX(\@files);
 		my $table;
@@ -147,35 +149,71 @@ sub files_list_detailed {
 			$table->row('FILENAME', 'UPLOADER NAME');
 			$table->hr();
 			foreach my $record (@files) {
-				$table->row($record->{'filename'}, ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'});
+				$table->row(
+					$record->{'filename'},
+					($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
+				);
 			}
 		} elsif ($columns <= 64) {
-			$table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_endorsements);
-			$table->row('TITLE', 'FILENAME', 'UPLOADER NAME', 'ENDORSEMENTS');
+			$table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_thumbs_up, $max_thumbs_down);
+			$table->row('TITLE', 'FILENAME', 'UPLOADER NAME', 'THUMBS UP','THUMBS DOWN');
 			$table->hr();
 			foreach my $record (@files) {
-				$table->row($record->{'title'}, $record->{'filename'}, ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'}, sprintf('%u', $record->{'endorsements'}));
+				$table->row(
+					$record->{'title'},
+					$record->{'filename'},
+					($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
+					sprintf('%06u', $record->{'thumbs_up'}),
+					sprintf('%06u', $record->{'thumbs_down'}),
+				);
 			}
 		} elsif ($columns <= 80) {
-			$table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_type, $max_endorsements);
-			$table->row('TITLE', 'FILENAME', 'UPLOADER NAME','TYPE', 'ENDORSEMENTS');
+			$table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_type, $max_thumbs_up, $max_thumbs_down);
+			$table->row('TITLE', 'FILENAME', 'UPLOADER NAME','TYPE', 'THUMBS_UP', 'THUMBS_DOWN');
 			$table->hr();
 			foreach my $record (@files) {
-				$table->row($record->{'title'}, $record->{'filename'}, ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'}, $record->{'type'}, sprintf('%u', $record->{'endorsements'}));
+				$table->row(
+					$record->{'title'},
+					$record->{'filename'},
+					($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
+					$record->{'type'},
+					sprintf('%06u', $record->{'thumbs_up'}),
+					sprintf('%06u', $record->{'thumbs_down'}),
+				);
 			}
 		} elsif ($columns <= 132) {
-			$table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_endorsements);
-			$table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'ENDORSEMENTS');
+			$table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
+			$table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
 			$table->hr();
 			foreach my $record (@files) {
-				$table->row($record->{'title'}, $record->{'filename'}, sprintf('%' . $max_size . 's',format_number($record->{'file_size'})), ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'}, $record->{'username'}, $record->{'type'}, $record->{'uploaded'}, sprintf('%u', $record->{'endorsements'}));
+				$table->row(
+					$record->{'title'},
+					$record->{'filename'},
+					sprintf('%' . $max_size . 's', format_number($record->{'file_size'})),
+					($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
+					$record->{'username'},
+					$record->{'type'},
+					$record->{'uploaded'},
+					sprintf('%06u', $record->{'thumbs_up'}),
+					sprintf('%06u', $record->{'thumbs_down'}),
+				);
 			}
 		} else {
-			$table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_endorsements);
-			$table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'ENDORSEMENTS');
+			$table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
+			$table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
 			$table->hr();
 			foreach my $record (@files) {
-				$table->row($record->{'title'}, $record->{'filename'}, sprintf('%' . $max_size . 's',format_number($record->{'file_size'})), ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'}, $record->{'username'}, $record->{'type'}, $record->{'uploaded'}, sprintf('%u', $record->{'endorsements'}));
+				$table->row(
+					$record->{'title'},
+					$record->{'filename'},
+					sprintf('%' . $max_size . 's', format_number($record->{'file_size'})),
+					($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
+					$record->{'username'},
+					$record->{'type'},
+					$record->{'uploaded'},
+					sprintf('%06u', $record->{'thumbs_up'}),
+					sprintf('%06u', $record->{'thumbs_down'}),
+				);
 			}
 		}
 		my $mode = $self->{'USER'}->{'text_mode'};
@@ -217,6 +255,7 @@ sub save_file {
 
 sub receive_file {
     my $self = shift;
+	return(TRUE);
 }
 
 sub send_file {

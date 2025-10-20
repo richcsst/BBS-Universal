@@ -84,6 +84,10 @@ sub atascii_output {
     my $lines  = $mlines;
 
     if (length($text) > 1) {
+		while($text =~ /\[\%\s+HORIZONTAL RULE\s+\%\]/) {
+			my $rule = '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'};
+			$text =~ s/\[\%\s+HORIZONTAL RULE\s+\%\]/$rule/gs;
+		}
         foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
             if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;

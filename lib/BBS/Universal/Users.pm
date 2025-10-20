@@ -368,8 +368,6 @@ sub users_get_date {
 sub users_list {
     my $self = shift;
 
-    $self->{'dbh'}->begin_work;
-
     my $sth = $self->{'dbh'}->prepare(
         q{
 			SELECT
@@ -451,7 +449,7 @@ sub users_add {
 
 	$self->{'debug'}->DEBUG(['USERS ADD']);
 	$self->{'debug'}->DEBUGMAX([$user_template]);
-#    $self->{'dbh'}->begin_work;
+    $self->{'dbh'}->begin_work;
     my $sth = $self->{'dbh'}->prepare(
         q{
 			INSERT INTO users (
@@ -522,11 +520,11 @@ sub users_add {
 	);
 
     if ($self->{'dbh'}->err) {
-#        $self->{'dbh'}->rollback;
+        $self->{'dbh'}->rollback;
         $sth->finish();
         return (FALSE);
     } else {
-#        $self->{'dbh'}->commit;
+        $self->{'dbh'}->commit;
         $sth->finish();
         return (TRUE);
     }
@@ -586,6 +584,16 @@ sub users_forum_category {
     return ($category);
 }
 
+sub users_rss_category {
+    my $self = shift;
+
+    my $sth = $self->{'dbh'}->prepare('SELECT title FROM rss_feed_categories WHERE id=?');
+    $sth->execute($self->{'USER'}->{'rss_category'});
+    my ($category) = ($sth->fetchrow_array());
+    $sth->finish();
+    return ($category);
+}
+
 sub users_find {
     my $self = shift;
 	return(TRUE);
@@ -593,10 +601,10 @@ sub users_find {
 
 sub users_count {
     my $self = shift;
-    $self->{'dbh'}->begin_work();
     my $sth = $self->{'dbh'}->prepare('SELECT COUNT(*) FROM users');
 	$sth->execute();
 	my ($count) = ($sth->fetchrow_array());
+	$sth->finish();
     return ($count);
 }
 

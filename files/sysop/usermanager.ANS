@@ -9,9 +9,9 @@ A|SYSOP ADD USER|YELLOW|Add New User
 R|SYSOP DELETE USER|RED|Remove a User
 Z|BACK|WHITE|Return to System Menu
 ---
-[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_RED     %][% RESET %] [% CYAN %] _   _                 __  __[% RESET %]
-[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_YELLOW  %] [% RESET %] [% CYAN %]| | | |___  ___ _ __  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
-[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_GREEN   %]  [% RESET %] [% CYAN %]| | | / __|/ _ \ '__| | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
-[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_MAGENTA %]   [% RESET %] [% CYAN %]| |_| \__ \  __/ |    | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
-[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% BRIGHT B_BLUE    %]    [% RESET %] [% CYAN %] \___/|___/\___|_|    |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
+[% BRIGHT RED     %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT RED     %][% RESET %] [% CYAN %] _   _                 __  __[% RESET %]
+[% BRIGHT YELLOW  %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %] [% RESET %] [% CYAN %]| | | |___  ___ _ __  |  \/  | __ _ _ __   __ _  __ _  ___ _ __[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %]  [% RESET %] [% CYAN %]| | | / __|/ _ \ '__| | |\/| |/ _` | '_ \ / _` |/ _` |/ _ \ '__|[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %]   [% RESET %] [% CYAN %]| |_| \__ \  __/ |    | |  | | (_| | | | | (_| | (_| |  __/ |[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %]    [% RESET %] [% CYAN %] \___/|___/\___|_|    |_|  |_|\__,_|_| |_|\__,_|\__, |\___|_|[% RESET %]
  [% CYAN %]                                                |___/[% RESET %]

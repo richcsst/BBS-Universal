@@ -381,8 +381,8 @@ sub sysop_list_commands {
     my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }));
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
     my @tkn    = (sort(keys %{ $self->{'TOKENS'} }));
-    my @anstkn = grep(!/RGB|COLOR|GREY|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
-    push(@anstkn, 'LOCATE row,column');
+    my @anstkn = grep(!/CSI|RGB|COLOR|GREY|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
+    push(@anstkn, 'LOCATE column,row');
     push(@anstkn, 'RGB 0,0,0 - RGB 255,255,255');
     push(@anstkn, 'B_RGB 0,0,0 - B_RGB 255,255,255');
     push(@anstkn, 'COLOR 0 - COLOR 231');
@@ -390,11 +390,11 @@ sub sysop_list_commands {
     push(@anstkn, 'B_COLOR 0 - B_COLOR 231');
     push(@anstkn, 'B_GREY 0 - B_GREY 23');
     push(@anstkn, 'FONT 0 - FONT 9');
-    push(@anstkn, 'HORIZONTAL RULE [color]');
+    push(@anstkn, 'HORIZONTAL RULE color');
     @anstkn = sort(@anstkn);
-    my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} }));
-    my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} }));
-    my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} }));
+    my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
+    my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
+    my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },'HORIZONTAL RULE'));
     my $x      = 1;
     my $xt     = 1;
     my $y      = 1;
@@ -487,11 +487,13 @@ sub sysop_list_commands {
     } ## end while (scalar(@sys) || scalar...)
     my $text = $self->center($table->boxes->draw(), $wsize);
 	# This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
+	my $replace = join('|', grep(!/^(GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
+	my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
     $text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
     $text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│(\s+)(BRIGHT B_BLUE|BRIGHT B_CYAN|BRIGHT B_GREEN|BRIGHT B_MAGENTA|BRIGHT B_RED|BRIGHT B_WHITE|BRIGHT B_YELLOW|B_RED|B_CYAN|B_GREEN|B_MAGENTA|B_ORANGE|B_PINK|B_YELLOW|B_RED|B_BLUE)/│$1\[% BLACK %][\% $2 \%\]$2\[\% RESET \%\]/g;
-    $text =~ s/│(\s+)(REVERSE|FAINT|INVERT|SLOW BLINK|RAPID BLINK|ITALIC|BRIGHT BLACK|NAVY|B_NAVY|BOLD|ORANGE|B_ORANGE|RED|GREEN|YELLOW|MAGENTA|CYAN|BLUE|PINK|BRIGHT RED|BRIGHT GREEN|BRIGHT YELLOW|BRIGHT MAGENTA|BRIGHT CYAN|BRIGHT BLUE|BRIGHT WHITE|BRIGHT B_BLACK)/│$1\[\% $2 \%\]$2\[\% RESET \%\]/g;
+    $text =~ s/│(\s+)($replace)  /│$1\[% BLACK %][\% $2 \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
@@ -544,9 +546,9 @@ sub sysop_list_commands {
     $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
     $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
     $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
-    $text =~ s/│(\s+)(OVERLINE)  /│$1\[\% OVERLINE \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUPERSCRIPT)  /│$1\[\% SUPERSCRIPT \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUBSCRIPT)  /│$1\[\% SUBSCRIPT \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
 	$text = $self->sysop_color_border($text, 'PINK');
     return ($self->ansi_decode($text));
@@ -930,11 +932,11 @@ sub sysop_list_files {
     $sth->finish();
     my $table;
     if ($wsize > 150) {
-        $table = Text::SimpleTable->new(max(5, $sizes->{'title'}), max(8, $sizes->{'filename'}), max(4, $sizes->{'type'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(8, $sizes->{'uploaded'}));
-        $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE', 'UPLOADED');
+        $table = Text::SimpleTable->new(max(5, $sizes->{'title'}), max(8, $sizes->{'filename'}), max(4, $sizes->{'type'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(6, $sizes->{'uploaded'}), max(9, $sizes->{'thumbs_up'}), max(11, $sizes->{'thumbs_down'}));
+        $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE', 'UPLOADED', 'THUMBS UP', 'THUMBS DOWN');
     } else {
-        $table = Text::SimpleTable->new(max(5, $sizes->{'filename'}), max(8, $sizes->{'title'}), max(4, $sizes->{'extension'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}));
-        $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE');
+        $table = Text::SimpleTable->new(max(5, $sizes->{'filename'}), max(8, $sizes->{'title'}), max(4, $sizes->{'extension'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(9, $sizes->{'thumbs_up'}), max(11, $sizes->{'thumbs_down'}));
+        $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE', 'THUMBS UP', 'THUMBS DOWN');
     }
     $table->hr();
     $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
@@ -943,9 +945,9 @@ sub sysop_list_files {
 
     while (my $row = $sth->fetchrow_hashref()) {
         if ($wsize > 150) {
-            $table->row($row->{'title'}, $row->{'filename'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), $row->{'uploaded'});
+            $table->row($row->{'title'}, $row->{'filename'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), $row->{'uploaded'}, sprintf('%-06u',$row->{'thumbs_up'}), sprintf('%-06u',$row->{'thumbs_down'}));
         } else {
-            $table->row($row->{'title'}, $row->{'filename'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}));
+            $table->row($row->{'title'}, $row->{'filename'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), sprintf('%-06u',$row->{'thumbs_up'}), sprintf('%-06u',$row->{'thumbs_down'}));
         }
         $category = $row->{'category'};
     } ## end while (my $row = $sth->fetchrow_hashref...)
@@ -1143,7 +1145,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 45;
+    my $value_width = 50;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -1932,7 +1934,7 @@ sub sysop_prompt {
     my $self = shift;
     my $text = shift;
 
-    my $response = '[% BRIGHT B_MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
+    my $response = '[% B_BRIGHT MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
     return ($self->sysop_detokenize($response));
 } ## end sub sysop_prompt
 
@@ -2220,7 +2222,7 @@ sub sysop_add_file {
             $nw = max(length($file), $nw);
             my $raw_size = (-s "$root/$files_path/$file");
             my $size     = format_number($raw_size);
-            $sw = max(length("$size"), $sw);
+            $sw = max(length("$size"), $sw, 4);
             my ($ext, $type) = $self->files_type($file);
             $tw                          = max(length($type), $tw);
             $list->{$file}->{'raw_size'} = $raw_size;

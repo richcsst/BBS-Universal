@@ -35,6 +35,10 @@ sub ascii_output {
         foreach my $string (keys %{ $self->{'ascii_characters'} }) {
             $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ascii_characters'}->{$string}/gi;
         }
+		while($text =~ /\[\%\s+HORIZONTAL RULE\s+\%\]/) {
+			my $rule = '=' x $self->{'USER'}->{'max_columns'};
+			$text =~ s/\[\%\s+HORIZONTAL RULE\s+\%\]/$rule/gs;
+		}
     }
     my $s_len = length($text);
     my $nl    = $self->{'ascii_sequences'}->{'NEWLINE'};
