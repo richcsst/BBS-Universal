@@ -119,101 +119,101 @@ $DEBUG->DEBUG(['Initializing SysOp Commands']);
 our $SYSOP_COMMANDS = {
     'SYSOP SHOW ENVIRONMENT' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANSI'));
     },
 	'SYSOP ADD FILE' => sub {
 		my $self = shift;
 		$self->sysop_add_file();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
 	},
     'SYSOP BBS LISTINGS MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP BBS EDIT' => sub {
         my $self = shift;
         $self->sysop_edit_bbs();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP BBS ADD' => sub {
         my $self = shift;
         $self->sysop_add_bbs();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP BBS DELETE' => sub {
         my $self = shift;
         $self->sysop_delete_bbs();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP BBS LIST VIEW' => sub {
         my $self = shift;
         $self->sysop_list_bbs();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP EDIT FILE CATEGORIES' => sub {
         my $self = shift;
         $self->sysop_edit_file_categories();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
     'SYSOP SELECT FILE CATEGORY' => sub {
         my $self = shift;
 
         $self->sysop_select_file_category();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
     'SYSOP FILE MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
     'SYSOP LIST FILES' => sub {
         my $self = shift;
         $self->sysop_list_files();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
 	'SYSOP DELETE FILES' => sub {
 		my $self = shift;
 		$self->sysop_delete_files();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
 	},
     'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL ABBREVIATED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
         my $self = shift;
-        $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANS');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP LIST USERS VERTICAL DETAILED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL DETAILED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP LIST USERS HORIZONTAL DETAILED' => sub {
         my $self = shift;
         $self->sysop_list_users('HORIZONTAL DETAILED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP EDIT USER' => sub {
         my $self = shift;
-        $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANS');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP EDIT NEW USERS' => sub {
         my $self = shift;
-        $self->sysop_new_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANS');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        $self->sysop_new_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP ADD USER' => sub {
         my $self = shift;
-        $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANS');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP DELETE USER' => sub {
         my $self = shift;
-        $self->sysop_user_delete($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/deleteuser.ANS');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        $self->sysop_user_delete($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/deleteuser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP SHUTDOWN' => sub {
 		my $self = shift;
@@ -240,26 +240,26 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP STATISTICS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/statistics.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/statistics.ANSI'));
     },
     'BACK' => sub {    # Dummy placeholder
     },
     'SYSOP USER MANAGER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP SETTINGS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
     },
     'SYSOP EDIT CONFIGURATION' => sub {
         my $self = shift;
         $self->sysop_edit_configuration();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
     },
     'SYSOP LIST COMMANDS' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANS'));
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
 };
 $DEBUG->DEBUG(['Initialized','Starting']);
@@ -379,7 +379,7 @@ sub system_menu {
 			($width, $height) = ($wsize, $hsize);
 			servers_status($bbs_obj, TRUE) unless ($TEST);
 		}
-        my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANS');
+        my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANSI');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
                 $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);

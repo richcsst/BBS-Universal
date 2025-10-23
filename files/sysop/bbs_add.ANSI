@@ -1,0 +1,7 @@
+Z|BACK|BRIGHT BLUE|Return to BBS Listing Manager
+---
+[% CLS %][% BRIGHT RED %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT RED     %]   [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %] _       _     _   ____  ____ ____[% RESET %]
+[% BRIGHT YELLOW       %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %]   [% RESET %][% BRIGHT YELLOW  %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %] / \   __| | __| | | __ )| __ ) ___|[% RESET %]
+[% BRIGHT GREEN        %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %]   [% RESET %][% BRIGHT GREEN   %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %] / _ \ / _` |/ _` | |  _ \|  _ \___ \[% RESET %]
+[% BRIGHT MAGENTA      %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %]   [% RESET %][% BRIGHT MAGENTA %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %] / ___ \ (_| | (_| | | |_) | |_) |__) |[% RESET %]
+[% BRIGHT BLUE         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %]   [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %] /_/   \_\__,_|\__,_| |____/|____/____/[% RESET %]

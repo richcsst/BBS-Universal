@@ -434,7 +434,7 @@ sub sysop_list_commands {
     $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
     $table->hr();
     my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-	my $count = 12; # Try to follow the scroll logic
+	my $count = 0; # Try to follow the scroll logic
     while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
         if (scalar(@sys)) {
             $sysop_names = shift(@sys);
@@ -487,7 +487,7 @@ sub sysop_list_commands {
     } ## end while (scalar(@sys) || scalar...)
     my $text = $self->center($table->boxes->draw(), $wsize);
 	# This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
-	my $replace = join('|', grep(!/^(GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
+	my $replace = join('|', grep(!/^(SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
 	my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
     $text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
@@ -603,7 +603,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         $diskfree = "\n" . `duf -theme ansi -width $wsize`;
     } else {
-        my @free  = split(/\n/, `nice df -h -T`);    # Get human readable disk free showing type
+        my @free  = split(/\n$/, `nice df -h -T`);    # Get human readable disk free showing type
         my $width = 1;
         foreach my $l (@free) {
             $width = max(length($l), $width);        # find the width of the widest line
@@ -658,35 +658,22 @@ sub sysop_load_menu {
 sub sysop_pager {
     my $self   = shift;
     my $text   = shift;
-    my $offset = shift;
+    my $offset = (scalar(@_)) ? shift : 0;
 
     $self->{'debug'}->DEBUG(['SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 	my @lines;
-	if ($text =~ /\[\% NEWLINE \%\]/) {
-		@lines = split(/\[\% NEWLINE \%\]/s, $text);
-	} else {
-		@lines  = split(/\n/s, $text);
-	}
+	@lines  = split(/\n$/, $text);
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
+	$size  -= $offset;
     my $scroll = TRUE;
-    my $row    = $size - $offset;
-    foreach my $line (@lines) {
-        if (length($line) > $wsize) {
-            my $count = int(length($line) / $wsize) + 1;
-            $row -= $count;
-            if ($row < 0) {
-                $scroll = $self->sysop_scroll();
-                last unless ($scroll);
-                $row = $size - $count;
-            }
-            $self->ansi_output("$line\n");
-        } else {
-            $self->ansi_output("$line\n");
-            $row--;
-        }
-        if ($row <= 0) {
-            $row    = $size;
+	my $count = 1;
+	while (scalar(@lines)) {
+		my $line = shift(@lines);
+		$self->ansi_output("$line\n");
+		$count++;
+        if ($count >= $size) {
+			$count = 1;
             $scroll = $self->sysop_scroll();
             last unless ($scroll);
         }
@@ -778,7 +765,7 @@ sub sysop_memory {
 
     $self->{'debug'}->DEBUG(['SysOp Memory']);
     my $memory = `nice free`;
-    my @mem    = split(/\n/, $memory);
+    my @mem    = split(/\n$/, $memory);
     my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ') . "\n";
     while (scalar(@mem)) {
         $output .= "\t\t\t" . shift(@mem) . "\n";
@@ -971,7 +958,7 @@ sub sysop_color_border {
 	my $tbl   = shift;
 	my $color = shift;
 
-	$tbl =~ s/\n/[% NEWLINE %]/gs;
+#	$tbl =~ s/\n/[% NEWLINE %]/gs;
 	if ($tbl =~ /(─)/) {
 		my $ch = $1;
 		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
@@ -1987,7 +1974,7 @@ sub sysop_showenv {
 
     foreach my $env (sort(keys %ENV)) {
         if ($ENV{$env} =~ /\n/g) {
-            my @in     = split(/\n/, $ENV{$env});
+            my @in     = split(/\n$/, $ENV{$env});
             my $indent = $MAX + 4;
             $text .= sprintf("%${MAX}s = ---" . $env) . "\n";
             foreach my $line (@in) {

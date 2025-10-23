@@ -9,18 +9,24 @@ sub ansi_initialize {
 
     $self->{'ansi_prefix'}    = $csi;
     $self->{'ansi_sequences'} = {
-#        'SS2'       => $esc . 'N',
-#        'SS3'       => $esc . 'O',
-        'CSI'       => $esc . '[',
-#        'OSC'       => $esc . ']',
-#        'SOS'       => $esc . 'X',
-#        'ST'        => $esc . "\\",
-#        'DCS'       => $esc . 'P',
-        'RING BELL' => chr(7),
-        'BACKSPACE' => chr(8),
-        'RETURN'    => chr(13),
-        'LINEFEED'  => chr(10),
-        'NEWLINE'   => chr(13) . chr(10),
+        'SS2'                       => $esc . 'N',          # Single Shift Two
+        'SS3'                       => $esc . 'O',          # Single Shift Three
+        'CSI'                       => $esc . '[',          # Control Sequence Introducer
+        'OSC'                       => $esc . ']',          # Operating System Command
+        'SOS'                       => $esc . 'X',          # Start of String
+        'ST'                        => $esc . "\\",         # String Terminator
+        'DCS'                       => $esc . 'P',          # Device Control String
+        'PM'                        => $esc . '^',          # Privacy Message
+        'APC'                       => $esc . '_',          # Application Program Command
+        'RING BELL'                 => chr(7),
+        'BACKSPACE'                 => chr(8),
+        'RETURN'                    => chr(13),
+        'LINEFEED'                  => chr(10),
+        'NEWLINE'                   => chr(13) . chr(10),
+        'FONT DOUBLE-HEIGHT TOP'    => $esc . '#3',
+        'FONT DOUBLE-HEIGHT BOTTOM' => $esc . '#4',
+        'FONT DEFAULT'              => $esc . '#5',
+        'FONT DOUBLE-WIDTH'         => $esc . '#6',
 
         'CLS'        => $csi . '2J' . $csi . 'H',
         'CLEAR'      => $csi . '2J',
@@ -30,19 +36,20 @@ sub ansi_initialize {
         'HOME'       => $csi . 'H',
 
         # Cursor
-        'UP'            => $csi . 'A',
-        'DOWN'          => $csi . 'B',
-        'RIGHT'         => $csi . 'C',
-        'LEFT'          => $csi . 'D',
-        'NEXT LINE'     => $csi . 'E',
-        'PREVIOUS LINE' => $csi . 'F',
-        'SAVE'          => $csi . 's',
-        'RESTORE'       => $csi . 'u',
-        'RESET'         => $csi . '0m',
-        'CURSOR ON'     => $csi . '?25h',
-        'CURSOR OFF'    => $csi . '?25l',
-        'SCREEN 1'      => $csi . '?1049l',
-        'SCREEN 2'      => $csi . '?1049h',
+        'QUERY LOCATION' => $csi . '6n',
+        'UP'             => $csi . 'A',
+        'DOWN'           => $csi . 'B',
+        'RIGHT'          => $csi . 'C',
+        'LEFT'           => $csi . 'D',
+        'NEXT LINE'      => $csi . 'E',
+        'PREVIOUS LINE'  => $csi . 'F',
+        'SAVE'           => $csi . 's',
+        'RESTORE'        => $csi . 'u',
+        'RESET'          => $csi . '0m',
+        'CURSOR ON'      => $csi . '?25h',
+        'CURSOR OFF'     => $csi . '?25l',
+        'SCREEN 1'       => $csi . '?1049l',
+        'SCREEN 2'       => $csi . '?1049h',
 
         # Attributes
         'BOLD'                    => $csi . '1m',
@@ -372,7 +379,7 @@ sub ansi_initialize {
         @_,
     };
     return ($self);
-}
+} ## end sub ansi_initialize
 
 sub ansi_decode {
     my $self = shift;
@@ -384,51 +391,51 @@ sub ansi_decode {
             $color =~ s/_/ /;
             my $new = '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
             $text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$new/;
-        }
+        } ## end while ($text =~ /\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/)
         while ($text =~ /\[\%\s+LOCATE (\d+),(\d+)\s+\%\]/) {
-            my ($c,$r) = ($1,$2);
+            my ($c, $r) = ($1, $2);
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "$r;$c" . 'H';
             $text =~ s/\[\%\s+LOCATE $r,$c\s+\%\]/$replace/g;
         }
         while ($text =~ /\[\%\s+SCROLL UP (\d+)\s+\%\]/) {
-            my $s = $1;
+            my $s       = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'S';
             $text =~ s/\[\%\s+SCROLL UP $s\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+SCROLL DOWN (\d+)\s+\%\]/) {
-            my $s = $1;
+            my $s       = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'T';
             $text =~ s/\[\%\s+SCROLL DOWN $s\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r,$g,$b) = ($1 & 255, $2 & 255, $3 & 255);
+            my ($r, $g, $b) = ($1 & 255, $2 & 255, $3 & 255);
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:2:$r:$g:$b" . 'm';
             $text =~ s/\[\%\s+RGB $r,$g,$b\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+B_RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r,$g,$b) = ($1 & 255, $2 & 255, $3 & 255);
+            my ($r, $g, $b) = ($1 & 255, $2 & 255, $3 & 255);
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:2:$r:$g:$b" . 'm';
             $text =~ s/\[\%\s+B_RGB $r,$g,$b\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+(COLOR|COLOUR) (\d+)\s+\%\]/) {
-            my $n = $1;
-            my $c = $2 & 255;
+            my $n       = $1;
+            my $c       = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:5:$c" . 'm';
             $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
-        }
+        } ## end while ($text =~ /\[\%\s+(COLOR|COLOUR) (\d+)\s+\%\]/)
         while ($text =~ /\[\%\s+(B_COLOR|B_COLOUR) (\d+)\s+\%\]/) {
-            my $n = $1;
-            my $c = $2 & 255;
+            my $n       = $1;
+            my $c       = $2 & 255;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:5:$c" . 'm';
             $text =~ s/\[\%\s+$n $c\s+\%\]/$replace/gi;
-        }
+        } ## end while ($text =~ /\[\%\s+(B_COLOR|B_COLOUR) (\d+)\s+\%\]/)
         while ($text =~ /\[\%\s+GREY (\d+)\s+\%\]/) {
-            my $g = $1;
+            my $g       = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . '38:5:' . (232 + $g) . 'm';
             $text =~ s/\[\%\s+GREY $g\s+\%\]/$replace/gi;
         }
         while ($text =~ /\[\%\s+B_GREY (\d+)\s+\%\]/) {
-            my $g = $1;
+            my $g       = $1;
             my $replace = $self->{'ansi_sequences'}->{'CSI'} . '48:5:' . (232 + $g) . 'm';
             $text =~ s/\[\%\s+B_GREY $g\s+\%\]/$replace/gi;
         }
@@ -450,14 +457,14 @@ sub ansi_decode {
                 $char = '?' unless (defined($char));
                 $text =~ s/\[\%\s+$string\s+\%\]/$char/gi;
             }
-        }
-    }
-    return($text);
-}
+        } ## end while ($text =~ /\[\%\s+(.*?)\s+\%\]/...)
+    } ## end if (length($text) > 1)
+    return ($text);
+} ## end sub ansi_decode
 
 sub ansi_output {
-    my $self   = shift;
-    my $text   = shift;
+    my $self = shift;
+    my $text = shift;
 
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
@@ -478,10 +485,10 @@ sub ansi_output {
                     last unless ($self->scroll($nl));
                     next;
                 }
-            }
-        }
+            } ## end if ($char eq "\n")
+        } ## end if ($char eq "\n")
         $self->send_char($char);
-    }
+    } ## end foreach my $count (0 .. $s_len)
     return (TRUE);
-}
+} ## end sub ansi_output
 1;

@@ -5,12 +5,11 @@ M|ACCOUNT MANAGER|WHITE|USER|Manage Your Account
 F|FILES|WHITE|USER|Go To Files
 N|NEWS|WHITE|USER|System News
 A|ABOUT|WHITE|USER|About This BBS
-U|LIST USERS|BRIGHT WHITE|USER|List Users
-R|RSS FEEDS|RED|USER|Read External News Feeds
+U|LIST USERS|YELLOW|USER|List Users
 X|DISCONNECT|WHITE|USER|Disconnect
 ---
- __  __
-|  \/  |___ _ _ _  _
-| |\/| / -_) ' \ || |
-|_|  |_\___|_||_\_,_|
+[% RED    %] __  __
+[% YELLOW %]|  \/  |___ _ _ _  _
+[% GREEN  %]| |\/| / -_) ' \ || |
+[% BLUE   %]|_|  |_\___|_||_\_,_|
 [% FORTUNE %]

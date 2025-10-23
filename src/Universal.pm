@@ -10,44 +10,46 @@ no warnings;
 use utf8;
 use constant {
     TRUE        =>  1,
-      FALSE       =>  0,
-      YES         =>  1,
-      NO          =>  0,
-      BLOCKING    =>  1,
-      NONBLOCKING =>  0,
-      PASSWORD    => -1,
-      SILENT      =>  0,
-      ECHO        =>  1,
-      STRING      =>  1,
-      NUMERIC     =>  2,
-      RADIO       =>  3,
-      TOGGLE      =>  4,
-      HOST        =>  5,
-      DATE        =>  6,
+    FALSE       =>  0,
+    YES         =>  1,
+    NO          =>  0,
+    BLOCKING    =>  1,
+    NONBLOCKING =>  0,
+    PASSWORD    => -1,
+    SILENT      =>  0,
+    ECHO        =>  1,
+    STRING      =>  1,
+    NUMERIC     =>  2,
+    RADIO       =>  3,
+    TOGGLE      =>  4,
+    HOST        =>  5,
+    DATE        =>  6,
 
     ASCII   => 0,
-      ATASCII => 1,
-      PETSCII => 2,
-      ANSI    => 3,
+    ATASCII => 1,
+    PETSCII => 2,
+    ANSI    => 3,
 
     LINEMODE => 34,
 
     SE                => 240,
-      NOP               => 214,
-      DATA_MARK         => 242,
-      BREAK             => 243,
-      INTERRUPT_PROCESS => 244,
-      ABORT_OUTPUT      => 245,
-      ARE_YOU_THERE     => 246,
-      ERASE_CHARACTER   => 247,
-      ERASE_LINE        => 248,
-      GO_AHEAD          => 249,
-      SB                => 250,
-      WILL              => 251,
-      WONT              => 252,
-      DO                => 253,
-      DONT              => 254,
-      IAC               => 255,
+    NOP               => 214,
+    DATA_MARK         => 242,
+    BREAK             => 243,
+    INTERRUPT_PROCESS => 244,
+    ABORT_OUTPUT      => 245,
+    ARE_YOU_THERE     => 246,
+    ERASE_CHARACTER   => 247,
+    ERASE_LINE        => 248,
+    GO_AHEAD          => 249,
+    SB                => 250,
+    WILL              => 251,
+    WONT              => 252,
+    DO                => 253,
+    DONT              => 254,
+    IAC               => 255,
+
+    PI => (4 * atan2(1, 1)),
 };
 use open qw(:std :utf8);
 
@@ -94,7 +96,7 @@ use XML::RSS::LibXML;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.009';
+    our $VERSION = '0.010';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
         TRUE
@@ -205,7 +207,7 @@ sub new {    # Always call with the socket as a parameter
         'can'             => chr(24),
         'null'            => chr(0),
         'delete'          => chr(127),
-        'suffixes'        => [qw( ASC ATA PET ANS )],
+        'suffixes'        => [qw( ASCII ATASCII PETSCII ANSI )],
         'host'            => undef,
         'port'            => undef,
         'access_levels'   => {
@@ -1650,7 +1652,7 @@ sub center {
         return ($text);
     }
     if ($text =~ /\n/s) {
-        chomp(my @lines = split(/\n/, $text));
+        chomp(my @lines = split(/\n$/, $text));
         $text = '';
         foreach my $line (@lines) {
             $text .= $self->pad_center($line, $width) . "\n";

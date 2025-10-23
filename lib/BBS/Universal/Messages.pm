@@ -306,7 +306,7 @@ sub messages_text_edit {
     my $text_mode = $self->{'USER'}->{'text_mode'};
     my @lines;
     if (defined($text) && $text ne '') {
-        @lines = split(/\n/,$text . "\n");
+        @lines = split(/\n$/,$text . "\n");
     }
     my $save   = FALSE;
     my $cancel = FALSE;

@@ -1,0 +1,16 @@
+# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+B|BBS LISTING|BRIGHT BLUE|USER|Show BBS List
+O|FORUMS|MAGENTA|USER|Go To Forums
+M|ACCOUNT MANAGER|WHITE|USER|Manage Your Account
+F|FILES|GREEN|USER|Go To Files
+N|NEWS|CYAN|USER|System News
+A|ABOUT|YELLOW|USER|About This BBS
+U|LIST USERS|ORANGE|USER|List Users
+X|DISCONNECT|RED|USER|Disconnect
+---
+[% CLS %][% BRIGHT RED %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT RED     %]   [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]__  __       _          __  __
+[% BRIGHT YELLOW       %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %]   [% RESET %][% BRIGHT YELLOW  %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]|  \/  | __ _(_)_ __    |  \/  | ___ _ __  _   _
+[% BRIGHT GREEN        %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %]   [% RESET %][% BRIGHT GREEN   %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] | |\/| |/ _` | | '_ \   | |\/| |/ _ \ '_ \| | | |
+[% BRIGHT MAGENTA      %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %]   [% RESET %][% BRIGHT MAGENTA %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  | |  | | (_| | | | | |  | |  | |  __/ | | | |_| |
+[% BRIGHT BLUE         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %]   [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]   |_|  |_|\__,_|_|_| |_|  |_|  |_|\___|_| |_|\__,_|
+[% FORTUNE %]
