@@ -5,11 +5,11 @@ S|SEARCH FILES SUMMARY|BRIGHT BLUE|USER|Search for file (short format)
 D|SEARCH FILES DETAILED|RED|USER|Search for file (long format)
 Z|BACK|GREEN|USER|Main Menu
 ---
-[% CLS %][% GREEN %] _____ _ _        ____            _[% RESET %]
-[% GREEN          %]|  ___(_) | ___  / ___| _   _ ___| |_ ___ _ __ ___[% RESET %]
-[% GREEN          %]| |_  | | |/ _ \ \___ \| | | / __| __/ _ \ '_ ` _ \[% RESET %]
-[% GREEN          %]|  _| | | |  __/  ___) | |_| \__ \ ||  __/ | | | | |[% RESET %]
-[% GREEN          %]|_|   |_|_|\___| |____/ \__, |___/\__\___|_| |_| |_|[% RESET %]
-[% GREEN          %]                        |___/[% RESET %]
+[% CLS %][% GREEN %][% BLACK UPPER RIGHT TRIANGLE %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %]  [% GREEN %] _____ _ _        ____            _[% RESET %]
+ [% GREEN          %][% BLACK UPPER RIGHT TRIANGLE %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %] [% GREEN %]|  ___(_) | ___  / ___| _   _ ___| |_ ___ _ __ ___[% RESET %]
+  [% GREEN          %][% BLACK UPPER RIGHT TRIANGLE %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% GREEN %]| |_  | | |/ _ \ \___ \| | | / __| __/ _ \ '_ ` _ \[% RESET %]
+  [% GREEN          %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% GREEN %]|  _| | | |  __/  ___) | |_| \__ \ ||  __/ | | | | |[% RESET %]
+ [% GREEN          %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% GREEN %]|_|   |_|_|\___| |____/ \__, |___/\__\___|_| |_| |_|[% RESET %]
+[% GREEN          %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  [% GREEN %]                        |___/[% RESET %]
 
 [% BLACK %][% B_BRIGHT MAGENTA %]Current Category[% RESET %] [% GREEN %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% FILE CATEGORY %]

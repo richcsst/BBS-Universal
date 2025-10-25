@@ -20,6 +20,7 @@ sub ansi_initialize {
         'APC'                       => $esc . '_',          # Application Program Command
         'RING BELL'                 => chr(7),
         'BACKSPACE'                 => chr(8),
+		'TAB'                       => chr(9),
         'RETURN'                    => chr(13),
         'LINEFEED'                  => chr(10),
         'NEWLINE'                   => chr(13) . chr(10),
@@ -472,23 +473,37 @@ sub ansi_output {
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 
-    foreach my $count (0 .. $s_len) {
-        my $char = substr($text, $count, 1);
-        if ($char eq "\n") {
-            if ($char eq "\n") {
-                if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-                    $char = $nl;
-                }
-                $lines--;
-                if ($lines <= 0) {
-                    $lines = $mlines;
-                    last unless ($self->scroll($nl));
-                    next;
-                }
-            } ## end if ($char eq "\n")
-        } ## end if ($char eq "\n")
-        $self->send_char($char);
-    } ## end foreach my $count (0 .. $s_len)
+	if (0) { # $self->{'local_mode'}) {
+		my @lines = split(/\n/,$text);
+		my $size = $self->{'USER'}->{'max_rows'};
+		while (scalar(@lines)) {
+			my $line = shift(@lines);
+			print $line;
+			$size--;
+			if ($size <= 0) {
+				$size = $self->{'USER'}->{'max_rows'};
+				last unless ($self->scroll(("\n")));
+			} else {
+				print "\n";
+			}
+		}
+	} else {
+		foreach my $count (0 .. $s_len) {
+			my $char = substr($text, $count, 1);
+			if ($char eq "\n") {
+				if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+					$char = $nl;
+				}
+				$lines--;
+				if ($lines <= 0) {
+					$lines = $mlines;
+					last unless ($self->scroll($nl));
+					next;
+				}
+			} ## end if ($char eq "\n")
+			$self->send_char($char);
+		} ## end foreach my $count (0 .. $s_len)
+	}
     return (TRUE);
 } ## end sub ansi_output
 1;

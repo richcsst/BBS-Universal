@@ -9,6 +9,7 @@ sub ascii_initialize {
         'LINEFEED'  => chr(10),
         'NEWLINE'   => chr(13) . chr(10),
         'BACKSPACE' => chr(8),
+		'TAB'       => chr(9),
         'DELETE'    => chr(127),
         'CLS'       => chr(12), # Formfeed
         'CLEAR'     => chr(12),

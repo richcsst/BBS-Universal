@@ -434,7 +434,7 @@ sub sysop_list_commands {
     $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
     $table->hr();
     my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-	my $count = 0; # Try to follow the scroll logic
+    my $count = 0; # Try to follow the scroll logic
     while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
         if (scalar(@sys)) {
             $sysop_names = shift(@sys);
@@ -477,18 +477,18 @@ sub sysop_list_commands {
             $ascii_tokens = ' ';
         }
         $table->row($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-		$count++;
-		if ($count > $srow) {
-			$count = 0;
-			$table->hr();
-			$table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
-			$table->hr();
-		}
+        $count++;
+        if ($count > $srow) {
+            $count = 0;
+            $table->hr();
+            $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
+            $table->hr();
+        }
     } ## end while (scalar(@sys) || scalar...)
     my $text = $self->center($table->boxes->draw(), $wsize);
-	# This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
-	my $replace = join('|', grep(!/^(SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
-	my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
+    # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
+    my $replace = join('|', grep(!/^(SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
+    my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
     $text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
     $text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
@@ -550,7 +550,7 @@ sub sysop_list_commands {
     $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-	$text = $self->sysop_color_border($text, 'PINK');
+    $text = $self->sysop_color_border($text, 'PINK');
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands
 
@@ -568,27 +568,29 @@ sub sysop_versions_format {
     my $bbs_only = shift;
 
     $self->{'debug'}->DEBUG(['SysOp Versions Format']);
-    my $versions = "\n\t";
-    my $heading  = "\t";
+    my $versions = "\n";
+    my $heading  = ''; #  = "\t";
     my $counter  = $sections;
 
     for (my $count = $sections - 1; $count > 0; $count--) {
         $heading .= ' NAME                         VERSION ';
         if ($count) {
-            $heading .= "\t\t";
+            $heading .= "\t";
         } else {
             $heading .= "\n";
         }
     } ## end for (my $count = $sections...)
-    $heading = colored(['bold bright_yellow on_red'], $heading);
-    foreach my $v (keys %{ $self->{'VERSIONS'} }) {
+    $heading = '[% BRIGHT YELLOW %][% B_RED %]' .  $heading . '[% RESET %]';
+    foreach my $v (sort(keys %{ $self->{'VERSIONS'} })) {
         next if ($bbs_only && $v !~ /^BBS/);
-        $versions .= "\t\t " . sprintf('%-28s %.03f', $v, $self->{'VERSIONS'}->{$v});
+        $versions .= sprintf(' %-28s  %.03f', $v, $self->{'VERSIONS'}->{$v});
         $counter--;
         if ($counter <= 1) {
             $counter = $sections;
-            $versions .= "\n\t";
-        }
+            $versions .= "\n";
+        } else {
+			$versions .= "\t";
+		}
     } ## end foreach my $v (keys %{ $self...})
     chop($versions) if (substr($versions, -1, 1) eq "\t");
     return ($heading . $versions . "\n");
@@ -603,7 +605,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         $diskfree = "\n" . `duf -theme ansi -width $wsize`;
     } else {
-        my @free  = split(/\n$/, `nice df -h -T`);    # Get human readable disk free showing type
+        my @free  = split(/\n/, `nice df -h -T`);    # Get human readable disk free showing type
         my $width = 1;
         foreach my $l (@free) {
             $width = max(length($l), $width);        # find the width of the widest line
@@ -611,9 +613,9 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
         foreach my $line (@free) {
             next if ($line =~ /tmp|boot/);
             if ($line =~ /^Filesystem/) {
-                $diskfree .= "\t" . colored(['bold bright_yellow on_blue'], " $line " . ' ' x ($width - length($line))) . "\n";    # Make the heading the right width
+                $diskfree .= '[% B_BLUE %][% BRIGHT YELLOW %]' . " $line " . ' ' x ($width - length($line)) . "[% RESET %]\n";    # Make the heading the right width
             } else {
-                $diskfree .= "\t\t\t $line\n";
+                $diskfree .= " $line\n";
             }
         } ## end foreach my $line (@free)
     } ## end else [ if ((-e '/usr/bin/duf'...))]
@@ -662,18 +664,18 @@ sub sysop_pager {
 
     $self->{'debug'}->DEBUG(['SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-	my @lines;
-	@lines  = split(/\n$/, $text);
+    my @lines;
+    @lines  = split(/\n$/, $text);
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
-	$size  -= $offset;
+    $size  -= $offset;
     my $scroll = TRUE;
-	my $count = 1;
-	while (scalar(@lines)) {
-		my $line = shift(@lines);
-		$self->ansi_output("$line\n");
-		$count++;
+    my $count = 1;
+    while (scalar(@lines)) {
+        my $line = shift(@lines);
+        $self->ansi_output("$line\n");
+        $count++;
         if ($count >= $size) {
-			$count = 1;
+            $count = 1;
             $scroll = $self->sysop_scroll();
             last unless ($scroll);
         }
@@ -766,16 +768,16 @@ sub sysop_memory {
     $self->{'debug'}->DEBUG(['SysOp Memory']);
     my $memory = `nice free`;
     my @mem    = split(/\n$/, $memory);
-    my $output = "\t" . colored(['bold black on_green'], '  ' . shift(@mem) . ' ') . "\n";
+    my $output = '[% BLACK %][% B_GREEN %]  ' . shift(@mem) . ' [% RESET %]' . "\n";
     while (scalar(@mem)) {
-        $output .= "\t\t\t" . shift(@mem) . "\n";
+        $output .= shift(@mem) . "\n";
     }
     if ($output =~ /(Mem\:       )/) {
-        my $ch = colored(['bold black on_green'], ' ' . $1 . ' ');
+        my $ch = '[% BLACK %][% B_GREEN %] ' . $1 . ' [% RESET %]';
         $output =~ s/Mem\:       /$ch/;
     }
     if ($output =~ /(Swap\:      )/) {
-        my $ch = colored(['bold black on_green'], ' ' . $1 . ' ');
+        my $ch = '[% BLACK %][% B_GREEN %] ' . $1 . ' [% RESET %]';
         $output =~ s/Swap\:      /$ch/;
     }
     return ($output);
@@ -856,7 +858,7 @@ sub sysop_list_users {
         $string =~ s/ NAME / $ch /;
         $ch = colored(['bright_yellow'], 'VALUE');
         $string =~ s/ VALUE / $ch /;
-		$string = $self->sysop_color_border($string, 'CYAN');
+        $string = $self->sysop_color_border($string, 'CYAN');
         $self->sysop_pager("$string\n");
     } else {    # Horizontal
         my @hw;
@@ -884,7 +886,7 @@ sub sysop_list_users {
         } ## end while (my $row = $sth->fetchrow_hashref...)
         $sth->finish();
         my $string = $table->boxes->draw();
-		$string = $self->sysop_color_border($string, 'CYAN');
+        $string = $self->sysop_color_border($string, 'CYAN');
         $self->sysop_pager("$string\n");
     } ## end else [ if ($list_mode =~ /VERTICAL/)]
     print 'Press a key to continue ... ';
@@ -939,82 +941,82 @@ sub sysop_list_files {
         $category = $row->{'category'};
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
-	$self->output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
-	my $tbl = $table->boxes->draw();
-	$tbl = $self->sysop_color_border($tbl, 'YELLOW');
-	while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED) /) {
-		my $ch = $1;
-		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-		$tbl =~ s/ $ch / $new /gs;
-	}
-	$self->output("\n$tbl\nPress a Key To Continue ...");
+    $self->output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
+    my $tbl = $table->boxes->draw();
+    $tbl = $self->sysop_color_border($tbl, 'YELLOW');
+    while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED) /) {
+        my $ch = $1;
+        my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+        $tbl =~ s/ $ch / $new /gs;
+    }
+    $self->output("\n$tbl\nPress a Key To Continue ...");
     $self->sysop_keypress();
     print " BACK\n";
     return (TRUE);
 } ## end sub sysop_list_files
 
 sub sysop_color_border {
-	my $self  = shift;
-	my $tbl   = shift;
-	my $color = shift;
+    my $self  = shift;
+    my $tbl   = shift;
+    my $color = shift;
 
-#	$tbl =~ s/\n/[% NEWLINE %]/gs;
-	if ($tbl =~ /(─)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(│)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┌)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(└)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┬)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┐)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(├)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┘)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┼)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┤)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	if ($tbl =~ /(┴)/) {
-		my $ch = $1;
-		my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		$tbl =~ s/$ch/$new/gs;
-	}
-	return($tbl);
+#    $tbl =~ s/\n/[% NEWLINE %]/gs;
+    if ($tbl =~ /(─)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(│)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┌)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(└)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┬)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┐)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(├)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┘)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┼)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┤)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    if ($tbl =~ /(┴)/) {
+        my $ch = $1;
+        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        $tbl =~ s/$ch/$new/gs;
+    }
+    return($tbl);
 }
 
 sub sysop_select_file_category {
@@ -1032,12 +1034,12 @@ sub sysop_select_file_category {
         $max_id = $row->{'id'};
     }
     $sth->finish();
-	my $text = $table->boxes->draw();
-	while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
-		my $ch = $1;
-		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-		$text =~ s/ $ch / $new /gs;
-	}
+    my $text = $table->boxes->draw();
+    while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
+        my $ch = $1;
+        my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+        $text =~ s/ $ch / $new /gs;
+    }
     $self->output($self->sysop_color_border($text,'MAGENTA') . "\n" . $self->sysop_prompt('Choose ID (< = Nevermind)'));
     my $line;
     do {
@@ -1069,12 +1071,12 @@ sub sysop_edit_file_categories {
         $table->row($row->{'id'}, $row->{'title'}, $row->{'description'});
     }
     $sth->finish();
-	my $text = $table->boxes->draw();
-	while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
-		my $ch = $1;
-		my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-		$text =~ s/ $ch / $new /gs;
-	}
+    my $text = $table->boxes->draw();
+    while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
+        my $ch = $1;
+        my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+        $text =~ s/ $ch / $new /gs;
+    }
     $self->output($text . "\n" . $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)'));
     my $line;
     do {
@@ -1085,12 +1087,12 @@ sub sysop_edit_file_categories {
         $table = Text::SimpleTable->new(11, 80);
         $table->row('TITLE',       "\n" . charnames::string_vianame('OVERLINE') x 80);
         $table->row('DESCRIPTION', "\n" . charnames::string_vianame('OVERLINE') x 80);
-		my $text = $table->boxes->draw();
-		while ($text =~ / (TITLE|DESCRIPTION) /) {
-			my $ch = $1;
-			my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-			$text =~ s/ $ch / $new /gs;
-		}
+        my $text = $table->boxes->draw();
+        while ($text =~ / (TITLE|DESCRIPTION) /) {
+            my $ch = $1;
+            my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+            $text =~ s/ $ch / $new /gs;
+        }
         $self->output("\n" . $self->sysop_color_border($text));
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(ECHO, 80, '');
@@ -1205,7 +1207,7 @@ sub sysop_view_configuration {
         $output =~ s/CONFIG NAME/$ch/gs;
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
-		$output = $self->sysop_color_border($output, 'RED');
+        $output = $self->sysop_color_border($output, 'RED');
     }
     if ("$view" eq 'string') {
         return ($output);
@@ -1633,7 +1635,7 @@ sub sysop_user_edit {
                 my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
                 $tbl =~ s/$ch/ $new /g;
             }
-			$tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
+            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             print "\n", $self->sysop_prompt('Choose');
@@ -1733,7 +1735,7 @@ sub sysop_new_user_edit {
                 my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
                 $tbl =~ s/$ch/ $new /g;
             }
-			$tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
+            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             $self->output("\n" . $self->sysop_prompt('Choose'));

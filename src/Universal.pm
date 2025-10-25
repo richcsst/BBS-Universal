@@ -431,10 +431,6 @@ sub populate_common {
             $self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
             return ($uptime);
         },
-        'SHOW BBS LIST' => sub {
-            my $self = shift;
-            return ($self->bbs_list_all());
-        },
         'SHOW USERS LIST' => sub {
             my $self = shift;
             return ($self->users_list());
@@ -448,6 +444,16 @@ sub populate_common {
     };
 
     $self->{'COMMANDS'} = {
+        'SHOW FULL BBS LIST' => sub {
+            my $self = shift;
+            $self->bbs_list(FALSE);
+			return($self->load_menu('files/main/bbs_listing'));
+        },
+        'SEARCH BBS LIST' => sub {
+            my $self = shift;
+            $self->bbs_list(TRUE);
+			return($self->load_menu('files/main/bbs_listing'));
+        },
         'RSS FEEDS' => sub {
             my $self = shift;
             $self->news_rss_feeds();
@@ -1376,6 +1382,7 @@ sub detokenize_text {    # Detokenize text markup
 
 sub output {
     my $self = shift;
+	$|=1;
     $self->{'debug'}->DEBUG(['Output']);
     my $text = $self->detokenize_text(shift);
 
@@ -1419,11 +1426,9 @@ sub send_char {
     # This sends one character at a time to the socket to simulate a retro BBS
     if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print STDOUT $char;
-        $| = 1;
     } else {
         my $handle = $self->{'cl_socket'};
         print $handle $char;
-        $| = 1;
     }
 
     # Send at the chosen baud rate by delaying the output by a fraction of a second
@@ -1444,7 +1449,7 @@ sub scroll {
         $string = "$nl" . 'Scroll?  ';
     }
     $self->output($string);
-    if ($self->get_key(ECHO, BLOCKIMG) =~ /N/i) {
+    if ($self->get_key(ECHO, BLOCKIMG) =~ /N|Q/i) {
         $self->output("\n");
         return (FALSE);
     }
