@@ -294,7 +294,7 @@ sub news_title_colorize {
 			my $blaze = '[% B_BRIGHT WHITE %][% BLACK %]the[% RED %]Blaze[% RESET %]';
 			$text =~ s/the blaze/$blaze/gsi;
 		} elsif ($text =~ /national review/i) {
-			my $nr = '[% B_BLACK %][% BRIGHT WHITE %]NR[% RESET %] National Review';
+			my $nr = '[% B_BLACK %][% BRIGHT WHITE %]NR[% RESET %] NATIONAL REVIEW';
 			$text =~ s/national review/$nr/gsi;
 		} elsif ($text =~ /hot air/i) {
 			my $hr = '[% BRIGHT WHITE %]HOT A[% RED %]i[% BRIGHT WHITE %]R[% RESET %]';

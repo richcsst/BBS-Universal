@@ -550,7 +550,7 @@ sub sysop_list_commands {
     $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
     $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-    $text = $self->sysop_color_border($text, 'PINK');
+    $text = $self->sysop_color_border($text, 'PINK','DOUBLE');
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands
 
@@ -858,7 +858,7 @@ sub sysop_list_users {
         $string =~ s/ NAME / $ch /;
         $ch = colored(['bright_yellow'], 'VALUE');
         $string =~ s/ VALUE / $ch /;
-        $string = $self->sysop_color_border($string, 'CYAN');
+        $string = $self->sysop_color_border($string, 'CYAN', 'HEAVY');
         $self->sysop_pager("$string\n");
     } else {    # Horizontal
         my @hw;
@@ -886,7 +886,7 @@ sub sysop_list_users {
         } ## end while (my $row = $sth->fetchrow_hashref...)
         $sth->finish();
         my $string = $table->boxes->draw();
-        $string = $self->sysop_color_border($string, 'CYAN');
+        $string = $self->sysop_color_border($string, 'CYAN', 'HEAVY');
         $self->sysop_pager("$string\n");
     } ## end else [ if ($list_mode =~ /VERTICAL/)]
     print 'Press a key to continue ... ';
@@ -943,7 +943,7 @@ sub sysop_list_files {
     $sth->finish();
     $self->output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
     my $tbl = $table->boxes->draw();
-    $tbl = $self->sysop_color_border($tbl, 'YELLOW');
+    $tbl = $self->sysop_color_border($tbl, 'YELLOW', 'DOUBLE');
     while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED) /) {
         my $ch = $1;
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
@@ -959,61 +959,136 @@ sub sysop_color_border {
     my $self  = shift;
     my $tbl   = shift;
     my $color = shift;
+	my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
 
-#    $tbl =~ s/\n/[% NEWLINE %]/gs;
+	my $new;
     if ($tbl =~ /(─)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE HORIZONTAL %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY HORIZONTAL %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(│)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┌)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'ROUNDED') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% RESET %]';
+		} elsif ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND RIGHT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND RIGHT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(└)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'ROUNDED') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% RESET %]';
+		} elsif ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND RIGHT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND RIGHT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┬)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┐)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'ROUNDED') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %][% RESET %]';
+		} elsif ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND LEFT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND LEFT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(├)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND RIGHT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND RIGHT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┘)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'ROUNDED') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %][% RESET %]';
+		} elsif ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND LEFT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND LEFT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┼)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┤)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND LEFT %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND LEFT %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┴)/) {
         my $ch = $1;
-        my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		if ($type eq 'DOUBLE') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND HORIZONTAL %][% RESET %]';
+		} elsif ($type eq 'HEAVY') {
+			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND HORIZONTAL %][% RESET %]';
+		} else {
+			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+		}
         $tbl =~ s/$ch/$new/gs;
     }
     return($tbl);
@@ -1040,7 +1115,7 @@ sub sysop_select_file_category {
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $text =~ s/ $ch / $new /gs;
     }
-    $self->output($self->sysop_color_border($text,'MAGENTA') . "\n" . $self->sysop_prompt('Choose ID (< = Nevermind)'));
+    $self->output($self->sysop_color_border($text,'MAGENTA', 'DOUBLE') . "\n" . $self->sysop_prompt('Choose ID (< = Nevermind)'));
     my $line;
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
@@ -1093,7 +1168,7 @@ sub sysop_edit_file_categories {
             my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
             $text =~ s/ $ch / $new /gs;
         }
-        $self->output("\n" . $self->sysop_color_border($text));
+        $self->output("\n" . $self->sysop_color_border($text, 'MAGENTA', 'DOUBLE'));
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(ECHO, 80, '');
         if ($title ne '') {
@@ -1174,11 +1249,11 @@ sub sysop_view_configuration {
         if ($conf eq 'DEFAULT TIMEOUT') {
             $c .= ' Minutes';
         } elsif ($conf eq 'DEFAULT BAUD RATE') {
-            $c .= ' bps - 300,600,1200,2400,4800,9600,19200,FULL';
+            $c .= ' bps - 300, 600, 1200, 2400, 4800, 9600, 19200, FULL';
         } elsif ($conf eq 'THREAD MULTIPLIER') {
             $c .= ' x CPU Cores';
         } elsif ($conf eq 'DEFAULT TEXT MODE') {
-            $c .= ' - ANSI,ASCII,ATASCII,PETSCII';
+            $c .= ' - ANSI, ASCII, ATASCII, PETSCII';
         }
         if ($view) {
             $table->row($conf, $c);
@@ -1192,9 +1267,14 @@ sub sysop_view_configuration {
         } ## end else [ if ($view) ]
     } ## end foreach my $conf (sort(keys...))
     my $output = $table->boxes->draw();
-    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300,600,1200,2400,4800,9600,19200,FULL', '%d = day, %m = Month, %Y = Year', 'ANSI,ASCII,ATASCII,PETSCII', 'ANS,ASC,ATA,PET') {
+    foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300, 600, 1200, 2400, 4800, 9600, 19200, FULL', '%d = day, %m = Month, %Y = Year', 'ANSI, ASCII, ATASCII, PETSCII', 'ANSI, ASCII, ATAASCII,PETSCII') {
         if ($output =~ /$change/) {
-            my $ch = ($change =~ /^(AUTHOR|DATABASE)/) ? colored(['yellow'], $change) : colored(['grey11'], $change);
+			my $ch;
+			if (/^(AUTHOR|DATABASE)/) {
+				$ch = '[% YELLOW %]' . $change . '[% RESET %]';
+			} else {
+				$ch = '[% GREY 11 %]' . $change . '[% RESET %]';
+			}
             $output =~ s/$change/$ch/gs;
         }
     } ## end foreach my $change ('AUTHOR EMAIL'...)
@@ -1207,7 +1287,7 @@ sub sysop_view_configuration {
         $output =~ s/CONFIG NAME/$ch/gs;
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
-        $output = $self->sysop_color_border($output, 'RED');
+        $output = $self->sysop_color_border($output, 'RED', 'HEAVY');
     }
     if ("$view" eq 'string') {
         return ($output);
@@ -1561,7 +1641,7 @@ sub sysop_user_delete {
             }
             $table->row($field, $user_row->{$field} . '');
         } ## end foreach my $field (@{ $self...})
-        if ($self->sysop_pager($self->sysop_color_border($table->boxes->draw(),'RED'))) {
+        if ($self->sysop_pager($self->sysop_color_border($table->boxes->draw(), 'RED', 'HEAVY'))) {
             print "Are you sure that you want to delete this user (Y|N)?  ";
             my $answer = $self->sysop_decision();
             if ($answer) {
@@ -1607,22 +1687,22 @@ sub sysop_user_edit {
             my %choice;
             foreach my $field (@{ $self->{'SYSOP ORDER DETAILED'} }) {
                 if ($field =~ /_time|fullname|_category|id/) {
-                    $table->row(' ', $field, $user_row->{$field} . '');
+                    $table->row(' ', uc($field), $user_row->{$field} . '');
                 } else {
                     if ($user_row->{$field} =~ /^(0|1)$/) {
-                        $table->row($choices[$count], $field, $self->sysop_true_false($user_row->{$field}, 'YN'));
+                        $table->row($choices[$count], uc($field), $self->sysop_true_false($user_row->{$field}, 'YN'));
                     } elsif ($field eq 'access_level') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  USER, VETERAN, JUNIOR SYSOP, SYSOP');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - USER, VETERAN, JUNIOR SYSOP, SYSOP');
                     } elsif ($field eq 'date_format') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
                     } elsif ($field eq 'baud_rate') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - 300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
                     } elsif ($field eq 'text_mode') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  ASCII, ANSI, ATASCII, PETSCII');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - ASCII, ANSI, ATASCII, PETSCII');
                     } elsif ($field eq 'timeout') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  Minutes');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - Minutes');
                     } else {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . '');
                     }
                     $count++ if ($key_exit eq $choices[$count]);
                     $choice{ $choices[$count] } = $field;
@@ -1630,12 +1710,21 @@ sub sysop_user_edit {
                 } ## end else [ if ($field =~ /_time|fullname|_category|id/)]
             } ## end foreach my $field (@{ $self...})
             my $tbl = $table->boxes->draw();
-            while ($tbl =~ / (USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
+            while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
                 my $ch  = $1;
-                my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
-                $tbl =~ s/$ch/ $new /g;
+				my $new;
+				if ($ch =~ /Yes/) {
+					$new = '[% GREEN %]' . $ch . '[% RESET %]';
+				} elsif ($ch =~ /No/) {
+					$new = '[% RED %]' . $ch . '[% RESET %]';
+				} elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
+					$new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+				} else {
+					$new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
+				}
+                $tbl =~ s/$ch/$new/g;
             }
-            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
+            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             print "\n", $self->sysop_prompt('Choose');
@@ -1644,17 +1733,14 @@ sub sysop_user_edit {
             } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
             if ($key !~ /$key_exit/i) {
                 print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
-                my $new = $self->sysop_get_line(ECHO, 1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{ $choice{$key} });
-                unless ($new eq '') {
-                    $new =~ s/^(Yes|On)$/1/i;
-                    $new =~ s/^(No|Off)$/0/i;
-                }
-                $user_row->{ $choice{$key} } = $new;
-                if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
-                    my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice { $key } . '=? WHERE id=?');
-                    $sth->execute($new, $user_row->{'id'});
+                if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/) {
+					$user_row->{$choice{$key}} = ($user_row->{$choice{$key}} == 1) ? 0 : 1;
+                    my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{ $key } . '= !' . $choice{$key} . '  WHERE id=?');
+                    $sth->execute($user_row->{'id'});
                     $sth->finish();
-                } else {
+				} else {
+					my $new = $self->sysop_get_line(ECHO, 1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{ $choice{$key} });
+					$user_row->{ $choice{$key} } = $new;
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});
                     $sth->finish();
@@ -1712,15 +1798,15 @@ sub sysop_new_user_edit {
                     if ($user_row->{$field} =~ /^(0|1)$/) {
                         $table->row($choices[$count], $field, $self->sysop_true_false($user_row->{$field}, 'YN'));
                     } elsif ($field eq 'access_level') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  USER, VETERAN, JUNIOR SYSOP, SYSOP');
+                        $table->row($choices[$count], $field, $user_row->{$field} . ' - USER, VETERAN, JUNIOR SYSOP, SYSOP');
                     } elsif ($field eq 'date_format') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
+                        $table->row($choices[$count], $field, $user_row->{$field} . ' - YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
                     } elsif ($field eq 'baud_rate') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
+                        $table->row($choices[$count], $field, $user_row->{$field} . ' - 300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
                     } elsif ($field eq 'text_mode') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  ASCII, ANSI, ATASCII, PETSCII');
+                        $table->row($choices[$count], $field, $user_row->{$field} . ' - ASCII, ANSI, ATASCII, PETSCII');
                     } elsif ($field eq 'timeout') {
-                        $table->row($choices[$count], $field, $user_row->{$field} . '  Minutes');
+                        $table->row($choices[$count], $field, $user_row->{$field} . ' - Minutes');
                     } else {
                         $table->row($choices[$count], $field, $user_row->{$field} . '');
                     }
@@ -1730,12 +1816,21 @@ sub sysop_new_user_edit {
                 } ## end else [ if ($field =~ /_time|fullname|_category|id/)]
             } ## end foreach my $field (@{ $self...})
             my $tbl = $table->boxes->draw();
-            while ($tbl =~ / (USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
+            while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
                 my $ch  = $1;
-                my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
-                $tbl =~ s/$ch/ $new /g;
+				my $new;
+				if ($ch =~ /Yes/) {
+					$new = '[% GREEN %]' . $ch . '[% RESET %]';
+				} elsif ($ch =~ /No/) {
+					$new = '[% RED %]' . $ch . '[% RESET %]';
+				} elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
+					$new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+				} else {
+					$new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
+				}
+                $tbl =~ s/$ch/$new/g;
             }
-            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN');
+            $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');
             $self->output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             $self->output("\n" . $self->sysop_prompt('Choose'));
@@ -1784,27 +1879,27 @@ sub sysop_user_add {
     foreach my $name (@tmp) {
         my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
         if ($name eq 'timeout') {
-            $table->row($name, '_' x $size . '   Minutes');
+            $table->row($name, '_' x $size . ' - Minutes');
         } elsif ($name eq 'baud_rate') {
-            $table->row($name, '_' x $size . '   300 or 600 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL');
+            $table->row($name, '_' x $size . ' - 300 or 600 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL');
         } elsif ($name =~ /username|given|family|password/) {
             if ($name eq 'given') {
-                $table->row("$name (first)", '_' x $size . '   Cannot be empty');
+                $table->row("$name (first)", '_' x $size . ' - Cannot be empty');
             } elsif ($name eq 'family') {
-                $table->row("$name (last)", '_' x $size . '   Cannot be empty');
+                $table->row("$name (last)", '_' x $size . ' - Cannot be empty');
             } else {
-                $table->row($name, '_' x $size . '   Cannot be empty');
+                $table->row($name, '_' x $size . ' - Cannot be empty');
             }
         } elsif ($name eq 'date_format') {
-            $table->row($name, '_' x $size . '   YEAR/MONTH/DAY or MONTH/DAY/YEAR or DAY/MONTH/YEAR');
+            $table->row($name, '_' x $size . ' - YEAR/MONTH/DAY or MONTH/DAY/YEAR or DAY/MONTH/YEAR');
         } elsif ($name eq 'access_level') {
-            $table->row($name, '_' x $size . '   USER or VETERAN or JUNIOR SYSOP or SYSOP');
+            $table->row($name, '_' x $size . ' - USER or VETERAN or JUNIOR SYSOP or SYSOP');
         } elsif ($name eq 'text_mode') {
-            $table->row($name, '_' x $size . '   ANSI or ASCII or ATASCII or PETSCII');
+            $table->row($name, '_' x $size . ' - ANSI or ASCII or ATASCII or PETSCII');
         } elsif ($name eq 'birthday') {
-            $table->row($name, '_' x $size . '   YEAR-MM-DD');
+            $table->row($name, '_' x $size . ' - YEAR-MM-DD');
         } elsif ($name =~ /(prefer_nickname|_files|_message|sysop|fortunes)/) {
-            $table->row($name, '_' x $size . '   Yes/No or True/False or On/Off or 1/0');
+            $table->row($name, '_' x $size . ' - Yes/No or True/False or On/Off or 1/0');
         } elsif ($name =~ /location|retro_systems|accomplishments/) {
             $table->row($name, '_' x ($self->{'SYSOP FIELD TYPES'}->{$name}->{'max'}));
         } else {
@@ -1815,10 +1910,10 @@ sub sysop_user_add {
     my $string = $table->boxes->draw();
     while ($string =~ / (Cannot be empty|YEAR.MM.DD|USER or VETERAN or JUNIOR SYSOP or SYSOP|YEAR.MONTH.DAY or MONTH.DAY.YEAR or DAY.MONTH.YEAR|300 or 600 or 1200 or 2400 or 4800 or 9600 or 19200 or FULL|ANSI or ASCII or ATASCII or PETSCII|Minutes|Yes.No or True.False or On.Off or 1.0) /) {
         my $ch  = $1;
-        my $new = '[% RGB 100,50,0 %]' . $ch . '[% RESET %]';
+        my $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
         $string =~ s/$ch/$new/gs;
     }
-    $self->output($self->sysop_color_border($string, 'PINK'));
+    $self->output($self->sysop_color_border($string, 'PINK', 'DEFAULT'));
     $self->sysop_show_choices($mapping);
     my $column     = 21;
     my $adjustment = $self->{'CACHE'}->get('START_ROW') - 1;
@@ -2052,7 +2147,7 @@ sub sysop_list_bbs {
     foreach my $line (@listing) {
         $table->row($line->{'bbs_id'}, $line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
     }
-    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
+    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print 'Press a key to continue... ';
     $self->sysop_keypress();
 } ## end sub sysop_list_bbs
@@ -2085,7 +2180,7 @@ sub sysop_edit_bbs {
                 $index++;
             }
         } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
-        $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
+        $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
         print $self->sysop_prompt('Edit which field (Z=Nevermind)');
         my $choice;
         do {
@@ -2127,7 +2222,7 @@ sub sysop_add_bbs {
         'bbs_port'     => '',
     };
     my $index = 0;
-    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE'));
+    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
@@ -2175,7 +2270,7 @@ sub sysop_delete_bbs {
         foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
             $table->row($name, $bbs->{$name});
         }
-        $self->output($self->sysop_color_border($table->boxes->draw(), 'RED'));
+        $self->output($self->sysop_color_border($table->boxes->draw(), 'RED', 'ROUNDED'));
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
         unless ($choice) {
@@ -2231,7 +2326,7 @@ sub sysop_add_file {
             foreach my $file (sort(keys %{$list})) {
                 $table->row($file, $list->{$file}->{'size'}, $list->{$file}->{'type'});
             }
-            my $text = $self->sysop_color_border($table->boxes->draw(),'GREEN');
+            my $text = $self->sysop_color_border($table->boxes->draw(),'GREEN', 'DOUBLE');
             $self->sysop_pager($text);
             while (scalar(@names)) {
                 ($search) = shift(@names);
