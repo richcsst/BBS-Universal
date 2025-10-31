@@ -74,6 +74,7 @@ lib/BBS/Universal/Users.pm
 Makefile.PL
 MANIFEST			This list of files
 README.md
+tools/bbs2sql.pl
 sql/database_setup.sql
 src/Universal.pm
 sysop_sounds/shutdown.mp3
