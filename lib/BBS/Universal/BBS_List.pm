@@ -6,6 +6,27 @@ sub bbs_list_initialize {
     return ($self);
 }
 
+sub bbs_list_bulk_import {
+	my $self = shift;
+
+	$self->output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
+	open(my $FILE, '<', $self->configuration('BBS ROOT') . "/bbs_list.txt");
+	chomp(my @bbs = <$FILE>);
+	close($FILE);
+
+	my $sth = $self->{'dbh'}->prepare('REPLACE INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,?)');
+	foreach my $line (@bbs) {
+		my ($name,$url,$port) = split(/\s\s+|:/,$line);
+		$port = 23 if ($port eq '' || ! defined($port));
+		$sth->execute($name,$url,$port,$self->{'USER'}->{'id'});
+		$self->send_char('.');
+	}
+	$sth->finish();
+	$self->output("\n");
+	sleep 1;
+	return(TRUE);
+}
+
 sub bbs_list_add {
     my $self  = shift;
 
