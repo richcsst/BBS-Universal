@@ -9,21 +9,28 @@ sub bbs_list_initialize {
 sub bbs_list_bulk_import {
 	my $self = shift;
 
-	$self->output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
-	open(my $FILE, '<', $self->configuration('BBS ROOT') . "/bbs_list.txt");
-	chomp(my @bbs = <$FILE>);
-	close($FILE);
+	my $filename = $self->configuration('BBS ROOT') . "/bbs_list.txt";
+	if (-e $filename) {
+		$self->output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
+		open(my $FILE, '<', $filename);
+		chomp(my @bbs = <$FILE>);
+		close($FILE);
 
-	my $sth = $self->{'dbh'}->prepare('REPLACE INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,?)');
-	foreach my $line (@bbs) {
-		my ($name,$url,$port) = split(/\s\s+|:/,$line);
-		$port = 23 if ($port eq '' || ! defined($port));
-		$sth->execute($name,$url,$port,$self->{'USER'}->{'id'});
-		$self->send_char('.');
+		my $sth = $self->{'dbh'}->prepare('REPLACE INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,?)');
+		foreach my $line (@bbs) {
+			my ($name,$url,$port) = split(/\s\s+|:/,$line);
+			$port = 23 if ($port eq '' || ! defined($port));
+			$sth->execute($name,$url,$port,$self->{'USER'}->{'id'});
+			$self->send_char('.');
+		}
+		$sth->finish();
+		$self->output("\n");
+		sleep 1;
+	} else {
+		$self->output("\n[% RING BELL %][% RED %]Cannot find [% RESET %]$filename\n");
+		$self->{'debug'}->WARNING(["Cannot find $filename"]);
+		sleep 3;
 	}
-	$sth->finish();
-	$self->output("\n");
-	sleep 1;
 	return(TRUE);
 }
 

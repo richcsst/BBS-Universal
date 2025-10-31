@@ -1,7 +1,8 @@
 A|SYSOP BBS ADD|YELLOW|Add a BBS to the List
+B|SYSOP BBS BULK MERGE|PINK|Bulk Add/Merge BBS List
 E|SYSOP BBS EDIT|GREEN|Edit a BBS on List
 R|SYSOP BBS DELETE|RED|Remove a BBS on List
-V|SYSOP BBS LIST VIEW|WHITE|View BBS List
+V|SYSOP BBS LIST VIEW|ORANGE|View BBS List
 Z|BACK|WHITE|Return to System Menu
 ---
 [% CLS %][% BRIGHT RED %][% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT RED     %]  [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% BRIGHT BLUE %]   ____  ____ ____    _     _     _   _               __  __[% RESET %]

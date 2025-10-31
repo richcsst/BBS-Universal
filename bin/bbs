@@ -310,6 +310,11 @@ our $SYSOP_COMMANDS = {
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
+	'SYSOP BBS BULK MERGE' => sub {
+		my $self = shift;
+		$self->bbs_list_bulk_import();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+	},
 };
 $DEBUG->DEBUG(['Initialized','Starting']);
 $BBS_OBJ->playit('startup.mp3');
