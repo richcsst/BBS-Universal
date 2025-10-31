@@ -7,7 +7,7 @@ sub atascii_initialize {
     $self->{'atascii_sequences'} = {
         'HEART'                        => chr(0),   # ♥
         'VERTICAL BAR MIDDLE LEFT'     => chr(1),   # ├
-        'RIGHT VERTICAL BAR'           => chr(2),   # 
+        'RIGHT VERTICAL BAR'           => chr(2),   #
         'BOTTOM RIGHT CORNER'          => chr(3),   # ┘
         'VERTICAL BAR MIDDLE RIGHT'    => chr(4),   # ┤
         'TOP RIGHT CORNER'             => chr(5),   # ┐

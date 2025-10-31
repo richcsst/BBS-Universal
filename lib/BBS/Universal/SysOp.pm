@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.005'; }
+BEGIN { our $VERSION = '0.006'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -42,8 +42,7 @@ sub sysop_initialize {
     };
 
     $self->{'sysop_tokens'} = {
-
-        # Tokens
+        # Static Tokens
         'HOSTNAME'     => $self->sysop_hostname,
         'IP ADDRESS'   => $self->sysop_ip_address(),
         'CPU BITS'     => $self->{'CPU'}->{'CPU BITS'},
@@ -56,16 +55,7 @@ sub sysop_initialize {
         'BBS VERSIONS' => $bbs_versions,
         'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
 
-        'MIDDLE VERTICAL RULE BLACK'   => $self->sysop_locate_middle('B_BLACK'),
-        'MIDDLE VERTICAL RULE RED'     => $self->sysop_locate_middle('B_RED'),
-        'MIDDLE VERTICAL RULE GREEN'   => $self->sysop_locate_middle('B_GREEN'),
-        'MIDDLE VERTICAL RULE YELLOW'  => $self->sysop_locate_middle('B_YELLOW'),
-        'MIDDLE VERTICAL RULE BLUE'    => $self->sysop_locate_middle('B_BLUE'),
-        'MIDDLE VERTICAL RULE MAGENTA' => $self->sysop_locate_middle('B_MAGENTA'),
-        'MIDDLE VERTICAL RULE CYAN'    => $self->sysop_locate_middle('B_CYAN'),
-        'MIDDLE VERTICAL RULE WHITE'   => $self->sysop_locate_middle('B_WHITE'),
-
-        # Non-static
+        # Non-static tokens
         'THREADS COUNT' => sub {
             my $self = shift;
             return ($self->{'CACHE'}->get('THREADS_RUNNING'));
@@ -117,52 +107,55 @@ sub sysop_initialize {
             return ($self->sysop_list_commands());
         },
     };
+	foreach my $name (keys %{ $self->{'ansi_meta'}->{'foreground'} }) {
+		$self->{'sysop_tokens'}->{'MIDDLE VERTICAL RULE ' . $name} = $self->sysop_locate_middle('B_' . $name);
+	}
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          email
-          birthday
-          location
-          access_level
-          date_format
-          baud_rate
-          text_mode
-          max_columns
-          max_rows
-          timeout
-          retro_systems
-          accomplishments
-          prefer_nickname
-          view_files
-          upload_files
-          download_files
-          remove_files
-          play_fortunes
-          read_message
-          post_message
-          remove_message
-          sysop
-          page_sysop
-          banned
-          login_time
-          logout_time
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            email
+            birthday
+            location
+            access_level
+            date_format
+            baud_rate
+            text_mode
+            max_columns
+            max_rows
+            timeout
+            retro_systems
+            accomplishments
+            prefer_nickname
+            view_files
+            upload_files
+            download_files
+            remove_files
+            play_fortunes
+            read_message
+            post_message
+            remove_message
+            sysop
+            page_sysop
+            banned
+            login_time
+            logout_time
         )
     ];
     $self->{'SYSOP ORDER ABBREVIATED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          text_mode
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            text_mode
         )
     ];
 
@@ -358,7 +351,7 @@ sub sysop_initialize {
         'page_sysop' => {
             'type'    => RADIO,
             'max'     => 5,
-            'min'     => 5,
+           'min'     => 5,
             'choices' => ['TRUE', 'FALSE', 'YES', 'NO', 'ON', 'OFF', '1', '0',],
             'default' => 'NO',
         },
@@ -374,6 +367,7 @@ sub sysop_initialize {
 
 sub sysop_list_commands {
     my $self = shift;
+    my $mode = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
     my $srow   = $size - 5;
@@ -382,15 +376,6 @@ sub sysop_list_commands {
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
     my @tkn    = (sort(keys %{ $self->{'TOKENS'} }));
     my @anstkn = grep(!/CSI|RGB|COLOR|GREY|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
-    push(@anstkn, 'LOCATE column,row');
-    push(@anstkn, 'RGB 0,0,0 - RGB 255,255,255');
-    push(@anstkn, 'B_RGB 0,0,0 - B_RGB 255,255,255');
-    push(@anstkn, 'COLOR 0 - COLOR 231');
-    push(@anstkn, 'GREY 0 - GREY 23');
-    push(@anstkn, 'B_COLOR 0 - B_COLOR 231');
-    push(@anstkn, 'B_GREY 0 - B_GREY 23');
-    push(@anstkn, 'FONT 0 - FONT 9');
-    push(@anstkn, 'HORIZONTAL RULE color');
     @anstkn = sort(@anstkn);
     my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
     my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
@@ -399,10 +384,11 @@ sub sysop_list_commands {
     my $xt     = 1;
     my $y      = 1;
     my $z      = 1;
-    my $ans    = 1;
+    my $ans    = 31;
     my $ata    = 1;
     my $pet    = 1;
     my $asc    = 12;
+    my $text   = '';
     {
         my $cell;
         foreach $cell (@sys) {
@@ -430,129 +416,280 @@ sub sysop_list_commands {
             $asc = max(length($cell), $asc);
         }
     }
-    my $table = Text::SimpleTable->new($x, $xt, $y, $z, $ans, $ata, $pet, $asc);
-    $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
-    $table->hr();
-    my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-    my $count = 0; # Try to follow the scroll logic
-    while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
-        if (scalar(@sys)) {
-            $sysop_names = shift(@sys);
-        } else {
-            $sysop_names = ' ';
+    if ($mode eq 'ASCII') {
+        my $table = Text::SimpleTable->new($asc);
+        $table->row('ASCII TOKENS');
+        $table->hr();
+        my $ascii_tokens;
+        while (scalar(@asctkn)) {
+			$ascii_tokens = shift(@asctkn);
+            $table->row($ascii_tokens);
         }
-        if (scalar(@stkn)) {
-            $sysop_tokens = shift(@stkn);
-        } else {
-            $sysop_tokens = ' ';
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } elsif ($mode eq 'ANSI') {
+		$self->output("\nANSI has standard 16 colors that works with all color terminals.  You can use\nmore colors with compatible expanded color terminals.  Would you like to see\nthe extra colors (y/N)?  ");
+		my $expanded = $self->sysop_decision();
+		$self->output("\n");
+        my $table = Text::SimpleTable->new(10, $ans, 55);
+        $table->row('TYPE', 'ANSI TOKENS', 'ANSI TOKENS DESCRIPTION');
+        foreach my $code (qw(special clear cursor attributes foreground background)) {
+			$table->hr();
+			if ($code eq 'foreground') {
+				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'RGB 0,0,0 - RGB 255,255,255', 'COLOR 0 - COLOR 231', 'GREY 0 - GREY 23')) {
+					if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $expanded) {
+						$table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
+					} elsif ($name eq 'COLOR 0 - COLOR 231' && $expanded) {
+						$table->row(ucfirst($code), $name, 'Extra ANSI Colors');
+					} elsif ($name eq 'GREY 0 - GREY 23' && $expanded) {
+						$table->row(ucfirst($code), $name, 'Shades of Grey');
+					} else {
+						if ($expanded) {
+							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+						} elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
+							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+						}
+					}
+				}
+			} elsif ($code eq 'background') {
+				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'B_RGB 0,0,0 - B_RGB 255,255,255', 'B_COLOR 0 - B_COLOR 231', 'B_GREY 0 - B_GREY 23')) {
+					if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $expanded) {
+						$table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
+					} elsif ($name eq 'B_COLOR 0 - B_COLOR 231' && $expanded) {
+						$table->row(ucfirst($code), $name, 'Extra ANSI Colors');
+					} elsif ($name eq 'B_GREY 0 - B_GREY 23' && $expanded) {
+						$table->row(ucfirst($code), $name, 'Shades of Grey');
+					} else {
+						if ($expanded) {
+							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+						} elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
+							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+						}
+					}
+				}
+			} elsif ($code eq 'cursor') {
+				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'LOCATE column,row')) {
+					if ($name eq 'LOCATE column,row') {
+						$table->row(ucfirst($code), $name, 'Position the Cursor at Column,Row');
+					} else {
+						$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+					}
+				}
+			} elsif ($code eq 'special') {
+				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'FONT 0 - FONT 9', 'HORIZONTAL RULE color')) {
+					if ($name eq 'FONT 0 - FONT 9') {
+						$table->row(ucfirst($code), $name, 'Set the Specified Console Font');
+					} elsif ($name eq 'HORIZONTAL RULE color') {
+						$table->row(ucfirst($code), $name, 'A Horizontal Rule (Screen Width) in The Specified Color');
+					} else {
+						$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+					}
+				}
+			} else {
+				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
+					$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+				}
+			}
         }
-        if (scalar(@usr)) {
-            $user_names = shift(@usr);
-        } else {
-            $user_names = ' ';
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } elsif ($mode eq 'ATASCII') {
+        my $table = Text::SimpleTable->new($ata);
+        $table->row('ATASCII TOKENS');
+        $table->hr();
+        my $atascii_tokens;
+        while (scalar(@atatkn)) {
+			$atascii_tokens = shift(@atatkn);
+            $table->row($atascii_tokens);
         }
-        if (scalar(@tkn)) {
-            $token_names = shift(@tkn);
-        } else {
-            $token_names = ' ';
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } elsif ($mode eq 'PETSCII') {
+        my $table = Text::SimpleTable->new($pet);
+        $table->row('PETSCII TOKENS');
+        $table->hr();
+        my $petscii_tokens;
+        while (scalar(@pettkn)) {
+			$petscii_tokens = shift(@pettkn);
+            $table->row($petscii_tokens);
         }
-        if (scalar(@anstkn)) {
-            $ansi_tokens = shift(@anstkn);
-        } else {
-            $ansi_tokens = ' ';
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } elsif ($mode eq 'USER') {
+        my $table = Text::SimpleTable->new($y, $z);
+        $table->row('USER MENU COMMANDS', 'USER TOKENS');
+        $table->hr();
+        my ($user_names, $token_names);
+        my $count = 0; # Try to follow the scroll logic
+        while (scalar(@usr) || scalar(@tkn)) {
+            if (scalar(@usr)) {
+                $user_names = shift(@usr);
+            } else {
+                $user_names = ' ';
+            }
+            if (scalar(@tkn)) {
+                $token_names = shift(@tkn);
+            } else {
+                $token_names = ' ';
+            }
+            $table->row($user_names, $token_names);
+            $count++;
+            if ($count > $srow) {
+                $count = 0;
+                $table->hr();
+                $table->row('USER MENU COMMANDS', 'USER TOKENS');
+                $table->hr();
+            }
         }
-        if (scalar(@atatkn)) {
-            $atascii_tokens = shift(@atatkn);
-        } else {
-            $atascii_tokens = ' ';
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } elsif ($mode eq 'SYSOP') {
+        my $table = Text::SimpleTable->new($x, $xt);
+        $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS');
+        $table->hr();
+        my ($sysop_names, $sysop_tokens);
+        my $count = 0; # Try to follow the scroll logic
+        while (scalar(@sys) || scalar(@stkn)) {
+            if (scalar(@sys)) {
+                $sysop_names = shift(@sys);
+            } else {
+                $sysop_names = ' ';
+            }
+            if (scalar(@stkn)) {
+                $sysop_tokens = shift(@stkn);
+            } else {
+                $sysop_tokens = ' ';
+            }
+            $table->row($sysop_names, $sysop_tokens);
+            $count++;
+            if ($count > $srow) {
+                $count = 0;
+                $table->hr();
+                $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS');
+                $table->hr();
+            }
         }
-        if (scalar(@pettkn)) {
-            $petscii_tokens = shift(@pettkn);
-        } else {
-            $petscii_tokens = ' ';
-        }
-        if (scalar(@asctkn)) {
-            $ascii_tokens = shift(@asctkn);
-        } else {
-            $ascii_tokens = ' ';
-        }
-        $table->row($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-        $count++;
-        if ($count > $srow) {
-            $count = 0;
-            $table->hr();
-            $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
-            $table->hr();
-        }
-    } ## end while (scalar(@sys) || scalar...)
-    my $text = $self->center($table->boxes->draw(), $wsize);
+        $text = $self->center($table->boxes->draw(), $wsize);
+    } else {
+        my $table = Text::SimpleTable->new($x, $xt, $y, $z, $ans, $ata, $pet, $asc);
+        $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
+        $table->hr();
+        my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
+        my $count = 0; # Try to follow the scroll logic
+        while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
+            if (scalar(@sys)) {
+                $sysop_names = shift(@sys);
+            } else {
+                $sysop_names = ' ';
+            }
+            if (scalar(@stkn)) {
+                $sysop_tokens = shift(@stkn);
+            } else {
+                $sysop_tokens = ' ';
+            }
+            if (scalar(@usr)) {
+                $user_names = shift(@usr);
+            } else {
+                $user_names = ' ';
+            }
+            if (scalar(@tkn)) {
+                $token_names = shift(@tkn);
+            } else {
+                $token_names = ' ';
+            }
+            if (scalar(@anstkn)) {
+                $ansi_tokens = shift(@anstkn);
+            } else {
+                $ansi_tokens = ' ';
+            }
+            if (scalar(@atatkn)) {
+                $atascii_tokens = shift(@atatkn);
+            } else {
+                $atascii_tokens = ' ';
+            }
+            if (scalar(@pettkn)) {
+                $petscii_tokens = shift(@pettkn);
+            } else {
+                $petscii_tokens = ' ';
+            }
+            if (scalar(@asctkn)) {
+                $ascii_tokens = shift(@asctkn);
+            } else {
+                $ascii_tokens = ' ';
+            }
+            $table->row($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
+            $count++;
+            if ($count > $srow) {
+                $count = 0;
+                $table->hr();
+                $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
+                $table->hr();
+            }
+        } ## end while (scalar(@sys) || scalar...)
+        $text = $self->center($table->boxes->draw(), $wsize);
+    }
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
-    my $replace = join('|', grep(!/^(SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
+    my $replace = join('|', grep(!/^(TAB|SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
     my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
-    $text =~ s/(SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/(TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS DESCRIPTION|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
     $text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
     $text =~ s/│(\s+)($replace)  /│$1\[% BLACK %][\% $2 \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT GRAY)/│   \[\% GREY 13 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (GRAY)/│   \[\% GREY 9 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
-    $text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
-    $text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
-    $text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
-    $text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
-    $text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
-    $text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
-    $text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
-    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;                                                                                                                                                                                                                                                                                                                                                                                              # Why twice?  Ask Perl as one doesn't replace all
-    $text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
-    $text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
-    $text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
-    $text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
-    $text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
-    $text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
-    $text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
-    $text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
-    $text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
-    $text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
-    $text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
-    $text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
-    $text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
-    $text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-    $text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-    $text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-    $text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-    $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
-    $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
-    $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-    $text = $self->sysop_color_border($text, 'PINK','DOUBLE');
-    return ($self->ansi_decode($text));
-} ## end sub sysop_list_commands
+        $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2\[\% RESET \%\]  /g;
+        $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (LIGHT GRAY)/│   \[\% GREY 13 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (GRAY)/│   \[\% GREY 9 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
+        $text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
+        $text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
+        $text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
+        $text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
+        $text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
+        $text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
+        $text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
+        $text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
+        $text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
+        $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
+        $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;                                                                                                                                                                                                                                                                                                                                                                                              # Why twice?  Ask Perl as one doesn't replace all
+        $text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
+        $text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
+        $text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
+        $text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
+        $text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
+        $text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
+        $text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
+        $text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
+        $text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
+        $text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
+        $text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
+        $text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
+        $text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
+        $text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
+        $text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
+        $text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
+        $text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
+        $text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
+        $text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
+        $text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
+        $text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+        $text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+        $text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
+        $text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
+        $text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+        $text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
+        $text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
+        $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+        $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
+        $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
+        $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
+        $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
+        $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
+        $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
+        $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
+        $text = $self->sysop_color_border($text, 'PINK','DOUBLE');
+        return ($self->ansi_decode($text));
+        } ## end sub sysop_list_commands
 
 sub sysop_online_count {
     my $self = shift;
@@ -589,8 +726,8 @@ sub sysop_versions_format {
             $counter = $sections;
             $versions .= "\n";
         } else {
-			$versions .= "\t";
-		}
+            $versions .= "\t";
+        }
     } ## end foreach my $v (keys %{ $self...})
     chop($versions) if (substr($versions, -1, 1) eq "\t");
     return ($heading . $versions . "\n");
@@ -959,136 +1096,136 @@ sub sysop_color_border {
     my $self  = shift;
     my $tbl   = shift;
     my $color = shift;
-	my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
+    my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
 
-	my $new;
-    if ($tbl =~ /(─)/) {
+    my $new;
+    if ($tbl =~ /(─+?)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE HORIZONTAL %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY HORIZONTAL %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE HORIZONTAL %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY HORIZONTAL %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(│)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┌)/) {
         my $ch = $1;
-		if ($type eq 'ROUNDED') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% RESET %]';
-		} elsif ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND RIGHT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND RIGHT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'ROUNDED') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% RESET %]';
+        } elsif ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND RIGHT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND RIGHT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(└)/) {
         my $ch = $1;
-		if ($type eq 'ROUNDED') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% RESET %]';
-		} elsif ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND RIGHT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND RIGHT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'ROUNDED') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% RESET %]';
+        } elsif ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND RIGHT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND RIGHT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┬)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┐)/) {
         my $ch = $1;
-		if ($type eq 'ROUNDED') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %][% RESET %]';
-		} elsif ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND LEFT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND LEFT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'ROUNDED') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %][% RESET %]';
+        } elsif ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND LEFT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND LEFT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(├)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND RIGHT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND RIGHT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND RIGHT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND RIGHT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┘)/) {
         my $ch = $1;
-		if ($type eq 'ROUNDED') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %][% RESET %]';
-		} elsif ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND LEFT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND LEFT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'ROUNDED') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %][% RESET %]';
+        } elsif ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND LEFT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND LEFT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┼)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┤)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND LEFT %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND LEFT %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND LEFT %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND LEFT %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┴)/) {
         my $ch = $1;
-		if ($type eq 'DOUBLE') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND HORIZONTAL %][% RESET %]';
-		} elsif ($type eq 'HEAVY') {
-			$new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND HORIZONTAL %][% RESET %]';
-		} else {
-			$new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
-		}
+        if ($type eq 'DOUBLE') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND HORIZONTAL %][% RESET %]';
+        } elsif ($type eq 'HEAVY') {
+            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND HORIZONTAL %][% RESET %]';
+        } else {
+            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+        }
         $tbl =~ s/$ch/$new/gs;
     }
     return($tbl);
@@ -1269,12 +1406,12 @@ sub sysop_view_configuration {
     my $output = $table->boxes->draw();
     foreach my $change ('AUTHOR EMAIL', 'AUTHOR LOCATION', 'AUTHOR NAME', 'DATABASE USERNAME', 'DATABASE NAME', 'DATABASE PORT', 'DATABASE TYPE', 'DATBASE USERNAME', 'DATABASE HOSTNAME', '300, 600, 1200, 2400, 4800, 9600, 19200, FULL', '%d = day, %m = Month, %Y = Year', 'ANSI, ASCII, ATASCII, PETSCII', 'ANSI, ASCII, ATAASCII,PETSCII') {
         if ($output =~ /$change/) {
-			my $ch;
-			if (/^(AUTHOR|DATABASE)/) {
-				$ch = '[% YELLOW %]' . $change . '[% RESET %]';
-			} else {
-				$ch = '[% GREY 11 %]' . $change . '[% RESET %]';
-			}
+            my $ch;
+            if (/^(AUTHOR|DATABASE)/) {
+                $ch = '[% YELLOW %]' . $change . '[% RESET %]';
+            } else {
+                $ch = '[% GREY 11 %]' . $change . '[% RESET %]';
+            }
             $output =~ s/$change/$ch/gs;
         }
     } ## end foreach my $change ('AUTHOR EMAIL'...)
@@ -1712,16 +1849,16 @@ sub sysop_user_edit {
             my $tbl = $table->boxes->draw();
             while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
                 my $ch  = $1;
-				my $new;
-				if ($ch =~ /Yes/) {
-					$new = '[% GREEN %]' . $ch . '[% RESET %]';
-				} elsif ($ch =~ /No/) {
-					$new = '[% RED %]' . $ch . '[% RESET %]';
-				} elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
-					$new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-				} else {
-					$new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
-				}
+                my $new;
+                if ($ch =~ /Yes/) {
+                    $new = '[% GREEN %]' . $ch . '[% RESET %]';
+                } elsif ($ch =~ /No/) {
+                    $new = '[% RED %]' . $ch . '[% RESET %]';
+                } elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
+                    $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+                } else {
+                    $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
+                }
                 $tbl =~ s/$ch/$new/g;
             }
             $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');
@@ -1734,13 +1871,13 @@ sub sysop_user_edit {
             if ($key !~ /$key_exit/i) {
                 print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
                 if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/) {
-					$user_row->{$choice{$key}} = ($user_row->{$choice{$key}} == 1) ? 0 : 1;
+                    $user_row->{$choice{$key}} = ($user_row->{$choice{$key}} == 1) ? 0 : 1;
                     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{ $key } . '= !' . $choice{$key} . '  WHERE id=?');
                     $sth->execute($user_row->{'id'});
                     $sth->finish();
-				} else {
-					my $new = $self->sysop_get_line(ECHO, 1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{ $choice{$key} });
-					$user_row->{ $choice{$key} } = $new;
+                } else {
+                    my $new = $self->sysop_get_line(ECHO, 1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{ $choice{$key} });
+                    $user_row->{ $choice{$key} } = $new;
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});
                     $sth->finish();
@@ -1818,16 +1955,16 @@ sub sysop_new_user_edit {
             my $tbl = $table->boxes->draw();
             while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
                 my $ch  = $1;
-				my $new;
-				if ($ch =~ /Yes/) {
-					$new = '[% GREEN %]' . $ch . '[% RESET %]';
-				} elsif ($ch =~ /No/) {
-					$new = '[% RED %]' . $ch . '[% RESET %]';
-				} elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
-					$new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-				} else {
-					$new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
-				}
+                my $new;
+                if ($ch =~ /Yes/) {
+                    $new = '[% GREEN %]' . $ch . '[% RESET %]';
+                } elsif ($ch =~ /No/) {
+                    $new = '[% RED %]' . $ch . '[% RESET %]';
+                } elsif ($ch =~ /CHOICE|FIELD|VALUE/) {
+                    $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
+                } else {
+                    $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
+                }
                 $tbl =~ s/$ch/$new/g;
             }
             $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');

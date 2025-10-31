@@ -11,14 +11,14 @@ use Time::HiRes qw(sleep);
 # It's nolstalgia folks
 
 my $fast  = (scalar(@ARGV)) ? 1 : 0;    # Pass anything and it means Fast
-my $speed = 0.0025;                     # For sleep to simulate 2400 baud
+my $speed = 0.00125;                     # For sleep to simulate 2400 baud
 
 $| = 1;                                 # Turn off buffering
 print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
 if ($fast) {
 	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 57,600 bps\n";
 } else {
-	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 2400 bps\n";
+	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 4800 bps\n";
 }
 sleep 1 unless ($fast);
 baud_print('> ');
@@ -30,7 +30,7 @@ sleep 1 unless ($fast);
 if ($fast) {
 	print "57,600 baud...\n\n";
 } else {
-	baud_print("2400 baud...\n\n");
+	baud_print("4800 baud...\n\n");
 }
 sleep 1 unless ($fast);
 baud_print("Welcome to...\n\n");
@@ -95,6 +95,7 @@ WriteMakefile(
 		'List::Util'             => '1.40',
 		'Cache::Memcached::Fast' => '0.25',
 		'XML::RSS::LibXML'       => '0.3105',
+		'Number::Format'         => 0,
 	},
 
 	EXE_FILES => ['bin/bbs'],

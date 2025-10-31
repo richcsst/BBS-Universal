@@ -1,6 +1,16 @@
+0.011   October 30, 2025
+
+        Improved the SysOp mode commands list options
+		Corrected users list to make sure nicknames override fullname if
+		desired
+
+0.010   October 25, 2025
+
+        Bug tweaks
+
 0.009   October 20, 2025
 
-        Added manyu more ANSI colors.  Added RSS news feeds.
+        Added many more ANSI colors.  Added RSS news feeds.
 
 0.008   October 09, 2025
 

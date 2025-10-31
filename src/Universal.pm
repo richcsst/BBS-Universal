@@ -96,7 +96,7 @@ use XML::RSS::LibXML;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.010';
+    our $VERSION = '0.011';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
         TRUE
@@ -1713,7 +1713,7 @@ sub color_border {
     my $mode = $self->{'USER'}->{'text_mode'};
     $tbl =~ s/\n/[% NEWLINE %]/gs;
     if ($mode eq 'ANSI') {
-        if ($tbl =~ /(─)/) {
+        if ($tbl =~ /(─+?)/) {
             my $ch = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;

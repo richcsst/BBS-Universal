@@ -4,7 +4,7 @@ BEGIN { our $VERSION = '0.002'; }
 sub ascii_initialize {
     my $self = shift;
 
-    $self->{'ascii_sequences'} = {
+	$self->{'ascii_sequences'} = {
         'RETURN'    => chr(13),
         'LINEFEED'  => chr(10),
         'NEWLINE'   => chr(13) . chr(10),

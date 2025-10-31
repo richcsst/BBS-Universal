@@ -372,50 +372,51 @@ sub users_list {
         q{
 			SELECT
 			  username,
-			  given,
-			  family,
+			  fullname,
 			  nickname,
 			  accomplishments,
 			  retro_systems,
 			  birthday,
+			  prefer_nickname,
 			  location
-			  FROM users_view
-			  WHERE banned=FALSE
-			  ORDER BY username;
+            FROM users_view
+			WHERE banned=FALSE
+			ORDER BY username;
 		}
     );
     $sth->execute();
     my $columns = $self->{'USER'}->{'max_columns'};
     my $table;
-    if ($columns <= 40) {    # Username and Fullname
+    if ($columns <= 40) {       # Username and Fullname
         $table = Text::SimpleTable->new(10, 36);
         $table->row('USERNAME', 'FULLNAME');
-    } elsif ($columns <= 64) {    # Username, Nickname and Fullname
+    } elsif ($columns <= 64) {  # Username, Nickname and Fullname
         $table = Text::SimpleTable->new(10, 20, 32);
         $table->row('USERNAME', 'NICKNAME', 'FULLNAME');
-    } elsif ($columns <= 80) {    # Username, Nickname, Fullname and Location
+    } elsif ($columns <= 80) {  # Username, Nickname, Fullname and Location
         $table = Text::SimpleTable->new(10, 20, 32, 32);
         $table->row('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION');
-    } elsif ($columns <= 132) {    # Username, Nickname, Fullname, Location, Retro Systems
+    } elsif ($columns <= 132) { # Username, Nickname, Fullname, Location, Retro Systems
         $table = Text::SimpleTable->new(10, 20, 30, 30, 40);
         $table->row('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS');
-    } else {                       # Username, Nickname, Fullname, Location, Retro Systems, Birthday and Accomplishments
+    } else {                    # Username, Nickname, Fullname, Location, Retro Systems, Birthday and Accomplishments
         $table = Text::SimpleTable->new(10, 20, 32, 32, 40, 5, 100);
         $table->row('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS', 'BDAY', 'ACCOMPLISHMENTS');
     }
     while (my $results = $sth->fetchrow_hashref()) {
         $table->hr;
+		my $preferred = ($results->{'prefer_nickname'}) ? $results->{'nickname'} : $results->{'fullname'};
         if ($columns <= 40) {      # Username and Fullname
-            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-36s', $results->{'given'} . ' ' . $results->{'family'}));
+            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-36s', $preferred));
         } elsif ($columns <= 64) {    # Username, Nickname and Fullname
-            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $results->{'given'} . ' ' . $results->{'family'}));
+            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $preferred));
         } elsif ($columns <= 80) {    # Username, Nickname, Fullname and Location
-            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $results->{'given'} . ' ' . $results->{'family'}), sprintf('%-32s', $results->{'location'}));
+            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $preferred), sprintf('%-32s', $results->{'location'}));
         } elsif ($columns <= 132) {    # Username, Nickname, Fullname, Location, Retro Systems
-            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-30s', $results->{'given'} . ' ' . $results->{'family'}), sprintf('%-30s', $results->{'location'}), sprintf('%-40s', $results->{'retro_systems'}));
+            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-30s', $preferred), sprintf('%-30s', $results->{'location'}), sprintf('%-40s', $results->{'retro_systems'}));
         } else {                       # Username, Nickname, Fullname, Location, Retro Systems, Birthday and Accomplishments
             my ($year, $month, $day) = split('-', $results->{'birthday'});
-            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $results->{'given'} . ' ' . $results->{'family'}), sprintf('%-32s', $results->{'location'}), sprintf('%-40s', $results->{'retro_systems'}), sprintf('%02d/%02d', $month, $day), sprintf('%-100s', $results->{'accomplishments'}));
+            $table->row(sprintf('%-10s', $results->{'username'}), sprintf('%-20s', $results->{'nickname'}), sprintf('%-32s', $preferred), sprintf('%-32s', $results->{'location'}), sprintf('%-40s', $results->{'retro_systems'}), sprintf('%02d/%02d', $month, $day), sprintf('%-100s', $results->{'accomplishments'}));
         }
     }
     $sth->finish;
