@@ -107,9 +107,9 @@ sub sysop_initialize {
             return ($self->sysop_list_commands());
         },
     };
-	foreach my $name (keys %{ $self->{'ansi_meta'}->{'foreground'} }) {
-		$self->{'sysop_tokens'}->{'MIDDLE VERTICAL RULE ' . $name} = $self->sysop_locate_middle('B_' . $name);
-	}
+    foreach my $name (keys %{ $self->{'ansi_meta'}->{'foreground'} }) {
+        $self->{'sysop_tokens'}->{'MIDDLE VERTICAL RULE ' . $name} = $self->sysop_locate_middle('B_' . $name);
+    }
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
@@ -422,73 +422,78 @@ sub sysop_list_commands {
         $table->hr();
         my $ascii_tokens;
         while (scalar(@asctkn)) {
-			$ascii_tokens = shift(@asctkn);
+            $ascii_tokens = shift(@asctkn);
             $table->row($ascii_tokens);
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'ANSI') {
-		$self->output("\nANSI has standard 16 colors that works with all color terminals.  You can use\nmore colors with compatible expanded color terminals.  Would you like to see\nthe extra colors (y/N)?  ");
-		my $expanded = $self->sysop_decision();
-		$self->output("\n");
+        my $expanded;
+        if (exists($ENV{'TRUECOLOR'}) && $ENV{'COLORTERM'} eq 'truecolor') {
+            $expanded = TRUE;
+        } else {
+            print "\nANSI has standard 16 colors that works with all color terminals.  You can use\nmore colors with compatible expanded color terminals.  Would you like to see\nthe extra colors (y/N)?  ";
+            $expanded = $self->sysop_decision();
+            print "\n";
+        }
         my $table = Text::SimpleTable->new(10, $ans, 55);
         $table->row('TYPE', 'ANSI TOKENS', 'ANSI TOKENS DESCRIPTION');
         foreach my $code (qw(special clear cursor attributes foreground background)) {
-			$table->hr();
-			if ($code eq 'foreground') {
-				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'RGB 0,0,0 - RGB 255,255,255', 'COLOR 0 - COLOR 231', 'GREY 0 - GREY 23')) {
-					if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $expanded) {
-						$table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-					} elsif ($name eq 'COLOR 0 - COLOR 231' && $expanded) {
-						$table->row(ucfirst($code), $name, 'Extra ANSI Colors');
-					} elsif ($name eq 'GREY 0 - GREY 23' && $expanded) {
-						$table->row(ucfirst($code), $name, 'Shades of Grey');
-					} else {
-						if ($expanded) {
-							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-						} elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
-							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-						}
-					}
-				}
-			} elsif ($code eq 'background') {
-				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'B_RGB 0,0,0 - B_RGB 255,255,255', 'B_COLOR 0 - B_COLOR 231', 'B_GREY 0 - B_GREY 23')) {
-					if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $expanded) {
-						$table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-					} elsif ($name eq 'B_COLOR 0 - B_COLOR 231' && $expanded) {
-						$table->row(ucfirst($code), $name, 'Extra ANSI Colors');
-					} elsif ($name eq 'B_GREY 0 - B_GREY 23' && $expanded) {
-						$table->row(ucfirst($code), $name, 'Shades of Grey');
-					} else {
-						if ($expanded) {
-							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-						} elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
-							$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-						}
-					}
-				}
-			} elsif ($code eq 'cursor') {
-				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'LOCATE column,row')) {
-					if ($name eq 'LOCATE column,row') {
-						$table->row(ucfirst($code), $name, 'Position the Cursor at Column,Row');
-					} else {
-						$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-					}
-				}
-			} elsif ($code eq 'special') {
-				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'FONT 0 - FONT 9', 'HORIZONTAL RULE color')) {
-					if ($name eq 'FONT 0 - FONT 9') {
-						$table->row(ucfirst($code), $name, 'Set the Specified Console Font');
-					} elsif ($name eq 'HORIZONTAL RULE color') {
-						$table->row(ucfirst($code), $name, 'A Horizontal Rule (Screen Width) in The Specified Color');
-					} else {
-						$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-					}
-				}
-			} else {
-				foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
-					$table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-				}
-			}
+            $table->hr();
+            if ($code eq 'foreground') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'RGB 0,0,0 - RGB 255,255,255', 'COLOR 0 - COLOR 231', 'GREY 0 - GREY 23')) {
+                    if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $expanded) {
+                        $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
+                    } elsif ($name eq 'COLOR 0 - COLOR 231' && $expanded) {
+                        $table->row(ucfirst($code), $name, 'Extra ANSI Colors');
+                    } elsif ($name eq 'GREY 0 - GREY 23' && $expanded) {
+                        $table->row(ucfirst($code), $name, 'Shades of Grey');
+                    } else {
+                        if ($expanded) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        } elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        }
+                    }
+                }
+            } elsif ($code eq 'background') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'B_RGB 0,0,0 - B_RGB 255,255,255', 'B_COLOR 0 - B_COLOR 231', 'B_GREY 0 - B_GREY 23')) {
+                    if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $expanded) {
+                        $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
+                    } elsif ($name eq 'B_COLOR 0 - B_COLOR 231' && $expanded) {
+                        $table->row(ucfirst($code), $name, 'Extra ANSI Colors');
+                    } elsif ($name eq 'B_GREY 0 - B_GREY 23' && $expanded) {
+                        $table->row(ucfirst($code), $name, 'Shades of Grey');
+                    } else {
+                        if ($expanded) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        } elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        }
+                    }
+                }
+            } elsif ($code eq 'cursor') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'LOCATE column,row')) {
+                    if ($name eq 'LOCATE column,row') {
+                        $table->row(ucfirst($code), $name, 'Position the Cursor at Column,Row');
+                    } else {
+                        $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                    }
+                }
+            } elsif ($code eq 'special') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'FONT 0 - FONT 9', 'HORIZONTAL RULE color')) {
+                    if ($name eq 'FONT 0 - FONT 9') {
+                        $table->row(ucfirst($code), $name, 'Set the Specified Console Font');
+                    } elsif ($name eq 'HORIZONTAL RULE color') {
+                        $table->row(ucfirst($code), $name, 'A Horizontal Rule (Screen Width) in The Specified Color');
+                    } else {
+                        $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                    }
+                }
+            } else {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
+                    $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                }
+            }
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'ATASCII') {
@@ -497,7 +502,7 @@ sub sysop_list_commands {
         $table->hr();
         my $atascii_tokens;
         while (scalar(@atatkn)) {
-			$atascii_tokens = shift(@atatkn);
+            $atascii_tokens = shift(@atatkn);
             $table->row($atascii_tokens);
         }
         $text = $self->center($table->boxes->draw(), $wsize);
@@ -507,7 +512,7 @@ sub sysop_list_commands {
         $table->hr();
         my $petscii_tokens;
         while (scalar(@pettkn)) {
-			$petscii_tokens = shift(@pettkn);
+            $petscii_tokens = shift(@pettkn);
             $table->row($petscii_tokens);
         }
         $text = $self->center($table->boxes->draw(), $wsize);
@@ -687,7 +692,7 @@ sub sysop_list_commands {
         $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
         $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
         $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-        $text = $self->sysop_color_border($text, 'PINK','DOUBLE');
+        $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
         return ($self->ansi_decode($text));
         } ## end sub sysop_list_commands
 
@@ -1346,7 +1351,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 50;
+    my $value_width = 60;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -1616,11 +1621,11 @@ sub sysop_get_line {
                     if ($key eq $bs || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
-                            $self->output("$key $key");
+                            print "$key $key";
                             chop($line);
                         }
                     } elsif ($regexp =~ /$key/i) {
-                        $self->output(uc($key));
+                        print uc($key);
                         $line .= uc($key);
                     } else {
                         $self->output('[% RING BELL %]');
@@ -1633,7 +1638,7 @@ sub sysop_get_line {
                 }
                 if (defined($key) && ($key eq $bs)) {
                     $key = $bs;
-                    $self->output("$key $key");
+                    print "$key $key";
                     chop($line);
                 } else {
                     $self->output('[% RING BELL %]');
@@ -1649,11 +1654,11 @@ sub sysop_get_line {
                     if ($key eq $bs || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
-                            $self->output("$key $key");
+                            print "$key $key";
                             chop($line);
                         }
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[0-9]/) {
-                        $self->output($key);
+                        print $key;
                         $line .= $key;
                     } else {
                         $self->output('[% RING BELL %]');
@@ -1666,7 +1671,7 @@ sub sysop_get_line {
                 }
                 if (defined($key) && ($key eq $bs || $key eq chr(127))) {
                     $key = $bs;
-                    $self->output("$key $key");
+                    print "$key $key";
                     chop($line);
                 } else {
                     $self->output('[% RING BELL %]');
@@ -1686,7 +1691,7 @@ sub sysop_get_line {
                             chop($line);
                         }
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
-                        $self->output(lc($key));
+                        print lc($key);
                         $line .= lc($key);
                     } else {
                         $self->output('[% RING BELL %]');
@@ -1699,7 +1704,7 @@ sub sysop_get_line {
                 }
                 if (defined($key) && ($key eq $bs || $key eq chr(127))) {
                     $key = $bs;
-                    $self->output("$key $key");
+                    print "$key $key";
                     chop($line);
                 } else {
                     $self->output('[% RING BELL %]');
@@ -1715,11 +1720,11 @@ sub sysop_get_line {
                     if ($key eq $bs) {
                         my $len = length($line);
                         if ($len > 0) {
-                            $self->output("$key $key");
+                            print "$key $key";
                             chop($line);
                         }
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
-                        $self->output($key);
+                        print $key;
                         $line .= $key;
                     } else {
                         $self->output('[% RING BELL %]');
@@ -1732,7 +1737,7 @@ sub sysop_get_line {
                 }
                 if (defined($key) && ($key eq $bs)) {
                     $key = $bs;
-                    $self->output("$key $key");
+                    print "$key $key";
                     chop($line);
                 } else {
                     $self->output('[% RING BELL %]');
@@ -2207,8 +2212,8 @@ sub sysop_showenv {
     }
 
     foreach my $env (sort(keys %ENV)) {
-        if ($ENV{$env} =~ /\n/g) {
-            my @in     = split(/\n$/, $ENV{$env});
+        if ($ENV{$env} =~ /\n/g || $env eq 'WHATISMYIP_INFO') {
+            my @in     = split(/\n/, $ENV{$env});
             my $indent = $MAX + 4;
             $text .= sprintf("%${MAX}s = ---" . $env) . "\n";
             foreach my $line (@in) {
@@ -2224,7 +2229,10 @@ sub sysop_showenv {
                     my $le = 11 - length($f);
                     $f .= ' ' x $le;
                     $l = colored(['green'],    uc($l))                                                           if ($l =~ /^ok/i);
-                    $l = colored(['bold red'], 'U') . colored(['bold white'], 'S') . colored(['bold blue'], 'A') if ($l =~ /^us/i);
+                    $l = colored(['bold red'], 'United') . ' ' . colored(['bold bright_white'], 'States') . ' of ' . colored(['bold bright_blue'], 'America') if ($l =~ /^us/i);
+                    $l = colored(['bold red'], 'Unit') . colored(['bold bright_white'], 'ed Kin') . colored(['bold bright_blue'], 'gdom') if ($l =~ /^uk/i);
+                    $l = colored(['bold bright_red'], 'Ca') . colored(['bold bright_white'], 'na') . colored(['bold bright_red'], 'da') if ($l =~ /^can/i);
+                    $l = colored(['bold bright_red'], 'Me') . colored(['bold bright_white'], 'xi') . colored(['bold green'], 'co') if ($l =~ /^mex/i);
                     $text .= colored(['bold white'], sprintf("%${indent}s", $f)) . " = $l\n";
                 } else {
                     $text .= "$line\n";
@@ -2241,6 +2249,17 @@ sub sysop_showenv {
             my $line      = $ENV{$env};
             $line =~ s/256color/$colorized/;
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
+		} elsif ($env =~ /GNOME_SHELL_SESSION_MODE|GDMSESSION|DESKTOP_SESSION|XDG_SESSION_DESKTOP/) {
+			if ($ENV{$env} eq 'ubuntu') {
+				$text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% ORANGE %]' . $ENV{$env} . "[% RESET %]\n";
+			} elsif ($ENV{$env} eq 'redhat') {
+				$text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% RED %]' . $ENV{$env} . "[% RESET %]\n";
+			}
+        } elsif ($env eq 'COLORTERM') {
+            my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'],'r');
+            my $line      = $ENV{$env};
+            $line =~ s/truecolor/$colorized/;
+            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
         } elsif ($env eq 'WHATISMYIP') {
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ENV{$env}) . "\n";
         } else {
@@ -2254,7 +2273,7 @@ sub sysop_scroll {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['SysOp Scroll?']);
-    print "Scroll?  ";
+    print $self->{'ansi_sequences'}->{'RESET'},"\rScroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
         $self->{'debug'}->DEBUG(['sysop_scroll end']);
         return (FALSE);

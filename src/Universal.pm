@@ -1445,15 +1445,20 @@ sub scroll {
     my $string;
     if ($self->{'sysop'} || $self->{'local_mode'}) {
         $string = "\nScroll?  ";
+		print $string;
     } else {
         $string = "$nl" . 'Scroll?  ';
+		$self->output($string);
     }
-    $self->output($string);
     if ($self->get_key(ECHO, BLOCKIMG) =~ /N|Q/i) {
         $self->output("\n");
         return (FALSE);
     }
-    $self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
+    if ($self->{'sysop'} || $self->{'local_mode'}) {
+		print "\r", clline;
+	} else {
+		$self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
+	}
     return (TRUE);
 } ## end sub scroll
 

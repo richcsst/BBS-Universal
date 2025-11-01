@@ -217,7 +217,7 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP SHUTDOWN' => sub {
 		my $self = shift;
-		$self->output("\nShutdown BBS (y/N)?  ");
+		print "\nShutdown BBS (y/N)?  ";
 		if ($self->sysop_decision) {
 			print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
 			$CACHE->set('RUNNING', FALSE);
@@ -264,49 +264,49 @@ our $SYSOP_COMMANDS = {
 	'SYSOP COMMANDS REFERENCE FULL' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('FULL'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE USER' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('USER'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE SYSOP' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('SYSOP'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE ASCII' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('ASCII'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE ATASCII' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('ATASCII'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE ANSI' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('ANSI'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},
 	'SYSOP COMMANDS REFERENCE PETSCII' => sub {
 		my $self = shift;
 		$self->output($self->sysop_list_commands('PETSCII'));
-		$self->output('Press a key to continue ');
+		print "\nPress a key to continue ";
 		$self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
 	},

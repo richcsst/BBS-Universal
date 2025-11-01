@@ -1845,7 +1845,7 @@ sub ansi_output {
     my $s_len = length($text);
     my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
 
-    if (0) { # $self->{'local_mode'}) {
+    if ($self->{'local_mode'}) {
         my @lines = split(/\n/,$text);
         my $size = $self->{'USER'}->{'max_rows'};
         while (scalar(@lines)) {
