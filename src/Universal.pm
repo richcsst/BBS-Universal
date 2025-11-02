@@ -1695,7 +1695,7 @@ sub playit {
     unless ($self->{'nosound'}) {
         $self->{'debug'}->DEBUG(["Play Sound $file"]);
         if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
-            system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+            system("nice -20 mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
         }
     } ## end unless ($self->{'nosound'})
 } ## end sub playit

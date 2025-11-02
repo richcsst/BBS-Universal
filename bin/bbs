@@ -72,7 +72,7 @@ GetOptions(
     'test|sysop'     => \$TEST,
     'debug=s'        => \$LEVEL,
     'single'         => \$SINGLE,
-	'nosound|silent' => \$NOSOUND,
+    'nosound|silent' => \$NOSOUND,
 );
 
 $LEVEL = uc($LEVEL);
@@ -94,21 +94,21 @@ my $CACHE   = Cache::Memcached::Fast->new(
         ],
         'namespace'      => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
         'utf8'           => TRUE,
-		'close_on_error' => TRUE,
+        'close_on_error' => TRUE,
     }
 );
 $CACHE->flush_all;
 $CACHE->enable_compress(TRUE);
 $CACHE->set_multi(
-	['RUNNING',         TRUE],
-	['TEST',            $TEST],
-	['UPDATE',          TRUE],
-	['ONLINE',          0],
-	['THREADS_RUNNING', 0],
-	['ROW_ADJUST',      0],
-	['START_ROW',       7],
-	['SHOW_STATUS',     TRUE],
-	['NOSOUND',         $NOSOUND],
+    ['RUNNING',         TRUE],
+    ['TEST',            $TEST],
+    ['UPDATE',          TRUE],
+    ['ONLINE',          0],
+    ['THREADS_RUNNING', 0],
+    ['ROW_ADJUST',      0],
+    ['START_ROW',       7],
+    ['SHOW_STATUS',     TRUE],
+    ['NOSOUND',         $NOSOUND],
 );
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
@@ -121,11 +121,11 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANSI'));
     },
-	'SYSOP ADD FILE' => sub {
-		my $self = shift;
-		$self->sysop_add_file();
+    'SYSOP ADD FILE' => sub {
+        my $self = shift;
+        $self->sysop_add_file();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-	},
+    },
     'SYSOP BBS LISTINGS MANAGER' => sub {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
@@ -170,11 +170,11 @@ our $SYSOP_COMMANDS = {
         $self->sysop_list_files();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
-	'SYSOP DELETE FILES' => sub {
-		my $self = shift;
-		$self->sysop_delete_files();
+    'SYSOP DELETE FILES' => sub {
+        my $self = shift;
+        $self->sysop_delete_files();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-	},
+    },
     'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('VERTICAL ABBREVIATED');
@@ -216,14 +216,14 @@ our $SYSOP_COMMANDS = {
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP SHUTDOWN' => sub {
-		my $self = shift;
-		print "\nShutdown BBS (y/N)?  ";
-		if ($self->sysop_decision) {
-			print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
-			$CACHE->set('RUNNING', FALSE);
-		} else {
-			return('BACK');
-		}
+        my $self = shift;
+        print "\nShutdown BBS (y/N)?  ";
+        if ($self->sysop_decision) {
+            print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
+            $CACHE->set('RUNNING', FALSE);
+        } else {
+            return('BACK');
+        }
     },
     'SYSOP RESTART' => sub {
         print "\n\nShutting down threads\n";
@@ -261,63 +261,62 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
-	'SYSOP COMMANDS REFERENCE FULL' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('FULL'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    'SYSOP COMMANDS REFERENCE FULL' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('FULL'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE USER' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('USER'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE USER' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('USER'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE SYSOP' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('SYSOP'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE SYSOP' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('SYSOP'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE ASCII' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('ASCII'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE ASCII' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('ASCII'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE ATASCII' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('ATASCII'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE ATASCII' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('ATASCII'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE ANSI' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('ANSI'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE ANSI' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('ANSI'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP COMMANDS REFERENCE PETSCII' => sub {
-		my $self = shift;
-		$self->output($self->sysop_list_commands('PETSCII'));
-		print "\nPress a key to continue ";
-		$self->sysop_keypress(TRUE);
+    },
+    'SYSOP COMMANDS REFERENCE PETSCII' => sub {
+        my $self = shift;
+        $self->output($self->sysop_list_commands('PETSCII'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-	},
-	'SYSOP BBS BULK MERGE' => sub {
-		my $self = shift;
-		$self->sysop_bbs_list_bulk_import();
+    },
+    'SYSOP BBS BULK MERGE' => sub {
+        my $self = shift;
+        $self->sysop_bbs_list_bulk_import();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
-	},
+    },
 };
 $DEBUG->DEBUG(['Initialized','Starting']);
-$BBS_OBJ->playit('startup.mp3');
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
 if ($RESTART) {
@@ -331,7 +330,7 @@ exit(0);
 
 sub shutdown_message {
     logo();
-	$DEBUG->DEBUG(['Shutdown Complete']);
+    $DEBUG->DEBUG(['Shutdown Complete']);
     print colored(['red'],q{
  ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
  ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
@@ -342,10 +341,10 @@ sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-	$DEBUG->DEBUG(['Logo']);
+    $DEBUG->DEBUG(['Logo']);
     $CACHE->set('ROW_ADJUST', 0);
-	my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
-	my $banner  = colored(['bright_white'],q{  ____  ____ ____    _   _       _                          _  }) . '│ [% VERSION %]' . "\n";
+    my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
+    my $banner  = colored(['bright_white'],q{  ____  ____ ____    _   _       _                          _  }) . '│ [% VERSION %]' . "\n";
     $banner    .= colored(['bright_white'],q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | }) . '│ Written By Richard Kelsch' . "\n";
     $banner    .= colored(['bright_white'],q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }) . '│ Copyright © 2023-2025 Richard Kelsch' . "\n";
     $banner    .= colored(['bright_white'],q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | }) . '│ All Rights Reserved' . "\n";
@@ -354,13 +353,13 @@ sub logo {
 
     $banner =~ s/\[\% VERSION \%\]/$version/s;
     print setscroll(1, $hsize), locate(1, 1);
-	$banner .= locate(6,65) . '━' x ($wsize - 64);
-	my $horz = colored(['blue'],'━');
-	my $vert = colored(['blue'],'│');
-	my $crs  = colored(['blue'],'┷');
-	$banner =~ s/│/$vert/gs;
-	$banner =~ s/━/$horz/gs;
-	$banner =~ s/┷/$crs/gs;
+    $banner .= locate(6,65) . '━' x ($wsize - 64);
+    my $horz = colored(['blue'],'━');
+    my $vert = colored(['blue'],'│');
+    my $crs  = colored(['blue'],'┷');
+    $banner =~ s/│/$vert/gs;
+    $banner =~ s/━/$horz/gs;
+    $banner =~ s/┷/$crs/gs;
     print $banner;
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     return ($wsize, $hsize, $wpixels, $hpixels);
@@ -369,15 +368,16 @@ sub logo {
 sub system_menu {
     my $bbs_obj = shift;
 
-	$DEBUG->DEBUG(['System Menu']);
+    $DEBUG->DEBUG(['System Menu']);
     my $key = '';
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
     my ($width, $height) = ($wsize, $hsize);
     print locate($CACHE->get('START_ROW'), 1), cldown;
 
     my $socket;
+    $bbs_obj->playit('startup.mp3');
     unless ($TEST) {
-		$DEBUG->DEBUG(['Loading Threads']);
+        $DEBUG->DEBUG(['Loading Threads']);
         print 'Loading ' . $MAX_THREADS . ' Threads ...';
         $socket = IO::Socket->new(
             'Domain'    => AF_INET,
@@ -415,24 +415,24 @@ sub system_menu {
             $SIG{'ALRM'} = sub { servers_status($bbs_obj, TRUE); };
             $CACHE->set('UPDATE', TRUE);
             servers_status($bbs_obj, TRUE);    # This is a sub not a method, so we pass the object conventionally
-			$DEBUG->DEBUG(['Threads Loaded']);
+            $DEBUG->DEBUG(['Threads Loaded']);
         }
     } else {
-		$DEBUG->DEBUG(['Test mode active, no server threads']);
-	}
-	# Set up window
+        $DEBUG->DEBUG(['Test mode active, no server threads']);
+    }
+    # Set up window
     print setscroll(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), $hsize);
     print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
     $bbs_obj->{'sysop'} = TRUE;
     $bbs_obj->users_load('sysop', '');
     while ($CACHE->get('RUNNING')) {
-		($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-		if ($wsize != $width || $hsize != $height) {
-			alarm(0);
-			($wsize, $hsize, $wpixels, $hpixels) = logo();
-			($width, $height) = ($wsize, $hsize);
-			servers_status($bbs_obj, TRUE) unless ($TEST);
-		}
+        ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+        if ($wsize != $width || $hsize != $height) {
+            alarm(0);
+            ($wsize, $hsize, $wpixels, $hpixels) = logo();
+            ($width, $height) = ($wsize, $hsize);
+            servers_status($bbs_obj, TRUE) unless ($TEST);
+        }
         my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANSI');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
@@ -454,83 +454,83 @@ sub servers_status {
     my $bbs_obj    = shift;
     my $show_alarm = shift;
 
-	if ($CACHE->get('SHOW_STATUS') && ! $bbs_obj->{'LOCAL LOGIN'}) {
-		if ($CACHE->get('UPDATE') && !$TEST) {
-			alarm(0);
-			my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-			my $stp   = int($wsize / 26);
-			my $steps = $stp;
-			my @row   = ();
-			my @sizes;
-			foreach my $count (1 .. $stp) {
-				push(@sizes, 22);
-			}
+    if ($CACHE->get('SHOW_STATUS') && ! $bbs_obj->{'LOCAL LOGIN'}) {
+        if ($CACHE->get('UPDATE') && !$TEST) {
+            alarm(0);
+            my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+            my $stp   = int($wsize / 26);
+            my $steps = $stp;
+            my @row   = ();
+            my @sizes;
+            foreach my $count (1 .. $stp) {
+                push(@sizes, 22);
+            }
 
-			my $table = Text::SimpleTable->new(@sizes);
-			my $count = 1;
-			$CACHE->set_multi(
-				['ROW_ADJUST',      2],
-				['ONLINE',          0],
-				['THREADS_RUNNING', 0],
-			);
-			foreach my $name (sort(keys %{$SERVER_THREADS})) {
-				if ($CACHE->get($name) eq 'CONNECTED') {
-					$CACHE->set_multi(
-						['ONLINE',          $CACHE->get('ONLINE') + 1],
-						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
-						[$name,             'CONNECTED'],
-					);
-				} elsif ($CACHE->get($name) eq 'IDLE') {
-					$CACHE->set_multi(
-						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
-						[$name,             'IDLE'],
-					);
-				} else {
-					$CACHE->set_multi(
-						['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1],
-						[$name,             'FINISHED'],
-					);
-				}
-				push(@row, "$name -> " . $CACHE->get($name));
-				$steps--;
-				if ($steps == 0) {
-					$steps = $stp;
-					$table->row(@row);
-					@row = ();
-					$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-				}
-				$count++;
-				threads->yield();
-			}
-			if (scalar(@row)) {
-				while ($steps >= 0) {
-					push(@row, ' ');
-					$steps--;
-					threads->yield();
-				}
-				$CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
-				$table->row(@row);
-				$CACHE->set('UPDATE', FALSE);
-			}
-			if (defined($table)) {
-				my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
-				my $cn  = colored(['green'],   'CONNECTED');
-				my $idl = colored(['magenta'], 'IDLE');
-				my $fn  = colored(['red'],     'FINISHED');
-				$tbl =~ s/CONNECTED/$cn/g;
-				$tbl =~ s/IDLE/$idl/g;
-				$tbl =~ s/FINISHED/$fn/g;
+            my $table = Text::SimpleTable->new(@sizes);
+            my $count = 1;
+            $CACHE->set_multi(
+                ['ROW_ADJUST',      2],
+                ['ONLINE',          0],
+                ['THREADS_RUNNING', 0],
+            );
+            foreach my $name (sort(keys %{$SERVER_THREADS})) {
+                if ($CACHE->get($name) eq 'CONNECTED') {
+                    $CACHE->set_multi(
+                        ['ONLINE',          $CACHE->get('ONLINE') + 1],
+                        ['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+                        [$name,             'CONNECTED'],
+                    );
+                } elsif ($CACHE->get($name) eq 'IDLE') {
+                    $CACHE->set_multi(
+                        ['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') + 1],
+                        [$name,             'IDLE'],
+                    );
+                } else {
+                    $CACHE->set_multi(
+                        ['THREADS_RUNNING', $CACHE->get('THREADS_RUNNING') - 1],
+                        [$name,             'FINISHED'],
+                    );
+                }
+                push(@row, "$name -> " . $CACHE->get($name));
+                $steps--;
+                if ($steps == 0) {
+                    $steps = $stp;
+                    $table->row(@row);
+                    @row = ();
+                    $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+                }
+                $count++;
+                threads->yield();
+            }
+            if (scalar(@row)) {
+                while ($steps >= 0) {
+                    push(@row, ' ');
+                    $steps--;
+                    threads->yield();
+                }
+                $CACHE->set('ROW_ADJUST', $CACHE->get('ROW_ADJUST') + 1);
+                $table->row(@row);
+                $CACHE->set('UPDATE', FALSE);
+            }
+            if (defined($table)) {
+                my $tbl = locate($CACHE->get('START_ROW'),1) . $bbs_obj->center($table->boxes->draw(), $wsize);
+                my $cn  = colored(['green'],   'CONNECTED');
+                my $idl = colored(['magenta'], 'IDLE');
+                my $fn  = colored(['red'],     'FINISHED');
+                $tbl =~ s/CONNECTED/$cn/g;
+                $tbl =~ s/IDLE/$idl/g;
+                $tbl =~ s/FINISHED/$fn/g;
 
-				if ($show_alarm) {
-					print savepos, $tbl, loadpos;
-					$SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
-					alarm(1);
-				} else {
-					print $tbl;
-				}
-			}
-		}
-	}
+                if ($show_alarm) {
+                    print savepos, $tbl, loadpos;
+                    $SIG{ALRM} = sub { servers_status($bbs_obj, TRUE); };
+                    alarm(1);
+                } else {
+                    print $tbl;
+                }
+            }
+        }
+    }
     return (TRUE);
 }
 
@@ -556,9 +556,9 @@ sub run_bbs {
         if (defined($client_socket)) {
             binmode($client_socket, ':ultra-raw');
             $CACHE->set_multi(
-				[$thread_name, 'CONNECTED'],
-				['UPDATE',     TRUE],
-			);
+                [$thread_name, 'CONNECTED'],
+                ['UPDATE',     TRUE],
+            );
             my $bbs = BBS::Universal->new(
                 {
                     'thread_name'   => $thread_name,
@@ -572,14 +572,14 @@ sub run_bbs {
             $bbs->run(FALSE);
             $client_socket->shutdown(SHUT_RDWR);    # Hang up
             $CACHE->set_multi(
-				[$thread_name, 'IDLE'],
-				['UPDATE',     TRUE],
-			);
+                [$thread_name, 'IDLE'],
+                ['UPDATE',     TRUE],
+            );
         } else {
             $CACHE->set_multi(
-				[$thread_name, 'IDLE'],
-				['UPDATE',     TRUE],
-			);
+                [$thread_name, 'IDLE'],
+                ['UPDATE',     TRUE],
+            );
         }
         threads->yield();
     }
@@ -589,10 +589,10 @@ sub run_bbs {
 sub run_bbs_sysop {
     my $bbs_obj = shift;
     my $sysop   = shift;
-	my $debug   = shift;
-	my $level   = shift;
+    my $debug   = shift;
+    my $level   = shift;
 
-	$bbs_obj->{'LOCAL LOGIN'} = TRUE;
+    $bbs_obj->{'LOCAL LOGIN'} = TRUE;
     # Only allow the main program to respond to signals, not the threads
     #    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
     print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
@@ -600,12 +600,12 @@ sub run_bbs_sysop {
         {
             'thread_name' => 'CONSOLE',
             'debug'       => $debug,
-			'debuglevel'  => $level,
+            'debuglevel'  => $level,
             'local_mode'  => TRUE,
         }
     );
     $bbs->run($sysop);
-	delete($bbs_obj->{'LOCAL LOGIN'});
+    delete($bbs_obj->{'LOCAL LOGIN'});
     threads->yield() if (!$TEST);    # Be friendly
 }
 
@@ -633,9 +633,9 @@ sub clean_joinable {
 
 sub finish {
     my $bbs_obj = shift;
-	$bbs_obj->playit('shutdown.mp3');
     $CACHE->set('RUNNING', FALSE);
     $DEBUG->DEBUG(['Shutting Down, waiting for all sessions to end nicely...']);
+    $bbs_obj->playit('shutdown.mp3');
     clean_joinable($bbs_obj);
     $DEBUG->DEBUG(['Shutdown Complete']);
     chdir($OLDDIR);
