@@ -312,7 +312,7 @@ our $SYSOP_COMMANDS = {
 	},
 	'SYSOP BBS BULK MERGE' => sub {
 		my $self = shift;
-		$self->bbs_list_bulk_import();
+		$self->sysop_bbs_list_bulk_import();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
 	},
 };

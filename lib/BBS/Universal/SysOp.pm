@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.006'; }
+BEGIN { our $VERSION = '0.007'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -351,7 +351,7 @@ sub sysop_initialize {
         'page_sysop' => {
             'type'    => RADIO,
             'max'     => 5,
-           'min'     => 5,
+            'min'     => 5,
             'choices' => ['TRUE', 'FALSE', 'YES', 'NO', 'ON', 'OFF', '1', '0',],
             'default' => 'NO',
         },
@@ -2249,12 +2249,12 @@ sub sysop_showenv {
             my $line      = $ENV{$env};
             $line =~ s/256color/$colorized/;
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
-		} elsif ($env =~ /GNOME_SHELL_SESSION_MODE|GDMSESSION|DESKTOP_SESSION|XDG_SESSION_DESKTOP/) {
-			if ($ENV{$env} eq 'ubuntu') {
-				$text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% ORANGE %]' . $ENV{$env} . "[% RESET %]\n";
-			} elsif ($ENV{$env} eq 'redhat') {
-				$text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% RED %]' . $ENV{$env} . "[% RESET %]\n";
-			}
+        } elsif ($env =~ /GNOME_SHELL_SESSION_MODE|GDMSESSION|DESKTOP_SESSION|XDG_SESSION_DESKTOP/) {
+            if ($ENV{$env} eq 'ubuntu') {
+                $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% ORANGE %]' . $ENV{$env} . "[% RESET %]\n";
+            } elsif ($ENV{$env} eq 'redhat') {
+                $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% RED %]' . $ENV{$env} . "[% RESET %]\n";
+            }
         } elsif ($env eq 'COLORTERM') {
             my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'],'r');
             my $line      = $ENV{$env};
@@ -2520,4 +2520,40 @@ sub sysop_add_file {
         sleep 2;
     }
 } ## end sub sysop_add_file
+
+sub sysop_bbs_list_bulk_import {
+    my $self = shift;
+
+    my $filename = $self->configuration('BBS ROOT') . "/bbs_list.txt";
+    if (-e $filename) {
+        $self->output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
+        $self->output('[% GREEN %]╭───────────────────────────────────────────────────────────────────┬──────────────────────────────────┬───────╮[% RESET %]' . "\n");
+        $self->output('[% GREEN %]│[% RESET %] NAME                                                              [% GREEN %]│[% RESET %] HOSTNAME/PHONE                   [% GREEN %]│[% RESET %] PORT  [% GREEN %]│[% RESET %]' . "\n");
+        $self->output('[% GREEN %]├───────────────────────────────────────────────────────────────────┼──────────────────────────────────┼───────┤[% RESET %]' . "\n");
+        open(my $FILE, '<', $filename);
+        chomp(my @bbs = <$FILE>);
+        close($FILE);
+
+        my $sth = $self->{'dbh'}->prepare('REPLACE INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,?)');
+        foreach my $row (@bbs) {
+            if ($row =~ /^. \S/ && $row !~ /^\* = NEW/) {
+                $row =~ s/^\* /  /;
+                my ($name, $url) = (substr($row,2,41), substr($row,43));
+                $name =~ s/(.*?)\s+$/$1/;
+                my ($address, $port) = split(/:/,$url);
+                $port = 23 unless(defined($port));
+                $sth->execute($name, $address, $port, $self->{'USER'}->{'id'});
+                $self->output('[% GREEN %]│[% RESET %] ' . sprintf('%-65s', $name) . '[% GREEN %] │[% RESET %] ' . sprintf('%-32s', $address) . ' [% GREEN %]│[% RESET %] ' . sprintf('%5d', $port) . ' [% GREEN %]│[% RESET %]' . "\n");
+            }
+        }
+        $sth->finish();
+        $self->output('[% GREEN %]╰───────────────────────────────────────────────────────────────────┴──────────────────────────────────┴───────╯[% RESET %]' . "\n\nImport Complete\n");
+    } else {
+        $self->output("\n[% RING BELL %][% RED %]Cannot find [% RESET %]$filename\n");
+        $self->{'debug'}->WARNING(["Cannot find $filename"]);
+    }
+    $self->output("\nPress any key to continue\n");
+    $self->sysop_get_key(SILENT, BLOCKING);
+    return(TRUE);
+}
 1;
