@@ -37,7 +37,7 @@ sub messages_forum_categories {
     }
     $sth->finish();
     $self->show_choices($mapping);
-    $self->output("\n" . $self->prompt('Choose Forum Category'));
+    $self->prompt('Choose Forum Category');
     my $key;
     do {
         $key = uc($self->get_key(SILENT, BLOCKING));
@@ -81,28 +81,28 @@ sub messages_list_messages {
         $result->{'message'} = $sth->fetchrow_array();
         $sth->finish();
         $self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
-		my $mode = $self->{'USER'}->{'text_mode'};
+        my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
             $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]   Author [% RESET %] ');
-			$self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
-			$self->output(' (' . $result->{'author_username'} . ')' . "\n");
+            $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
+            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]    Title [% RESET %] ' . $result->{'title'} . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
             $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
-		} elsif ($mode eq 'ATASCII') {
+        } elsif ($mode eq 'ATASCII') {
             $self->output('[% GREEN   %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
             $self->output('[% YELLOW %]   Author [% RESET %] ');
-			$self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
-			$self->output(' (' . $result->{'author_username'} . ')' . "\n");
+            $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
+            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('[% YELLOW %]    Title [% RESET %] ' . $result->{'title'} . "\n");
             $self->output('[% YELLOW %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
             $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
         } else {
             $self->output(' CATEGORY > [% FORUM CATEGORY %]' . "\n");
             $self->output('  Author:  ');
-			$self->output(($result->{'prefer_nickname'}) ? $result->{'nickname'} : $result->{'author_fullname'});
-			$self->output(' (' . $result->{'author_username'} . ')' . "\n");
+            $self->output(($result->{'prefer_nickname'}) ? $result->{'nickname'} : $result->{'author_fullname'});
+            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('   Title:  ' . $result->{'title'} . "\n");
             $self->output(' Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");
             $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
@@ -143,7 +143,7 @@ sub messages_list_messages {
             };
         }
         $self->show_choices($mapping);
-        $self->output("\n" . $self->prompt('Choose'));
+        $self->prompt('Choose');
         my $key;
         do {
             $key = uc($self->get_key(SILENT, FALSE));
@@ -277,12 +277,12 @@ sub messages_text_editor {
         if (defined($message)) {
             $title = $message->{'title'};
             $text  = $message->{'message'};
-            $self->output($self->prompt('Message'));
+            $self->prompt('Message');
             $text  = $self->messages_text_edit($title,$text);
         } else {
-            $self->output($self->prompt('Title'));
+            $self->prompt('Title');
             $title = $self->get_line(ECHO, 255);
-            $self->output($self->prompt('Message'));
+            $self->prompt('Message');
             $text  = $self->messages_text_edit($title);
         }
         if (defined($text) && defined($title)) {

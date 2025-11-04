@@ -96,7 +96,7 @@ use XML::RSS::LibXML;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.011';
+    our $VERSION = '0.012';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
         TRUE
@@ -447,12 +447,12 @@ sub populate_common {
         'SHOW FULL BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(FALSE);
-			return($self->load_menu('files/main/bbs_listing'));
+            return($self->load_menu('files/main/bbs_listing'));
         },
         'SEARCH BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(TRUE);
-			return($self->load_menu('files/main/bbs_listing'));
+            return($self->load_menu('files/main/bbs_listing'));
         },
         'RSS FEEDS' => sub {
             my $self = shift;
@@ -846,17 +846,18 @@ sub prompt {
     my $text = shift;
 
     $self->{'debug'}->DEBUG(["Prompt > $text"]);
-    my $response;
+    my $response = "\n";
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
-        $response = '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
+        $response .= '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
-        $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
+        $response .= '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $response = '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . ' ' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . ' ';
+        $response .= '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . ' [% BLACK RIGHT-POINTING TRIANGLE %] ';
     } else {
-        $response = '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
+        $response .= '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     }
-    return ($response);
+    $self->output($response);
+    return (TRUE);
 } ## end sub prompt
 
 sub menu_choice {
@@ -966,7 +967,7 @@ sub main_menu {
     while ($connected && $self->is_connected()) {
         $self->output($mapping->{'TEXT'});
         $self->show_choices($mapping);
-        $self->output("\n" . $self->prompt('Choose'));
+        $self->prompt('Choose');
         my $key;
         do {
             $key = uc($self->get_key(SILENT, FALSE));
@@ -1151,7 +1152,7 @@ sub get_line {
     if ($echo == RADIO) {
         my $regexp = join('', @{ $type->{'choices'} });
         $self->{'debug'}->DEBUGMAX([$regexp]);
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1184,7 +1185,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == NUMERIC) {
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1217,7 +1218,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == DATE) {
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1250,7 +1251,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == HOST) {
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1283,7 +1284,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($type == PASSWORD) {
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1316,7 +1317,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } else {
-        while (($self->is_connected() || $self->{'sysop'} || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
@@ -1382,7 +1383,7 @@ sub detokenize_text {    # Detokenize text markup
 
 sub output {
     my $self = shift;
-	$|=1;
+    $|=1;
     $self->{'debug'}->DEBUG(['Output']);
     my $text = $self->detokenize_text(shift);
 
@@ -1424,7 +1425,7 @@ sub send_char {
     my $char = shift;
 
     # This sends one character at a time to the socket to simulate a retro BBS
-    if ($self->{'sysop'} || $self->{'local_mode'} || !defined($self->{'cl_socket'})) {
+    if ($self->{'local_mode'} || !defined($self->{'cl_socket'})) {
         print STDOUT $char;
     } else {
         my $handle = $self->{'cl_socket'};
@@ -1443,22 +1444,13 @@ sub scroll {
 
     $self->{'debug'}->DEBUG(['Scroll?']);
     my $string;
-    if ($self->{'sysop'} || $self->{'local_mode'}) {
-        $string = "\nScroll?  ";
-		print $string;
-    } else {
-        $string = "$nl" . 'Scroll?  ';
-		$self->output($string);
-    }
+    $string = "$nl" . 'Scroll?  ';
+    $self->output($string);
     if ($self->get_key(ECHO, BLOCKIMG) =~ /N|Q/i) {
         $self->output("\n");
         return (FALSE);
     }
-    if ($self->{'sysop'} || $self->{'local_mode'}) {
-		print "\r", clline;
-	} else {
-		$self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
-	}
+    $self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
     return (TRUE);
 } ## end sub scroll
 
@@ -1511,7 +1503,7 @@ sub choose_file_category {
         } else {
             $self->output($table->draw());
         }
-        $self->output("\n" . $self->prompt('Choose Category (Z = Nevermind)'));
+        $self->prompt('Choose Category (Z = Nevermind)');
         my $response;
         do {
             $response = uc($self->get_key(SILENT, BLOCKING));
@@ -1894,7 +1886,7 @@ sub html_to_text {
     my $self = shift;
     my $text = shift;
 
-	$text =~ s/(\n\n\n)+/\n/gs;
+    $text =~ s/(\n\n\n)+/\n/gs;
     my %entity = (
         lt     => '<',     #a less-than
         gt     => '>',     #a greater-than

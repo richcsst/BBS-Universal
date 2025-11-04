@@ -42,7 +42,7 @@ sub files_list_summary {
     my $sth;
     my $filter;
     if ($search) {
-        $self->output("\n" . $self->prompt('Search for'));
+        $self->prompt('Search for');
         $filter = $self->get_line(ECHO, 20);
         $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
         $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
@@ -105,7 +105,7 @@ sub files_list_detailed {
     my $filter;
     my $columns = $self->{'USER'}->{'max_columns'};
     if ($search) {
-        $self->output("\n" . $self->prompt('Search for'));
+        $self->prompt('Search for');
         $filter = $self->get_line(ECHO, 20);
         $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
         $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});

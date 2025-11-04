@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.007'; }
+BEGIN { our $VERSION = '0.008'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -837,7 +837,7 @@ sub sysop_parse_menu {
     my $keys   = '';
     print "\r", cldown unless ($scroll);
     $self->sysop_show_choices($mapping);
-    print "\n", $self->sysop_prompt('Choose');
+    $self->sysop_prompt('Choose');
     my $key;
     do {
         $key = uc($self->sysop_keypress());
@@ -1083,7 +1083,7 @@ sub sysop_list_files {
         $category = $row->{'category'};
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
-    $self->output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
+    $self->sysop_output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
     my $tbl = $table->boxes->draw();
     $tbl = $self->sysop_color_border($tbl, 'YELLOW', 'DOUBLE');
     while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED) /) {
@@ -1091,7 +1091,7 @@ sub sysop_list_files {
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $tbl =~ s/ $ch / $new /gs;
     }
-    $self->output("\n$tbl\nPress a Key To Continue ...");
+    $self->sysop_output("\n$tbl\nPress a Key To Continue ...");
     $self->sysop_keypress();
     print " BACK\n";
     return (TRUE);
@@ -1103,134 +1103,135 @@ sub sysop_color_border {
     my $color = shift;
     my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
 
+    $color = '[% ' . $color . ' %]';
     my $new;
-    if ($tbl =~ /(─+?)/) {
+    if ($tbl =~ /(─)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE HORIZONTAL %][% RESET %]';
+            $new =~ s/─/\[\% BOX DRAWINGS DOUBLE HORIZONTAL \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY HORIZONTAL %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/─/\[\% BOX DRAWINGS HEAVY HORIZONTAL \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(│)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL %][% RESET %]';
+            $new =~ s/│/\[\% BOX DRAWINGS DOUBLE VERTICAL \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/│/\[\% BOX DRAWINGS HEAVY VERTICAL \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┌)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'ROUNDED') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% RESET %]';
+            $new =~ s/┌/\[\% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT \%\]/gs;
         } elsif ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND RIGHT %][% RESET %]';
+            $new =~ s/┌/\[\% BOX DRAWINGS DOUBLE DOWN AND RIGHT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND RIGHT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┌/\[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(└)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'ROUNDED') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% RESET %]';
+            $new =~ s/└/\[\% BOX DRAWINGS LIGHT ARC UP AND RIGHT \%\]/gs;
         } elsif ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND RIGHT %][% RESET %]';
+            $new =~ s/└/\[\% BOX DRAWINGS DOUBLE UP AND RIGHT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND RIGHT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/└/\[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┬)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL %][% RESET %]';
+            $new =~ s/┬/\[\% BOX DRAWINGS DOUBLE DOWN AND HORIZONTAL \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┬/\[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┐)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'ROUNDED') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %][% RESET %]';
+            $new =~ s/┐/\[\% BOX DRAWINGS LIGHT ARC DOWN AND LEFT \%\]/gs;
         } elsif ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE DOWN AND LEFT %][% RESET %]';
+            $new =~ s/┐/\[\% BOX DRAWINGS DOUBLE DOWN AND LEFT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY DOWN AND LEFT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┐/\[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(├)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND RIGHT %][% RESET %]';
+            $new =~ s/├/\[\% BOX DRAWINGS DOUBLE VERTICAL AND RIGHT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND RIGHT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/├/\[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┘)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'ROUNDED') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %][% RESET %]';
+            $new =~ s/┘/\[\% BOX DRAWINGS LIGHT ARC UP AND LEFT \%\]/gs;
         } elsif ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND LEFT %][% RESET %]';
+            $new =~ s/┘/\[\% BOX DRAWINGS DOUBLE UP AND LEFT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND LEFT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┘/\[\% BOX DRAWINGS HEAVY UP AND LEFT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┼)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL %][% RESET %]';
+            $new =~ s/┼/\[\% BOX DRAWINGS DOUBLE VERTICAL AND HORIZONTAL \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┼/\[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┤)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE VERTICAL AND LEFT %][% RESET %]';
+            $new =~ s/┤/\[\% BOX DRAWINGS DOUBLE VERTICAL AND LEFT \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY VERTICAL AND LEFT %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┤/\[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┴)/) {
         my $ch = $1;
+        $new = $ch;
         if ($type eq 'DOUBLE') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS DOUBLE UP AND HORIZONTAL %][% RESET %]';
+            $new =~ s/┴/\[\% BOX DRAWINGS DOUBLE UP AND HORIZONTAL \%\]/gs;
         } elsif ($type eq 'HEAVY') {
-            $new = '[% ' . $color . ' %][% BOX DRAWINGS HEAVY UP AND HORIZONTAL %][% RESET %]';
-        } else {
-            $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
+            $new =~ s/┴/\[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\]/gs;
         }
+        $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     return($tbl);
@@ -1257,7 +1258,8 @@ sub sysop_select_file_category {
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $text =~ s/ $ch / $new /gs;
     }
-    $self->output($self->sysop_color_border($text,'MAGENTA', 'DOUBLE') . "\n" . $self->sysop_prompt('Choose ID (< = Nevermind)'));
+    $self->sysop_output($self->sysop_color_border($text,'MAGENTA', 'DOUBLE') . "\n");
+    $self->sysop_prompt('Choose ID (< = Nevermind)');
     my $line;
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
@@ -1294,7 +1296,8 @@ sub sysop_edit_file_categories {
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $text =~ s/ $ch / $new /gs;
     }
-    $self->output($text . "\n" . $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)'));
+    $self->sysop_output($text . "\n");
+    $self->sysop_prompt('Choose ID (A = Add, < = Nevermind)');
     my $line;
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
@@ -1310,7 +1313,7 @@ sub sysop_edit_file_categories {
             my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
             $text =~ s/ $ch / $new /gs;
         }
-        $self->output("\n" . $self->sysop_color_border($text, 'MAGENTA', 'DOUBLE'));
+        $self->sysop_output("\n" . $self->sysop_color_border($text, 'MAGENTA', 'DOUBLE'));
         print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
         my $title = $self->sysop_get_line(ECHO, 80, '');
         if ($title ne '') {
@@ -1442,7 +1445,7 @@ sub sysop_view_configuration {
         print $self->sysop_menu_choice('TOP',    '',    '');
         print $self->sysop_menu_choice('Z',      'RED', 'Return to Settings Menu');
         print $self->sysop_menu_choice('BOTTOM', '',    '');
-        print $self->sysop_prompt('Choose');
+        $self->sysop_prompt('Choose');
         return (TRUE);
     } ## end elsif ($view == FALSE)
 } ## end sub sysop_view_configuration
@@ -1607,7 +1610,7 @@ sub sysop_get_line {
     } ## end else [ if (ref($type) eq 'HASH')]
 
     $self->{'debug'}->DEBUGMAX([$type, $echo, $line]);
-    $self->output($line) if ($line ne '');
+    $self->sysop_output($line) if ($line ne '');
     my $mode = 'ANSI';
     my $bs   = $self->{'ansi_sequences'}->{'BACKSPACE'};
     if ($echo == RADIO) {
@@ -1628,7 +1631,7 @@ sub sysop_get_line {
                         print uc($key);
                         $line .= uc($key);
                     } else {
-                        $self->output('[% RING BELL %]');
+                        $self->sysop_output('[% RING BELL %]');
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1641,7 +1644,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-                    $self->output('[% RING BELL %]');
+                    $self->sysop_output('[% RING BELL %]');
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1661,7 +1664,7 @@ sub sysop_get_line {
                         print $key;
                         $line .= $key;
                     } else {
-                        $self->output('[% RING BELL %]');
+                        $self->sysop_output('[% RING BELL %]');
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1674,7 +1677,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-                    $self->output('[% RING BELL %]');
+                    $self->sysop_output('[% RING BELL %]');
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1687,14 +1690,14 @@ sub sysop_get_line {
                     if ($key eq $bs || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
-                            $self->output("$key $key");
+                            $self->sysop_output("$key $key");
                             chop($line);
                         }
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
                         print lc($key);
                         $line .= lc($key);
                     } else {
-                        $self->output('[% RING BELL %]');
+                        $self->sysop_output('[% RING BELL %]');
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1707,7 +1710,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-                    $self->output('[% RING BELL %]');
+                    $self->sysop_output('[% RING BELL %]');
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1727,7 +1730,7 @@ sub sysop_get_line {
                         print $key;
                         $line .= $key;
                     } else {
-                        $self->output('[% RING BELL %]');
+                        $self->sysop_output('[% RING BELL %]');
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1740,7 +1743,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-                    $self->output('[% RING BELL %]');
+                    $self->sysop_output('[% RING BELL %]');
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1763,7 +1766,7 @@ sub sysop_user_delete {
     delete($mapping->{'TEXT'});
     my ($key_exit) = (keys %{$mapping});
     my $key;
-    print $self->sysop_prompt('Please enter the username or account number');
+    $self->sysop_prompt('Please enter the username or account number');
     my $search = $self->sysop_get_line(ECHO, 20, '');
     return (FALSE) if ($search eq '' || $search eq 'sysop' || $search eq '1');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
@@ -1806,7 +1809,7 @@ sub sysop_user_edit {
     my ($key_exit) = (keys %{$mapping});
     my @choices = qw( 0 1 2 3 4 5 6 7 8 9 A B C D E F G H I J K L M N O P Q R S T U V W X Y );
     my $key;
-    print $self->sysop_prompt('Please enter the username or account number');
+    $self->sysop_prompt('Please enter the username or account number');
     my $search = $self->sysop_get_line(ECHO, 20, '');
     return (FALSE) if ($search eq '');
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE id=? OR username=?');
@@ -1867,9 +1870,9 @@ sub sysop_user_edit {
                 $tbl =~ s/$ch/$new/g;
             }
             $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');
-            $self->output('[% CLS %]' . $tbl . "\n");
+            $self->sysop_output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
-            print "\n", $self->sysop_prompt('Choose');
+            $self->sysop_prompt('Choose');
             do {
                 $key = uc($self->sysop_keypress());
             } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
@@ -1973,9 +1976,9 @@ sub sysop_new_user_edit {
                 $tbl =~ s/$ch/$new/g;
             }
             $tbl = $self->sysop_color_border($tbl, 'BRIGHT CYAN', 'ROUNDED');
-            $self->output('[% CLS %]' . $tbl . "\n");
+            $self->sysop_output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
-            $self->output("\n" . $self->sysop_prompt('Choose'));
+            $self->sysop_prompt('Choose');
             do {
                 $key = uc($self->sysop_keypress());
             } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
@@ -2055,7 +2058,7 @@ sub sysop_user_add {
         my $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
         $string =~ s/$ch/$new/gs;
     }
-    $self->output($self->sysop_color_border($string, 'PINK', 'DEFAULT'));
+    $self->sysop_output($self->sysop_color_border($string, 'PINK', 'DEFAULT'));
     $self->sysop_show_choices($mapping);
     my $column     = 21;
     my $adjustment = $self->{'CACHE'}->get('START_ROW') - 1;
@@ -2160,8 +2163,8 @@ sub sysop_prompt {
     my $self = shift;
     my $text = shift;
 
-    my $response = '[% B_BRIGHT MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
-    return ($self->sysop_detokenize($response));
+    my $response = "\n" . '[% B_BRIGHT MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
+    print $self->sysop_detokenize($response);
 } ## end sub sysop_prompt
 
 sub sysop_detokenize {
@@ -2303,7 +2306,7 @@ sub sysop_list_bbs {
     foreach my $line (@listing) {
         $table->row($line->{'bbs_id'}, $line->{'bbs_name'}, $line->{'bbs_hostname'}, $line->{'bbs_port'}, $line->{'bbs_poster'});
     }
-    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
+    $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print 'Press a key to continue... ';
     $self->sysop_keypress();
 } ## end sub sysop_list_bbs
@@ -2313,7 +2316,7 @@ sub sysop_edit_bbs {
 
     $self->{'debug'}->DEBUG(['SysOp Edit BBS']);
     my @choices = (qw( bbs_id bbs_name bbs_hostname bbs_port ));
-    print $self->sysop_prompt('Please enter the ID, the hostname/phone, or the BBS name to edit');
+    $self->sysop_prompt('Please enter the ID, the hostname/phone, or the BBS name to edit');
     my $search;
     $search = $self->sysop_get_line(ECHO, 50, '');
     return (FALSE) if ($search eq '');
@@ -2336,8 +2339,8 @@ sub sysop_edit_bbs {
                 $index++;
             }
         } ## end foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port))
-        $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
-        print $self->sysop_prompt('Edit which field (Z=Nevermind)');
+        $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
+        $self->sysop_prompt('Edit which field (Z=Nevermind)');
         my $choice;
         do {
             $choice = $self->sysop_keypress();
@@ -2346,7 +2349,7 @@ sub sysop_edit_bbs {
             print "BACK\n";
             return (FALSE);
         }
-        print "\n", $self->sysop_prompt($choices[$choice] . ' (' . $bbs->{ $choices[$choice] } . ') ');
+        $self->sysop_prompt($choices[$choice] . ' (' . $bbs->{ $choices[$choice] } . ') ');
         my $width = ($choices[$choice] eq 'bbs_port') ? 5 : 50;
         my $new   = $self->sysop_get_line(ECHO, $width, '');
         if ($new eq '') {
@@ -2378,7 +2381,7 @@ sub sysop_add_bbs {
         'bbs_port'     => '',
     };
     my $index = 0;
-    $self->output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
+    $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
@@ -2407,7 +2410,7 @@ sub sysop_delete_bbs {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['SysOp Delete BBS']);
-    print $self->sysop_prompt('Please enter the ID, the hostname, or the BBS name to delete');
+    $self->sysop_prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(ECHO, 50, '');
     if ($search eq '') {
@@ -2426,7 +2429,7 @@ sub sysop_delete_bbs {
         foreach my $name (qw(bbs_id bbs_poster bbs_name bbs_hostname bbs_port)) {
             $table->row($name, $bbs->{$name});
         }
-        $self->output($self->sysop_color_border($table->boxes->draw(), 'RED', 'ROUNDED'));
+        $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'RED', 'ROUNDED'));
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
         unless ($choice) {
@@ -2486,19 +2489,20 @@ sub sysop_add_file {
             $self->sysop_pager($text);
             while (scalar(@names)) {
                 ($search) = shift(@names);
-                $self->output('[% B_WHITE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]' . "\n\n");
-                print $self->sysop_prompt('Which file would you like to add?  ');
+                $self->sysop_output('[% B_WHITE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]' . "\n\n");
+                $self->sysop_prompt('Which file would you like to add?  ');
                 $search = $self->sysop_get_line(ECHO, $nw, $search);
                 my $filename = "$root/$files_path/$search";
                 if (-e $filename) {
-                    print $self->sysop_prompt('               What is the Title?');
+                    $self->sysop_prompt('               What is the Title?');
                     my $title = $self->sysop_get_line(ECHO, 255, '');
                     if (defined($title) && $title ne '') {
-                        print $self->sysop_prompt('                Add a description');
+                        $self->sysop_prompt('                Add a description');
                         my $description = $self->sysop_get_line(ECHO, 65535, '');
                         if (defined(description) && $description ne '') {
-                            my $head = "\n" . '[% REVERSE %]    Category [% RESET %] [% FILE CATEGORY %]' . "\n" . '[% REVERSE %]   File Name [% RESET %] ' . $search . "\n" . '[% REVERSE %]       Title [% RESET %] ' . $title . "\n" . '[% REVERSE %] Description [% RESET %] ' . $description . "\n\n" . $self->sysop_prompt('Is this correct?');
+                            my $head = "\n" . '[% REVERSE %]    Category [% RESET %] [% FILE CATEGORY %]' . "\n" . '[% REVERSE %]   File Name [% RESET %] ' . $search . "\n" . '[% REVERSE %]       Title [% RESET %] ' . $title . "\n" . '[% REVERSE %] Description [% RESET %] ' . $description . "\n\n";
                             print $self->sysop_detokenize($head);
+                            $self->sysop_prompt('Is this correct?');
                             if ($self->sysop_decision()) {
                                 $sth = $self->{'dbh'}->prepare('INSERT INTO files (filename, title, user_id, category, file_type, description, file_size) VALUES (?,?,1,?,(SELECT id FROM file_types WHERE extension=?),?,?)');
                                 $sth->execute($search, $title, $self->{'USER'}->{'file_category'}, $list->{$search}->{'ext'}, $description, $list->{$search}->{'raw_size'});
@@ -2512,7 +2516,7 @@ sub sysop_add_file {
                 } ## end if (-e $filename)
             } ## end while (scalar(@names))
         } else {
-            $self->output("\n\n" . '[% BRIGHT RED %]NO FILES TO ADD![% RESET %]  ');
+            $self->sysop_output("\n\n" . '[% BRIGHT RED %]NO FILES TO ADD![% RESET %]  ');
             sleep 2;
         }
     } else {
@@ -2526,10 +2530,10 @@ sub sysop_bbs_list_bulk_import {
 
     my $filename = $self->configuration('BBS ROOT') . "/bbs_list.txt";
     if (-e $filename) {
-        $self->output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
-        $self->output('[% GREEN %]╭───────────────────────────────────────────────────────────────────┬──────────────────────────────────┬───────╮[% RESET %]' . "\n");
-        $self->output('[% GREEN %]│[% RESET %] NAME                                                              [% GREEN %]│[% RESET %] HOSTNAME/PHONE                   [% GREEN %]│[% RESET %] PORT  [% GREEN %]│[% RESET %]' . "\n");
-        $self->output('[% GREEN %]├───────────────────────────────────────────────────────────────────┼──────────────────────────────────┼───────┤[% RESET %]' . "\n");
+        $self->sysop_output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
+        $self->sysop_output('[% GREEN %]╭───────────────────────────────────────────────────────────────────┬──────────────────────────────────┬───────╮[% RESET %]' . "\n");
+        $self->sysop_output('[% GREEN %]│[% RESET %] NAME                                                              [% GREEN %]│[% RESET %] HOSTNAME/PHONE                   [% GREEN %]│[% RESET %] PORT  [% GREEN %]│[% RESET %]' . "\n");
+        $self->sysop_output('[% GREEN %]├───────────────────────────────────────────────────────────────────┼──────────────────────────────────┼───────┤[% RESET %]' . "\n");
         open(my $FILE, '<', $filename);
         chomp(my @bbs = <$FILE>);
         close($FILE);
@@ -2543,17 +2547,73 @@ sub sysop_bbs_list_bulk_import {
                 my ($address, $port) = split(/:/,$url);
                 $port = 23 unless(defined($port));
                 $sth->execute($name, $address, $port, $self->{'USER'}->{'id'});
-                $self->output('[% GREEN %]│[% RESET %] ' . sprintf('%-65s', $name) . '[% GREEN %] │[% RESET %] ' . sprintf('%-32s', $address) . ' [% GREEN %]│[% RESET %] ' . sprintf('%5d', $port) . ' [% GREEN %]│[% RESET %]' . "\n");
+                $self->sysop_output('[% GREEN %]│[% RESET %] ' . sprintf('%-65s', $name) . '[% GREEN %] │[% RESET %] ' . sprintf('%-32s', $address) . ' [% GREEN %]│[% RESET %] ' . sprintf('%5d', $port) . ' [% GREEN %]│[% RESET %]' . "\n");
             }
         }
         $sth->finish();
-        $self->output('[% GREEN %]╰───────────────────────────────────────────────────────────────────┴──────────────────────────────────┴───────╯[% RESET %]' . "\n\nImport Complete\n");
+        $self->sysop_output('[% GREEN %]╰───────────────────────────────────────────────────────────────────┴──────────────────────────────────┴───────╯[% RESET %]' . "\n\nImport Complete\n");
     } else {
-        $self->output("\n[% RING BELL %][% RED %]Cannot find [% RESET %]$filename\n");
+        $self->sysop_output("\n[% RING BELL %][% RED %]Cannot find [% RESET %]$filename\n");
         $self->{'debug'}->WARNING(["Cannot find $filename"]);
     }
-    $self->output("\nPress any key to continue\n");
+    $self->sysop_output("\nPress any key to continue\n");
     $self->sysop_get_key(SILENT, BLOCKING);
     return(TRUE);
+}
+
+sub sysop_ansi_output {
+    my $self = shift;
+    my $text = shift;
+
+    my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
+    my $lines  = $mlines;
+    $text = $self->ansi_decode($text);
+    my $s_len = length($text);
+    my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
+
+    my @lines = split(/\n/,$text);
+    my $size = $self->{'USER'}->{'max_rows'};
+    while (scalar(@lines)) {
+        my $line = shift(@lines);
+        print $line;
+        $size--;
+        if ($size <= 0) {
+            $size = $self->{'USER'}->{'max_rows'};
+            last unless ($self->scroll(("\n")));
+        } else {
+            print "\n";
+        }
+    }
+    return (TRUE);
+}
+
+sub sysop_output {
+    my $self = shift;
+    $|=1;
+    $self->{'debug'}->DEBUG(['SysOp Output']);
+    my $text = $self->detokenize_text(shift);
+
+    if (defined($text) && $text ne '') {
+        if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+            my $format = Text::Format->new(
+                'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+                'tabstop'     => 4,
+                'extraSpace'  => TRUE,
+                'firstIndent' => 0,
+            );
+            my $header;
+            ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
+            if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
+                $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+                $format->justify(TRUE);
+            }
+            $text = $format->format($text);
+            $text = $header . $text;
+        } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
+        $self->sysop_ansi_output($text);
+    } else {
+        return (FALSE);
+    }
+    return (TRUE);
 }
 1;
