@@ -11,4 +11,5 @@ Z|BACK|WHITE|USER|Return to the Main Menu
   [% CYAN %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% B_BRIGHT WHITE        %][% RED      %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% RESET %] | |\  |  __/\ V  V /\__ \ [% B_BLUE %] [% BLACK STAR %] [% RESET %]
  [% CYAN %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% B_BRIGHT WHITE        %][% RED      %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% RESET %] |_| \_|\___| \_/\_/ |___/ [% B_BLUE %] [% BLACK STAR %] [% RESET %]
 [% CYAN %][% BLACK LOWER RIGHT TRIANGLE %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  [% RED                   %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% RESET               %]                           [% BLUE %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% UPPER HALF BLOCK %][% RESET %]
+
 [% BLACK %][% B_BRIGHT BLUE %] World News Category [% RESET %] [% RSS CATEGORY %]

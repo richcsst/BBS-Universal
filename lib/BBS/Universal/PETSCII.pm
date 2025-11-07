@@ -4,6 +4,7 @@ BEGIN { our $VERSION = '0.003'; }
 sub petscii_initialize {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start PETSCII Initialize']);
     $self->{'petscii_sequences'} = {
         'UNDERLINE ON' => chr(2),
         'WHITE'        => chr(5),
@@ -97,6 +98,7 @@ sub petscii_initialize {
         'DITHERED BOTTOM REVERSE'      => chr(0xE8),
         'DITHERED FULL REVERSE'        => chr(0xFC),
     };
+    $self->{'debug'}->DEBUG(['End PETSCII Initialize']);
     return ($self);
 } ## end sub petscii_initialize
 
@@ -104,15 +106,16 @@ sub petscii_output {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start PETSCII Output']);
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
 
     if (length($text) > 1) {
         while($text =~ /\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/) {
-			my $rule = "[% $1 %]" . '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'} . '[% RESET %]';
-			$text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$rule/gs;
-		}
-		foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
+            my $rule = "[% $1 %]" . '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'} . '[% RESET %]';
+            $text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$rule/gs;
+        }
+        foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
                 $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
@@ -123,20 +126,21 @@ sub petscii_output {
     } ## end if (length($text) > 1)
     my $s_len = length($text);
     my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
-	foreach my $count (0 .. $s_len) {
-		my $char = substr($text, $count, 1);
-		if ($char eq "\n") {
-			if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-				$char = $nl;
-			}
-			$lines--;
-			if ($lines <= 0) {
-				$lines = $mlines;
-				last unless ($self->scroll($nl));
-			}
-		} ## end if ($char eq "\n")
-		$self->send_char($char);
-	} ## end foreach my $count (0 .. $s_len)
+    foreach my $count (0 .. $s_len) {
+        my $char = substr($text, $count, 1);
+        if ($char eq "\n") {
+            if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+                $char = $nl;
+            }
+            $lines--;
+            if ($lines <= 0) {
+                $lines = $mlines;
+                last unless ($self->scroll($nl));
+            }
+        } ## end if ($char eq "\n")
+        $self->send_char($char);
+    } ## end foreach my $count (0 .. $s_len)
+    $self->{'debug'}->DEBUG(['End PETSCII Output']);
     return (TRUE);
 } ## end sub petscii_output
 1;

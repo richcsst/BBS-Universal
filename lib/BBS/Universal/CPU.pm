@@ -3,12 +3,15 @@ BEGIN { our $VERSION = '0.002'; }
 
 sub cpu_initialize {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start CPU Initialize']);
+    $self->{'debug'}->DEBUG(['END CPU Initialize']);
     return ($self);
 }
 
 sub cpu_info {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start CPU Info']);
     my $cpu         = $self->cpu_identify();
     my $cpu_cores   = scalar(@{ $cpu->{'CPU'} });
     my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 'No Hyperthreading';
@@ -39,6 +42,8 @@ sub cpu_info {
         'CPU LOAD'     => $load_average,
         'HARDWARE'     => $cpu->{'HARDWARE'}->{'Hardware'},
     };
+    $self->{'debug'}->DEBUGMAX([$response]);
+    $self->{'debug'}->DEBUG(['End CPU Info']);
     return ($response);
 }
 
@@ -46,6 +51,7 @@ sub cpu_identify {
     my $self = shift;
 
     return ($self->{'CPUINFO'}) if (exists($self->{'CPUINFO'}));
+    $self->{'debug'}->DEBUG(['Start CPU Identity']);
     open(my $CPU, '<', '/proc/cpuinfo');
     chomp(my @cpuinfo = <$CPU>);
     close($CPU);
@@ -83,6 +89,8 @@ sub cpu_identify {
         $response->{'lscpu'}->{'long'}  = $lscpu_long;
     }
     $self->{'CPUINFO'} = $response;    # Cache this stuff
+    $self->{'debug'}->DEBUGMAX([$response]);
+    $self->{'debug'}->DEBUG(['End CPU Identity']);
     return ($response);
 }
 1;

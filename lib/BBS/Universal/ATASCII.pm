@@ -4,6 +4,7 @@ BEGIN { our $VERSION = '0.004'; }
 sub atascii_initialize {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start ATASCII Initialize']);
     $self->{'atascii_sequences'} = {
         'HEART'                        => chr(0),   # ♥
         'VERTICAL BAR MIDDLE LEFT'     => chr(1),   # ├
@@ -54,14 +55,14 @@ sub atascii_initialize {
         'LEFT TRIANGLE'                => chr(126), # ◀
         'TAB'                          => chr(127),
         'RIGHT TRIANGLE'               => chr(127), # ▶
-		'BOTTOM RIGHT WEDGE'           => chr(136), # ◤
-		'TOP LEFT CORNER BOX'          => chr(137), # ▛
-		'BOTTOM LEFT WEDGE'            => chr(138), # ◥
-		'BOTTOM LEFT CORNER BOX'       => chr(139), # ▙
-		'BOTTOM RIGHT CORNER BOX'      => chr(140), # ▟
-		'BOTTOM BOX'                   => chr(141), # ▆
-		'TOP RIGHT CORNER BOX'         => chr(143), # ▜
-		'SOLID BLOCK'                  => chr(160), # █
+        'BOTTOM RIGHT WEDGE'           => chr(136), # ◤
+        'TOP LEFT CORNER BOX'          => chr(137), # ▛
+        'BOTTOM LEFT WEDGE'            => chr(138), # ◥
+        'BOTTOM LEFT CORNER BOX'       => chr(139), # ▙
+        'BOTTOM RIGHT CORNER BOX'      => chr(140), # ▟
+        'BOTTOM BOX'                   => chr(141), # ▆
+        'TOP RIGHT CORNER BOX'         => chr(143), # ▜
+        'SOLID BLOCK'                  => chr(160), # █
 
         'DELETE LINE'                  => chr(156),
         'INSERT LINE'                  => chr(157),
@@ -73,6 +74,7 @@ sub atascii_initialize {
         'DELETE'                       => chr(254),
         'INSERT'                       => chr(255),
     };
+    $self->{'debug'}->DEBUG(['End ATASCII Initialize']);
     return ($self);
 }
 
@@ -80,14 +82,15 @@ sub atascii_output {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start ATASCII Output']);
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
 
     if (length($text) > 1) {
-		while($text =~ /\[\%\s+HORIZONTAL RULE\s+\%\]/) {
-			my $rule = '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'};
-			$text =~ s/\[\%\s+HORIZONTAL RULE\s+\%\]/$rule/gs;
-		}
+        while($text =~ /\[\%\s+HORIZONTAL RULE\s+\%\]/) {
+            my $rule = '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'};
+            $text =~ s/\[\%\s+HORIZONTAL RULE\s+\%\]/$rule/gs;
+        }
         foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
             if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
@@ -99,20 +102,21 @@ sub atascii_output {
     }
     my $s_len = length($text);
     my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
-	foreach my $count (0 .. $s_len) {
-		my $char = substr($text, $count, 1);
-		if ($char eq "\n") {
-			if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
-				$char = $nl;
-			}
-			$lines--;
-			if ($lines <= 0) {
-				$lines = $mlines;
-				last unless ($self->scroll($nl));
-			}
-		}
-		$self->send_char($char);
-	}
+    foreach my $count (0 .. $s_len) {
+        my $char = substr($text, $count, 1);
+        if ($char eq "\n") {
+            if ($text !~ /$nl/ && !$self->{'local_mode'}) {    # translate only if the file doesn't have ASCII newlines
+                $char = $nl;
+            }
+            $lines--;
+            if ($lines <= 0) {
+                $lines = $mlines;
+                last unless ($self->scroll($nl));
+            }
+        }
+        $self->send_char($char);
+    }
+    $self->{'debug'}->DEBUG(['End ATASCII Output']);
     return (TRUE);
 }
 1;

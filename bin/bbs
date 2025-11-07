@@ -50,7 +50,7 @@ use Cache::Memcached::Fast;
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.006';
+    our $VERSION = '0.007';
 }
 
 binmode(STDOUT, ':encoding(UTF-8)');
@@ -110,6 +110,7 @@ $CACHE->set_multi(
     ['SHOW_STATUS',     TRUE],
     ['NOSOUND',         $NOSOUND],
 );
+$DEBUG->DEBUG(['Memcached Initialized']);
 # Trap all dangerous signals for a thread friendly finish
 $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { hard_finish($BBS_OBJ); };
 
@@ -263,49 +264,49 @@ our $SYSOP_COMMANDS = {
     },
     'SYSOP COMMANDS REFERENCE FULL' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('FULL'));
+        $self->sysop_output($self->sysop_list_commands('FULL'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE USER' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('USER'));
+        $self->sysop_output($self->sysop_list_commands('USER'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE SYSOP' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('SYSOP'));
+        $self->sysop_output($self->sysop_list_commands('SYSOP'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE ASCII' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('ASCII'));
+        $self->sysop_output($self->sysop_list_commands('ASCII'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE ATASCII' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('ATASCII'));
+        $self->sysop_output($self->sysop_list_commands('ATASCII'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE ANSI' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('ANSI'));
+        $self->sysop_output($self->sysop_list_commands('ANSI'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
     'SYSOP COMMANDS REFERENCE PETSCII' => sub {
         my $self = shift;
-        $self->output($self->sysop_list_commands('PETSCII'));
+        $self->sysop_output($self->sysop_list_commands('PETSCII'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
@@ -316,7 +317,7 @@ our $SYSOP_COMMANDS = {
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
 };
-$DEBUG->DEBUG(['Initialized','Starting']);
+$DEBUG->DEBUG(['SysOp Commands Initialized','Starting BBS']);
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
 if ($RESTART) {
@@ -329,19 +330,20 @@ exit(0);
 ###########################################
 
 sub shutdown_message {
+    $DEBUG->DEBUG(['Shutdown Beginning']);
     logo();
-    $DEBUG->DEBUG(['Shutdown Complete']);
     print colored(['red'],q{
  ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
  ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
  ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸}), "\n\n";
+    $DEBUG->DEBUG(['Shutdown Complete']);
 } ## end sub shutdown_message
 
 sub logo {
     my $bbs_obj = shift;
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
 
-    $DEBUG->DEBUG(['Logo']);
+    $DEBUG->DEBUG(['Start Logo']);
     $CACHE->set('ROW_ADJUST', 0);
     my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
     my $banner  = colored(['bright_white'],q{  ____  ____ ____    _   _       _                          _  }) . '│ [% VERSION %]' . "\n";
@@ -362,13 +364,14 @@ sub logo {
     $banner =~ s/┷/$crs/gs;
     print $banner;
     print locate($CACHE->get('START_ROW'), 1),  cldown;
+    $DEBUG->DEBUG(['End Logo']);
     return ($wsize, $hsize, $wpixels, $hpixels);
 }
 
 sub system_menu {
     my $bbs_obj = shift;
 
-    $DEBUG->DEBUG(['System Menu']);
+    $DEBUG->DEBUG(['Start System Menu']);
     my $key = '';
     my ($wsize, $hsize, $wpixels, $hpixels) = logo($bbs_obj);
     my ($width, $height) = ($wsize, $hsize);
@@ -448,6 +451,7 @@ sub system_menu {
     $CACHE->set('RUNNING', FALSE);
     finish($bbs_obj);
     shutdown_message();
+    $DEBUG->DEBUG(['End System Menu']);
 }
 
 sub servers_status {
@@ -550,6 +554,7 @@ sub run_bbs {
         'DEBUGMAX-Prefix' => '%Date% %Time% %Benchmark% %Loglevel% ' . $thread_name . ' [%Module%][%Lines%] ',
     );
 
+    $debug->DEBUG('Start Run BBS');
     while ($CACHE->get('RUNNING')) {
         $CACHE->set($thread_name, 'IDLE');
         my $client_socket = $socket->accept();
@@ -565,7 +570,7 @@ sub run_bbs {
                     'thread_number' => $thread_number,
                     'socket'        => $socket,
                     'client_socket' => $client_socket,
-                    'debug'         => $DEBUG,
+                    'debug'         => $debug,
                     'debuglevel'    => $params->{'debuglevel'},
                 }
             );
@@ -583,6 +588,7 @@ sub run_bbs {
         }
         threads->yield();
     }
+    $debug->DEBUG(['End Run BBS']);
     $CACHE->set($thread_name, 'TERMINATED');
 }
 
@@ -592,6 +598,7 @@ sub run_bbs_sysop {
     my $debug   = shift;
     my $level   = shift;
 
+    $debug->DEBUG(['Start Run BBS SysOp']);
     $bbs_obj->{'LOCAL LOGIN'} = TRUE;
     # Only allow the main program to respond to signals, not the threads
     #    local $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = undef;
@@ -607,11 +614,13 @@ sub run_bbs_sysop {
     $bbs->run($sysop);
     delete($bbs_obj->{'LOCAL LOGIN'});
     threads->yield() if (!$TEST);    # Be friendly
+    $debug->DEBUG(['End Run BBS SysOp']);
 }
 
 sub clean_joinable {
     my $bbs_obj = shift;
     alarm(0);
+    $bbs_obj->{'debug'}->DEBUG(['Start Clean Joinable']);
     while (threads->list(threads::running)) {
         foreach my $thread (threads->list(threads::joinable)) {
             $thread->join();
@@ -629,6 +638,7 @@ sub clean_joinable {
         alarm 0;
         threads->yield();
     }
+    $bbs_obj->{'debug'}->DEBUG(['End Clean Joinable']);
 }
 
 sub finish {

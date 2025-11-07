@@ -4,6 +4,7 @@ BEGIN { our $VERSION = '0.002'; }
 sub ascii_initialize {
     my $self = shift;
 
+	$self->{'debug'}->DEBUG(['Start ASCII Initialize']);
 	$self->{'ascii_sequences'} = {
         'RETURN'    => chr(13),
         'LINEFEED'  => chr(10),
@@ -15,6 +16,7 @@ sub ascii_initialize {
         'CLEAR'     => chr(12),
         'RING BELL' => chr(7),
     };
+	$self->{'debug'}->DEBUG(['End ACSII Initialize']);
     return ($self);
 }
 
@@ -22,6 +24,7 @@ sub ascii_output {
     my $self   = shift;
     my $text   = shift;
 
+	$self->{'debug'}->DEBUG(['Start ASCII Output']);
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
     if (length($text) > 1) {
@@ -57,6 +60,7 @@ sub ascii_output {
 		}
 		$self->send_char($char);
 	}
+	$self->{'debug'}->DEBUG(['End ASCII Output']);
     return (TRUE);
 }
 1;

@@ -1,9 +1,10 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.008'; }
+BEGIN { our $VERSION = '0.009'; }
 
 sub sysop_initialize {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Initialize']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     $self->{'wsize'} = $wsize;
     $self->{'hsize'} = $hsize;
@@ -106,10 +107,12 @@ sub sysop_initialize {
             my $self = shift;
             return ($self->sysop_list_commands());
         },
+        'MIDDLE VERTICAL RULE color' => sub {
+            my $self = shift;
+            my $color = shift;
+            return($self->sysop_locate_middle('B_' . $color));
+        },
     };
-    foreach my $name (keys %{ $self->{'ansi_meta'}->{'foreground'} }) {
-        $self->{'sysop_tokens'}->{'MIDDLE VERTICAL RULE ' . $name} = $self->sysop_locate_middle('B_' . $name);
-    }
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
@@ -361,13 +364,15 @@ sub sysop_initialize {
             'min'  => 32,
         },
     };
-
+    $self->{'debug'}->DEBUG(['End SysOp Initialize']);
     return ($self);
 } ## end sub sysop_initialize
 
 sub sysop_list_commands {
     my $self = shift;
     my $mode = shift;
+
+    $self->{'debug'}->DEBUG(['Start SysOp List Commands']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
     my $srow   = $size - 5;
@@ -375,8 +380,20 @@ sub sysop_list_commands {
     my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }));
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
     my @tkn    = (sort(keys %{ $self->{'TOKENS'} }));
-    my @anstkn = grep(!/CSI|RGB|COLOR|GREY|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
+    my @anstkn = grep(!/CSI|COLOR|GRAY|RGB|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
     @anstkn = sort(@anstkn);
+    foreach my $count (16 .. 231) {
+        push(@anstkn, 'COLOR ' . $count);
+    }
+    foreach my $count (0 .. 24) {
+        push(@anstkn, 'GRAY ' . $count);
+    }
+    foreach my $count (16 .. 231) {
+        push(@anstkn, 'B_COLOR ' . $count);
+    }
+    foreach my $count (0 .. 24) {
+        push(@anstkn, 'B_GRAY ' . $count);
+    }
     my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
     my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
     my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },'HORIZONTAL RULE'));
@@ -427,47 +444,41 @@ sub sysop_list_commands {
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'ANSI') {
-        my $expanded;
-        if (exists($ENV{'TRUECOLOR'}) && $ENV{'COLORTERM'} eq 'truecolor') {
-            $expanded = TRUE;
-        } else {
-            print "\nANSI has standard 16 colors that works with all color terminals.  You can use\nmore colors with compatible expanded color terminals.  Would you like to see\nthe extra colors (y/N)?  ";
-            $expanded = $self->sysop_decision();
-            print "\n";
-        }
-        my $table = Text::SimpleTable->new(10, $ans, 55);
+        my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
+        my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
+        my $table = Text::SimpleTable->new(25, $ans, 55);
         $table->row('TYPE', 'ANSI TOKENS', 'ANSI TOKENS DESCRIPTION');
-        foreach my $code (qw(special clear cursor attributes foreground background)) {
+        foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
             $table->hr();
-            if ($code eq 'foreground') {
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'RGB 0,0,0 - RGB 255,255,255', 'COLOR 0 - COLOR 231', 'GREY 0 - GREY 23')) {
-                    if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $expanded) {
+            if ($code =~ /^foreground/) {
+                my $ncode = 'foreground';
+                foreach my $name (@anstkn, 'RGB 0,0,0 - RGB 255,255,255') {
+                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
+                    if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $code =~ /TrueColor/ && $crgb) {
                         $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-                    } elsif ($name eq 'COLOR 0 - COLOR 231' && $expanded) {
-                        $table->row(ucfirst($code), $name, 'Extra ANSI Colors');
-                    } elsif ($name eq 'GREY 0 - GREY 23' && $expanded) {
-                        $table->row(ucfirst($code), $name, 'Shades of Grey');
                     } else {
-                        if ($expanded) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-                        } elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
+                        } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
+                        } elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
                         }
                     }
                 }
-            } elsif ($code eq 'background') {
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'B_RGB 0,0,0 - B_RGB 255,255,255', 'B_COLOR 0 - B_COLOR 231', 'B_GREY 0 - B_GREY 23')) {
-                    if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $expanded) {
+            } elsif ($code =~ /^background/) {
+                my $ncode = 'background';
+                foreach my $name (@anstkn, 'B_RGB 0,0,0 - RGB 255,255,255') {
+                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
+                    if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $code =~ /TrueColor/ && $crgb) {
                         $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-                    } elsif ($name eq 'B_COLOR 0 - B_COLOR 231' && $expanded) {
-                        $table->row(ucfirst($code), $name, 'Extra ANSI Colors');
-                    } elsif ($name eq 'B_GREY 0 - B_GREY 23' && $expanded) {
-                        $table->row(ucfirst($code), $name, 'Shades of Grey');
                     } else {
-                        if ($expanded) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-                        } elsif($self->{'ansi_meta'}->{$code}->{$name}->{'orig'}) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+                        if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
+                        } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
+                        } elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
                         }
                     }
                 }
@@ -631,76 +642,80 @@ sub sysop_list_commands {
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
     my $replace = join('|', grep(!/^(TAB|SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
     my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
+###
     $text =~ s/(TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS DESCRIPTION|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
     $text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│(\s+)($replace)  /│$1\[% BLACK %][\% $2 \%\]$2\[\% RESET \%\]  /g;
-        $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2\[\% RESET \%\]  /g;
-        $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (LIGHT GRAY)/│   \[\% GREY 13 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (GRAY)/│   \[\% GREY 9 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
-        $text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
-        $text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
-        $text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
-        $text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
-        $text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
-        $text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
-        $text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
-        $text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
-        $text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
-        $text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
-        $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
-        $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;                                                                                                                                                                                                                                                                                                                                                                                              # Why twice?  Ask Perl as one doesn't replace all
-        $text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
-        $text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
-        $text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
-        $text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
-        $text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
-        $text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
-        $text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
-        $text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
-        $text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
-        $text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
-        $text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
-        $text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
-        $text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
-        $text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
-        $text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
-        $text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
-        $text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
-        $text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
-        $text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
-        $text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
-        $text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-        $text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-        $text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
-        $text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
-        $text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-        $text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
-        $text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
-        $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-        $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
-        $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
-        $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
-        $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
-        $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-        $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-        $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-        $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
-        return ($self->ansi_decode($text));
-        } ## end sub sysop_list_commands
+    $text =~ s/│(\s+)($replace)  /│$1\[% BLACK %][\% $2 \%\]$2  /g;
+    $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2  /g;
+    $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (LIGHT GRAY)/│   \[\% GRAY 13 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (GRAY)/│   \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
+    $text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
+    $text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
+    $text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
+    $text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
+    $text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
+    $text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
+    $text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
+    $text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
+    $text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
+    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
+    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;                                                                                                                                                                                                                                                                                                                                                                                              # Why twice?  Ask Perl as one doesn't replace all
+    $text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
+    $text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
+    $text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
+    $text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
+    $text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
+    $text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
+    $text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
+    $text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
+    $text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
+    $text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
+    $text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
+    $text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
+    $text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
+    $text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
+    $text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
+    $text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
+    $text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
+    $text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
+    $text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
+    $text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
+    $text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+    $text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
+    $text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
+    $text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
+    $text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+    $text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
+    $text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
+    $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
+    $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
+    $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
+    $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
+    $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
+    $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
+    $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
+###
+    $self->{'debug'}->DEBUG(['End SysOp List Commands']);
+    return ($self->ansi_decode($text));
+} ## end sub sysop_list_commands
 
 sub sysop_online_count {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Online Count']);
     my $count = $self->{'CACHE'}->get('ONLINE');
-    $self->{'debug'}->DEBUG(["SysOp Online Count $count"]);
+    $self->{'debug'}->DEBUG(["  SysOp Online Count $count", 'End SysOp Online Count']);
     return ($count);
 } ## end sub sysop_online_count
 
@@ -709,7 +724,7 @@ sub sysop_versions_format {
     my $sections = shift;
     my $bbs_only = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Versions Format']);
+    $self->{'debug'}->DEBUG(['Start SysOp Versions Format']);
     my $versions = "\n";
     my $heading  = ''; #  = "\t";
     my $counter  = $sections;
@@ -735,13 +750,14 @@ sub sysop_versions_format {
         }
     } ## end foreach my $v (keys %{ $self...})
     chop($versions) if (substr($versions, -1, 1) eq "\t");
+    $self->{'debug'}->DEBUG(['End SysOp Versions Format']);
     return ($heading . $versions . "\n");
 } ## end sub sysop_versions_format
 
 sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Disk Free']);
+    $self->{'debug'}->DEBUG(['Start SysOp Disk Free']);
     my $diskfree = '';
     if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF') eq 'TRUE') {
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
@@ -761,6 +777,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
             }
         } ## end foreach my $line (@free)
     } ## end else [ if ((-e '/usr/bin/duf'...))]
+    $self->{'debug'}->DEBUG(['End SysOp Disk Free']);
     return ($diskfree);
 } ## end sub sysop_disk_free
 
@@ -769,7 +786,7 @@ sub sysop_load_menu {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(["SysOp Load Menu $file"]);
+    $self->{'debug'}->DEBUG(['Start SysOp Load Menu', "  SysOp Load Menu $file"]);
     my $mapping = { 'TEXT' => '' };
     my $mode    = 1;
     my $text    = locate($row, 1) . cldown;
@@ -796,6 +813,7 @@ sub sysop_load_menu {
         }
     } ## end while (chomp(my $line = <$FILE>...))
     close($FILE);
+    $self->{'debug'}->DEBUG(['End SysOp Load Menu']);
     return ($mapping);
 } ## end sub sysop_load_menu
 
@@ -804,7 +822,7 @@ sub sysop_pager {
     my $text   = shift;
     my $offset = (scalar(@_)) ? shift : 0;
 
-    $self->{'debug'}->DEBUG(['SysOp Pager']);
+    $self->{'debug'}->DEBUG(['Start SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my @lines;
     @lines  = split(/\n$/, $text);
@@ -822,6 +840,7 @@ sub sysop_pager {
             last unless ($scroll);
         }
     } ## end foreach my $line (@lines)
+    $self->{'debug'}->DEBUG(['End SysOp Pager']);
     return ($scroll);
 } ## end sub sysop_pager
 
@@ -830,7 +849,7 @@ sub sysop_parse_menu {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(["SysOp Parse Menu $file"]);
+    $self->{'debug'}->DEBUG(['Start SysOp Parse Menu', "  SysOp Parse Menu $file"]);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown;
     my $scroll = $self->sysop_pager($mapping->{'TEXT'}, 3);
@@ -843,23 +862,27 @@ sub sysop_parse_menu {
         $key = uc($self->sysop_keypress());
     } until (exists($mapping->{$key}));
     print $mapping->{$key}->{'command'}, "\n";
+    $self->{'debug'}->DEBUG(['End SysOp Parse Menu']);
     return ($mapping->{$key}->{'command'});
 } ## end sub sysop_parse_menu
 
 sub sysop_decision {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Decision']);
     my $response;
     do {
         $response = uc($self->sysop_keypress());
     } until ($response =~ /Y|N/i || $response eq chr(13));
     if ($response eq 'Y') {
         print "YES\n";
-        $self->{'debug'}->DEBUG(['SysOp Decision YES']);
+        $self->{'debug'}->DEBUG(['  SysOp Decision YES']);
+        $self->{'debug'}->DEBUG(['End SysOp Decision']);
         return (TRUE);
     }
-    $self->{'debug'}->DEBUG(['SysOp Decision NO']);
+    $self->{'debug'}->DEBUG(['  SysOp Decision NO']);
     print "NO\n";
+    $self->{'debug'}->DEBUG(['End SysOp Decision']);
     return (FALSE);
 } ## end sub sysop_decision
 
@@ -881,16 +904,18 @@ sub sysop_keypress {
 sub sysop_ip_address {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp IP Address']);
     chomp(my $ip = `nice hostname -I`);
-    $self->{'debug'}->DEBUG(["SysOp IP Address:  $ip"]);
+    $self->{'debug'}->DEBUG(["  SysOp IP Address:  $ip",'End SysOp IP Address']);
     return ($ip);
 } ## end sub sysop_ip_address
 
 sub sysop_hostname {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Hostname']);
     chomp(my $hostname = `nice hostname`);
-    $self->{'debug'}->DEBUG(["SysOp Hostname:  $hostname"]);
+    $self->{'debug'}->DEBUG(["  SysOp Hostname:  $hostname",'End SysOp Hostname']);
     return ($hostname);
 } ## end sub sysop_hostname
 
@@ -907,7 +932,7 @@ sub sysop_locate_middle {
 sub sysop_memory {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Memory']);
+    $self->{'debug'}->DEBUG(['Start SysOp Memory']);
     my $memory = `nice free`;
     my @mem    = split(/\n$/, $memory);
     my $output = '[% BLACK %][% B_GREEN %]  ' . shift(@mem) . ' [% RESET %]' . "\n";
@@ -922,6 +947,7 @@ sub sysop_memory {
         my $ch = '[% BLACK %][% B_GREEN %] ' . $1 . ' [% RESET %]';
         $output =~ s/Swap\:      /$ch/;
     }
+    $self->{'debug'}->DEBUG(['End SysOp Memory']);
     return ($output);
 } ## end sub sysop_memory
 
@@ -943,7 +969,7 @@ sub sysop_list_users {
     my $self      = shift;
     my $list_mode = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp List Users']);
+    $self->{'debug'}->DEBUG(['Start SysOp List Users']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $table;
     my $date_format = $self->configuration('DATE FORMAT');
@@ -1032,20 +1058,22 @@ sub sysop_list_users {
         $self->sysop_pager("$string\n");
     } ## end else [ if ($list_mode =~ /VERTICAL/)]
     print 'Press a key to continue ... ';
+    $self->{'debug'}->DEBUG(['End SysOp List Users']);
     return ($self->sysop_keypress(TRUE));
 } ## end sub sysop_list_users
 
 sub sysop_delete_files {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Delete Files']);
+    $self->{'debug'}->DEBUG(['Start SysOp Delete Files']);
+    $self->{'debug'}->DEBUG(['End SysOp Delete Files']);
     return (TRUE);
 } ## end sub sysop_delete_files
 
 sub sysop_list_files {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp List Files']);
+    $self->{'debug'}->DEBUG(['Start SysOp List Files']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
     $sth->execute();
@@ -1094,6 +1122,7 @@ sub sysop_list_files {
     $self->sysop_output("\n$tbl\nPress a Key To Continue ...");
     $self->sysop_keypress();
     print " BACK\n";
+    $self->{'debug'}->DEBUG(['End SysOp List Files']);
     return (TRUE);
 } ## end sub sysop_list_files
 
@@ -1103,6 +1132,7 @@ sub sysop_color_border {
     my $color = shift;
     my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
 
+    $self->{'debug'}->DEBUG(['Start SysOp Color Border']);
     $color = '[% ' . $color . ' %]';
     my $new;
     if ($tbl =~ /(─)/) {
@@ -1124,7 +1154,7 @@ sub sysop_color_border {
         } elsif ($type eq 'HEAVY') {
             $new =~ s/│/\[\% BOX DRAWINGS HEAVY VERTICAL \%\]/gs;
         }
-        $new = $color . $new . '[% RESET %]';
+        $new = '[% RESET %]' . $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
     if ($tbl =~ /(┌)/) {
@@ -1234,13 +1264,14 @@ sub sysop_color_border {
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
     }
+    $self->{'debug'}->DEBUG(['End SysOp Color Border']);
     return($tbl);
 }
 
 sub sysop_select_file_category {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Select File Category']);
+    $self->{'debug'}->DEBUG(['Start SysOp Select File Category']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
     $sth->execute();
     my $table = Text::SimpleTable->new(3, 30, 50);
@@ -1264,23 +1295,22 @@ sub sysop_select_file_category {
     do {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
     } until ($line =~ /^(\d+|\<)/i);
-    if ($line eq '<') {
-        return (FALSE);
-    } elsif ($line >= 1 && $line <= $max_id) {
+    my $response = FALSE;
+    if ($line >= 1 && $line <= $max_id) {
         $sth = $self->{'dbh'}->prepare('UPDATE users SET file_category=? WHERE id=1');
         $sth->execute($line);
         $sth->finish();
         $self->{'USER'}->{'file_category'} = $line + 0;
-        return (TRUE);
-    } else {
-        return (FALSE);
+        $response = TRUE;
     }
+    $self->{'debug'}->DEBUG(['End SysOp Select File Category']);
+    return ($response);
 } ## end sub sysop_select_file_category
 
 sub sysop_edit_file_categories {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Edit File Categories']);
+    $self->{'debug'}->DEBUG(['Start SysOp Edit File Categories']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
     $sth->execute();
     my $table = Text::SimpleTable->new(3, 30, 50);
@@ -1303,6 +1333,7 @@ sub sysop_edit_file_categories {
         $line = uc($self->sysop_get_line(ECHO, 3, ''));
     } until ($line =~ /^(\d+|A|\<)/i);
     if ($line eq 'A') {    # Add
+        $self->{'debug'}->DEBUG(['  SysOp Edit File Categories Add']);
         print "\nADD NEW FILE CATEGORY\n";
         $table = Text::SimpleTable->new(11, 80);
         $table->row('TITLE',       "\n" . charnames::string_vianame('OVERLINE') x 80);
@@ -1331,7 +1362,9 @@ sub sysop_edit_file_categories {
             print "\n\n\nNevermind\n";
         }
     } elsif ($line =~ /\d+/) {    # Edit
+        $self->{'debug'}->DEBUG(['  SysOp Edit File Categories Edit']);
     }
+    $self->{'debug'}->DEBUG(['Start SysOp Edit File Categories']);
     return (TRUE);
 } ## end sub sysop_edit_file_categories
 
@@ -1339,10 +1372,12 @@ sub sysop_vertical_heading {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Vertical Heading']);
     my $heading = '';
     for (my $count = 0; $count < length($text); $count++) {
         $heading .= substr($text, $count, 1) . "\n";
     }
+    $self->{'debug'}->DEBUG(['End SysOp Vertical Heading']);
     return ($heading);
 } ## end sub sysop_vertical_heading
 
@@ -1350,7 +1385,7 @@ sub sysop_view_configuration {
     my $self = shift;
     my $view = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp View Configuration']);
+    $self->{'debug'}->DEBUG(['Start SysOp View Configuration']);
 
     # Get maximum widths
     my $name_width  = 6;
@@ -1418,7 +1453,7 @@ sub sysop_view_configuration {
             if (/^(AUTHOR|DATABASE)/) {
                 $ch = '[% YELLOW %]' . $change . '[% RESET %]';
             } else {
-                $ch = '[% GREY 11 %]' . $change . '[% RESET %]';
+                $ch = '[% GRAY 11 %]' . $change . '[% RESET %]';
             }
             $output =~ s/$change/$ch/gs;
         }
@@ -1434,26 +1469,29 @@ sub sysop_view_configuration {
         $output =~ s/CONFIG VALUE/$ch/gs;
         $output = $self->sysop_color_border($output, 'RED', 'HEAVY');
     }
+    my $response;
     if ("$view" eq 'string') {
-        return ($output);
+        $response = $output;
     } elsif ($view == TRUE) {
         print $self->sysop_detokenize($output);
         print 'Press a key to continue ... ';
-        return ($self->sysop_keypress(TRUE));
+        $response = $self->sysop_keypress(TRUE);
     } elsif ($view == FALSE) {
         print $self->sysop_detokenize($output);
         print $self->sysop_menu_choice('TOP',    '',    '');
         print $self->sysop_menu_choice('Z',      'RED', 'Return to Settings Menu');
         print $self->sysop_menu_choice('BOTTOM', '',    '');
         $self->sysop_prompt('Choose');
-        return (TRUE);
+        $response = TRUE;
     } ## end elsif ($view == FALSE)
+    $self->{'debug'}->DEBUG(['End SysOp View Configuration']);
+    return($response);
 } ## end sub sysop_view_configuration
 
 sub sysop_edit_configuration {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Edit Configuration']);
+    $self->{'debug'}->DEBUG(['Start SysOp Edit Configuration']);
     $self->sysop_view_configuration(FALSE);
     my $types = {
         'BBS NAME' => {
@@ -1545,9 +1583,14 @@ sub sysop_edit_configuration {
     my $string;
     $self->{'debug'}->DEBUGMAX([$self->configuration()]);
     $string = $self->sysop_get_line($types->{ $conf[$choice] }, $self->configuration($conf[$choice]));
-    return (FALSE) if ($string eq '');
-    $self->configuration($conf[$choice], $string);
-    return (TRUE);
+    my $response = TRUE;
+    if ($string eq '') {
+        $response = FALSE;
+    } else {
+        $self->configuration($conf[$choice], $string);
+    }
+    $self->{'debug'}->DEBUG(['End SysOp Edit Configuration']);
+    return ($response);
 } ## end sub sysop_edit_configuration
 
 sub sysop_get_key {
@@ -1588,7 +1631,7 @@ sub sysop_get_line {
     my $key;
 
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
-    $self->{'debug'}->DEBUG(['SysOp Get Line']);
+    $self->{'debug'}->DEBUG(['Start SysOp Get Line']);
     $self->flush_input();
 
     if (ref($type) eq 'HASH') {
@@ -1614,6 +1657,7 @@ sub sysop_get_line {
     my $mode = 'ANSI';
     my $bs   = $self->{'ansi_sequences'}->{'BACKSPACE'};
     if ($echo == RADIO) {
+        $self->{'debug'}->DEBUG(['  SysOp Get Line RADIO']);
         my $regexp = join('', @{ $type->{'choices'} });
         $self->{'debug'}->DEBUGMAX([$regexp]);
         while ($key ne chr(13) && $key ne chr(3)) {
@@ -1649,6 +1693,7 @@ sub sysop_get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
     } elsif ($echo == NUMERIC) {
+        $self->{'debug'}->DEBUG(['  SysOp Get Line NUMERIC']);
         while ($key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->sysop_get_key(NUMERIC, BLOCKING);
@@ -1682,6 +1727,7 @@ sub sysop_get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
     } elsif ($echo == HOST) {
+        $self->{'debug'}->DEBUG(['  SysOp Get Line HOST']);
         while ($key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->sysop_get_key(SILENT, BLOCKING);
@@ -1715,6 +1761,7 @@ sub sysop_get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
     } else {
+        $self->{'debug'}->DEBUG(['  SysOp Get Line NORMAL']);
         while ($key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->sysop_get_key(SILENT, BLOCKING);
@@ -1752,6 +1799,7 @@ sub sysop_get_line {
     $line = '' if ($key eq chr(3));
     print "\n";
     $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
+    $self->{'debug'}->DEBUG(['End SysOp Get Line']);
     return ($line);
 } ## end sub sysop_get_line
 
@@ -1760,7 +1808,7 @@ sub sysop_user_delete {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp User Delete']);
+    $self->{'debug'}->DEBUG(['Start SysOp User Delete']);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
@@ -1795,6 +1843,7 @@ sub sysop_user_delete {
             }
         } ## end if ($self->sysop_pager...)
     } ## end if (defined($user_row))
+    $self->{'debug'}->DEBUG(['End SysOp User Delete']);
 } ## end sub sysop_user_delete
 
 sub sysop_user_edit {
@@ -1802,7 +1851,7 @@ sub sysop_user_edit {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp User Edit']);
+    $self->{'debug'}->DEBUG(['Start SysOp User Edit']);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
@@ -1897,6 +1946,7 @@ sub sysop_user_edit {
     } elsif ($search ne '') {
         print "User not found!\n\n";
     }
+    $self->{'debug'}->DEBUG(['End SysOp User Edit']);
     return (TRUE);
 } ## end sub sysop_user_edit
 
@@ -1905,7 +1955,7 @@ sub sysop_new_user_edit {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp User Edit']);
+    $self->{'debug'}->DEBUG(['Start SysOp User Edit']);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
     delete($mapping->{'TEXT'});
@@ -2004,6 +2054,7 @@ sub sysop_new_user_edit {
             }
         } until ($key =~ /$key_exit/i);
     } ## end while ($user_row = pop(@responses...))
+    $self->{'debug'}->DEBUG(['End SysOp User Edit']);
     return (TRUE);
 } ## end sub sysop_new_user_edit
 
@@ -2012,7 +2063,7 @@ sub sysop_user_add {
     my $row  = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp User Add']);
+    $self->{'debug'}->DEBUG(['Start SysOp User Add']);
     my $flags_default = $self->{'flags_default'};
     my $mapping       = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown, $mapping->{'TEXT'};
@@ -2107,12 +2158,15 @@ sub sysop_user_add {
         $self->{'debug'}->DEBUG(['sysop_user_add end']);
         return (TRUE);
     }
+    $self->{'debug'}->DEBUG(['End SysOp User Add']);
     return (FALSE);
 } ## end sub sysop_user_add
 
 sub sysop_show_choices {
     my $self    = shift;
     my $mapping = shift;
+
+    $self->{'debug'}->DEBUG(['Start SysOp Show Choices']);
 
     print $self->sysop_menu_choice('TOP', '', '');
     my $keys = '';
@@ -2122,6 +2176,7 @@ sub sysop_show_choices {
         $keys .= $kmenu;
     }
     print $self->sysop_menu_choice('BOTTOM', '', '');
+    $self->{'debug'}->DEBUG(['End SysOp Show Choices']);
     return (TRUE);
 } ## end sub sysop_show_choices
 
@@ -2132,39 +2187,45 @@ sub sysop_validate_fields {
     my $row    = shift;
     my $column = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Validate Fields']);
     my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
+    my $response = TRUE;
     if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') {    # cannot be empty
         print locate($row, ($column + $size)), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name eq 'baud_rate' && $val !~ /^(300|600|1200|2400|4800|9600|FULL)$/i) {
         print locate($row, ($column + $size)), colored(['red'], ' Only 300,600,1200,2400,4800,9600,FULL'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name =~ /max_/ && $val =~ /\D/i) {
         print locate($row, ($column + $size)), colored(['red'], ' Only Numeric Values'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name eq 'timeout' && $val =~ /\D/) {
         print locate($row, ($column + $size)), colored(['red'], ' Must be numeric'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name eq 'text_mode' && $val !~ /^(ASCII|ATASCII|PETSCII|ANSI)$/) {
         print locate($row, ($column + $size)), colored(['red'], ' Only ASCII,ATASCII,PETSCII,ANSI'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name =~ /(prefer_nickname|_files|_message|sysop)/ && $val !~ /^(yes|no|true|false|on|off|0|1)$/i) {
         print locate($row, ($column + $size)), colored(['red'], ' Only Yes/No or On/Off or 1/0'), locate($row, $column);
-        return (FALSE);
+        $response = FALSE;
     } elsif ($name eq 'birthday' && $val ne '' && $val !~ /(\d\d\d\d)-(\d\d)-(\d\d)/) {
         print locate($row, ($column + $size)), colored(['red'], ' YEAR-MM-DD'), locate($row, $column);
         $self->{'debug'}->DEBUG(['sysop_validate_fields end']);
-        return (FALSE);
+        $response = FALSE;
     }
-    return (TRUE);
+    $self->{'debug'}->DEBUG(['Start SysOp Validate Fields']);
+    return ($response);
 } ## end sub sysop_validate_fields
 
 sub sysop_prompt {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Prompt']);
     my $response = "\n" . '[% B_BRIGHT MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
     print $self->sysop_detokenize($response);
+    $self->{'debug'}->DEBUG(['End SysOp Prompt']);
+    return(TRUE);
 } ## end sub sysop_prompt
 
 sub sysop_detokenize {
@@ -2174,12 +2235,20 @@ sub sysop_detokenize {
     # OPERATION TOKENS
     foreach my $key (keys %{ $self->{'sysop_tokens'} }) {
         my $ch = '';
-        if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
-            $ch = $self->{'sysop_tokens'}->{$key}->($self);
-        } else {
-            $ch = $self->{'sysop_tokens'}->{$key};
+        if ($key eq 'MIDDLE VERTICAL RULE color' && $text =~ /\[\%\s+MIDDLE VERTICAL RULE (.*?)\s+\%\]/) {
+            my $color = $1;
+            if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
+                $ch = $self->{'sysop_tokens'}->{$key}->($self,$color);
+            }
+            $text =~ s/\[\%\s+MIDDLE VERTICAL RULE (.*?)\s+\%\]/$ch/gi;
+        } elsif ($text =~ /\[\%\s+$key\s+\%\]/) {
+            if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
+                $ch = $self->{'sysop_tokens'}->{$key}->($self);
+            } else {
+                $ch = $self->{'sysop_tokens'}->{$key};
+            }
+            $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
         }
-        $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
     } ## end foreach my $key (keys %{ $self...})
 
     $text = $self->ansi_decode($text);
@@ -2193,6 +2262,7 @@ sub sysop_menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Menu Choice']);
     my $response;
     if ($choice eq 'TOP') {
         $response = charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n";
@@ -2201,13 +2271,14 @@ sub sysop_menu_choice {
     } else {
         $response = $self->ansi_decode(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% BOLD %][% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . ' [% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %] ' . $desc . "\n");
     }
+    $self->{'debug'}->DEBUG(['End SysOp Menu Choice']);
     return ($response);
 } ## end sub sysop_menu_choice
 
 sub sysop_showenv {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp ShowENV']);
+    $self->{'debug'}->DEBUG(['Start SysOp ShowENV']);
     my $MAX  = 0;
     my $text = '';
     foreach my $e (keys %ENV) {
@@ -2269,26 +2340,29 @@ sub sysop_showenv {
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $ENV{$env} . "\n";
         }
     } ## end foreach my $env (sort(keys ...))
+    $self->{'debug'}->DEBUG(['End SysOp ShowENV']);
     return ($text);
 } ## end sub sysop_showenv
 
 sub sysop_scroll {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Scroll?']);
+    $self->{'debug'}->DEBUG(['Start SysOp Scroll']);
+    my $response = TRUE;
     print $self->{'ansi_sequences'}->{'RESET'},"\rScroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
-        $self->{'debug'}->DEBUG(['sysop_scroll end']);
-        return (FALSE);
+        $response = FALSE;
+    } else {
+        print "\r" . clline;
     }
-    print "\r" . clline;
+    $self->{'debug'}->DEBUG(['End SysOp Scroll']);
     return (TRUE);
 } ## end sub sysop_scroll
 
 sub sysop_list_bbs {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp List BBS']);
+    $self->{'debug'}->DEBUG(['Start SysOp List BBS']);
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view ORDER BY bbs_name');
     $sth->execute();
     my @listing;
@@ -2309,12 +2383,14 @@ sub sysop_list_bbs {
     $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print 'Press a key to continue... ';
     $self->sysop_keypress();
+    $self->{'debug'}->DEBUG(['End SysOp List BBS']);
+    return(TRUE);
 } ## end sub sysop_list_bbs
 
 sub sysop_edit_bbs {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Edit BBS']);
+    $self->{'debug'}->DEBUG(['Start SysOp Edit BBS']);
     my @choices = (qw( bbs_id bbs_name bbs_hostname bbs_port ));
     $self->sysop_prompt('Please enter the ID, the hostname/phone, or the BBS name to edit');
     my $search;
@@ -2362,12 +2438,14 @@ sub sysop_edit_bbs {
     } else {
         $sth->finish();
     }
+    $self->{'debug'}->DEBUG(['End SysOp Edit BBS']);
+    return(TRUE);
 } ## end sub sysop_edit_bbs
 
 sub sysop_add_bbs {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Add BBS']);
+    $self->{'debug'}->DEBUG(['Start SysOp Add BBS']);
     my $table = Text::SimpleTable->new(14, 50);
     foreach my $name ('BBS NAME', 'HOSTNAME/PHONE', 'PORT') {
         my $count = ($name eq 'PORT') ? 5 : 50;
@@ -2381,35 +2459,41 @@ sub sysop_add_bbs {
         'bbs_port'     => '',
     };
     my $index = 0;
+    my $response = TRUE;
     $self->sysop_output($self->sysop_color_border($table->boxes->draw(), 'BRIGHT BLUE', 'ROUNDED'));
     print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
+    $self->{'debug'}->DEBUG(['  BBS Name:  ' . $bbs->{'bbs_name'}]);
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
         print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 19;
         $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO, 50, '');
+        $self->{'debug'}->DEBUG(['  BBS Hostname:  ' . $bbs->{'bbs_hostname'}]);
         if ($bbs->{'bbs_hostname'} ne '' && length($bbs->{'bbs_hostname'}) > 5) {
             print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 19;
             $bbs->{'bbs_port'} = $self->sysop_get_line(ECHO, 5, '');
+            $self->{'debug'}->DEBUG(['  BBS Port:  ' . $bbs->{'bbs_port'}]);
             if ($bbs->{'bbs_port'} ne '' && $bbs->{'bbs_port'} =~ /^\d+$/) {
+                $self->{'debug'}->DEBUG(['  Add to BBS List']);
                 my $sth = $self->{'dbh'}->prepare('INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES (?,?,?,1)');
                 $sth->execute($bbs->{'bbs_name'}, $bbs->{'bbs_hostname'}, $bbs->{'bbs_port'});
                 $sth->finish();
             } else {
-                return (FALSE);
+                $response = FALSE;
             }
         } else {
-            return (FALSE);
+            $response = FALSE;
         }
     } else {
-        return (FALSE);
+        $response = FALSE;
     }
-    return (TRUE);
+    $self->{'debug'}->DEBUG(['End SysOp Add BBS']);
+    return ($response);
 } ## end sub sysop_add_bbs
 
 sub sysop_delete_bbs {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['SysOp Delete BBS']);
+    $self->{'debug'}->DEBUG(['Start SysOp Delete BBS']);
     $self->sysop_prompt('Please enter the ID, the hostname, or the BBS name to delete');
     my $search;
     $search = $self->sysop_get_line(ECHO, 50, '');
@@ -2433,18 +2517,21 @@ sub sysop_delete_bbs {
         print 'Are you sure that you want to delete this BBS from the list (Y|N)?  ';
         my $choice = $self->sysop_decision();
         unless ($choice) {
+            $self->{'debug'}->DEBUG(['End SysOp Delete BBS']);
             return (FALSE);
         }
         $sth = $self->{'dbh'}->prepare('DELETE FROM bbs_listing WHERE bbs_id=?');
         $sth->execute($bbs->{'bbs_id'});
     } ## end if ($sth->rows() > 0)
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End SysOp Delete BBS']);
     return (TRUE);
 } ## end sub sysop_delete_bbs
 
 sub sysop_add_file {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp Add File']);
     opendir(my $DIR, 'files/files/');
     my @dir = grep(!/^\.+/, readdir($DIR));
     closedir($DIR);
@@ -2523,11 +2610,13 @@ sub sysop_add_file {
         print colored(['yellow'], 'No unmapped files found'), "\n";
         sleep 2;
     }
+    $self->{'debug'}->DEBUG(['End SysOp Add File']);
 } ## end sub sysop_add_file
 
 sub sysop_bbs_list_bulk_import {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp BBS List Bulk Import']);
     my $filename = $self->configuration('BBS ROOT') . "/bbs_list.txt";
     if (-e $filename) {
         $self->sysop_output("\n\nImporting/merging BBS list from bbs_list.txt\n\n");
@@ -2558,6 +2647,7 @@ sub sysop_bbs_list_bulk_import {
     }
     $self->sysop_output("\nPress any key to continue\n");
     $self->sysop_get_key(SILENT, BLOCKING);
+    $self->{'debug'}->DEBUG(['End SysOp BBS List Bulk Import']);
     return(TRUE);
 }
 
@@ -2565,6 +2655,7 @@ sub sysop_ansi_output {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start SysOp ANSI Output']);
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
     $text = $self->ansi_decode($text);
@@ -2584,15 +2675,17 @@ sub sysop_ansi_output {
             print "\n";
         }
     }
+    $self->{'debug'}->DEBUG(['End SysOp ANSI Output']);
     return (TRUE);
 }
 
 sub sysop_output {
     my $self = shift;
     $|=1;
-    $self->{'debug'}->DEBUG(['SysOp Output']);
+    $self->{'debug'}->DEBUG(['Start SysOp Output']);
     my $text = $self->detokenize_text(shift);
 
+    my $response = TRUE;
     if (defined($text) && $text ne '') {
         if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
             my $format = Text::Format->new(
@@ -2612,8 +2705,9 @@ sub sysop_output {
         } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
         $self->sysop_ansi_output($text);
     } else {
-        return (FALSE);
+        $response = FALSE;
     }
-    return (TRUE);
+    $self->{'debug'}->DEBUG(['End SysOp Output']);
+    return ($response);
 }
 1;

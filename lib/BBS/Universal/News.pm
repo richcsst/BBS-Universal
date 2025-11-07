@@ -3,13 +3,16 @@ BEGIN { our $VERSION = '0.003'; }
 
 sub news_initialize {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start News Initialize']);
     $self->{'rss'} = XML::RSS::LibXML->new();
+    $self->{'debug'}->DEBUG(['End News Initialize']);
     return ($self);
 }
 
 sub news_display {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start News Display']);
     my $news   = "\n";
     my $format = Text::Format->new(
         'columns'     => $self->{'USER'}->{'max_columns'} - 1,
@@ -67,12 +70,14 @@ sub news_display {
     $self->output($news);
     $self->output("Press a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
+    $self->{'debug'}->DEBUG(['End News Display']);
     return (TRUE);
 }
 
 sub news_summary {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start News Summary']);
     my $format = $self->{'USER'}->{'date_format'};
     $format =~ s/YEAR/\%Y/;
     $format =~ s/MONTH/\%m/;
@@ -123,12 +128,14 @@ sub news_summary {
     $sth->finish();
     $self->output("\nPress a key to continue ... ");
     $self->get_key(SILENT, BLOCKING);
+    $self->{'debug'}->DEBUG(['End News Summary']);
     return (TRUE);
 }
 
 sub news_rss_categories {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start News RSS Categories']);
     my $command = '';
     my $id;
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM rss_feed_categories WHERE id<>? ORDER BY title');
@@ -178,12 +185,14 @@ sub news_rss_categories {
         $self->{'USER'}->{'rss_category'} = $id;
         $command = 'BACK';
     }
+    $self->{'debug'}->DEBUG(['End News RSS Categories']);
     return($command);
 }
 
 sub news_rss_feeds {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start News RSS Feeds']);
     my $mode = $self->{'USER'}->{'text_mode'};
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM rss_view WHERE category=? ORDER BY title');
     $sth->execute($self->{'USER'}->{'rss_category'});
@@ -257,6 +266,7 @@ sub news_rss_feeds {
         $self->get_key(SILENT, BLOCKING);
         $command = 'BACK';
     }
+    $self->{'debug'}->DEBUG(['End News RSS Feeds']);
     return($command);
 }
 
@@ -264,6 +274,7 @@ sub news_title_colorize {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start News Title Colorize']);
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ANSI') {
         if ($text =~ /fox news/i) {
@@ -322,6 +333,7 @@ sub news_title_colorize {
             $text =~ s/breitbart/$b/gsi;
         }
     }
+    $self->{'debug'}->DEBUG(['End News Title Colorize']);
     return($text);
 }
 1;

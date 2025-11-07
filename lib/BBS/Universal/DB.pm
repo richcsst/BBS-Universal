@@ -3,13 +3,15 @@ BEGIN { our $VERSION = '0.002'; }
 
 sub db_initialize {
     my $self = shift;
-
+    $self->{'debug'}->DEBUG(['Start DB Initialize']);
+    $self->{'debug'}->DEBUG(['End DB Initialize']);
     return ($self);
 }
 
 sub db_connect {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start DB Connect']);
     my @dbhosts = split(/\s*,\s*/, $self->{'CONF'}->{'STATIC'}->{'DATABASE HOSTNAME'});
     my $errors  = '';
     foreach my $host (@dbhosts) {
@@ -38,7 +40,7 @@ sub db_connect {
             $self->{'CONF'}->{'STATIC'}->{'DATABASE PASSWORD'},
             {
                 'PrintError' => FALSE,
-				'RaiseError' => TRUE,
+                'RaiseError' => TRUE,
                 'AutoCommit' => TRUE,
             },
         ) or $errors = $DBI::errstr;
@@ -48,22 +50,27 @@ sub db_connect {
         $self->{'debug'}->ERROR(["Database Host not found!\n$errors"]);
         exit(1);
     }
+    $self->{'debug'}->DEBUG(['End DB Connect']);
     return (TRUE);
 }
 
 sub db_count_users {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start DB Count Users']);
     unless (exists($self->{'dbh'})) {
         $self->db_connect();
     }
     my $response = $self->{'dbh'}->do('SELECT COUNT(id) FROM users');
+    $self->{'debug'}->DEBUG(['End DB Count Users']);
     return ($response);
 }
 
 sub db_disconnect {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start DB Disconnect']);
     $self->{'dbh'}->disconnect() if (defined($self->{'dbh'}));
+    $self->{'debug'}->DEBUG(['End DB Disconnect']);
     return (TRUE);
 }
 1;

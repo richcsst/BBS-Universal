@@ -96,7 +96,7 @@ use XML::RSS::LibXML;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.012';
+    our $VERSION = '0.013';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
         TRUE
@@ -151,6 +151,7 @@ sub small_new {
     my $self  = shift;
 
     bless($self, $class);
+    $self->{'debug'}->DEBUG(['Start Small New']);
     $self->populate_common();
 
     $self->{'CACHE'} = Cache::Memcached::Fast->new(
@@ -166,6 +167,7 @@ sub small_new {
     );
     $self->{'sysop'}      = TRUE;
     $self->{'local_mode'} = TRUE;
+    $self->{'debug'}->DEBUG(['End Small New']);
     return ($self);
 } ## end sub small_new
 
@@ -177,6 +179,7 @@ sub new {    # Always call with the socket as a parameter
     my $cl_socket = (exists($params->{'client_socket'})) ? $params->{'client_socket'} : undef;
     my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
 
+    $params->{'debug'}->DEBUG(['Start New']);
     my $os   = `/usr/bin/uname -a`;
     my $self = {
         'thread_name'     => $params->{'thread_name'},
@@ -233,13 +236,14 @@ sub new {    # Always call with the socket as a parameter
               'utf8'      => TRUE,
         }
     );
-
+    $self->{'debug'}->DEBUG(['End New']);
     return ($self);
 } ## end sub new
 
 sub populate_common {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Populate Common']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     if (exists($ENV{'EDITOR'})) {
         $self->{'EDITOR'} = $ENV{'EDITOR'};
@@ -635,13 +639,14 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
-    $self->{'debug'}->DEBUG(['Main object initialized']);
+    $self->{'debug'}->DEBUG(['End Populate Common']);
 } ## end sub populate_common
 
 sub run {
     my $self  = shift;
     my $sysop = shift;
 
+    $self->{'debug'}->DEBUG(['Start Run']);
     $self->{'sysop'} = $sysop;
     $self->{'ERROR'} = undef;
 
@@ -655,19 +660,20 @@ sub run {
         $self->main_menu('files/main/menu');
     }
     $self->disconnect();
+    $self->{'debug'}->DEBUG(['End Run']);
     return (defined($self->{'ERROR'}));
 } ## end sub run
 
 sub greeting {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Send greeting']);
+    $self->{'debug'}->DEBUG(['Start Greeting']);
 
     # Load and print greetings message here
     $self->output("\n\n");
     my $text = $self->files_load_file('files/main/greeting');
     $self->output($text);
-    $self->{'debug'}->DEBUG(['Greeting sent']);
+    $self->{'debug'}->DEBUG(['End Greeting']);
     return (TRUE);    # Login will also create new users
 } ## end sub greeting
 
@@ -676,9 +682,10 @@ sub login {
 
     my $valid = FALSE;
 
+    $self->{'debug'}->DEBUG(['Start Login']);
     my $username;
     if ($self->{'sysop'}) {
-        $self->{'debug'}->DEBUG(['Login as SysOp']);
+        $self->{'debug'}->DEBUG(['  Login as SysOp']);
         $username = 'sysop';
         $self->output("\n\nAuto-login of $username successful\n\n");
         $valid = $self->users_load($username, '');
@@ -687,7 +694,7 @@ sub login {
             $self->{'USER'}->{'columns'} = $wsize;
         }
     } else {
-        $self->{'debug'}->DEBUG(['Login as User']);
+        $self->{'debug'}->DEBUG(['  Login as User']);
         my $tries = $self->{'CONF'}->{'LOGIN TRIES'} + 0;
         do {
             do {
@@ -699,13 +706,13 @@ sub login {
             $self->{'debug'}->debug(["User = $username"]);
             if ($self->is_connected()) {
                 if (uc($username) eq 'NEW') {
-                    $self->{'debug'}->DEBUG(['New user']);
+                    $self->{'debug'}->DEBUG(['    New user']);
                     $valid = $self->create_account();
                 } elsif ($username eq 'sysop' && !$self->{'local_mode'}) {
-                    $self->{'debug'}->WARNING(['Login as SysOp attempted!']);
+                    $self->{'debug'}->WARNING(['    Login as SysOp attempted!']);
                     $self->output("\n\nSysOp cannot connect remotely\n\n");
                 } else {
-                    $self->{'debug'}->DEBUG(['Asking for password']);
+                    $self->{'debug'}->DEBUG(['    Asking for password']);
                     $self->output("\n\nPlease enter your password > ");
                     my $password = $self->get_line(PASSWORD, 64);
                     $valid = $self->users_load($username, $password);
@@ -714,10 +721,10 @@ sub login {
                     }
                 } ## end else [ if (uc($username) eq 'NEW')]
                 if ($valid) {
-                    $self->{'debug'}->DEBUG(['Password valid']);
+                    $self->{'debug'}->DEBUG(['  Password valid']);
                     $self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
                 } else {
-                    $self->{'debug'}->WARNING(['Password incorrect, try ' . $tries]);
+                    $self->{'debug'}->WARNING(['  Password incorrect, try ' . $tries]);
                     $self->output("\n\nLogin incorrect\n\n");
                     $tries--;
                 }
@@ -725,13 +732,14 @@ sub login {
             last unless ($self->{'CACHE'}->get('RUNNING') && $self->is_connected());
         } until ($valid || $tries <= 0);
     } ## end else [ if ($self->{'sysop'}) ]
+    $self->{'debug'}->DEBUG(['End Login']);
     return ($valid);
 } ## end sub login
 
 sub create_account {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Create account']);
+    $self->{'debug'}->DEBUG(['Start Create account']);
     my $heading = '[% CLS %]CREATE ACCOUNT' . "\n\n";
     $self->output($heading);
 
@@ -755,35 +763,60 @@ sub create_account {
 
     if ($self->is_connected()) {
         $username = $self->get_line({ 'type' => HOST, 'max' => 132 }, '');
+        $self->{'debug'}->DEBUG(["  New username:  $username"]);
+
         $self->output("\nFirst (given) name:  ");
         $given = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $self->{'debug'}->DEBUG(["  New First Name:  $given"]); 
+
         $self->output("\nLast (family) name:  ");
         $family = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
+
         $self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
         if ($self->decision()) {
             $self->output("\nNickname:  ");
             $nickname = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+            $self->{'debug'}->DEBUG(["  New Nickname:  $nickname"]);
         }
         $self->output("\nScreen width (in columns):  ");
         $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 40);
-        $self->output("\nScreen height (in columns):  ");
+        $self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
+
+        $self->output("\nScreen height (in rows):  ");
         $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 25);
+        $self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
+
         $self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
         $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'] }, 'ASCII');
+        $self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
+
         $self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
         $birthday = $self->get_line({ 'type' => DATE, 'max' => 10 }, '');
+        $self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
+
         $self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
         $location = $self->get_line({ 'type' => STRING, 'max' => 255 }, '');
+        $self->{'debug'}->DEBUG(["  New Location:  $location"]);
+
         $self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
         $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'] }, 'YEAR/MONTH/DAY');
+        $self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
+
         $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
         $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'] }, 'FULL');
+        $self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
+
         my $tries = 3;
         do {
             $self->output("\nPlease enter your password:  ");
             $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $self->{'debug'}->DEBUG(['  New Password']);
+
             $self->output("\nEnter it again:  ");
             $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $self->{'debug'}->DEBUG(['  New Password2']);
+
             $self->output("\nPasswords do not match!  Try again\n");
             $tries--;
         } until (($self->is_connected() && $password eq $password2) || $tries <= 0);
@@ -802,11 +835,13 @@ sub create_account {
                 'baud_rate'   => $baud_rate,
                 'password'    => $password,
             };
+            $self->{'debug'}->DEBUGMAX([$tree]);
             if ($self->users_add($tree)) {
                 return ($self->users_load($username, $password));
             }
         } ## end if ($self->is_connected...)
     } ## end if ($self->is_connected...)
+    $self->{'debug'}->DEBUG(['End Create Account']);
     return (FALSE);
 } ## end sub create_account
 
@@ -830,14 +865,16 @@ sub is_connected {
 sub decision {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Decision']);
     my $response = uc($self->get_key(SILENT, BLOCKING));
     if ($response eq 'Y') {
         $self->output("YES\n");
-        $self->{'debug'}->DEBUG(['Decision YES']);
+        $self->{'debug'}->DEBUG(['  Decision YES']);
         return (TRUE);
     }
-    $self->{'debug'}->DEBUG(['Decision NO']);
+    $self->{'debug'}->DEBUG(['  Decision NO']);
     $self->output("NO\n");
+    $self->{'debug'}->DEBUG(['End Decision']);
     return (FALSE);
 } ## end sub decision
 
@@ -845,7 +882,7 @@ sub prompt {
     my $self = shift;
     my $text = shift;
 
-    $self->{'debug'}->DEBUG(["Prompt > $text"]);
+    $self->{'debug'}->DEBUG(['Start Prompt', "  Prompt > $text"]);
     my $response = "\n";
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $response .= '(' . colored(['bright_yellow'], $self->{'USER'}->{'username'}) . ') ' . $text . chr(31) . ' ';
@@ -857,6 +894,7 @@ sub prompt {
         $response .= '(' . $self->{'USER'}->{'username'} . ') ' . "$text > ";
     }
     $self->output($response);
+    $self->{'debug'}->DEBUG(['End Prompt']);
     return (TRUE);
 } ## end sub prompt
 
@@ -866,7 +904,7 @@ sub menu_choice {
     my $color  = shift;
     my $desc   = shift;
 
-    $self->{'debug'}->DEBUG(['Menu Choice']);
+    $self->{'debug'}->DEBUG(['Start Menu Choice']);
     if ($self->{'USER'}->{'text_mode'} eq 'ATASCII') {
         $self->output(" $choice " . chr(31) . " $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'PETSCII') {
@@ -876,13 +914,14 @@ sub menu_choice {
     } else {
         $self->output(" $choice > $desc");
     }
+    $self->{'debug'}->DEBUG(['End Menu Choice']);
 } ## end sub menu_choice
 
 sub show_choices {
     my $self    = shift;
     my $mapping = shift;
 
-    $self->{'debug'}->DEBUG(['Show Choices']);
+    $self->{'debug'}->DEBUG(['Start Show Choices']);
     my $keys = '';
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n");
@@ -898,12 +937,13 @@ sub show_choices {
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT'));
     }
+    $self->{'debug'}->DEBUG(['End Show Choices']);
 } ## end sub show_choices
 
 sub header {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Header']);
+    $self->{'debug'}->DEBUG(['Start Header']);
     my $width = $self->{'USER'}->{'max_columns'};
     my $name  = ' ' . $self->{'CONF'}->{'BBS NAME'} . ' ';
 
@@ -914,6 +954,7 @@ sub header {
         my $char = '[% BOX DRAWINGS HEAVY HORIZONTAL %]';
         $text =~ s/\#/$char/g;
     }
+    $self->{'debug'}->DEBUG(['End Header']);
     return ($self->detokenize_text('[% CLS %]' . $text));
 } ## end sub header
 
@@ -921,12 +962,13 @@ sub load_menu {
     my $self = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(["Load Menu $file"]);
+    $self->{'debug'}->DEBUG(['Start Load Menu', "  Load Menu $file"]);
     my $orig    = $self->files_load_file($file);
     my @Text    = split(/\n/, $orig);
     my $mapping = { 'TEXT' => '' };
     my $mode    = TRUE;
     my $text    = '';
+    $self->{'debug'}->DEBUG(['  Parse Menu']);
     foreach my $line (@Text) {
         if ($mode) {
             next if ($line =~ /^\#/);
@@ -953,6 +995,7 @@ sub load_menu {
         }
     } ## end foreach my $line (@Text)
     $mapping->{'TEXT'} = $self->header() . "\n" . $mapping->{'TEXT'};
+    $self->{'debug'}->DEBUG(['End Load Menu']);
     return ($mapping);
 } ## end sub load_menu
 
@@ -960,7 +1003,7 @@ sub main_menu {
     my $self = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['Main Menu']);
+    $self->{'debug'}->DEBUG(['Start Main Menu']);
     my $connected = TRUE;
     my $command   = '';
     my $mapping   = $self->load_menu($file);
@@ -983,16 +1026,18 @@ sub main_menu {
             $connected = FALSE;
         }
     } ## end while ($connected && $self...)
+    $self->{'debug'}->DEBUG(['End Main Menu']);
 } ## end sub main_menu
 
 sub disconnect {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Disconnect']);
+    $self->{'debug'}->DEBUG(['Start Disconnect']);
 
     # Load and print disconnect message here
     my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
+    $self->{'debug'}->DEBUG(['End Disconnect']);
     return (TRUE);
 } ## end sub disconnect
 
@@ -1002,7 +1047,7 @@ sub parse_telnet_escape {
     my $option  = shift;
     my $handle  = $self->{'cl_socket'};
 
-    $self->{'debug'}->DEBUG(['Parse Telnet Escape']);
+    $self->{'debug'}->DEBUG(['Start Parse Telnet Escape']);
     if ($command == WILL) {
         if ($option == ECHO) {    # WON'T ECHO
             print $handle chr(IAC) . chr(WONT) . chr(ECHO);
@@ -1018,6 +1063,7 @@ sub parse_telnet_escape {
     } else {
         $self->{'debug'}->DEBUG(['Recreived IAC Request - ' . $self->{'telnet_commands'}->[$command - 240] . ' : ' . $self->{'telnet_options'}->[$option]]);
     }
+    $self->{'debug'}->DEBUG(['End Parse Telnet Escape']);
     return (TRUE);
 } ## end sub parse_telnet_escape
 
@@ -1111,7 +1157,7 @@ sub get_line {
     my $choices;
     my $key;
 
-    $self->{'debug'}->DEBUG(['Get Line']);
+    $self->{'debug'}->DEBUG(['Start Get Line']);
     $self->flush_input();
 
     if (ref($type) eq 'HASH') {
@@ -1134,8 +1180,6 @@ sub get_line {
 
     my $key;
 
-    $self->{'debug'}->DEBUG(['Get Line']);
-    $self->flush_input();
     $self->output($line) if ($line ne '');
     my $mode = $self->{'USER'}->{'text_mode'};
     my $bs;
@@ -1150,6 +1194,7 @@ sub get_line {
     }
 
     if ($echo == RADIO) {
+        $self->{'debug'}->DEBUG(['  Mode:  RADIO']);
         my $regexp = join('', @{ $type->{'choices'} });
         $self->{'debug'}->DEBUGMAX([$regexp]);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
@@ -1185,6 +1230,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == NUMERIC) {
+        $self->{'debug'}->DEBUG(['  Mode:  NUMERIC']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1218,6 +1264,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == DATE) {
+        $self->{'debug'}->DEBUG(['  Mode:  DATE']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1251,6 +1298,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($echo == HOST) {
+        $self->{'debug'}->DEBUG(['  Mode:  HOST']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1284,6 +1332,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } elsif ($type == PASSWORD) {
+        $self->{'debug'}->DEBUG(['  Mode:  PASSWORD']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1317,6 +1366,7 @@ sub get_line {
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
     } else {
+        $self->{'debug'}->DEBUG(['  Mode:  NORMAL']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1353,15 +1403,15 @@ sub get_line {
     threads->yield();
     $line = '' if ($key eq chr(3));
     $self->output("\n");
+    $self->{'debug'}->DEBUG(['End Get Line']);
     return ($line);
-
 } ## end sub get_line
 
 sub detokenize_text {    # Detokenize text markup
     my $self = shift;
     my $text = shift;
 
-#    $self->{'debug'}->DEBUG(['Detokenize Text']);
+    $self->{'debug'}->DEBUG(['Start Detokenize Text']);
     if (defined($text) && length($text) > 1) {
         foreach my $key (keys %{ $self->{'TOKENS'} }) {
             if ($key eq 'VERSIONS' && $text =~ /\[\%\s+$key\s+\%\]/i) {
@@ -1378,15 +1428,17 @@ sub detokenize_text {    # Detokenize text markup
             }
         } ## end foreach my $key (keys %{ $self...})
     } ## end if (defined($text) && ...)
+    $self->{'debug'}->DEBUG(['End Detokenize Text']);
     return ($text);
 } ## end sub detokenize_text
 
 sub output {
     my $self = shift;
     $|=1;
-    $self->{'debug'}->DEBUG(['Output']);
+    $self->{'debug'}->DEBUG(['Start Output']);
     my $text = $self->detokenize_text(shift);
 
+    my $response = TRUE;
     if (defined($text) && $text ne '') {
         if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
             my $format = Text::Format->new(
@@ -1415,9 +1467,10 @@ sub output {
             $self->ascii_output($text);
         }
     } else {
-        return (FALSE);
+        $response = FALSE;
     }
-    return (TRUE);
+    $self->{'debug'}->DEBUG(['End Output']);
+    return ($response);
 } ## end sub output
 
 sub send_char {
@@ -1442,7 +1495,7 @@ sub scroll {
     my $self = shift;
     my $nl   = shift;
 
-    $self->{'debug'}->DEBUG(['Scroll?']);
+    $self->{'debug'}->DEBUG(['Start Scroll']);
     my $string;
     $string = "$nl" . 'Scroll?  ';
     $self->output($string);
@@ -1451,6 +1504,7 @@ sub scroll {
         return (FALSE);
     }
     $self->output('[% BACKSPACE %] [% BACKSPACE %]' x 10);
+    $self->{'debug'}->DEBUG(['End Scroll']);
     return (TRUE);
 } ## end sub scroll
 
@@ -1458,7 +1512,7 @@ sub static_configuration {
     my $self = shift;
     my $file = shift;
 
-    $self->{'debug'}->DEBUG(['Static Configuration']);
+    $self->{'debug'}->DEBUG(['Start Static Configuration']);
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'}     = 'Richard Kelsch';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR EMAIL'}    = 'Richard Kelsch <rich@rk-internet.com>';
     $self->{'CONF'}->{'STATIC'}->{'AUTHOR LOCATION'} = 'Central Utah - USA';
@@ -1472,12 +1526,13 @@ sub static_configuration {
             $self->{'CONF'}->{'STATIC'}->{$name} = $val;
         }
     } ## end if (-e $file)
+    $self->{'debug'}->DEBUG(['End Static Configuration']);
 } ## end sub static_configuration
 
 sub choose_file_category {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Choose File Category']);
+    $self->{'debug'}->DEBUG(['Start Choose File Category']);
     my $table;
     my $choices = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 0 1 2 3 4 5 6 7 8 9)];
     my $hchoice = {};
@@ -1518,11 +1573,13 @@ sub choose_file_category {
             $self->output("Nevermind\n");
         }
     } ## end if ($sth->rows > 0)
+    $self->{'debug'}->DEBUG(['End Choose File Category']);
 } ## end sub choose_file_category
 
 sub configuration {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Configuration']);
     unless (exists($self->{'CONF'}->{'STATIC'})) {
         my @static_file = ('./conf/bbs.rc', '~/.bbs_universal/bbs.rc', '/etc/bbs.rc');
         my $found       = FALSE;
@@ -1546,6 +1603,7 @@ sub configuration {
     if ($count == 1) {    # Get single value
         my $name = shift;
 
+        $self->{'debug'}->DEBUG(['  Get Single Value']);
         my $sth = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
         $sth->execute($name);
         my ($result) = $sth->fetchrow_array();
@@ -1554,12 +1612,14 @@ sub configuration {
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
+        $self->{'debug'}->DEBUG(['  Set a Single Value']);
         my $sth  = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
         $sth->execute($fval, $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
         return (TRUE);
     } elsif ($count == 0) {    # Get entire configuration forces a reload into CONF
+        $self->{'debug'}->DEBUG(['  Get Entire Configuration']);
         $self->db_connect() unless (exists($self->{'dbh'}));
         my $sth     = $self->{'dbh'}->prepare('SELECT config_name,config_value FROM config');
         my $results = {};
@@ -1571,12 +1631,13 @@ sub configuration {
         $sth->finish();
         return ($self->{'CONF'});
     } ## end elsif ($count == 0)
+    $self->{'debug'}->DEBUG(['End Configuration']);
 } ## end sub configuration
 
 sub parse_versions {
     my $self = shift;
 
-    $self->{'debug'}->DEBUG(['Parse Versions']);
+    $self->{'debug'}->DEBUG(['Start Parse Versions']);
 ###
     my $versions = {
         'Perl'                         => $OLD_PERL_VERSION,
@@ -1607,6 +1668,7 @@ sub parse_versions {
         'IO::Socket'                   => $IO::Socket::VERSION,
     };
 ###
+    $self->{'debug'}->DEBUG(['End Parse Versions']);
     return ($versions);
 } ## end sub parse_versions
 
@@ -1615,19 +1677,23 @@ sub yes_no {
     my $bool  = 0 + shift;
     my $color = shift;
 
+    my $response;
+    $self->{'debug'}->DEBUG(['Start Yes No']);
     if ($color && $self->{'USER'}->{'text_mode'} eq 'ANSI') {
         if ($bool) {
-            return ('[% GREEN %]YES[% RESET %]');
+            $response = '[% GREEN %]YES[% RESET %]';
         } else {
-            return ('[% RED %]NO[% RESET %]');
+            $response = '[% RED %]NO[% RESET %]';
         }
     } else {
         if ($bool) {
-            return ('YES');
+            $response = 'YES';
         } else {
-            return ('NO');
+            $response = 'NO';
         }
     } ## end else [ if ($color && $self->{...})]
+    $self->{'debug'}->DEBUG(['End Yes No']);
+    return($response);
 } ## end sub yes_no
 
 sub pad_center {
@@ -1635,6 +1701,7 @@ sub pad_center {
     my $text  = shift;
     my $width = shift;
 
+    $self->{'debug'}->DEBUG(['Start Pad Center']);
     if (defined($text) && $text ne '') {
         my $size    = length($text);
         my $padding = int(($width - $size) / 2);
@@ -1642,6 +1709,7 @@ sub pad_center {
             $text = ' ' x $padding . $text;
         }
     } ## end if (defined($text) && ...)
+    $self->{'debug'}->DEBUG(['End Pad Center']);
     return ($text);
 } ## end sub pad_center
 
@@ -1650,6 +1718,8 @@ sub center {
     my $text  = shift;
     my $width = shift;
 
+    $self->{'debug'}->DEBUG(['Start Center']);
+    my $response;
     unless (defined($text) && $text ne '') {
         return ($text);
     }
@@ -1659,24 +1729,32 @@ sub center {
         foreach my $line (@lines) {
             $text .= $self->pad_center($line, $width) . "\n";
         }
-        return ($text);
+        $response = $text;
     } else {
-        return ($self->pad_center($text, $width));
+        $response = $self->pad_center($text, $width);
     }
+    $self->{'debug'}->DEBUG(['End Center']);
+    return($response);
 } ## end sub center
 
 sub trim {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start Trim']);
     $text =~ s/^\s+//;
     $text =~ s/\s+$//;
+    $self->{'debug'}->DEBUG(['End Trim']);
     return ($text);
 } ## end sub trim
 
 sub get_fortune {
     my $self = shift;
+
+    $self->{'debug'}->DEBUG(['Start Get Fortune']);
     $self->{'debug'}->DEBUG(['Get Fortune']);
+    $self->{'debug'}->DEBUG(['End Get Fortune']);
+
     return (($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
 }
 
@@ -1684,12 +1762,14 @@ sub playit {
     my $self = shift;
     my $file = shift;
 
+    $self->{'debug'}->DEBUG(['Start Playit']);
     unless ($self->{'nosound'}) {
-        $self->{'debug'}->DEBUG(["Play Sound $file"]);
+        $self->{'debug'}->DEBUG(["  Play Sound $file"]);
         if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
             system("nice -20 mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
         }
     } ## end unless ($self->{'nosound'})
+    $self->{'debug'}->DEBUG(['End Playit']);
 } ## end sub playit
 
 sub check_access_level {
@@ -1707,6 +1787,7 @@ sub color_border {
     my $tbl   = shift;
     my $color = shift;
 
+    $self->{'debug'}->DEBUG(['Start Color Border']);
     my $mode = $self->{'USER'}->{'text_mode'};
     $tbl =~ s/\n/[% NEWLINE %]/gs;
     if ($mode eq 'ANSI') {
@@ -1879,6 +1960,7 @@ sub color_border {
             $tbl =~ s/$ch/$new/gs;
         }
     }
+    $self->{'debug'}->DEBUG(['End Color Border']);
     return($tbl);
 }
 
@@ -1886,6 +1968,7 @@ sub html_to_text {
     my $self = shift;
     my $text = shift;
 
+    $self->{'debug'}->DEBUG(['Start HTML To Text']);
     $text =~ s/(\n\n\n)+/\n/gs;
     my %entity = (
         lt     => '<',     #a less-than
@@ -2048,7 +2131,7 @@ sub html_to_text {
 
     }gex;                  # execute replacement -- that's code not a string
 ###
-
+    $self->{'debug'}->DEBUG(['End HTML To Text']);
     return($text);
 }
 

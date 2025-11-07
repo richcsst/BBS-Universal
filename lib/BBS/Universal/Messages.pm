@@ -3,13 +3,15 @@ BEGIN { our $VERSION = '0.002'; }
 
 sub messages_initialize {
     my $self = shift;
-
+    $self->{'debug'}->DEBUG(['Start Messages Initialize']);
+    $self->{'debug'}->DEBUG(['End Messages Initialize']);
     return ($self);
 }
 
 sub messages_forum_categories {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Messages Forum Categories']);
     my $command = '';
     my $id;
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM message_categories WHERE id<>? ORDER BY name');
@@ -56,12 +58,14 @@ sub messages_forum_categories {
         $self->{'USER'}->{'forum_category'} = $id;
         $command = 'BACK';
     }
+    $self->{'debug'}->DEBUG(['End Messages Forum Categories']);
     return($command);
 }
 
 sub messages_list_messages {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Messages List Messages']);
     my $id;
     my $command;
     my $forum_category = $self->{'USER'}->{'forum_category'};
@@ -170,6 +174,7 @@ sub messages_list_messages {
             $command = 'DISCONNECT';
         }
     } until ($count >= scalar(@index) || $command =~ /^(DISCONNECT|BACK)$/);
+    $self->{'debug'}->DEBUG(['End Messages List Messages']);
     return(TRUE);
 }
 
@@ -178,8 +183,10 @@ sub messages_edit_message {
     my $mode        = shift;
     my $old_message = (scalar(@_)) ? shift : undef;
 
+    $self->{'debug'}->DEBUG(['Start Messages Edit Message']);
     my $message;
     if ($mode eq 'ADD') {
+        $self->{'debug'}->DEBUG(['  Add Message']);
         $self->output("Add New Message\n");
         $self->output('-' x $self->{'USER'}->{'max_columns'} . "\n");
         $message = $self->messages_text_editor();
@@ -203,7 +210,7 @@ sub messages_edit_message {
             sleep 1;
         }
     } elsif ($mode eq 'REPLY') {
-        $self->output("Edit Message\n");
+        $self->output("  Edit Message\n");
         unless ($old_message->{'title'} =~ /^Re: /) {
             $old_message->{'title'} = 'Re: ' . $old_message->{'title'};
             $old_message->{'message'} =~ s/^(.*)/\> $1/g;
@@ -231,7 +238,7 @@ sub messages_edit_message {
             sleep 1;
         }
     } else { # EDIT
-        $self->output("Edit Message\n");
+        $self->output("  Edit Message\n");
         $self->output('-' x $self->{'USER'}->{'max_columns'} . "\n");
         $message = $self->messages_text_editor($old_message);
         if (defined($message)) {
@@ -250,6 +257,7 @@ sub messages_edit_message {
             sleep 1;
         }
     }
+    $self->{'debug'}->DEBUG(['End Messages Edit Message']);
     return($message);
 }
 
@@ -257,20 +265,24 @@ sub messages_delete_message {
     my $self    = shift;
     my $message = shift;
 
+    $self->{'debug'}->DEBUG(['Start Messages Delete Message']);
+    my $response = FALSE;
     $self->output("\n\nReally Delete This Message?  ");
     if ($self->decision() && defined($message)) {
         my $sth = $self->{'dbh'}->prepare('UPDATE messages SET hidden=TRUE WHERE id=?');
         $sth->execute($message->{'id'});
         $sth->finish();
-        return(TRUE);
+        $response = TRUE;
     }
-    return(FALSE);
+    $self->{'debug'}->DEBUG(['End Messages Delete Message']);
+    return($response);
 }
 
 sub messages_text_editor {
     my $self    = shift;
     my $message = (scalar(@_)) ? shift : undef;
 
+    $self->{'debug'}->DEBUG(['Start Messages Text Editor']);
     my $title = '';
     my $text  = '';
     if ($self->{'local_mode'} || $self->{'sysop'} || $self->is_connected()) {
@@ -286,6 +298,7 @@ sub messages_text_editor {
             $text  = $self->messages_text_edit($title);
         }
         if (defined($text) && defined($title)) {
+            $self->{'debug'}->DEBUG(['End Messages Text Editor']);
             return(
                 {
                     'title'   => $title,
@@ -294,6 +307,7 @@ sub messages_text_editor {
             );
         }
     }
+    $self->{'debug'}->DEBUG(['  Abort','End Messages Text Editor']);
     return(undef);
 }
 
@@ -302,6 +316,7 @@ sub messages_text_edit {
     my $title = (scalar(@_)) ? shift : undef;
     my $text  = (scalar(@_)) ? shift : undef;
 
+    $self->{'debug'}->DEBUG(['Start Messages Text Edit']);
     my $columns = $self->{'USER'}->{'max_columns'};
     my $text_mode = $self->{'USER'}->{'text_mode'};
     my @lines;
@@ -402,6 +417,7 @@ sub messages_text_edit {
     } else {
         undef($text);
     }
+    $self->{'debug'}->DEBUG(['End Messages Text Edit']);
     return($text);
 }
 1;

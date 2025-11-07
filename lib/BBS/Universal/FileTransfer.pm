@@ -3,7 +3,8 @@ BEGIN { our $VERSION = '0.003'; }
 
 sub filetransfer_initialize {
     my $self = shift;
-
+    $self->{'debug'}->DEBUG(['Start FileTransfer Initialize']);
+    $self->{'debug'}->DEBUG(['End FileTransfer Initialize']);
     return ($self);
 }
 
@@ -11,6 +12,7 @@ sub files_type {
     my $self = shift;
     my $file = shift;
 
+    $self->{'debug'}->DEBUG(['Start File Type']);
     my @tmp = split(/\./,$file);
     my $ext = uc(pop(@tmp));
     my $sth = $self->{'dbh'}->prepare('SELECT type FROM file_types WHERE extension=?');
@@ -20,6 +22,7 @@ sub files_type {
         $name = $sth->fetchrow_array();
     }
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End File Type']);
     return($ext,$name);
 }
 
@@ -27,11 +30,13 @@ sub files_load_file {
     my $self = shift;
     my $file = shift;
 
+    $self->{'debug'}->DEBUG(['Start Files Load File']);
     my $filename = sprintf('%s.%s', $file, $self->{'USER'}->{'text_mode'});
     open(my $FILE, '<', $filename);
     my @text = <$FILE>;
     close($FILE);
     chomp(@text);
+    $self->{'debug'}->DEBUG(['End Files Load File']);
     return (join("\n", @text));
 }
 
@@ -39,6 +44,7 @@ sub files_list_summary {
     my $self   = shift;
     my $search = shift;
 
+    $self->{'debug'}->DEBUG(['Start Files List Summary']);
     my $sth;
     my $filter;
     if ($search) {
@@ -94,6 +100,7 @@ sub files_list_summary {
     }
     $self->output("\nPress a key to continue ...");
     $self->get_key(ECHO, BLOCKING);
+    $self->{'debug'}->DEBUG(['End Files List Summary']);
     return (TRUE);
 }
 
@@ -101,6 +108,7 @@ sub files_list_detailed {
     my $self   = shift;
     my $search = shift;
 
+    $self->{'debug'}->DEBUG(['Start Files List Detailed']);
     my $sth;
     my $filter;
     my $columns = $self->{'USER'}->{'max_columns'};
@@ -146,6 +154,7 @@ sub files_list_detailed {
         my $table;
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($columns <= 40) {
+            $self->{'debug'}->DEBUG(['  40 Columns']);
             $table = Text::SimpleTable->new($max_filename, $max_uploader);
             $table->row('FILENAME', 'UPLOADER NAME');
             $table->hr();
@@ -156,6 +165,7 @@ sub files_list_detailed {
                 );
             }
         } elsif ($columns <= 64) {
+            $self->{'debug'}->DEBUG(['  64 Columns']);
             $table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_thumbs_up, $max_thumbs_down);
             $table->row('TITLE', 'FILENAME', 'UPLOADER NAME', 'THUMBS UP','THUMBS DOWN');
             $table->hr();
@@ -169,6 +179,7 @@ sub files_list_detailed {
                 );
             }
         } elsif ($columns <= 80) {
+            $self->{'debug'}->DEBUG(['  80 Columns']);
             $table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_type, $max_thumbs_up, $max_thumbs_down);
             $table->row('TITLE', 'FILENAME', 'UPLOADER NAME','TYPE', 'THUMBS_UP', 'THUMBS_DOWN');
             $table->hr();
@@ -183,6 +194,7 @@ sub files_list_detailed {
                 );
             }
         } elsif ($columns <= 132) {
+            $self->{'debug'}->DEBUG(['  132 Columns']);
             $table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
             $table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
             $table->hr();
@@ -200,6 +212,7 @@ sub files_list_detailed {
                 );
             }
         } else {
+            $self->{'debug'}->DEBUG(['  > 133 Columns']);
             $table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
             $table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
             $table->hr();
@@ -246,21 +259,28 @@ sub files_list_detailed {
     }
     $self->output("\nPress a key to continue ...");
     $self->get_key(ECHO, BLOCKING);
+    $self->{'debug'}->DEBUG(['End Files List Detailed']);
     return (TRUE);
 }
 
 sub save_file {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start Save File']);
+    $self->{'debug'}->DEBUG(['End Save File']);
     return (TRUE);
 }
 
 sub receive_file {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start Receive File']);
+    $self->{'debug'}->DEBUG(['End Receive File']);
     return(TRUE);
 }
 
 sub send_file {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start Send File']);
+    $self->{'debug'}->DEBUG(['End Send File']);
     return (TRUE);
 }
 1;

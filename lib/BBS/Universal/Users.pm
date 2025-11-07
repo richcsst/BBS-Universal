@@ -4,13 +4,16 @@ BEGIN { our $VERSION = '0.003'; }
 sub users_initialize {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Initialize']);
     $self->{'USER'}->{'mode'} = ASCII;
+    $self->{'debug'}->DEBUG(['End Users Initialize']);
     return ($self);
 }
 
 sub users_change_access_level {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Change Access Level']);
     my $mapping = {
         'TEXT' => '',
         'Z' => {
@@ -54,12 +57,14 @@ sub users_change_access_level {
         $sth->finish;
         $self->{'USER'}->{'date_format'} = $command;
     }
+    $self->{'debug'}->DEBUG(['End Users Change Access Level']);
     return (TRUE);
 }
 
 sub users_change_date_format {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Change Date Format']);
     my $mapping = {
         'TEXT' => '',
         'Z' => {
@@ -103,12 +108,14 @@ sub users_change_date_format {
         $sth->finish;
         $self->{'USER'}->{'date_format'} = $command;
     }
+    $self->{'debug'}->DEBUG(['End Users Change Date Format']);
     return (TRUE);
 }
 
 sub users_change_baud_rate {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Change Baud Rate']);
     my $mapping = {
         'TEXT' => '',
         'Z' => {
@@ -136,7 +143,7 @@ sub users_change_baud_rate {
     } elsif ($mode eq 'ATASCII') {
         $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose');
     } elsif ($mode eq 'PETSCII') {
-        $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose');
+        $self->prompt('([% YELLOW %]' . $self->{'USER'}->{'username'} . '[% RESET %]) ' . 'Choose');
     } else {
         $self->prompt('(' . $self->{'USER'}->{'username'} . ') ' . 'Choose');
     }
@@ -151,13 +158,16 @@ sub users_change_baud_rate {
         $sth->execute($command,$self->{'USER'}->{'id'});
         $sth->finish;
         $self->{'USER'}->{'baud_rate'} = $command;
+        $self->{'debug'}->DEBUG(["  Baud Rate:  $command"]);
     }
+    $self->{'debug'}->DEBUG(['End Users Change Baud Rate']);
     return (TRUE);
 }
 
 sub users_change_screen_size {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Change Screen Size']);
     $self->prompt("\nColumns");
     my $columns = 0 + $self->get_line(NUMERIC,3,$self->{'USER'}->{'max_columns'});
     if ($columns >= 32 && $columns ne $self->{'USER'}->{'max_columns'} && $self->is_connected()) {
@@ -165,6 +175,7 @@ sub users_change_screen_size {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET max_columns=? WHERE id=?');
         $sth->execute($columns,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Columns:  $columns"]);
     }
     $self->prompt("\nRows");
     my $rows = 0 + $self->get_line(NUMERIC,3,$self->{'USER'}->{'max_rows'});
@@ -173,13 +184,16 @@ sub users_change_screen_size {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET max_rows=? WHERE id=?');
         $sth->execute($rows,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Rows:  $rows"]);
     }
+    $self->{'debug'}->DEBUG(['Start Users Change Screen Size']);
     return (TRUE);
 }
 
 sub users_update_retro_systems {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Update Retro Systems']);
     $self->prompt("\nName your retro computers");
     my $retro = $self->get_line(ECHO,65535,$self->{'USER'}->{'retro_systems'});
     if (length($retro) >= 5 && $retro ne $self->{'USER'}->{'retro_systems'} && $self->is_connected()) {
@@ -187,13 +201,16 @@ sub users_update_retro_systems {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET retro_systems=? WHERE id=?');
         $sth->execute($retro,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Retro Systems:  $retro"]);
     }
+    $self->{'debug'}->DEBUG(['End Users Update Retro Systems']);
     return (TRUE);
 }
 
 sub users_update_email {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Update Email']);
     $self->prompt("\nEnter email address");
     my $email = $self->get_line(ECHO,255,$self->{'USER'}->{'email'});
     if (length($email) > 5 && $email ne $self->{'USER'}->{'email'} && $self->is_connected()) {
@@ -201,7 +218,9 @@ sub users_update_email {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET email=? WHERE id=?');
         $sth->execute($email,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Email:  $email"]);
     }
+    $self->{'debug'}->DEBUG(['End Users Update Email']);
     return (TRUE);
 }
 
@@ -209,6 +228,7 @@ sub users_toggle_permission {
     my $self  = shift;
     my $field = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Toggle Permission']);
     if (0 + $self->{'USER'}->{$field}) {
         $self->{'USER'}->{$field} = FALSE;
     } else {
@@ -218,12 +238,14 @@ sub users_toggle_permission {
     $sth->execute($self->{'USER'}->{$field}, $self->{'USER'}->{'id'});
     $self->{'dbh'}->commit;
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End Users Toggle Permission']);
     return (TRUE);
 }
 
 sub users_update_location {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Update Location']);
     $self->prompt("\nEnter your location");
     my $location = $self->get_line(ECHO,255,$self->{'USER'}->{'location'});
     if (length($location) >= 4 && $location ne $self->{'USER'}->{'location'} && $self->is_connected()) {
@@ -231,13 +253,16 @@ sub users_update_location {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET location=? WHERE id=?');
         $sth->execute($location,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Location:  $location"]);
     }
+    $self->{'debug'}->DEBUG(['End Users Update Location']);
     return (TRUE);
 }
 
 sub users_update_accomplishments {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Update Accomplishments']);
     $self->prompt("\nEnter your accomplishments");
     my $accomplishments = $self->get_line(ECHO,255,$self->{'USER'}->{'accomplishments'});
     if (length($accomplishments) >= 4 && $accomplishments ne $self->{'USER'}->{'accomplishments'} && $self->is_connected()) {
@@ -245,13 +270,16 @@ sub users_update_accomplishments {
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET accomplishments=? WHERE id=?');
         $sth->execute($accomplishments,$self->{'USER'}->{'id'});
         $sth->finish;
+        $self->{'debug'}->DEBUG(["  Accomplishments:  $accomplishments"]);
     }
+    $self->{'debug'}->DEBUG(['End Users Update Accomplishments']);
     return (TRUE);
 }
 
 sub users_update_text_mode {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Update Text Mode']);
     my $mapping = {
         'TEXT' => '',
         'Z' => {
@@ -297,7 +325,9 @@ sub users_update_text_mode {
         $sth->execute($command,$self->{'USER'}->{'id'});
         $sth->finish;
         $self->{'USER'}->{'text_mode'} = $command;
+        $self->{'debug'}->DEBUG(["  Text Mode:  $command"]);
     }
+    $self->{'debug'}->DEBUG(['Start Users Update Text Mode']);
     return (TRUE);
 }
 
@@ -306,6 +336,7 @@ sub users_load {
     my $username = shift;
     my $password = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Load']);
     my $sth;
     if ($self->{'sysop'}) {
         $sth = $self->{'dbh'}->prepare('SELECT * FROM users_view WHERE username=?');
@@ -315,6 +346,7 @@ sub users_load {
         $sth->execute($username, $password);
     }
     my $results = $sth->fetchrow_hashref();
+    my $response = FALSE;
     if (defined($results)) {
         $self->{'USER'} = $results;
         delete($self->{'USER'}->{'password'});
@@ -337,15 +369,18 @@ sub users_load {
         ) {
             $self->{'USER'}->{$field} = 0 + $self->{'USER'}->{$field};
         }
-        return (TRUE);
+        $response = TRUE;
     }
-    return (FALSE);
+    $self->{'debug'}->DEBUG(['End Users Load']);
+    return ($response);
 }
 
 sub users_get_date {
     my $self     = shift;
     my $old_date = shift;
 
+    $self->{'debug'}->DEBUG(['Start User Get Date']);
+    my $response;
     if ($old_date =~ / /) {
         my $time;
         ($old_date,$time) = split(/ /,$old_date);
@@ -354,20 +389,23 @@ sub users_get_date {
         $date =~ s/YEAR/$year/;
         $date =~ s/MONTH/$month/;
         $date =~ s/DAY/$day/;
-        return("$date $time");
+        $response = "$date $time";
     } else {
         my ($year,$month,$day) = split(/-/,$old_date);
         my $date = $self->{'USER'}->{'date_format'};
         $date =~ s/YEAR/$year/;
         $date =~ s/MONTH/$month/;
         $date =~ s/DAY/$day/;
-        return($date);
+        $response = $date;
     }
+    $self->{'debug'}->DEBUG(['End User Get Date']);
+    return($response);
 }
 
 sub users_list {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users List']);
     my $sth = $self->{'dbh'}->prepare(
         q{
             SELECT
@@ -441,6 +479,7 @@ sub users_list {
     } else {
         $text = $table->draw();
     }
+    $self->{'debug'}->DEBUG(['End Users List']);
     return ($text);
 }
 
@@ -448,7 +487,7 @@ sub users_add {
     my $self          = shift;
     my $user_template = shift;
 
-    $self->{'debug'}->DEBUG(['USERS ADD']);
+    $self->{'debug'}->DEBUG(['Start Users Add']);
     $self->{'debug'}->DEBUGMAX([$user_template]);
     $self->{'dbh'}->begin_work;
     my $sth = $self->{'dbh'}->prepare(
@@ -519,27 +558,30 @@ sub users_add {
         $user_template->{'play_fortunes'},
         $user_template->{'timeout'},
     );
-
+    my $response;
     if ($self->{'dbh'}->err) {
         $self->{'dbh'}->rollback;
         $sth->finish();
-        return (FALSE);
+        $response = FALSE;
     } else {
         $self->{'dbh'}->commit;
         $sth->finish();
-        return (TRUE);
+        $response = TRUE;
     }
+    $self->{'debug'}->DEBUG(['End Users Add']);
+    return($response);
 }
 
 sub users_delete {
     my $self = shift;
     my $id   = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Delete']);
     if ($id == 1) {
-        $self->{'debug'}->ERROR(['Attempt to delete SysOp user']);
+        $self->{'debug'}->ERROR(['  Attempt to delete SysOp user']);
         return(FALSE);
     }
-    $self->{'debug'}->WARNING(["Delete user $id"]);
+    $self->{'debug'}->WARNING(["  Delete user $id"]);
     $self->{'dbh'}->begin_work();
     my $sth = $self->{'dbh'}->prepare('DELETE FROM permissions WHERE id=?');
     $sth->execute($id);
@@ -547,6 +589,7 @@ sub users_delete {
         $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
         $self->{'dbh'}->rollback();
         $sth->finish();
+        $self->{'debug'}->DEBUG(['   End Users Delete']);
         return (FALSE);
     } else {
         $sth->finish();
@@ -556,62 +599,77 @@ sub users_delete {
             $self->{'debug'}->ERROR([$self->{'dbh'}->errstr]);
             $self->{'dbh'}->rollback();
             $sth->finish();
+            $self->{'debug'}->DEBUG(['   End Users Delete']);
             return (FALSE);
         } else {
             $self->{'dbh'}->commit();
             $sth->finish();
+            $self->{'debug'}->DEBUG(['   End Users Delete']);
             return (TRUE);
         }
     }
+    $self->{'debug'}->DEBUG(['End Users Delete']);
 }
 
 sub users_file_category {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users File Category']);
     my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
     $sth->execute($self->{'USER'}->{'file_category'});
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End Users File Category']);
     return ($category);
 }
 
 sub users_forum_category {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Forum Category']);
     my $sth = $self->{'dbh'}->prepare('SELECT name FROM message_categories WHERE id=?');
     $sth->execute($self->{'USER'}->{'forum_category'});
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End Users Forum Category']);
     return ($category);
 }
 
 sub users_rss_category {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users RSS Category']);
     my $sth = $self->{'dbh'}->prepare('SELECT title FROM rss_feed_categories WHERE id=?');
     $sth->execute($self->{'USER'}->{'rss_category'});
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End Users RSS Category']);
     return ($category);
 }
 
 sub users_find {
     my $self = shift;
+    $self->{'debug'}->DEBUG(['Start Users Find']);
+    $self->{'debug'}->DEBUG(['End Users Find']);
     return(TRUE);
 }
 
 sub users_count {
     my $self = shift;
+
+    $self->{'debug'}->DEBUG(['Start Users Count']);
     my $sth = $self->{'dbh'}->prepare('SELECT COUNT(*) FROM users');
     $sth->execute();
     my ($count) = ($sth->fetchrow_array());
     $sth->finish();
+    $self->{'debug'}->DEBUG(['End Users Count']);
     return ($count);
 }
 
 sub users_info {
     my $self = shift;
 
+    $self->{'debug'}->DEBUG(['Start Users Info']);
     my $table;
     my $text  = '';
     my $width = 1;
@@ -621,6 +679,7 @@ sub users_info {
     }
 
     my $columns = $self->{'USER'}->{'max_columns'};
+    $self->{'debug'}->DEBUG(["  $columns Columns"]);
     if ($columns <= 40) {
         $table = sprintf('%-15s=%-25s','FIELD','VALUE') . "\n";
         $table .= '-' x $self->{'USER'}->{'max_columns'} . "\n";
@@ -743,6 +802,7 @@ sub users_info {
     } else {
         $text = $table->draw();
     }
+    $self->{'debug'}->DEBUG(['End Users Info']);
     return ($text);
 }
 1;
