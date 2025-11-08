@@ -443,6 +443,7 @@ sub sysop_list_commands {
             $table->row($ascii_tokens, $self->{'ascii_meta'}->{$ascii_tokens}->{'desc'});
         }
         $text = $self->center($table->boxes->draw(), $wsize);
+		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     } elsif ($mode eq 'ANSI') {
         my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
         my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
@@ -516,6 +517,7 @@ sub sysop_list_commands {
 				}
 			}
 		}
+		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     } elsif ($mode eq 'ATASCII') {
         my $table = Text::SimpleTable->new(1,$ata,25);
         $table->row('C','ATASCII TOKENS','DESCRIPTION');
@@ -524,7 +526,7 @@ sub sysop_list_commands {
         while (scalar(@atatkn)) {
             $atascii_tokens = shift(@atatkn);
             $table->row($self->{'atascii_meta'}->{$atascii_tokens}->{'unicode'}, $atascii_tokens, $self->{'atascii_meta'}->{$atascii_tokens}->{'desc'});
-			$table->hr() if (scalar(@atatkn));
+#			$table->hr() if (scalar(@atatkn));
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'PETSCII') {
@@ -535,7 +537,7 @@ sub sysop_list_commands {
         while (scalar(@pettkn)) {
             $petscii_tokens = shift(@pettkn);
             $table->row($self->{'petscii_meta'}->{$petscii_tokens}->{'unicode'}, $petscii_tokens, $self->{'petscii_meta'}->{$petscii_tokens}->{'desc'});
-			$table->hr() if (scalar(@pettkn));
+#			$table->hr() if (scalar(@pettkn));
 		}
         $text = $self->center($table->boxes->draw(), $wsize);
 		$text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;

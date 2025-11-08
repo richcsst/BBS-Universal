@@ -45,6 +45,7 @@ files/main/news.ASCII
 files/main/news.ATASCII
 files/main/news.PETSCII
 files/README.md
+files/sysop/manual.ANSI
 files/sysop/adduser.ANSI
 files/sysop/bbs_listing_manager.ANSI
 files/sysop/commands_reference.ANSI

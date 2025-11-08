@@ -122,6 +122,10 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANSI'));
     },
+    'SYSOP MANUAL' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual.ANSI'));
+    },
     'SYSOP ADD FILE' => sub {
         my $self = shift;
         $self->sysop_add_file();
