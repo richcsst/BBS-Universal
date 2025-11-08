@@ -20,21 +20,21 @@ if ($fast) {
 } else {
 	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 4800 bps\n";
 }
-sleep 1 unless ($fast);
+sleep 0.25 unless ($fast);
 baud_print('> ');
-sleep 1 unless ($fast);
+sleep 0.50 unless ($fast);
 baud_print("ATDT BBS::Universal\n\n");
-sleep 2 unless ($fast);
-baud_print('Connected ... ');
 sleep 1 unless ($fast);
+baud_print('Connected ... ');
+sleep 0.25 unless ($fast);
 if ($fast) {
 	print "57,600 baud...\n\n";
 } else {
 	baud_print("4800 baud...\n\n");
 }
-sleep 1 unless ($fast);
+sleep 0.5 unless ($fast);
 baud_print("Welcome to...\n\n");
-sleep 1 unless ($fast);
+sleep 0.5 unless ($fast);
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
 baud_print('        ____  ____ ____    _   _       _                          _' . "\n");
@@ -105,13 +105,13 @@ WriteMakefile(
 );
 
 print chr(27) . '[0m', color('reset');
-sleep 1 unless ($fast);
+sleep 0.50 unless ($fast);
 
 baud_print("\nProcess complete\n\n");
-sleep 1 unless ($fast);
+sleep 0.50 unless ($fast);
 
 baud_print("Disconnecting...");
-sleep 1 unless ($fast);
+sleep 0.50 unless ($fast);
 
 print "\n\n";
 

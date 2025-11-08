@@ -394,8 +394,8 @@ sub sysop_list_commands {
     foreach my $count (0 .. 24) {
         push(@anstkn, 'B_GRAY ' . $count);
     }
-    my @atatkn = map { "  $_" } (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
-    my @pettkn = map { "  $_" } (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
+    my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
+    my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
     my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },'HORIZONTAL RULE'));
     my $x      = 1;
     my $xt     = 1;
@@ -434,20 +434,20 @@ sub sysop_list_commands {
         }
     }
     if ($mode eq 'ASCII') {
-        my $table = Text::SimpleTable->new($asc);
-        $table->row('ASCII TOKENS');
+        my $table = Text::SimpleTable->new($asc,25);
+        $table->row('ASCII TOKENS','DESCRIPTION');
         $table->hr();
         my $ascii_tokens;
         while (scalar(@asctkn)) {
             $ascii_tokens = shift(@asctkn);
-            $table->row($ascii_tokens);
+            $table->row($ascii_tokens, $self->{'ascii_meta'}->{$ascii_tokens}->{'desc'});
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'ANSI') {
         my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
         my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
         my $table = Text::SimpleTable->new(25, $ans, 55);
-        $table->row('TYPE', 'ANSI TOKENS', 'ANSI TOKENS DESCRIPTION');
+        $table->row('TYPE', 'ANSI TOKENS', 'DESCRIPTION');
         foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
             $table->hr();
             if ($code =~ /^foreground/) {
@@ -507,26 +507,48 @@ sub sysop_list_commands {
             }
         }
         $text = $self->center($table->boxes->draw(), $wsize);
+		foreach my $code (qw(foreground background)) {
+			foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
+				if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
+					$text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
+				} else {
+					$text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
+				}
+			}
+		}
     } elsif ($mode eq 'ATASCII') {
-        my $table = Text::SimpleTable->new($ata);
-        $table->row('ATASCII TOKENS');
+        my $table = Text::SimpleTable->new(1,$ata,25);
+        $table->row('C','ATASCII TOKENS','DESCRIPTION');
         $table->hr();
         my $atascii_tokens;
         while (scalar(@atatkn)) {
             $atascii_tokens = shift(@atatkn);
-            $table->row($atascii_tokens);
+            $table->row($self->{'atascii_meta'}->{$atascii_tokens}->{'unicode'}, $atascii_tokens, $self->{'atascii_meta'}->{$atascii_tokens}->{'desc'});
+			$table->hr() if (scalar(@atatkn));
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'PETSCII') {
-        my $table = Text::SimpleTable->new($pet);
-        $table->row('PETSCII TOKENS');
+        my $table = Text::SimpleTable->new(1,$pet,28);
+        $table->row('C','PETSCII TOKENS','DESCRIPTION');
         $table->hr();
         my $petscii_tokens;
         while (scalar(@pettkn)) {
             $petscii_tokens = shift(@pettkn);
-            $table->row($petscii_tokens);
-        }
+            $table->row($self->{'petscii_meta'}->{$petscii_tokens}->{'unicode'}, $petscii_tokens, $self->{'petscii_meta'}->{$petscii_tokens}->{'desc'});
+			$table->hr() if (scalar(@pettkn));
+		}
         $text = $self->center($table->boxes->draw(), $wsize);
+		$text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (YELLOW)/│ \[\% YELLOW \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (CYAN)/│ \[\% CYAN \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (GREEN)/│ \[\% GREEN \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (PINK)/│ \[\% PINK \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (BLUE)/│ \[\% BLUE \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (RED)/│ \[\% RED \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (PURPLE)/│ \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (DARK PURPLE)/│ \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (GRAY)/│ \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
+		$text =~ s/│ (BROWN)/│ \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
     } elsif ($mode eq 'USER') {
         my $table = Text::SimpleTable->new($y, $z);
         $table->row('USER MENU COMMANDS', 'USER TOKENS');
@@ -638,74 +660,19 @@ sub sysop_list_commands {
             }
         } ## end while (scalar(@sys) || scalar...)
         $text = $self->center($table->boxes->draw(), $wsize);
+		foreach my $code (qw(foreground background)) {
+			foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
+				if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
+					$text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
+				} else {
+					$text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
+				}
+			}
+		}
+		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     }
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
-    my $replace = join('|', grep(!/^(TAB|SS3|SS2|OSC|SOS|ST|DCS|PM|APC|FONT D|GAINSBORO|RAPID|SLOW|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|SUBSCRIPT|SUPERSCRIPT|UNDERLINE|RETURN|REVERSE|B_BLUE|B_DARK BLUE|B_NAVY|RAPID|PROPORTIONAL ON|PROPORTIONAL OFF|NORMAL|INVERT|ITALIC|OVERLINE|FRAMED|FAINT|ENCIRCLE|CURSOR|CROSSED OUT|BOLD|CSI|B_BLACK|BLACK|CL|CSI|RING BELL|BACKSPACE|LINEFEED|NEWLINE|HOME|UP|DOWN|RIGHT|LEFT|NEXT LINE|PREVIOUS LINE|SAVE|RESTORE|RESET|CURSOR|SCREEN|WHITE|HIDE|REVEAL|DEFAULT|B_DEFAULT)/,(sort(keys %{$self->{'ansi_sequences'}}))));
-    my $new = 'GAINSBORO|UNDERLINE|OVERLINE ON|ENCIRCLE|FAINT|CROSSED OUT|B_BLUE VIOLET|SLOW BLINK|RAPID BLINK|B_INDIGO|B_MEDIUM BLUE|B_MIDNIGHT BLUE|B_NAVY|B_BLUE|B_DARK BLUE';
-###
-    $text =~ s/(TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS DESCRIPTION|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (BOTTOM HORIZONTAL BAR)/│ \[\% LOWER ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│   (TOP HORIZONTAL BAR)/│ \[\% UPPER ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│(\s+)($replace)  /│$1\[% BLACK %][\% $2 \%\]$2  /g;
-    $text =~ s/│(\s+)($new)  /│$1\[\% $2 \%\]$2  /g;
-    $text =~ s/│   (B_WHITE)/│   \[\% BLACK \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT BLUE)/│   \[\% BRIGHT BLUE \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT GREEN)/│   \[\% BRIGHT GREEN \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (LIGHT GRAY)/│   \[\% GRAY 13 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (BLACK)/│   \[\% B_WHITE \%\]\[\% $1 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (PURPLE)/│   \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (DARK PURPLE)/│   \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (GRAY)/│   \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (BROWN)/│   \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
-    $text =~ s/│   (HEART)/│ \[\% BLACK HEART SUIT \%\] $1/g;
-    $text =~ s/│   (BOTTOM BOX)/│ \[\% LOWER HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (BOTTOM LEFT BOX)/│ \[\% QUADRANT LOWER LEFT \%\] $1/g;
-    $text =~ s/│   (TOP LEFT BOX)/│ \[\% QUADRANT UPPER LEFT \%\] $1/g;
-    $text =~ s/│   (BOTTOM RIGHT BOX)/│ \[\% QUADRANT LOWER RIGHT \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT BOX)/│ \[\% QUADRANT UPPER RIGHT \%\] $1/g;
-    $text =~ s/│   (BOTTOM LEFT)/│ \[\% BOX DRAWINGS HEAVY UP AND RIGHT \%\] $1/g;
-    $text =~ s/│   (BOTTOM RIGHT)/│ \[\% BOX DRAWINGS HEAVY UP AND LEFT \%\] $1/g;
-    $text =~ s/│   (LEFT TRIANGLE)/│ \[\% BLACK LEFT-POINTING TRIANGLE \%\] $1/g;
-    $text =~ s/│   (RIGHT TRIANGLE)/│ \[\% BLACK RIGHT-POINTING TRIANGLE \%\] $1/g;
-    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│   (LEFT VERTICAL BAR)/│ \[\% LEFT ONE QUARTER BLOCK \%\] $1/g;                                                                                                                                                                                                                                                                                                                                                                                              # Why twice?  Ask Perl as one doesn't replace all
-    $text =~ s/│   (RIGHT VERTICAL BAR)/│ \[\% RIGHT ONE QUARTER BLOCK \%\] $1/g;
-    $text =~ s/│   (CENTER DOT)/│ \[\% BLACK CIRCLE \%\] $1/g;
-    $text =~ s/│   (CROSS BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (CLUB)/│ \[\% BLACK CLUB SUIT \%\] $1/g;
-    $text =~ s/│   (SPADE)/│ \[\% BLACK SPADE SUIT \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR MIDDLE TOP)/│ \[\% BOX DRAWINGS HEAVY DOWN AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR MIDDLE BOTTOM)/│ \[\% BOX DRAWINGS HEAVY UP AND HORIZONTAL \%\] $1/g;
-    $text =~ s/│   (HORIZONTAL BAR)/│ \[\% BLACK RECTANGLE \%\] $1/g;
-    $text =~ s/│   (FORWARD SLASH)/│ \[\% MATHEMATICAL RISING DIAGONAL \%\] $1/g;
-    $text =~ s/│   (BACK SLASH)/│ \[\% MATHEMATICAL FALLING DIAGONAL \%\] $1/g;
-    $text =~ s/│   (TOP LEFT WEDGE)/│ \[\% BLACK LOWER RIGHT TRIANGLE \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT WEDGE)/│ \[\% BLACK LOWER LEFT TRIANGLE \%\] $1/g;
-    $text =~ s/│   (TOP RIGHT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND LEFT \%\] $1/g;
-    $text =~ s/│   (LEFT ARROW)/│ \[\% WIDE-HEADED LEFTWARDS HEAVY BARB ARROW \%\] $1/g;
-    $text =~ s/│   (RIGHT ARROW)/│ \[\% WIDE-HEADED RIGHTWARDS HEAVY BARB ARROW \%\] $1/g;
-    $text =~ s/│   (BACK ARROW)/│ \[\% ARROW POINTING UPWARDS THEN NORTH WEST \%\] $1/g;
-    $text =~ s/│   (TOP LEFT)/│ \[\% BOX DRAWINGS HEAVY DOWN AND RIGHT \%\] $1/g;
-    $text =~ s/│   (MIDDLE VERTICAL BAR)/│ \[\% BOX DRAWINGS HEAVY VERTICAL \%\] $1/g;
-    $text =~ s/│   (VERTICAL BAR MIDDLE LEFT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND LEFT \%\] $1/g;
-    $text =~ s/│   (VERTICAL BAR MIDDLE RIGHT)/│ \[\% BOX DRAWINGS HEAVY VERTICAL AND RIGHT \%\] $1/g;
-    $text =~ s/│   (UP ARROW)/│ \[\% UPWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-    $text =~ s/│   (DOWN ARROW)/│ \[\% DOWNWARDS ARROW WITH MEDIUM TRIANGLE ARROWHEAD \%\] $1/g;
-    $text =~ s/│   (LEFT HALF)/│ \[\% LEFT HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (RIGHT HALF)/│ \[\% RIGHT HALF BLOCK \%\] $1/g;
-    $text =~ s/│   (DITHERED FULL REVERSE)/│ \[\% INVERT \%\]\[\% MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-    $text =~ s/│   (DITHERED FULL)/│ \[\% MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DITHERED BOTTOM)/│ \[\% LOWER HALF MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DITHERED LEFT REVERSE)/│ \[\% INVERT \%\]\[\% LEFT HALF MEDIUM SHADE \%\]\[\% RESET \%\] $1/g;
-    $text =~ s/│   (DITHERED LEFT)/│ \[\% LEFT HALF MEDIUM SHADE \%\] $1/g;
-    $text =~ s/│   (DIAMOND)/│ \[\% BLACK DIAMOND CENTRED \%\] $1/g;
-    $text =~ s/│   (BRITISH POUND)/│ \[\% POUND SIGN \%\] $1/g;
-    $text =~ s/│(\s+)(OVERLINE ON)  /│$1\[\% OVERLINE ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUPERSCRIPT ON)  /│$1\[\% SUPERSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(SUBSCRIPT ON)  /│$1\[\% SUBSCRIPT ON \%\]$2\[\% RESET \%\]  /g;
-    $text =~ s/│(\s+)(UNDERLINE)  /│$1\[\% UNDERLINE \%\]$2\[\% RESET \%\]  /g;
-    $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
-###
+    $text =~ s/( C |DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
     $self->{'debug'}->DEBUG(['End SysOp List Commands']);
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands

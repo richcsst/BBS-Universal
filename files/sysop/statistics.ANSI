@@ -9,20 +9,20 @@ Z|BACK|WHITE|Return to System Menu
 [% BRIGHT BLUE         %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %]  [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  [% MAGENTA %]|____/ \__\__,_|\__|_|___/\__|_|\___|___/[% RESET %]
 [% BRIGHT CYAN         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT CYAN    %]  [% RESET %][% BRIGHT CYAN    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]
 
-[% BOLD %]BBS Name[% RESET %]         ▰▰▰   [% BBS NAME      %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]System Uptime[% RESET %]  ▰▰▰  [% UPTIME %]
-[% BOLD %]Hardware[% RESET %]         ▰▰▰   [% HARDWARE      %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]Hostname[% RESET %]       ▰▰▰  [% HOSTNAME %]
-[% BOLD %]CPU Type[% RESET %]         ▰▰▰   [% CPU IDENTITY  %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Speed[% RESET %]      ▰▰▰  [% CPU SPEED %]
-[% BOLD %]CPU Cores[% RESET %]        ▰▰▰   [% CPU CORES     %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Load[% RESET %]       ▰▰▰  [% CPU LOAD %]
-[% BOLD %]CPU Threads[% RESET %]      ▰▰▰   [% CPU THREADS   %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Bits[% RESET %]       ▰▰▰  [% CPU BITS %]
-[% BOLD %]Servers Running[% RESET %]  ▰▰▰   [% THREADS COUNT %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]User Count[% RESET %]     ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
-[% BOLD %]IP Address[% RESET %]       ▰▰▰   [% IP ADDRESS %]
+[% BOLD %]BBS Name[% RESET %]         [% MAGENTA %]▰▰▰[% RESET %]   [% BBS NAME      %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]System Uptime[% RESET %]  ▰▰▰  [% UPTIME %]
+[% BOLD %]Hardware[% RESET %]         [% MAGENTA %]▰▰▰[% RESET %]   [% HARDWARE      %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]Hostname[% RESET %]       ▰▰▰  [% HOSTNAME %]
+[% BOLD %]CPU Type[% RESET %]         [% MAGENTA %]▰▰▰[% RESET %]   [% CPU IDENTITY  %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Speed[% RESET %]      ▰▰▰  [% CPU SPEED %]
+[% BOLD %]CPU Cores[% RESET %]        [% MAGENTA %]▰▰▰[% RESET %]   [% CPU CORES     %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Load[% RESET %]       ▰▰▰  [% CPU LOAD %]
+[% BOLD %]CPU Threads[% RESET %]      [% MAGENTA %]▰▰▰[% RESET %]   [% CPU THREADS   %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Bits[% RESET %]       ▰▰▰  [% CPU BITS %]
+[% BOLD %]Servers Running[% RESET %]  [% MAGENTA %]▰▰▰[% RESET %]   [% THREADS COUNT %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]User Count[% RESET %]     ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
+[% BOLD %]IP Address[% RESET %]       [% MAGENTA %]▰▰▰[% RESET %]   [% IP ADDRESS %]
 
-[% BOLD %][% BRIGHT GREEN %]Memory[% RESET %]           ▰▰▰
+[% BOLD %][% BRIGHT GREEN %]Memory[% RESET %]           [% MAGENTA %]▰▰▰[% RESET %]
 
 [% MEMORY %]
-[% BOLD %][% BRIGHT RED %]Versions[% RESET %]         ▰▰▰
+[% BOLD %][% BRIGHT RED %]Versions[% RESET %]         [% MAGENTA   %]▰▰▰[% RESET %]
 
 [% BBS VERSIONS %]
-[% BOLD %][% BRIGHT BLUE %]Disk Free[% RESET %]        ▰▰▰
+[% BOLD %][% BRIGHT BLUE %]Disk Free[% RESET %]        [% MAGENTA  %]▰▰▰[% RESET %]
 
 [% DISK FREE SPACE %]
