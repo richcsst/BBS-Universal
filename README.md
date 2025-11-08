@@ -28,7 +28,7 @@ You can use the default menu files or change them to your own taste.  See the ma
 
 ## DESCRIPTION
 
-A 100% Perl BBS server.  It supports ASCII, ANDI, ATASCII and PETSCII text formats.
+A 100% Perl BBS server.  It supports ASCII, ANSI, ATASCII and PETSCII text formats.
 
 ## CONFIGURATION
 
