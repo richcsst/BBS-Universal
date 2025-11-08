@@ -51,6 +51,7 @@ DATABASE PORT     = 3306
 
 ## SYSOP MENU FILE FORMAT
 
+Note:  Add needed files are included in the distribution.  All you need to do is customize them for your BBS
 ```
 # Key | Command | Color | Description
 1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
@@ -75,6 +76,7 @@ X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 
 ## MAIN MENU FILE FORMAT
 
+Note:  Add needed files are included in the distribution.  All you need to do is customize them for your BBS
 ```
 # KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
 B|BBS LISTING|BLUE|USER|Show BBS List
