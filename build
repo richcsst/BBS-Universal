@@ -1,3 +1,0 @@
-#!/bin/bash
-
-perl Makefile.PL 57600 && make && sudo make install && make veryclean && ./fix && bbs --silent --sysop $@
