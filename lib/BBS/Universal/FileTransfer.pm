@@ -277,6 +277,29 @@ sub files_receive_file {
 
 	my $success = TRUE;
     $self->{'debug'}->DEBUG(['Start Receive File']);
+	unless ($self->{'local_mode'}) {
+		chdir $self->{'CONF'}->{'FILE PATH'};
+		select $self->{'cl_socket'};
+		if ($protocol == YMODEM) {
+			$self->{'debug'}->DEBUG(["Send file $file with Ymodem"]);
+			system('rz', '--binary', '--quiet', '--ymodem', '--rename', '--restricted', '--restricted');
+		} elsif ($protocol == ZMODEM) {
+			$self->{'debug'}->DEBUG(["Send file $file with Zmodem"]);
+			system('rz', '--binary', '--quiet', '--zmodem', '--rename', '--restricted', '--restricted');
+		} else { # Xmodem
+			$self->{'debug'}->DEBUG(["Send file $file with Xmodem"]);
+			system('rx', '--binary', '--quiet', '--xmodem', $file);
+		}
+		select STDOUT;
+		if ($? == -1) {
+			$self->{'debug'}->ERROR(["Could not execute rz:  $!"]);
+		} elsif ($? & 127) {
+			$self->{'debug'}->ERROR(["File Transfer Aborted:  $!"]);
+		} else {
+			$self->{'debug'}->DEBUG(['File Transfer Successful']);
+		}
+		chdir $self->{'CONF'}->{'BBS ROOT'};
+	}
     $self->{'debug'}->DEBUG(['End Receive File']);
     return($success);
 }
@@ -288,6 +311,22 @@ sub files_send_file {
 
 	my $success = TRUE;
     $self->{'debug'}->DEBUG(['Start Send File']);
+	unless ($self->{'local_mode'}) { # No file transfer in local mode
+		chdir $self->{'CONF'}->{'FILE PATH'};
+		select $self->{'cl_socket'};
+		if ($protocol == YMODEM) {
+			$self->{'debug'}->DEBUG(["Send file $file with Ymodem"]);
+			system('sz', '--binary', '--quiet', '--$protocol ymodem', $file);
+		} elsif ($protocol == ZMODEM) {
+			$self->{'debug'}->DEBUG(["Send file $file with Zmodem"]);
+			system('sz', '--binary', '--quiet', '--$protocol zmodem', '--resume', $file);
+		} else { # Xmodem
+			$self->{'debug'}->DEBUG(["Send file $file with Xmodem"]);
+			system('sz', '--binary', '--quiet', '--$protocol xmodem', $file);
+		}
+		select STDOUT;
+		chdir $self->{'CONF'}->{'BBS ROOT'};
+	}
     $self->{'debug'}->DEBUG(['End Send File']);
     return ($success);
 }

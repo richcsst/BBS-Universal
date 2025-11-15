@@ -30,6 +30,10 @@ use constant {
     PETSCII => 2,
     ANSI    => 3,
 
+	XMODEM => 0,
+	YMODEM => 1,
+	ZMODEM => 2, 
+
     LINEMODE => 34,
 
     SE                => 240,
@@ -310,6 +314,16 @@ sub populate_common {
             } else {
                 return ('USER CREDENTIALS');
             }
+        },
+        'THREAD ID' => sub {
+            my $self = shift;
+            my $tid  = threads->tid();
+            if ($tid == 0) {
+                $tid = 'LOCAL';
+            } else {
+                $tid = sprintf('%02d', $tid);
+            }
+            return($tid);
         },
         'FORTUNE' => sub {
             my $self = shift;
@@ -600,10 +614,10 @@ sub populate_common {
             $self->files_list_summary(FALSE);
             return ($self->load_menu('files/main/files_menu'));
         },
-		'UPLOAD FILE' => sub {
-			my $self = shift;
+        'UPLOAD FILE' => sub {
+            my $self = shift;
             return ($self->load_menu('files/main/files_menu'));
-		},
+        },
         'LIST FILES DETAILED' => sub {
             my $self = shift;
             $self->files_list_detailed(FALSE);
@@ -1769,7 +1783,7 @@ sub playit {
     unless ($self->{'nosound'}) {
         $self->{'debug'}->DEBUG(["  Play Sound $file"]);
         if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
-            system("nice -20 mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
+            system("mplayer -really-quiet sysop_sounds/$file 1>/dev/null 2>&1 &");
         }
     } ## end unless ($self->{'nosound'})
     $self->{'debug'}->DEBUG(['End Playit']);

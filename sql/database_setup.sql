@@ -304,10 +304,10 @@ INSERT INTO bbs_listing (bbs_name,bbs_hostname,bbs_port,bbs_poster_id) VALUES ('
 INSERT INTO config (config_name, config_value) VALUES ('HOST','0.0.0.0');
 INSERT INTO config (config_name, config_value) VALUES ('BBS NAME','BBS Universal');
 INSERT INTO config (config_name, config_value) VALUES ('PORT','9999');
-INSERT INTO config (config_name, config_value) VALUES ('BBS ROOT','.');
+INSERT INTO config (config_name, config_value) VALUES ('BBS ROOT','~/source/github/BBS-Universal');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT BAUD RATE','2400');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TEXT MODE','ASCII');
-INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','4');
+INSERT INTO config (config_name, config_value) VALUES ('THREAD MULTIPLIER','2');
 INSERT INTO config (config_name, config_value) VALUES ('DATE FORMAT','YEAR/MONTH/DAY');
 INSERT INTO config (config_name, config_value) VALUES ('DEFAULT TIMEOUT','10');
 INSERT INTO config (config_name, config_value) VALUES ('FILES PATH','files/files/');
