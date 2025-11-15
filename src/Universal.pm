@@ -1,4 +1,4 @@
-package BBS::Universal;
+package BBS::Universal 0.014;
 
 # Pragmas
 use 5.010;
@@ -96,7 +96,6 @@ use XML::RSS::LibXML;
 BEGIN {
     require Exporter;
 
-    our $VERSION = '0.013';
     our @ISA     = qw(Exporter);
     our @EXPORT  = qw(
         TRUE
@@ -601,6 +600,10 @@ sub populate_common {
             $self->files_list_summary(FALSE);
             return ($self->load_menu('files/main/files_menu'));
         },
+		'UPLOAD FILE' => sub {
+			my $self = shift;
+            return ($self->load_menu('files/main/files_menu'));
+		},
         'LIST FILES DETAILED' => sub {
             my $self = shift;
             $self->files_list_detailed(FALSE);

@@ -10,31 +10,35 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
-my $fast  = (scalar(@ARGV)) ? 1 : 0;    # Pass anything and it means Fast
-my $speed = 0.00125;                     # For sleep to simulate 2400 baud
+my $Speed = { # "Baud" speed values
+	'300'   => 0.02,
+	'600'   => 0.01,
+	'1200'  => 0.005,
+	'2400'  => 0.0025,
+	'4800'  => 0.00125,
+	'9600'  => 0.000625,
+	'19200' => 0.0003125,
+	'57600' => 0,
+};
+
+my $speed = (scalar(@ARGV)) ? $ARGV[0] : '2400';                      # For sleep to simulate 4800 baud
+
+$speed = '57600' unless ($speed =~ /^(300|1200|2400|4800|9600|19200)$/);
 
 $| = 1;                                 # Turn off buffering
-print chr(27) . '[2J' . chr(27) . '[H' . chr(27) . '[0m';
-if ($fast) {
-	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 57,600 bps\n";
-} else {
-	print "WOPR Retro-Terminal.  Hayes modem ready 8/N/1 4800 bps\n";
-}
-sleep 0.25 unless ($fast);
+print "\e[2J\e[H\e[0m";
+baud_print("WOPR Retro-Terminal.  Hayes modem ready 8/N/1 $speed bps\n");
+sleep 0.25 unless ($speed eq '57600');
 baud_print('> ');
-sleep 0.50 unless ($fast);
+sleep 0.50 unless ($speed eq '57600');
 baud_print("ATDT BBS::Universal\n\n");
-sleep 1 unless ($fast);
+sleep 1 unless ($speed eq '57600');
 baud_print('Connected ... ');
-sleep 0.25 unless ($fast);
-if ($fast) {
-	print "57,600 baud...\n\n";
-} else {
-	baud_print("4800 baud...\n\n");
-}
-sleep 0.5 unless ($fast);
+sleep 0.25 unless ($speed eq '57600');
+baud_print("$speed baud...\n\n");
+sleep 0.5 unless ($speed eq '57600');
 baud_print("Welcome to...\n\n");
-sleep 0.5 unless ($fast);
+sleep 0.5 unless ($speed eq '57600');
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
 baud_print('        ____  ____ ____    _   _       _                          _' . "\n");
@@ -91,7 +95,7 @@ WriteMakefile(
 		'DBD::mysql'             => '4.00',
 		'Term::ReadKey'          => '2.30',
 		'IO::Socket'             => '1.20',
-		'Debug::Easy'            => '2.11',
+		'Debug::Easy'            => 0,
 		'List::Util'             => '1.40',
 		'Cache::Memcached::Fast' => '0.25',
 		'XML::RSS::LibXML'       => '0.3105',
@@ -105,13 +109,13 @@ WriteMakefile(
 );
 
 print chr(27) . '[0m', color('reset');
-sleep 0.50 unless ($fast);
+sleep 0.50 unless ($speed eq '57600');
 
 baud_print("\nProcess complete\n\n");
-sleep 0.50 unless ($fast);
+sleep 0.50 unless ($speed eq '57600');
 
 baud_print("Disconnecting...");
-sleep 0.50 unless ($fast);
+sleep 0.50 unless ($speed eq '57600');
 
 print "\n\n";
 
@@ -119,15 +123,15 @@ exit(0);
 
 sub baud_print {
     my $text = shift;
-    if ($fast) {
+    if ($speed eq '57600') {
         print $text;
     } else {
         my $l = length($text) - 1;
         foreach my $c (0 .. $l) {
             print substr($text, $c, 1);
-            sleep($speed);
+            sleep $Speed->{$speed};
         }
-    } ## end else [ if ($fast) ]
+    } ## end else [ if ($speed eq '57600') ]
 } ## end sub baud_print
 
 sub merge {    # Perl sometimes is a pain in the ...

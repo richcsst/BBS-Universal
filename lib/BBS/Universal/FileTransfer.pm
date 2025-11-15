@@ -1,5 +1,5 @@
 package BBS::Universal::FileTransfer;
-BEGIN { our $VERSION = '0.003'; }
+BEGIN { our $VERSION = '0.004'; }
 
 sub filetransfer_initialize {
     my $self = shift;
@@ -263,24 +263,32 @@ sub files_list_detailed {
     return (TRUE);
 }
 
-sub save_file {
+sub files_save_file {
     my $self = shift;
     $self->{'debug'}->DEBUG(['Start Save File']);
     $self->{'debug'}->DEBUG(['End Save File']);
     return (TRUE);
 }
 
-sub receive_file {
-    my $self = shift;
+sub files_receive_file {
+    my $self     = shift;
+	my $file     = shift;
+	my $protocol = shift;
+
+	my $success = TRUE;
     $self->{'debug'}->DEBUG(['Start Receive File']);
     $self->{'debug'}->DEBUG(['End Receive File']);
-    return(TRUE);
+    return($success);
 }
 
-sub send_file {
-    my $self = shift;
+sub files_send_file {
+    my $self     = shift;
+	my $file     = shift;
+    my $protocol = shift;
+
+	my $success = TRUE;
     $self->{'debug'}->DEBUG(['Start Send File']);
     $self->{'debug'}->DEBUG(['End Send File']);
-    return (TRUE);
+    return ($success);
 }
 1;

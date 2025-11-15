@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.009'; }
+BEGIN { our $VERSION = '0.011'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -28,6 +28,7 @@ sub sysop_initialize {
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
     my $esc          = chr(27) . '[';
 
+    $self->{'sysop_menu_colors'} = [91,93,92,95,94,96];
     $self->{'flags_default'} = {
         'prefer_nickname' => 'Yes',
         'view_files'      => 'Yes',
@@ -443,7 +444,7 @@ sub sysop_list_commands {
             $table->row($ascii_tokens, $self->{'ascii_meta'}->{$ascii_tokens}->{'desc'});
         }
         $text = $self->center($table->boxes->draw(), $wsize);
-		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
+        $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     } elsif ($mode eq 'ANSI') {
         my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
         my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
@@ -508,16 +509,16 @@ sub sysop_list_commands {
             }
         }
         $text = $self->center($table->boxes->draw(), $wsize);
-		foreach my $code (qw(foreground background)) {
-			foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
-				if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
-					$text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
-				} else {
-					$text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
-				}
-			}
-		}
-		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
+        foreach my $code (qw(foreground background)) {
+            foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
+                if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
+                    $text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
+                } else {
+                    $text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
+                }
+            }
+        }
+        $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     } elsif ($mode eq 'ATASCII') {
         my $table = Text::SimpleTable->new(1,$ata,25);
         $table->row('C','ATASCII TOKENS','DESCRIPTION');
@@ -526,7 +527,7 @@ sub sysop_list_commands {
         while (scalar(@atatkn)) {
             $atascii_tokens = shift(@atatkn);
             $table->row($self->{'atascii_meta'}->{$atascii_tokens}->{'unicode'}, $atascii_tokens, $self->{'atascii_meta'}->{$atascii_tokens}->{'desc'});
-#			$table->hr() if (scalar(@atatkn));
+#            $table->hr() if (scalar(@atatkn));
         }
         $text = $self->center($table->boxes->draw(), $wsize);
     } elsif ($mode eq 'PETSCII') {
@@ -537,20 +538,20 @@ sub sysop_list_commands {
         while (scalar(@pettkn)) {
             $petscii_tokens = shift(@pettkn);
             $table->row($self->{'petscii_meta'}->{$petscii_tokens}->{'unicode'}, $petscii_tokens, $self->{'petscii_meta'}->{$petscii_tokens}->{'desc'});
-#			$table->hr() if (scalar(@pettkn));
-		}
+#            $table->hr() if (scalar(@pettkn));
+        }
         $text = $self->center($table->boxes->draw(), $wsize);
-		$text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (YELLOW)/│ \[\% YELLOW \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (CYAN)/│ \[\% CYAN \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (GREEN)/│ \[\% GREEN \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (PINK)/│ \[\% PINK \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (BLUE)/│ \[\% BLUE \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (RED)/│ \[\% RED \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (PURPLE)/│ \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (DARK PURPLE)/│ \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (GRAY)/│ \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
-		$text =~ s/│ (BROWN)/│ \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (YELLOW)/│ \[\% YELLOW \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (CYAN)/│ \[\% CYAN \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (GREEN)/│ \[\% GREEN \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (PINK)/│ \[\% PINK \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (BLUE)/│ \[\% BLUE \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (RED)/│ \[\% RED \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (PURPLE)/│ \[\% COLOR 127 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (DARK PURPLE)/│ \[\% COLOR 53 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (GRAY)/│ \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
+        $text =~ s/│ (BROWN)/│ \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
     } elsif ($mode eq 'USER') {
         my $table = Text::SimpleTable->new($y, $z);
         $table->row('USER MENU COMMANDS', 'USER TOKENS');
@@ -662,16 +663,16 @@ sub sysop_list_commands {
             }
         } ## end while (scalar(@sys) || scalar...)
         $text = $self->center($table->boxes->draw(), $wsize);
-		foreach my $code (qw(foreground background)) {
-			foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
-				if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
-					$text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
-				} else {
-					$text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
-				}
-			}
-		}
-		$text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
+        foreach my $code (qw(foreground background)) {
+            foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
+                if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
+                    $text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
+                } else {
+                    $text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
+                }
+            }
+        }
+        $text = $self->sysop_color_border($text, 'ORANGE','DOUBLE');
     }
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
     $text =~ s/( C |DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
@@ -801,7 +802,8 @@ sub sysop_pager {
     my $count = 1;
     while (scalar(@lines)) {
         my $line = shift(@lines);
-        $self->ansi_output("$line\n");
+        $self->sysop_output("$line\n");
+#        $self->sysop_ansi_output("$line\n");
         $count++;
         if ($count >= $size) {
             $count = 1;
@@ -818,6 +820,8 @@ sub sysop_parse_menu {
     my $row  = shift;
     my $file = shift;
 
+    my $row = $self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST');
+    my $animate = ($self->{'CONF'}->{'SYSOP ANIMATED MENU'}) ? TRUE : FALSE;
     $self->{'debug'}->DEBUG(['Start SysOp Parse Menu', "  SysOp Parse Menu $file"]);
     my $mapping = $self->sysop_load_menu($row, $file);
     print locate($row, 1), cldown;
@@ -828,7 +832,8 @@ sub sysop_parse_menu {
     $self->sysop_prompt('Choose');
     my $key;
     do {
-        $key = uc($self->sysop_keypress());
+        $key = uc($self->sysop_keypress($row,$animate));
+        threads->yield();
     } until (exists($mapping->{$key}));
     print $mapping->{$key}->{'command'}, "\n";
     $self->{'debug'}->DEBUG(['End SysOp Parse Menu']);
@@ -837,7 +842,6 @@ sub sysop_parse_menu {
 
 sub sysop_decision {
     my $self = shift;
-
     $self->{'debug'}->DEBUG(['Start SysOp Decision']);
     my $response;
     do {
@@ -857,18 +861,49 @@ sub sysop_decision {
 
 sub sysop_keypress {
     my $self = shift;
+    my $row;
+    my $animate = FALSE;
+    if (scalar(@_)) {
+        $row     = shift;
+        $animate = shift;
+    }
 
-    $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
     my $key;
-    ReadMode 'ultra-raw';
     do {
-        $key = ReadKey(-1);
+        $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
+        ReadMode 'ultra-raw';
+        $key = ReadKey(0.25);
+        ReadMode 'restore';
+        $self->sysop_animate($row) if ($animate);
         threads->yield();
+        $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
     } until (defined($key));
-    ReadMode 'restore';
-    $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
     return ($key);
 } ## end sub sysop_keypress
+
+sub sysop_animate {
+    my $self = shift;
+    my $row  = shift;
+
+    my @color = @{$self->{'sysop_menu_colors'}};
+    ###
+    my $text = "\e[s" .
+               "\e[" . $row++ . ";1H\e[" . $color[0] . "m◥\e[" . ($color[0]+10) . "m \e[0m\e[" . $color[0] . "m\e[7m◥\e[0m" .
+               "\e[" . $row++ . ";2H\e[" . $color[1] . "m◥\e[" . ($color[1]+10) . "m \e[0m\e[" . $color[1] . "m\e[7m◥\e[0m" .
+               "\e[" . $row++ . ";3H\e[" . $color[2] . "m◥\e[" . ($color[2]+10) . "m \e[0m\e[" . $color[2] . "m\e[7m◥\e[0m" .
+               "\e[" . $row++ . ";3H\e[" . $color[3] . "m◢\e[" . ($color[3]+10) . "m \e[0m\e[" . $color[3] . "m\e[7m◢\e[0m" .
+               "\e[" . $row++ . ";2H\e[" . $color[4] . "m◢\e[" . ($color[4]+10) . "m \e[0m\e[" . $color[4] . "m\e[7m◢\e[0m" .
+               "\e[" . $row++ . ";1H\e[" . $color[5] . "m◢\e[" . ($color[5]+10) . "m \e[0m\e[" . $color[5] . "m\e[7m◢\e[0m" .
+               "\e[u";
+    ###
+    $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
+    print $text;
+    $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
+
+    my $l = pop(@color);
+    unshift(@color, $l);
+    $self->{'sysop_menu_colors'} = \@color;
+}
 
 sub sysop_ip_address {
     my $self = shift;
@@ -1028,7 +1063,7 @@ sub sysop_list_users {
     } ## end else [ if ($list_mode =~ /VERTICAL/)]
     print 'Press a key to continue ... ';
     $self->{'debug'}->DEBUG(['End SysOp List Users']);
-    return ($self->sysop_keypress(TRUE));
+    return ($self->sysop_keypress());
 } ## end sub sysop_list_users
 
 sub sysop_delete_files {
@@ -1392,7 +1427,7 @@ sub sysop_view_configuration {
     $table->hr();
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
-        my $choice = ($count >= 10) ? chr(55 + $count) : $count;
+		my $choice = chr(65 + $count);
         next if ($conf eq 'STATIC');
         my $c = $self->{'CONF'}->{$conf};
         if ($conf eq 'DEFAULT TIMEOUT') {
@@ -1432,10 +1467,16 @@ sub sysop_view_configuration {
         $output =~ s/CHOICE/$ch/gs;
         $ch = colored(['bright_yellow'], 'STATIC NAME');
         $output =~ s/STATIC NAME/$ch/gs;
+        $ch = colored(['bright_yellow'], 'STATIC VALUE');
+        $output =~ s/STATIC VALUE/$ch/gs;
         $ch = colored(['green'], 'CONFIG NAME');
         $output =~ s/CONFIG NAME/$ch/gs;
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
+		$ch = colored(['green'], 'TRUE');
+		$output =~ s/TRUE/$ch/gs;
+		$ch = colored(['red'], 'FALSE');
+		$output =~ s/FALSE/$ch/gs;
         $output = $self->sysop_color_border($output, 'RED', 'HEAVY');
     }
     my $response;
@@ -1444,7 +1485,7 @@ sub sysop_view_configuration {
     } elsif ($view == TRUE) {
         print $self->sysop_detokenize($output);
         print 'Press a key to continue ... ';
-        $response = $self->sysop_keypress(TRUE);
+        $response = $self->sysop_keypress();
     } elsif ($view == FALSE) {
         print $self->sysop_detokenize($output);
         print $self->sysop_menu_choice('TOP',    '',    '');
@@ -1522,6 +1563,11 @@ sub sysop_edit_configuration {
             'type'    => RADIO,
             'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY',],
         },
+		'SYSOP ANIMATED MENU' => {
+			'max' => 5,
+			'type' => RADIO,
+			'choices' => ['TRUE', 'FALSE'],
+		},
         'USE DUF' => {
             'max'     => 5,
             'type'    => RADIO,
@@ -1535,8 +1581,8 @@ sub sysop_edit_configuration {
     };
     my $choice;
     do {
-        $choice = uc($self->sysop_keypress(TRUE));
-    } until ($choice =~ /\d|[A-G]|Z/i);
+        $choice = uc($self->sysop_keypress());
+    } until ($choice =~ /[A-R]|Z/i);
     if ($choice =~ /Z/i) {
         print "BACK\n";
         return (FALSE);
@@ -2292,12 +2338,6 @@ sub sysop_showenv {
             my $line      = $ENV{$env};
             $line =~ s/256color/$colorized/;
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
-        } elsif ($env =~ /GNOME_SHELL_SESSION_MODE|GDMSESSION|DESKTOP_SESSION|XDG_SESSION_DESKTOP/) {
-            if ($ENV{$env} eq 'ubuntu') {
-                $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% ORANGE %]' . $ENV{$env} . "[% RESET %]\n";
-            } elsif ($ENV{$env} eq 'redhat') {
-                $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = [% RED %]' . $ENV{$env} . "[% RESET %]\n";
-            }
         } elsif ($env eq 'COLORTERM') {
             my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'],'r');
             my $line      = $ENV{$env};
@@ -2306,7 +2346,33 @@ sub sysop_showenv {
         } elsif ($env eq 'WHATISMYIP') {
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ENV{$env}) . "\n";
         } else {
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $ENV{$env} . "\n";
+            my $orig = $ENV{$env};
+            my $new;
+            if ($orig =~ /(ubuntu)/i) {
+                $new = '[% ORANGE %]' . $1 . '[% RESET %]';
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(redhat)/i) {
+                $new = colored(['bright_red'], $1);
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(fedora)/i) {
+                $new = colored(['bright_cyan'], $1);
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(mint)/i) {
+                $new = colored(['bright_green'],$1);
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(zorin)/i) {
+                $new = colored(['bright_white'], $1);
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(wayland)/i) {
+                $new = colored(['bright_yellow'], $1);
+                $orig =~ s/$1/$new/g;
+            }
+            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $orig . "\n";
         }
     } ## end foreach my $env (sort(keys ...))
     $self->{'debug'}->DEBUG(['End SysOp ShowENV']);
@@ -2656,7 +2722,7 @@ sub sysop_output {
 
     my $response = TRUE;
     if (defined($text) && $text ne '') {
-        if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+        if ($text =~ /\[\%\s+WRAP\s+\%\]/s) {
             my $format = Text::Format->new(
                 'columns'     => $self->{'USER'}->{'max_columns'} - 1,
                 'tabstop'     => 4,
@@ -2664,9 +2730,9 @@ sub sysop_output {
                 'firstIndent' => 0,
             );
             my $header;
-            ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
-            if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
-                $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
+            ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/s, $text);
+            if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/s) {
+                $text =~ s/\[\%\s+JUSTIFY\s+\%\]//gs;
                 $format->justify(TRUE);
             }
             $text = $format->format($text);
