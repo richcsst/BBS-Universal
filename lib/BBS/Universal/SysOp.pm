@@ -29,6 +29,7 @@ sub sysop_initialize {
     my $esc          = chr(27) . '[';
 
     $self->{'sysop_menu_colors'} = [91,93,92,95,94,96];
+	$self->{'sysop_menu_files'}  = ['','','','',''];
     $self->{'flags_default'} = {
         'prefer_nickname' => 'Yes',
         'view_files'      => 'Yes',
@@ -762,7 +763,15 @@ sub sysop_load_menu {
     my $text    = locate($row, 1) . cldown;
     open(my $FILE, '<', $file);
 
-	print locate(1,108), clline, colored(['green'],$file);
+	shift(@{$self->{'sysop_menu_files'}});
+	push(@{$self->{'sysop_menu_files'}}, $file);
+	for(my $count=0;$count<5;$count++) {
+		if ($count == 4) {
+			print locate(($count + 1),108), colored(['green','on_black'],clline . $self->{'sysop_menu_files'}->[$count]);
+		} else {
+			print locate(($count + 1),108), colored(['ansi22','on_black'],clline . $self->{'sysop_menu_files'}->[$count]);
+		}
+	}
     while (chomp(my $line = <$FILE>)) {
         next if ($line =~ /^\#/);
         if ($mode) {

@@ -32,6 +32,7 @@ sub files_load_file {
 
     $self->{'debug'}->DEBUG(['Start Files Load File']);
     my $filename = sprintf('%s.%s', $file, $self->{'USER'}->{'text_mode'});
+	$self->{'CACHE'}->set(sprintf('SERVER %02d %s', $self->{'thread_number'},'CURRENT MENU FILE'), $filename);
     open(my $FILE, '<', $filename);
     my @text = <$FILE>;
     close($FILE);
