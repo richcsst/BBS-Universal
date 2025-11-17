@@ -360,17 +360,17 @@ sub logo {
     $DEBUG->DEBUG(['Start Logo']);
     $CACHE->set('ROW_ADJUST', 0);
     my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
-    my $banner  = colored(['red'],         q{  ____  ____ ____    _   _       _                          _  }) . colored(['blue'], '│') . ' [% VERSION %]' . "\n";
-    $banner    .= colored(['yellow'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | }) . colored(['blue'], '│') . ' Written By Richard Kelsch' . "\n";
-    $banner    .= colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }) . colored(['blue'], '│') . ' Copyright © 2023-2025 Richard Kelsch' . "\n";
-    $banner    .= colored(['magenta'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | }) . colored(['blue'], '│') . ' All Rights Reserved' . "\n";
-    $banner    .= colored(['bright_blue'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| }) . colored(['blue'], '│') . ' Licensed Under The Perl Artistic License' . "\n";
-    $banner    .= colored(['blue'], q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷}) . "\n";
+    my $banner  = colored(['red'],         q{  ____  ____ ____    _   _       _                          _  }) . colored(['blue'], '│') . ' [% VERSION %]                            ' . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['yellow'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | }) . colored(['blue'], '│') . ' Written By Richard Kelsch                ' . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['green'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | }) . colored(['blue'], '│') . ' Copyright © 2023-2025 Richard Kelsch     ' . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['magenta'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | }) . colored(['blue'], '│') . ' All Rights Reserved                      ' . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['bright_blue'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| }) . colored(['blue'], '│') . ' Licensed Under The Perl Artistic License ' . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['blue'], q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷}) . "\n";
 #    $banner    .= colored(['blue'], ruler($wsize)) . "\n";
 
     $banner =~ s/\[\% VERSION \%\]/$version/s;
     print setscroll(1, $hsize), locate(1, 1);
-    $banner .= locate(6,65) . colored(['blue'], '━' x ($wsize - 64));
+    $banner .= locate(6,108) . colored(['blue'], '━' x ($wsize - 107));
     print $banner;
     print locate($CACHE->get('START_ROW'), 1),  cldown;
     $DEBUG->DEBUG(['End Logo']);

@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.011'; }
+BEGIN { our $VERSION = '0.012'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -762,6 +762,7 @@ sub sysop_load_menu {
     my $text    = locate($row, 1) . cldown;
     open(my $FILE, '<', $file);
 
+	print locate(1,108), clline, colored(['green'],$file);
     while (chomp(my $line = <$FILE>)) {
         next if ($line =~ /^\#/);
         if ($mode) {
