@@ -95,7 +95,6 @@ X|DISCONNECT|WHITE|USER|Disconnect
 |  \/  |___ _ _ _  _
 | |\/| / -_) ' \ || |
 |_|  |_\___|_||_\_,_|
-[% FORTUNE %]
 ```
 
 ## LICENSE AND COPYRIGHT
