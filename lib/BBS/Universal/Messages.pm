@@ -297,7 +297,7 @@ sub messages_text_editor {
             $text  = $self->messages_text_edit($title,$text);
         } else {
             $self->prompt('Title');
-            $title = $self->get_line(ECHO, 255);
+            $title = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
             $self->prompt('Message');
             $text  = $self->messages_text_edit($title);
         }
@@ -386,7 +386,7 @@ sub messages_text_edit {
             } else {
                 $self->output(sprintf('%03d ', ($counter + 1)));
             }
-            $text = $self->get_line(ECHO,$self->{'USER'}->{'max_columns'});
+            $text = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, $self->{'USER'}->{'max_columns'});
             $self->output("\n");
             if ($text =~ /^\:(.)(.*)/i) { # Process command
                 my $command = uc($1);
@@ -400,7 +400,7 @@ sub messages_text_edit {
                         } else {
                             $self->output("\n" . sprintf('%03d ',$line_number));
                         }
-                        my $line = $self->get_line(ECHO,$self->{'USER'}->{'max_columns'},$lines[$line_number - 1]);
+                        my $line = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, $self->{'USER'}->{'max_columns'},$lines[$line_number - 1]);
                         $lines[$line_number - 1] = $line;
                     }
                     $menu = TRUE;

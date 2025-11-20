@@ -25,6 +25,7 @@ use constant {
 	BOOLEAN     =>  4,
     HOST        =>  5,
     DATE        =>  6,
+	FILENAME    =>  7,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -617,6 +618,7 @@ sub populate_common {
         },
         'UPLOAD FILE' => sub {
             my $self = shift;
+			$self->files_upload_choices();
             return ($self->load_menu('files/main/files_menu'));
         },
         'LIST FILES DETAILED' => sub {
@@ -1331,6 +1333,45 @@ sub get_line {
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-z]|[0-9]|\./) {
                         $self->output(lc($key));
                         $line .= lc($key);
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == FILENAME) {
+        $self->{'debug'}->DEBUG(['  Mode:  FILENAME']);
+		# /^[a-zA-Z0-9](?:[a-zA-Z0-9 ._-]*[a-zA-Z0-9])?\.[a-zA-Z0-9_-]+$/
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-zA-Z0-9]|\.|_|-/) {
+						if ($line eq '' && $key !~ /^[a-zA-Z0-9]/) {
+							$self->output('[% RING BELL %]');
+						} else {
+							$self->output($key);
+							$line .= $key;
+						}
                     } else {
                         $self->output('[% RING BELL %]');
                     }

@@ -39,7 +39,7 @@ CREATE TABLE users (
     date_format     CHAR(14) DEFAULT 'YEAR/MONTH/DAY',
     file_category   INT UNSIGNED NOT NULL DEFAULT 1,
     forum_category  INT UNSIGNED NOT NULL DEFAULT 1,
-	rss_category    INT UNSIGNED NOT NULL DEFAULT 1,
+    rss_category    INT UNSIGNED NOT NULL DEFAULT 1,
     location        VARCHAR(255),
     baud_rate       ENUM('FULL','19200','9600','4800','2400','1200','300') NOT NULL DEFAULT '2400',
     access_level    ENUM('USER','VETERAN','JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
@@ -62,7 +62,7 @@ CREATE TABLE permissions (
     page_sysop      BOOLEAN DEFAULT TRUE,
     prefer_nickname BOOLEAN DEFAULT FALSE,
     play_fortunes   BOOLEAN DEFAULT FALSE,
-	banned          BOOLEAN DEFAULT FALSE,
+    banned          BOOLEAN DEFAULT FALSE,
     timeout         SMALLINT UNSIGNED DEFAULT 10
 );
 
@@ -86,15 +86,15 @@ CREATE TABLE messages (
 CREATE TABLE rss_feed_categories (
     id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
-	title        VARCHAR(255) NOT NULL,
+    title        VARCHAR(255) NOT NULL,
     description  VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE rss_feeds (
     id       INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-	category INT UNSIGNED NOT NULL,
-	title    VARCHAR(255) NOT NULL,
-	url      VARCHAR(255) NOT NULL
+    category INT UNSIGNED NOT NULL,
+    title    VARCHAR(255) NOT NULL,
+    url      VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE file_categories (
@@ -114,7 +114,7 @@ CREATE TABLE files (
     file_size    BIGINT UNSIGNED NOT NULL,
     uploaded     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     thumbs_up    INT UNSIGNED DEFAULT 0,
-	thumbs_down  INT UNSIGNED DEFAULT 0
+    thumbs_down  INT UNSIGNED DEFAULT 0
 );
 
 CREATE TABLE file_types (
@@ -138,19 +138,18 @@ CREATE TABLE news (
     news_content TEXT
 );
 
-
 -- Views
 
 CREATE VIEW rss_view
  AS
  SELECT
     rss_feeds.id                     AS id,
-	rss_feeds.category               AS category,
-	rss_feeds.title                  AS title,
-	rss_feeds.url                    AS url,
-	rss_feed_categories.description  AS category_description,
-	rss_feed_categories.title        AS category_title,
-	rss_feed_categories.access_level AS access_level
+    rss_feeds.category               AS category,
+    rss_feeds.title                  AS title,
+    rss_feeds.url                    AS url,
+    rss_feed_categories.description  AS category_description,
+    rss_feed_categories.title        AS category_title,
+    rss_feed_categories.access_level AS access_level
  FROM
     rss_feeds
  INNER JOIN
@@ -175,8 +174,11 @@ CREATE VIEW users_view
     users.login_time                     AS login_time,
     users.logout_time                    AS logout_time,
     users.file_category                  AS file_category,
+	file_categories.title                AS file_category_title,
     users.forum_category                 AS forum_category,
-	users.rss_category                   AS rss_category,
+	message_categories.name              AS forum_category_title,
+    users.rss_category                   AS rss_category,
+	rss_feed_categories.title            AS rss_category_title,
     users.email                          AS email,
     users.access_level                   AS access_level,
     text_modes.text_mode                 AS text_mode,
@@ -195,13 +197,19 @@ CREATE VIEW users_view
     permissions.sysop                    AS sysop,
     permissions.page_sysop               AS page_sysop,
     permissions.play_fortunes            AS play_fortunes,
-	permissions.banned                   AS banned
+    permissions.banned                   AS banned
  FROM
     users
  INNER JOIN
     permissions ON users.id=permissions.id
  INNER JOIN
-    text_modes ON text_modes.id=users.text_mode;
+    text_modes ON text_modes.id=users.text_mode
+ INNER JOIN
+    file_categories ON file_categories.id=users.file_category
+ INNER JOIN
+    rss_feed_categories ON rss_feed_categories.id=users.rss_category
+ INNER JOIN
+    message_categories ON message_categories.id=users.forum_category;
 
 CREATE VIEW messages_view
  AS
@@ -235,10 +243,10 @@ SELECT
     files.file_size                      AS file_size,
     files.uploaded                       AS uploaded,
     files.thumbs_up                      AS thumbs_up,
-	files.thumbs_down                    AS thumbs_down,
+    files.thumbs_down                    AS thumbs_down,
     users.username                       AS username,
-	users.nickname                       AS nickname,
-	permissions.prefer_nickname          AS prefer_nickname,
+    users.nickname                       AS nickname,
+    permissions.prefer_nickname          AS prefer_nickname,
     CONCAT(users.given,' ',users.family) AS fullname
 
 FROM
