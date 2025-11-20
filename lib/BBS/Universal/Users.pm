@@ -461,14 +461,13 @@ sub users_list {
     my $text;
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ANSI') {
-        $text = $table->boxes->draw();
+        $text = $table->boxes2('GREEN')->draw();
         foreach my $orig ('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS', 'BDAY', 'ACCOMPLISHMENTS') {
             my $ch = '[% BRIGHT YELLOW %]' . $orig . '[% RESET %]';
             $text =~ s/$orig/$ch/gs;
         }
-        $text = $self->color_border($text,'GREEN');
     } elsif ($mode eq 'ATASCII') {
-        $text = $self->color_border($table->boxes->draw(),'GREEN');
+        $text = $self->color_border($table->boxes->draw(),'');
     } elsif ($mode eq 'PETSCII') {
         $text = $table->boxes->draw();
         foreach my $orig ('USERNAME', 'NICKNAME', 'FULLNAME', 'LOCATION', 'RETRO SYSTEMS', 'BDAY', 'ACCOMPLISHMENTS') {
@@ -768,7 +767,7 @@ sub users_info {
     if ($mode eq 'ATASCII') {
         $text = $self->color_border($table->boxes->draw(),'WHITE');
     } elsif ($mode eq 'ANSI') {
-        $text = $table->boxes->draw();
+        $text = $table->boxes2('RGB 0,90,190')->draw();
         my $no    = colored(['red'],           'NO');
         my $yes   = colored(['green'],         'YES');
         my $field = colored(['bright_yellow'], 'FIELD');
@@ -782,7 +781,6 @@ sub users_info {
             my $ch = colored(['yellow'], $field);
             $text =~ s/$field/$ch/gs;
         }
-        $text = $self->color_border($text, 'RGB 0,90,190');
     } elsif ($mode eq 'PETSCII') {
         $text = $table->boxes->draw();
         my $no    = '[% RED %]NO[% RESET %]';

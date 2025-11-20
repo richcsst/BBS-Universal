@@ -10,5 +10,5 @@ Z|BACK|WHITE|Return To System Menu
 [% BRIGHT BLUE         %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %] [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% BRIGHT BLUE %]|____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|[% RESET %] [% BRIGHT CYAN %]|_|  |_|\__,_|_| |_|\__,_|\__,_|_|[% RESET %]
 [% BRIGHT CYAN         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT CYAN    %] [% RESET %][% BRIGHT CYAN    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]
 
-[% HORIZONTAL RULE CYAN %][% B_CYAN %][% BLACK %] TABLE OF CONTENTS[% RESET %]
+[% HORIZONTAL RULE CYAN %][% BOLD %][% B_CYAN %][% BLACK %] TABLE OF CONTENTS[% RESET %]
 

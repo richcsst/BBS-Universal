@@ -22,6 +22,7 @@ use constant {
     NUMERIC     =>  2,
     RADIO       =>  3,
     TOGGLE      =>  4,
+	BOOLEAN     =>  4,
     HOST        =>  5,
     DATE        =>  6,
 
@@ -30,9 +31,9 @@ use constant {
     PETSCII => 2,
     ANSI    => 3,
 
-	XMODEM => 0,
-	YMODEM => 1,
-	ZMODEM => 2, 
+    XMODEM => 0,
+    YMODEM => 1,
+    ZMODEM => 2, 
 
     LINEMODE => 34,
 
@@ -1457,22 +1458,31 @@ sub output {
 
     my $response = TRUE;
     if (defined($text) && $text ne '') {
-        if ($text =~ /\[\%\s+WRAP\s+\%\]/) {
+        while ($text =~ /\[\%\s+WRAP\s+\%\](.*?)\[\%\s+ENDWRAP\s+\%\]/si) {
+            my $wrapped = $1;
             my $format = Text::Format->new(
                 'columns'     => $self->{'USER'}->{'max_columns'} - 1,
                 'tabstop'     => 4,
                 'extraSpace'  => TRUE,
                 'firstIndent' => 0,
             );
-            my $header;
-            ($header, $text) = split(/\[\%\s+WRAP\s+\%\]/, $text);
-            if ($text =~ /\[\%\s+JUSTIFY\s+\%\]/) {
-                $text =~ s/\[\%\s+JUSTIFY\s+\%\]//g;
-                $format->justify(TRUE);
-            }
-            $text = $format->format($text);
-            $text = $header . $text;
-        } ## end if ($text =~ /\[\%\s+WRAP\s+\%\]/)
+            $wrapped = $format->format($wrapped);
+			chomp($wrapped);
+            $text =~ s/\[\%\s+WRAP\s+\%\].*?\[\%\s+ENDWRAP\s+\%\]/$wrapped/s;
+        }
+        while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si) {
+            my $wrapped = $1;
+            my $format = Text::Format->new(
+                'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+                'tabstop'     => 4,
+                'extraSpace'  => TRUE,
+                'firstIndent' => 0,
+                'justify'     => TRUE,
+            );
+            $wrapped = $format->format($wrapped);
+			chomp($wrapped);
+            $text =~ s/\[\%\s+JUSTIFIED\s+\%\].*?\[\%\s+ENDJUSTIFIED\s+\%\]/$wrapped/s;
+        }
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ATASCII') {
             $self->atascii_output($text);
@@ -1571,7 +1581,7 @@ sub choose_file_category {
         }
         $sth->finish();
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-            $self->output($table->boxes->draw());
+            $self->output($table->boxes('CYAN')->draw());
         } else {
             $self->output($table->draw());
         }
@@ -1625,10 +1635,16 @@ sub configuration {
         $sth->execute($name);
         my ($result) = $sth->fetchrow_array();
         $sth->finish();
+		if ($name eq 'BBS ROOT') {
+			$result =~ s/\~/$ENV{HOME}/;
+		}
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
+		if ($name eq 'BBS ROOT') {
+			$fval =~ s/\~/$ENV{HOME}/;
+		}
         $self->{'debug'}->DEBUG(['  Set a Single Value']);
         my $sth  = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
         $sth->execute($fval, $name);
@@ -1642,8 +1658,13 @@ sub configuration {
         my $results = {};
         $sth->execute();
         while (my @row = $sth->fetchrow_array()) {
-            $results->{ $row[0] } = $row[1];
-            $self->{'CONF'}->{ $row[0] } = $row[1];
+			my $name = $row[0];
+			my $fval = $row[1];
+			if ($name eq 'BBS ROOT') {
+				$fval =~ s/\~/$ENV{HOME}/;
+			}
+            $results->{ $name } = $fval;
+            $self->{'CONF'}->{ $name } = $fval;
         }
         $sth->finish();
         return ($self->{'CONF'});
@@ -2171,5 +2192,150 @@ Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONT
 =cut
 
 # MANUAL IMPORT HERE #
+
+sub Text::SimpleTable::round {
+	my $self  = shift;
+	my $color = shift;
+	$self->{'chs'} = {
+        # Top
+		'TOP_LEFT'      => '[% ' . $color . ' %]╭─',
+		'TOP_BORDER'    => '─',
+		'TOP_SEPARATOR' => '─┬─',
+		'TOP_RIGHT'     => '─╮[% RESET %]',
+		# Middle
+		'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
+		'MIDDLE_BORDER'    => '─',
+		'MIDDLE_SEPARATOR' => '─┼─',
+		'MIDDLE_RIGHT'     => '─┤[% RESET %]',
+		# Left
+		'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
+		'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
+		'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
+		# Bottom
+		'BOTTOM_LEFT'      => '[% ' . $color . ' %]╰─',
+		'BOTTOM_SEPARATOR' => '─┴─',
+		'BOTTOM_BORDER'    => '─',
+		'BOTTOM_RIGHT'     => '─╯[% RESET %]',
+		# Wrapper
+		'WRAP' => '-',
+	};
+	return($self);
+}
+
+sub Text::SimpleTable::twin {
+	my $self  = shift;
+	my $color = shift;
+	$self->{'chs'} = {
+        # Top
+		'TOP_LEFT'      => '[% ' . $color . ' %]╔═',
+		'TOP_BORDER'    => '═',
+		'TOP_SEPARATOR' => '═╦═',
+		'TOP_RIGHT'     => '═╗[% RESET %]',
+		# Middle
+		'MIDDLE_LEFT'      => '[% ' . $color . ' %]╠═',
+		'MIDDLE_BORDER'    => '═',
+		'MIDDLE_SEPARATOR' => '═╬═',
+		'MIDDLE_RIGHT'     => '═╣[% RESET %]',
+		# Left
+		'LEFT_BORDER'  => '[% ' . $color . ' %]║[% RESET %] ',
+		'SEPARATOR'    => ' [% ' . $color . ' %]║[% RESET %] ',
+		'RIGHT_BORDER' => ' [% ' . $color . ' %]║[% RESET %]',
+		# Bottom
+		'BOTTOM_LEFT'      => '[% ' . $color . ' %]╚═',
+		'BOTTOM_SEPARATOR' => '═╩═',
+		'BOTTOM_BORDER'    => '═',
+		'BOTTOM_RIGHT'     => '═╝[% RESET %]',
+		# Wrapper
+		'WRAP' => '-',
+	};
+	return($self);
+}
+
+sub Text::SimpleTable::thick {
+	my $self  = shift;
+	my $color = shift;
+	$self->{'chs'} = {
+        # Top
+		'TOP_LEFT'      => '[% ' . $color . ' %]┏━',
+		'TOP_BORDER'    => '━',
+		'TOP_SEPARATOR' => '━┳━',
+		'TOP_RIGHT'     => '━┓[% RESET %]',
+		# Middle
+		'MIDDLE_LEFT'      => '[% ' . $color . ' %]┣━',
+		'MIDDLE_BORDER'    => '━',
+		'MIDDLE_SEPARATOR' => '━╋━',
+		'MIDDLE_RIGHT'     => '━┫[% RESET %]',
+		# Left
+		'LEFT_BORDER'  => '[% ' . $color . ' %]┃[% RESET %] ',
+		'SEPARATOR'    => ' [% ' . $color . ' %]┃[% RESET %] ',
+		'RIGHT_BORDER' => ' [% ' . $color . ' %]┃[% RESET %]',
+		# Bottom
+		'BOTTOM_LEFT'      => '[% ' . $color . ' %]┗━',
+		'BOTTOM_SEPARATOR' => '━┻━',
+		'BOTTOM_BORDER'    => '━',
+		'BOTTOM_RIGHT'     => '━┛[% RESET %]',
+		# Wrapper
+		'WRAP' => '-',
+	};
+	return($self);
+}
+
+sub Text::SimpleTable::boxes2 {
+	my $self  = shift;
+	my $color = shift || 'WHITE';
+	$self->{'chs'} = {
+        # Top
+		'TOP_LEFT'      => '[% ' . $color . ' %]┌─',
+		'TOP_BORDER'    => '─',
+		'TOP_SEPARATOR' => '─┬─',
+		'TOP_RIGHT'     => '─┐[% RESET %]',
+		# Middle
+		'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
+		'MIDDLE_BORDER'    => '─',
+		'MIDDLE_SEPARATOR' => '─┼─',
+		'MIDDLE_RIGHT'     => '─┤[% RESET %]',
+		# Left
+		'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
+		'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
+		'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
+		# Bottom
+		'BOTTOM_LEFT'      => '[% ' . $color . ' %]└─',
+		'BOTTOM_SEPARATOR' => '─┴─',
+		'BOTTOM_BORDER'    => '─',
+		'BOTTOM_RIGHT'     => '─┘[% RESET %]',
+		# Wrapper
+		'WRAP' => '-',
+	};
+	return($self);
+}
+
+sub Text::SimpleTable::wedge {
+	my $self  = shift;
+	my $color = shift || 'WHITE';
+	$self->{'chs'} = {
+        # Top
+		'TOP_LEFT'      => '[% ' . $color . ' %]◢█',
+		'TOP_BORDER'    => '█',
+		'TOP_SEPARATOR' => '███',
+		'TOP_RIGHT'     => '█◣[% RESET %]',
+		# Middle
+		'MIDDLE_LEFT'      => '[% ' . $color . ' %]██',
+		'MIDDLE_BORDER'    => '█',
+		'MIDDLE_SEPARATOR' => '███',
+		'MIDDLE_RIGHT'     => '██[% RESET %]',
+		# Left
+		'LEFT_BORDER'  => '[% ' . $color . ' %]█[% RESET %] ',
+		'SEPARATOR'    => ' [% ' . $color . ' %]█[% RESET %] ',
+		'RIGHT_BORDER' => ' [% ' . $color . ' %]█[% RESET %]',
+		# Bottom
+		'BOTTOM_LEFT'      => '[% ' . $color . ' %]◥█',
+		'BOTTOM_SEPARATOR' => '███',
+		'BOTTOM_BORDER'    => '█',
+		'BOTTOM_RIGHT'     => '█◤[% RESET %]',
+		# Wrapper
+		'WRAP' => '-',
+	};
+	return($self);
+}
 
 1;

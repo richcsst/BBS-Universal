@@ -114,16 +114,14 @@ sub bbs_list {
         }
         my $response;
         if ($mode eq 'ANSI') {
-            $response = $table->boxes->draw();
+            $response = $table->wedge('BRIGHT BLUE')->draw();
             while ($response =~ / (NAME|HOSTNAME.PHONE|PORT|POSTER) /) {
                 my $ch = $1;
                 my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
                 $response =~ s/ $ch / $new /gs;
             }
-            $response = $self->color_border($response,'BRIGHT BLUE');
         } elsif ($mode eq 'ATASCII') {
-            $response = $table->boxes->draw();
-            $response = $self->color_border($response,'BRIGHT BLUE'); # color is ignored for ATASCII
+            $response = $self->color_border($table->boxes->draw(),'');
         } elsif ($mode eq 'PETSCII') {
             $response = $table->boxes->draw();
             while ($response =~ / (NAME|HOSTNAME.PHONE|PORT|POSTER) /) {

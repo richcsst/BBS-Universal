@@ -432,7 +432,6 @@ INSERT INTO file_types (type, extension) VALUES ('Hypter-Text Markup Language','
 INSERT INTO file_types (type, extension) VALUES ('Special Hypter-Text Markup Language','SHTML');
 INSERT INTO file_types (type, extension) VALUES ('Javascript','JS');
 INSERT INTO file_types (type, extension) VALUES ('Java Source','JAVA');
-INSERT INTO file_types (type, extension) VALUES ('Information File','INF');
 INSERT INTO file_types (type, extension) VALUES ('Macintosh File Descriptor','DS');
 
 INSERT INTO file_types (type, extension) VALUES ('Portable Network Graphics Image','PNG');

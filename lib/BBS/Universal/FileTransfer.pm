@@ -74,13 +74,13 @@ sub files_list_summary {
         }
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
-            my $text = $table->boxes->draw();
+            my $text = $table->boxes2('MAGENTA')->draw();
             while ($text =~ / (FILENAME|TITLE) /s) {
                 my $ch = $1;
                 my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
                 $text =~ s/ $ch / $new /gs;
             }
-            $self->output("\n" . $self->color_border($text,'MAGENTA'));
+            $self->output("\n$text");
         } elsif ($mode eq 'ATASCII') {
             $self->output("\n" . $self->color_border($table->boxes->draw(),'MAGENTA'));
         } elsif ($mode eq 'PETSCII') {
@@ -105,6 +105,112 @@ sub files_list_summary {
     return (TRUE);
 }
 
+sub files_choices {
+	my $self   = shift;
+	my $record = shift;
+    my $mapping = {
+		'TEXT' => '',
+		'Z'    => {
+			'command'      => 'BACK',
+			'color'        => 'WHITE',
+			'access_level' => 'USER',
+			'text'         => 'Return to File Menu',
+		},
+		'N' => {
+			'command'      => 'NEXT',
+			'color'        => 'BLUE',
+			'access_level' => 'USER',
+			'text'         => 'Next file',
+		},
+		'D' => {
+			'command'      => 'DOWNLOAD',
+			'color'        => 'CYAN',
+			'access_level' => 'VETERAN',
+			'text'         => 'Download file',
+		},
+		'R' => {
+			'command'      => 'REMOVE FILE',
+			'color'        => 'RED',
+			'access_level' => 'JUNIOR SYSOP',
+			'text'         => 'Remove file',
+		},
+	};
+	if ($record->{'extension'} =~ /^(TXT|ASC|ATA|PET|VT|ANS|MD|INF|CDF|PL|PM|PY|C|CPP|H|SH|CSS|HTM|HTML|SHTML|JS|JAVA|XML|BAT)$/ && $self->check_access_level('VETERAN')) {
+		$mapping->{'V'} = {
+			'command'      => 'VIEW FILE',
+			'color'        => 'CYAN',
+			'access_level' => 'VETERAN',
+			'text'         => 'View file',
+		};
+	};
+	$self->show_choices($mapping);
+	$self->prompt('Choose');
+	my $key;
+	do {
+		$key = uc($self->get_key());
+	} until($key =~ /D|N|R|V|Z/);
+	$self->output($mapping->{$key}->{'command'} . "\n");
+	if ($mapping->{$key}->{'command'} eq 'DOWNLOAD') {
+		my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
+	    $mapping = {
+			'B'    => {
+				'command'      => 'BACK',
+				'color'        => 'WHITE',
+				'access_level' => 'USER',
+				'text'         => 'Return to File Menu',
+			},
+			'Y' => {
+				'command'      => 'YMODEM',
+				'color'        => 'YELLOW',
+				'access_level' => 'VETERAN',
+				'text'         => 'Download with the Ymodem protocol',
+			},
+			'X' => {
+				'command'      => 'XMODEM',
+				'color'        => 'BRIGHT BLUE',
+				'access_level' => 'VETERAN',
+				'text'         => 'Download with the Xmodem protocol',
+			},
+			'Z' => {
+				'command'      => 'ZMODEM',
+				'color'        => 'GREEN',
+				'access_level' => 'VETERAN',
+				'text'         => 'Download with the Zmodem protocol',
+			},
+		};
+		$self->show_choices($mapping);
+		$self->prompt('Choose');
+		do {
+			$key = uc($self->get_key());
+		} until($key =~ /B|X|Y|Z/);
+		$self->output($mapping->{$key}->{'command'});
+		if ($mapping->{$key}->{'command'} eq 'XMODEM') {
+			system('sz', '--xmodem', '--quiet', '--binary', $file);
+		} elsif ($mapping->{$key}->{'command'} eq 'YMODEM') {
+			system('sz', '--ymodem', '--quiet', '--binary', $file);
+		} elsif ($mapping->{$key}->{'command'} eq 'ZMODEM') {
+			system('sz', '--zmodem', '--quiet', '--binary', '--resume', $file);
+		} else {
+			return(FALSE);
+		}
+		return(TRUE);
+	} elsif ($mapping->{$key}->{'command'} eq 'VIEW FILE' && $self->check_access_level($mapping->{$key}->{'access_level'})) {
+		my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
+		open(my $VIEW,'<',$file);
+		binmode $VIEW;
+		my $data;
+		read($VIEW, $data, $record->{'file_size'}, 0);
+		close($VIEW);
+		$self->output('[% CLS %]' . $data);
+		return(TRUE);
+	} elsif ($mapping->{$key}->{'command'} eq 'REMOVE FILE' && $self->check_access_level($mapping->{$key}->{'access_level'})) {
+		return(TRUE);
+	} elsif ($mapping->{$key}->{'command'} eq 'NEXT') {
+		return(TRUE);
+	}
+	return(FALSE);
+}
+
 sub files_list_detailed {
     my $self   = shift;
     my $search = shift;
@@ -123,135 +229,44 @@ sub files_list_detailed {
         $sth->execute($self->{'USER'}->{'file_category'});
     }
     my @files;
-    my $max_filename = 8;
-    my $max_size     = 3;
-    my $max_title    = 5;
-    my $max_uploader = 8;
-    my $max_type     = 4;
-    my $max_uploaded = 8;
-    my $max_thumbs_up = 9;
-    my $max_thumbs_down = 11;
-    my $max_fullname = 8;
-    my $max_username = 17;
     if ($sth->rows > 0) {
-        while (my $row = $sth->fetchrow_hashref()) {
-            push(@files, $row);
-            if ($row->{'prefer_nickname'}) {
-                $max_uploader = max(length($row->{'nickname'}), $max_uploader);
-            } else {
-                $max_uploader = max(length($row->{'fullname'}), $max_uploader);
-            }
-            $max_size         = max(length(format_number($row->{'file_size'})), $max_size, 4);
-            $max_filename     = max(length($row->{'filename'}),  $max_filename);
-            $max_title        = max(length($row->{'title'}),     $max_title);
-            $max_type         = max(length($row->{'type'}),      $max_type);
-            $max_uploaded     = max(length($row->{'uploaded'}),  $max_uploaded);
-            $max_thumbs_up    = max(length($row->{'thumbs_up'}) + 4, $max_thumbs_up);
-            $max_thumbs_down  = max(length($row->{'thumbs_up'}) + 4, $max_thumbs_down);
-            $max_fullname     = max(length($row->{'fullname'}),  $max_fullname);
-            $max_username     = max(length($row->{'username'}),  $max_username);
-        }
         $self->{'debug'}->DEBUGMAX(\@files);
         my $table;
         my $mode = $self->{'USER'}->{'text_mode'};
-        if ($columns <= 40) {
-            $self->{'debug'}->DEBUG(['  40 Columns']);
-            $table = Text::SimpleTable->new($max_filename, $max_uploader);
-            $table->row('FILENAME', 'UPLOADER NAME');
-            $table->hr();
-            foreach my $record (@files) {
-                $table->row(
-                    $record->{'filename'},
-                    ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
-                );
-            }
-        } elsif ($columns <= 64) {
-            $self->{'debug'}->DEBUG(['  64 Columns']);
-            $table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_thumbs_up, $max_thumbs_down);
-            $table->row('TITLE', 'FILENAME', 'UPLOADER NAME', 'THUMBS UP','THUMBS DOWN');
-            $table->hr();
-            foreach my $record (@files) {
-                $table->row(
-                    $record->{'title'},
-                    $record->{'filename'},
-                    ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
-                    (0 + $record->{'thumbs_up'}),
-                    (0 + $record->{'thumbs_down'}),
-                );
-            }
-        } elsif ($columns <= 80) {
-            $self->{'debug'}->DEBUG(['  80 Columns']);
-            $table = Text::SimpleTable->new($max_title, $max_filename, $max_uploader, $max_type, $max_thumbs_up, $max_thumbs_down);
-            $table->row('TITLE', 'FILENAME', 'UPLOADER NAME','TYPE', 'THUMBS_UP', 'THUMBS_DOWN');
-            $table->hr();
-            foreach my $record (@files) {
-                $table->row(
-                    $record->{'title'},
-                    $record->{'filename'},
-                    ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
-                    $record->{'type'},
-                    (0 + $record->{'thumbs_up'}),
-                    (0 + $record->{'thumbs_down'}),
-                );
-            }
-        } elsif ($columns <= 132) {
-            $self->{'debug'}->DEBUG(['  132 Columns']);
-            $table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
-            $table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
-            $table->hr();
-            foreach my $record (@files) {
-                $table->row(
-                    $record->{'title'},
-                    $record->{'filename'},
-                    sprintf('%' . $max_size . 's', format_number($record->{'file_size'})),
-                    ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
-                    $record->{'username'},
-                    $record->{'type'},
-                    $record->{'uploaded'},
-                    (0 + $record->{'thumbs_up'}),
-                    (0 + $record->{'thumbs_down'}),
-                );
-            }
-        } else {
-            $self->{'debug'}->DEBUG(['  > 133 Columns']);
-            $table = Text::SimpleTable->new($max_title, $max_filename, $max_size, $max_uploader, $max_username, $max_type, $max_uploaded, $max_thumbs_up, $max_thumbs_down);
-            $table->row('TITLE', 'FILENAME', 'SIZE', 'UPLOADER NAME','UPLOADER USERNAME', 'TYPE', 'UPLOAD DATE', 'THUMBS UP', 'THUMBS DOWN');
-            $table->hr();
-            foreach my $record (@files) {
-                $table->row(
-                    $record->{'title'},
-                    $record->{'filename'},
-                    sprintf('%' . $max_size . 's', format_number($record->{'file_size'})),
-                    ($record->{'prefer_nickname'}) ? $record->{'nickname'} : $record->{'fullname'},
-                    $record->{'username'},
-                    $record->{'type'},
-                    $record->{'uploaded'},
-                    (0 + $record->{'thumbs_up'}),
-                    (0 + $record->{'thumbs_down'}),
-                );
-            }
-        }
-        my $mode = $self->{'USER'}->{'text_mode'};
-        if ($mode eq 'ANSI') {
-            my $text = $table->boxes->draw();
-            while ($text =~ / (FILENAME|TITLE) /s) {
-                my $ch = $1;
-                my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
-                $text =~ s/ $ch / $new /gs;
-            }
-            $self->output("\n" . $self->color_border($text,'MAGENTA'));
-        } elsif ($mode eq 'ATASCII') {
-            $self->output("\n" . $self->color_border($table->boxes->draw(),'MAGENTA'));
-        } elsif ($mode eq 'PETSCII') {
-            my $text = $table->boxes->draw();
-            while ($text =~ / (FILENAME|TITLE) /s) {
-                my $ch = $1;
-                my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
-                $text =~ s/ $ch / $new /gs;
-            }
-            $self->output("\n" . $self->color_border($text,'PURPLE'));
-        } else {
-            $self->output("\n" . $table->draw());
+		while (my $row = $sth->fetchrow_hashref()) {
+			push(@files, $row);
+		}
+		$sth->finish();
+		foreach my $record (@files) {
+			if ($mode eq 'ANSI') {
+				$self->output("\n" . '[% HORIZONTAL RULE GREEN %]' . "\n");
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]       TITLE [% RESET %] ' . $record->{'title'} . "\n");
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]    FILENAME [% RESET %] ' . $record->{'filename'} . "\n");
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]   FILE SIZE [% RESET %] ' . format_number($record->{'file_size'}) . "\n");
+				if ($record->{'prefer_nickname'}) {
+					$self->output('[% B_BLUE %][% BRIGHT WHITE %]    UPLOADER [% RESET %] ' . $record->{'nickname'} . "\n");
+				} else {
+					$self->output('[% B_BLUE %][% BRIGHT WHITE %]    UPLOADER [% RESET %] ' . $record->{'fullname'} . "\n");
+				}
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]   FILE TYPE [% RESET %] ' . $record->{'type'} . "\n");
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]    UPLOADED [% RESET %] ' . $record->{'uploaded'} . "\n");
+				$self->output('[% B_BLUE %][% BRIGHT WHITE %]      THUMBS [% RESET %] [% THUMBS UP SIGN %] ' . (0 + $record->{'thumbs_up'}) . '   [% THUMBS DOWN SIGN %] ' . (0 + $record->{'tumbs_down'}) . "\n");
+				$self->output('[% HORIZONTAL RULE GREEN %]' . "\n");
+			} else {
+				$self->output("\n      TITLE: " . $record->{'title'} . "\n");
+				$self->output('   FILENAME: ' . $record->{'filename'} . "\n");
+				$self->output('  FILE SIZE: ' . format_number($record->{'file_size'}) . "\n");
+				if ($record->{'prefer_nickname'}) {
+					$self->output('   UPLOADER: ' . $record->{'nickname'} . "\n");
+				} else {
+					$self->output('   UPLOADER: ' . $record->{'fullname'} . "\n");
+				}
+				$self->output('  FILE TYPE: ' . $record->{'type'} . "\n");
+				$self->output('   UPLOADED: ' . $record->{'uploaded'} . "\n");
+				$self->output('  THUMBS UP: ' . (0 + $record->{'thumbs_up'}) . "\n");
+				$self->output('THUMBS DOWN: ' . (0 + $record->{'thumbs_down'}) . "\n");
+			}
+			last unless($self->files_choices($record));
         }
     } elsif ($search) {
         $self->output("\nSorry '$filter' not found");

@@ -84,34 +84,38 @@ sub messages_list_messages {
         $sth->execute($result->{'id'});
         $result->{'message'} = $sth->fetchrow_array();
         $sth->finish();
-        $self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
-            $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
+			$self->output("[% CLS %][% HORIZONTAL RULE MAGENTA %][% B_MAGENTA %][% BLACK %]" . $self->pad_center('FORUM MESSAGE', $self->{'USER'}->{'max_columns'}) . "[% RESET %]\n");
+            $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% BOLD %][% GREEN %][% FORUM CATEGORY %][% RESET %]' . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]   Author [% RESET %] ');
             $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
             $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]    Title [% RESET %] ' . $result->{'title'} . "\n");
             $self->output('[% BRIGHT WHITE %][% B_BLUE %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
-        } elsif ($mode eq 'ATASCII') {
+            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+			$self->output("\n[% HORIZONTAL RULE MAGENTA %]\n");
+        } elsif ($mode eq 'PETSCII') {
+			$self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
             $self->output('[% GREEN   %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
             $self->output('[% YELLOW %]   Author [% RESET %] ');
             $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
             $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('[% YELLOW %]    Title [% RESET %] ' . $result->{'title'} . "\n");
             $self->output('[% YELLOW %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
+            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+			$self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
         } else {
+			$self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
             $self->output(' CATEGORY > [% FORUM CATEGORY %]' . "\n");
             $self->output('  Author:  ');
             $self->output(($result->{'prefer_nickname'}) ? $result->{'nickname'} : $result->{'author_fullname'});
             $self->output(' (' . $result->{'author_username'} . ')' . "\n");
             $self->output('   Title:  ' . $result->{'title'} . "\n");
             $self->output(' Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output('[% WRAP %]' . $result->{'message'}) if ($self->{'USER'}->{'read_message'});
+            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+			$self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
         }
-        $self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
         my $mapping = {
             'Z' => {
                 'id'           => $result->{'id'},
@@ -142,7 +146,7 @@ sub messages_list_messages {
                 'id'           => $result->{'id'},
                 'command'      => 'DELETE',
                 'color'        => 'RED',
-                'access_level' => 'VETERAN',
+                'access_level' => 'JUNIOR SYSOP',
                 'text'         => 'Delete Message',
             };
         }

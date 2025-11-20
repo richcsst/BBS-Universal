@@ -101,12 +101,12 @@ sub news_summary {
         }
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
-            my $text = $table->boxes->draw();
+            my $text = $table->boxes2('BRIGHT BLUE')->draw();
             my $ch = colored(['bright_yellow'],'DATE');
             $text =~ s/DATE/$ch/;
             $ch = colored(['bright_yellow'],'TITLE');
             $text =~ s/TITLE/$ch/;
-            $self->output($self->color_border($text,'BRIGHT BLUE'));
+            $self->output($text);
         } elsif ($mode eq 'ATASCII') {
             my $text = $self->color_border($table->boxes->draw(),'BLUE');
             $self->output($text);

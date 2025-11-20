@@ -557,6 +557,10 @@ sub ansi_initialize {
                 'out'  => $csi . '50m',
                 'desc' => 'Turn off proportional text',
             },
+			'RING BELL' => {
+				'out' => chr(7),
+				'desc' => 'Console bell',
+			},
         },
 
         # Color
