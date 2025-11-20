@@ -197,11 +197,11 @@ sub files_choices {
 	} elsif ($mapping->{$key}->{'command'} eq 'VIEW FILE' && $self->check_access_level($mapping->{$key}->{'access_level'})) {
 		my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
 		open(my $VIEW,'<',$file);
-		binmode $VIEW;
+		binmode($VIEW, ":encoding(UTF-8)");
 		my $data;
 		read($VIEW, $data, $record->{'file_size'}, 0);
 		close($VIEW);
-		$self->output('[% CLS %]' . $data);
+		$self->output('[% CLS %]' . $data . '[% RESET %]');
 		return(TRUE);
 	} elsif ($mapping->{$key}->{'command'} eq 'REMOVE FILE' && $self->check_access_level($mapping->{$key}->{'access_level'})) {
 		return(TRUE);

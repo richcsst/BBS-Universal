@@ -382,6 +382,10 @@ sub ansi_initialize {
         },
 
         'cursor' => {
+			'BACKSPACE' => {
+				'out'  => chr(8),
+				'desc' => 'Backspace',
+			},
             'RETURN' => {
                 'out'  => chr(13),
                 'desc' => 'Carriage Return (ASCII 13)',
