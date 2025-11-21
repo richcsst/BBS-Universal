@@ -382,20 +382,6 @@ sub sysop_list_commands {
     my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }, 'JUSTIFIED text ENDJUSTIFIED','WRAP text ENDWRAP'));
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
     my @tkn    = (sort(keys %{ $self->{'TOKENS'} }, 'JUSTIFIED text ENDJUSTIFIED','WRAP text ENDWRAP'));
-    my @anstkn = grep(!/CSI|COLOR|GRAY|RGB|FONT|HORIZONTAL RULE/, (keys %{ $self->{'ansi_sequences'} }));
-    @anstkn = sort(@anstkn);
-    foreach my $count (16 .. 231) {
-        push(@anstkn, 'COLOR ' . $count);
-    }
-    foreach my $count (0 .. 24) {
-        push(@anstkn, 'GRAY ' . $count);
-    }
-    foreach my $count (16 .. 231) {
-        push(@anstkn, 'B_COLOR ' . $count);
-    }
-    foreach my $count (0 .. 24) {
-        push(@anstkn, 'B_GRAY ' . $count);
-    }
     my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
     my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
     my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },'HORIZONTAL RULE'));
@@ -422,9 +408,6 @@ sub sysop_list_commands {
         foreach $cell (@tkn) {
             $z = max(length($cell), $z);
         }
-        foreach $cell (@anstkn) {
-            $ans = max(length($cell), $ans);
-        }
         foreach $cell (@atatkn) {
             $ata = max(length($cell), $ata);
         }
@@ -449,75 +432,80 @@ sub sysop_list_commands {
         my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
         my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
         my $table = Text::SimpleTable->new(25, $ans, 55);
-        $table->row('TYPE', 'ANSI TOKENS', 'DESCRIPTION');
-        foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
-            $table->hr();
-            if ($code =~ /^foreground/) {
+		$text = "[% ORANGE %]╔═══════════════════════════╦═════════════════════════════════╦═════════════════════════════════════════════════════════╗[% RESET %]\n" .
+		        "[% ORANGE %]║ [% BRIGHT YELLOW %]TYPE                      [% ORANGE %]║ [% BRIGHT YELLOW %]ANSI TOKENS                     [% ORANGE %]║ [% BRIGHT YELLOW %]DESCRIPTION                                             [% ORANGE %]║[% RESET %]\n" .
+		        "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
+		  foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
+			if ($code eq 'foreground ANSI 256') {
+				my $ncode = 'foreground';
+				foreach my $number (16 .. 231) {
+					my $name = sprintf('COLOR %d',$number);
+					$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+				}
+				foreach my $number (0 .. 23) {
+					my $name = sprintf('GRAY %d',$number);
+					$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+				}
+			} elsif ($code eq 'background ANSI 256') {
+				my $ncode = 'background';
+				foreach my $number (16 .. 231) {
+					my $name = sprintf('B_COLOR %d',$number);
+					my $color = 'BLACK';
+					$color = 'WHITE' if ($number <= 22);
+					$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+				}
+				foreach my $number (0 .. 23) {
+					my $name = sprintf('B_GRAY %d',$number);
+					my $color = 'WHITE';
+					$color = 'BLACK' if ($number >= 10);
+					$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+				}
+			} elsif ($code =~ /^foreground/) {
                 my $ncode = 'foreground';
-                foreach my $name (@anstkn, 'RGB 0,0,0 - RGB 255,255,255') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$ncode}})) {
                     next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-                    if ($name eq 'RGB 0,0,0 - RGB 255,255,255' && $code =~ /TrueColor/ && $crgb) {
-                        $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-                    } else {
-                        if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        } elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        }
-                    }
+					if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					} elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					} elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					}
                 }
             } elsif ($code =~ /^background/) {
                 my $ncode = 'background';
-                foreach my $name (@anstkn, 'B_RGB 0,0,0 - RGB 255,255,255') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$ncode}})) {
                     next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-                    if ($name eq 'B_RGB 0,0,0 - B_RGB 255,255,255' && $code =~ /TrueColor/ && $crgb) {
-                        $table->row(ucfirst($code), $name, '24 Bit Color in Red,Green,Blue order');
-                    } else {
-                        if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        } elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-                            $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'});
-                        }
-                    }
+					my $color = 'BLACK';
+					$color = 'WHITE' if ($name =~ /^(B_BLACK|B_DEFAULT)$/);
+					if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					} elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					} elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					}
                 }
-            } elsif ($code eq 'cursor') {
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}}, 'LOCATE column,row')) {
-                    if ($name eq 'LOCATE column,row') {
-                        $table->row(ucfirst($code), $name, 'Position the Cursor at Column,Row');
-                    } else {
-                        $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-                    }
-                }
-            } elsif ($code eq 'special') {
-                foreach my $name (sort(grep(!/FONT/,keys %{$self->{'ansi_meta'}->{$code}}), 'FONT 0 - FONT 9', 'HORIZONTAL RULE color')) {
-                    if ($name eq 'FONT 0 - FONT 9') {
-                        $table->row(ucfirst($code), $name, 'Set the Specified Console Font');
-                    } elsif ($name eq 'HORIZONTAL RULE color') {
-                        $table->row(ucfirst($code), $name, 'A Horizontal Rule (Screen Width) in The Specified Color');
-                    } else {
-                        $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
-                    }
-                }
-            } else {
+            } elsif ($code =~ /cursor|special|clear/) {
                 foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
-                    $table->row(ucfirst($code), $name, $self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+					$text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',$name,'[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+                }
+            } elsif ($code eq 'attributes') {
+                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
+					if ($name eq 'HIDE') {
+						$text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',$name,'[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					} else {
+						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+					}
                 }
             }
+			if ($code eq 'background ANSI TrueColor') {
+				$text .= "[% ORANGE %]╚═══════════════════════════╩═════════════════════════════════╩═════════════════════════════════════════════════════════╝[% RESET %]\n";
+			} else {
+				$text .= "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
+			}
         }
-        $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
-        foreach my $code (qw(foreground background)) {
-            foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
-                if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
-                    $text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
-                } else {
-                    $text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
-                }
-            }
-        }
+#		$self->sysop_output($text);
     } elsif ($mode eq 'ATASCII') {
         my $table = Text::SimpleTable->new(1,$ata,25);
         $table->row('C','ATASCII TOKENS','DESCRIPTION');
@@ -613,79 +601,9 @@ sub sysop_list_commands {
 			my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
 			$text =~ s/$name/$ch/gs;
 		}
-    } else {
-        my $table = Text::SimpleTable->new($x, $xt, $y, $z, $ans, $ata, $pet, $asc);
-        $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
-        $table->hr();
-        my ($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-        my $count = 0; # Try to follow the scroll logic
-        while (scalar(@sys) || scalar(@stkn) || scalar(@usr) || scalar(@tkn) || scalar(@anstkn) || scalar(@atatkn) || scalar(@pettkn) || scalar(@asctkn)) {
-            if (scalar(@sys)) {
-                $sysop_names = shift(@sys);
-            } else {
-                $sysop_names = ' ';
-            }
-            if (scalar(@stkn)) {
-                $sysop_tokens = shift(@stkn);
-            } else {
-                $sysop_tokens = ' ';
-            }
-            if (scalar(@usr)) {
-                $user_names = shift(@usr);
-            } else {
-                $user_names = ' ';
-            }
-            if (scalar(@tkn)) {
-                $token_names = shift(@tkn);
-            } else {
-                $token_names = ' ';
-            }
-            if (scalar(@anstkn)) {
-                $ansi_tokens = shift(@anstkn);
-            } else {
-                $ansi_tokens = ' ';
-            }
-            if (scalar(@atatkn)) {
-                $atascii_tokens = shift(@atatkn);
-            } else {
-                $atascii_tokens = ' ';
-            }
-            if (scalar(@pettkn)) {
-                $petscii_tokens = shift(@pettkn);
-            } else {
-                $petscii_tokens = ' ';
-            }
-            if (scalar(@asctkn)) {
-                $ascii_tokens = shift(@asctkn);
-            } else {
-                $ascii_tokens = ' ';
-            }
-            $table->row($sysop_names, $sysop_tokens, $user_names, $token_names, $ansi_tokens, $atascii_tokens, $petscii_tokens, $ascii_tokens);
-            $count++;
-            if ($count > $srow) {
-                $count = 0;
-                $table->hr();
-                $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS', 'USER MENU COMMANDS', 'USER TOKENS', 'ANSI TOKENS', 'ATASCII TOKENS', 'PETSCII TOKENS', 'ASCII TOKENS');
-                $table->hr();
-            }
-        } ## end while (scalar(@sys) || scalar...)
-        $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
-        foreach my $code (qw(foreground background)) {
-            foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
-                if ($name =~ /B_WHITE|B_BRIGHT|B_CYAN|B_GREEN|B_RED|B_YELLOW|B_ORANGE|B_PINK|B_COLOR \d\d+|B_GRAY \d\d|B_[A-B]|B_C(OL|OF|OP|OR|A|E|G|H|I|R)|B_D(A|E)|B_(E|F|G|H|I|J|K|L|M|O|P|R|SA|SE|T|SH|SK|SP|ST|SU|U|V|W)/) {
-                    $text =~ s/│(\s$name\s+)│/│\[\% BLACK \%\]\[\% $name \%\]$1\[\% RESET \%\]│/;
-                } else {
-                    $text =~ s/│(\s$name\s+)│/│\[\% $name \%\]$1\[\% RESET \%\]│/;
-                }
-            }
-        }
-		foreach my $name (qw(color text)) {
-			my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
-			$text =~ s/$name/$ch/gs;
-		}
     }
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
-    $text =~ s/( C |DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ANSI TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS)/\[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\]/g;
+    $text =~ s/ (C|DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS) / \[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\] /g;
     $self->{'debug'}->DEBUG(['End SysOp List Commands']);
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands
@@ -948,7 +866,12 @@ sub sysop_locate_middle {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $middle = int($wsize / 2);
-    my $string = "\r" . $self->{'ansi_sequences'}->{'RIGHT'} x $middle . $self->{'ansi_sequences'}->{$color} . ' ' . $self->{'ansi_sequences'}->{'RESET'};
+	my $string;
+	if ($color =~ /^B_/) {
+		$string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'background'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
+	} else {
+		$string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'foreground'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
+	}
     return ($string);
 } ## end sub sysop_locate_middle
 
@@ -1365,10 +1288,10 @@ sub sysop_edit_file_categories {
             $text =~ s/ $ch / $new /gs;
         }
         $self->sysop_output("\n$text");
-        print $self->{'ansi_sequences'}->{'UP'} x 5, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
+        print $self->{'ansi_meta'}->{'cursor'}->{'UP'}->{'out'} x 5, $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 16;
         my $title = $self->sysop_get_line(ECHO, 80, '');
         if ($title ne '') {
-            print "\r", $self->{'ansi_sequences'}->{'DOWN'}, $self->{'ansi_sequences'}->{'RIGHT'} x 16;
+            print "\r", $self->{'ansi_meta'}->{'cursor'}->{'DOWN'}->{'out'}, $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 16;
             my $description = $self->sysop_get_line(ECHO, 80, '');
             if ($description ne '') {
                 $sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description) VALUES (?,?)');
@@ -1639,7 +1562,7 @@ sub sysop_get_key {
     return ($key) if ($key eq chr(13));
 
     if ($key eq chr(127)) {
-        $key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+        $key = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     }
     if ($echo == NUMERIC && defined($key)) {
         unless ($key =~ /[0-9]/) {
@@ -1685,7 +1608,7 @@ sub sysop_get_line {
     $self->{'debug'}->DEBUGMAX([$type, $echo, $line]);
     print $line if ($line ne '');
     my $mode = 'ANSI';
-    my $bs   = $self->{'ansi_sequences'}->{'BACKSPACE'};
+    my $bs   = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     if ($echo == RADIO) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line RADIO']);
         my $regexp = join('', @{ $type->{'choices'} });
@@ -1728,10 +1651,10 @@ sub sysop_get_line {
 			$key = $self->sysop_get_key(SILENT, BLOCKING);
 			if (uc($key) eq 'T') {
 				$line = 'TRUE';
-				print $self->{'ansi_sequences'}->{'LEFT'} x 5,'TRUE', clline;
+				print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 5,'TRUE', clline;
 			} elsif (uc($key) eq 'F') {
 				$line = 'FALSE';
-				print $self->{'ansi_sequences'}->{'LEFT'} x 4,'FALSE', clline;
+				print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 4,'FALSE', clline;
 			} elsif ($key ne chr(13) && $key ne chr(3)) {
 				print chr(7);
 			}
@@ -2411,7 +2334,7 @@ sub sysop_scroll {
 
     $self->{'debug'}->DEBUG(['Start SysOp Scroll']);
     my $response = TRUE;
-    print $self->{'ansi_sequences'}->{'RESET'},"\rScroll?  ";
+    print $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'},"\rScroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
         $response = FALSE;
     } else {
@@ -2523,15 +2446,15 @@ sub sysop_add_bbs {
     my $index = 0;
     my $response = TRUE;
     $self->sysop_output($table->round('BRIGHT BLUE')->draw());
-    print $self->{'ansi_sequences'}->{'UP'} x 9, $self->{'ansi_sequences'}->{'RIGHT'} x 19;
+    print $self->{'ansi_meta'}->{'cursor'}->{'UP'}->{'out'} x 9, $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
     $self->{'debug'}->DEBUG(['  BBS Name:  ' . $bbs->{'bbs_name'}]);
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
-        print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 19;
+        print $self->{'ansi_meta'}->{'cursor'}->{'DOWN'}->{'out'} x 2, "\r", $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 19;
         $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO, 50, '');
         $self->{'debug'}->DEBUG(['  BBS Hostname:  ' . $bbs->{'bbs_hostname'}]);
         if ($bbs->{'bbs_hostname'} ne '' && length($bbs->{'bbs_hostname'}) > 5) {
-            print $self->{'ansi_sequences'}->{'DOWN'} x 2, "\r", $self->{'ansi_sequences'}->{'RIGHT'} x 19;
+            print $self->{'ansi_meta'}->{'cursor'}->{'DOWN'}->{'out'} x 2, "\r", $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 19;
             $bbs->{'bbs_port'} = $self->sysop_get_line(ECHO, 5, '');
             $self->{'debug'}->DEBUG(['  BBS Port:  ' . $bbs->{'bbs_port'}]);
             if ($bbs->{'bbs_port'} ne '' && $bbs->{'bbs_port'} =~ /^\d+$/) {
@@ -2721,7 +2644,7 @@ sub sysop_ansi_output {
     my $lines  = $mlines;
     my $text   = $self->ansi_decode(shift);
     my $s_len  = length($text);
-    my $nl     = $self->{'ansi_sequences'}->{'NEWLINE'};
+    my $nl     = $self->{'ansi_meta'}->{'cursor'}->{'NEWLINE'}->{'out'};
     my @lines  = split(/\n/,$text);
     my $size   = $self->{'USER'}->{'max_rows'};
     while (scalar(@lines)) {

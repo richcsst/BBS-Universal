@@ -1142,7 +1142,7 @@ sub get_key {
     return ($key) if ($key eq chr(13));
     if ($key eq chr(127)) {
         if ($mode eq 'ANSI') {
-            $key = $self->{'ansi_sequences'}->{'BACKSPACE'};
+            $key = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
         } elsif ($mode eq 'ATASCII') {
             $key = $self->{'atascii_sequences'}->{'BACKSPACE'};
         } elsif ($mode eq 'PETSCII') {
@@ -1204,7 +1204,7 @@ sub get_line {
     my $mode = $self->{'USER'}->{'text_mode'};
     my $bs;
     if ($mode eq 'ANSI') {
-        $bs = $self->{'ansi_sequences'}->{'BACKSPACE'};
+        $bs = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     } elsif ($mode eq 'ATASCII') {
         $bs = $self->{'atascii_sequences'}->{'BACKSPACE'};
     } elsif ($mode eq 'PETSCII') {

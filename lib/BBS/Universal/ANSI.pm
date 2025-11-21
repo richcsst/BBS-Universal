@@ -1,78 +1,89 @@
 package BBS::Universal::ANSI;
 BEGIN { our $VERSION = '0.007'; }
 
-
 sub ansi_decode {
-    my $self = shift;
-    my $text = shift;
+    my ($self, $text) = @_;
 
-	$self->{'debug'}->DEBUG(['Start ANSI Decode']);
-    if (length($text) > 1) {
-        while ($text =~ /\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/) {
-            my $color = $1;
-            $color =~ s/_/ /;
-            my $new = '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
-            $text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$new/;
-        } ## end while ($text =~ /\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/)
-        while ($text =~ /\[\%\s+LOCATE (\d+),(\d+)\s+\%\]/) {
-            my ($c, $r) = ($1, $2);
-            my $replace = $self->{'ansi_sequences'}->{'CSI'} . "$r;$c" . 'H';
-            $text =~ s/\[\%\s+LOCATE $r,$c\s+\%\]/$replace/g;
+    # Nothing to do for very short strings
+    return $text unless defined $text && length($text) > 1;
+
+    # If a literal screen reset token exists, remove it and run reset once.
+    if ($text =~ /\[\%\s*SCREEN\s+RESET\s*\%\]/i) {
+        $text =~ s/\[\%\s*SCREEN\s+RESET\s*\%\]//gis;
+        system('reset');
+    }
+
+    # Convenience CSI
+    my $csi = $self->{'ansi_meta'}->{special}->{CSI}->{out};
+
+    #
+    # Targeted parameterized tokens (single-pass). These are simple Regex -> CSI conversions.
+    #
+    $text =~ s/\[\%\s*LOCATE\s+(\d+)\s*,\s*(\d+)\s*\%\]/ $csi . "$2;$1" . 'H' /eigs;
+    $text =~ s/\[\%\s*SCROLL\s+UP\s+(\d+)\s*\%\]/     $csi . $1 . 'S'           /eigs;
+    $text =~ s/\[\%\s*SCROLL\s+DOWN\s+(\d+)\s*\%\]/   $csi . $1 . 'T'           /eigs;
+
+    # HORIZONTAL RULE expands into a sequence of meta-tokens (resolved later).
+    $text =~ s/\[\%\s*HORIZONTAL\s+RULE\s+(.*?)\s*\%\]/
+	  do {
+		  my $color = defined $1 && $1 ne '' ? uc $1 : 'DEFAULT';
+		  '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
+	  }/eigs;
+
+    # 24-bit RGB foreground/background
+    $text =~ s/\[\%\s*RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
+	  do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "38:2:$r:$g:$b" . 'm' }/eigs;
+    $text =~ s/\[\%\s*B_RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
+	  do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "48:2:$r:$g:$b" . 'm' }/eigs;
+
+    #
+    # Flatten the ansi_meta lookup to a simple, case-insensitive hash for a single-pass
+    # substitution of tokens like [% RED %], [% RESET %], etc.
+    #
+	if ($text =~ /CLS/i && $self->{'local_mode'}) {
+		my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+		$text =~ s/\[\%\s+CLS\s+\%\]/$ch/gsi;
+	}
+
+    my %lookup;
+    for my $code (qw(foreground background special clear cursor attributes)) {
+        my $map = $self->{'ansi_meta'}->{$code} or next;
+        while (my ($name, $info) = each %{$map}) {
+            next unless defined $info->{out};
+            $lookup{ lc $name } = $info->{out};
         }
-        while ($text =~ /\[\%\s+SCROLL UP (\d+)\s+\%\]/) {
-            my $s       = $1;
-            my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'S';
-            $text =~ s/\[\%\s+SCROLL UP $s\s+\%\]/$replace/gi;
-        }
-        while ($text =~ /\[\%\s+SCROLL DOWN (\d+)\s+\%\]/) {
-            my $s       = $1;
-            my $replace = $self->{'ansi_sequences'}->{'CSI'} . $s . 'T';
-            $text =~ s/\[\%\s+SCROLL DOWN $s\s+\%\]/$replace/gi;
-        }
-        while ($text =~ /\[\%\s+RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r, $g, $b) = ($1 & 255, $2 & 255, $3 & 255);
-            my $replace = $self->{'ansi_sequences'}->{'CSI'} . "38:2:$r:$g:$b" . 'm';
-            $text =~ s/\[\%\s+RGB $r,$g,$b\s+\%\]/$replace/gi;
-        }
-        while ($text =~ /\[\%\s+B_RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-            my ($r, $g, $b) = ($1 & 255, $2 & 255, $3 & 255);
-            my $replace = $self->{'ansi_sequences'}->{'CSI'} . "48:2:$r:$g:$b" . 'm';
-            $text =~ s/\[\%\s+B_RGB $r,$g,$b\s+\%\]/$replace/gi;
-        }
-        while ($text =~ /\[\%\s+BOX (.*?),(\d+),(\d+),(\d+),(\d+),(.*?)\s+\%\](.*?)\[\%\s+ENDBOX\s+\%\]/i) {
-            my $replace = $self->box($1, $2, $3, $4, $5, $6, $7);
-            $text =~ s/\[\%\s+BOX.*?\%\].*?\[\%\s+ENDBOX.*?\%\]/$replace/i;
-        }
-        while ($text =~ /\[\%\s+(.*?)\s+\%\]/ && (exists($self->{'ansi_sequences'}->{$1}) || defined(charnames::string_vianame($1)))) {
-            my $string = $1;
-            if (exists($self->{'ansi_sequences'}->{$string})) {
-                if ($string =~ /CLS/i && $self->{'local_mode'}) {
-                    my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
-                    $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
-                } else {
-                    $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ansi_sequences'}->{$string}/gi;
-                }
-            } else {
-                my $char = charnames::string_vianame($string);
-                $char = '?' unless (defined($char));
-                $text =~ s/\[\%\s+$string\s+\%\]/$char/gi;
-            }
-        } ## end while ($text =~ /\[\%\s+(.*?)\s+\%\]/...)
-    } ## end if (length($text) > 1)
-	$self->{'debug'}->DEBUG(['End ANSI Decode']);
-    return ($text);
+    } ## end for my $code (qw(foreground background special clear cursor attributes))
+
+    # Final single-pass replacement for remaining [% ... %] tokens.
+    # If token matches a lookup entry, substitute; otherwise if it's a named char use charnames;
+    # else leave token visible.
+###
+    $text =~ s/\[\%\s*(.+?)\s*\%\]/
+	  do {
+		  my $tok = $1;
+		  my $key = lc $tok;
+		  if ( exists $lookup{$key} ) {
+			  $lookup{$key};
+		  } elsif ( defined( my $char = charnames::string_vianame($tok) ) ) {
+			  $char;
+		  } else {
+			  $&;    # leave the original token intact
+		  }
+	  }/egis;
+###
+    return $text;
 } ## end sub ansi_decode
 
 sub ansi_output {
     my $self = shift;
     my $text = shift;
 
-	$self->{'debug'}->DEBUG(['Start ANSI Output']);
+    $self->{'debug'}->DEBUG(['Start ANSI Output']);
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
     $text = $self->ansi_decode($text);
     my $s_len = length($text);
-    my $nl    = $self->{'ansi_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'ansi_meta'}->{'cursor'}->{'NEWLINE'}->{'out'};
 
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);
@@ -89,213 +100,9 @@ sub ansi_output {
         } ## end if ($char eq "\n")
         $self->send_char($char);
     } ## end foreach my $count (0 .. $s_len)
-	$self->{'debug'}->DEBUG(['End ANSI Output']);
+    $self->{'debug'}->DEBUG(['End ANSI Output']);
     return (TRUE);
 } ## end sub ansi_output
-
-sub box {
-    my $self   = shift;
-    my $color  = '[% ' . shift . ' %]';
-    my $x      = shift;
-    my $y      = shift;
-    my $w      = shift;
-    my $h      = shift;
-    my $type   = shift;
-    my $string = shift;
-
-	$self->{'debug'}->DEBUG(['Start Box']);
-    my $tl  = '╔';
-    my $tr  = '╗';
-    my $bl  = '╚';
-    my $br  = '╝';
-    my $top = '═';
-    my $bot = '═';
-    my $vl  = '║';
-    my $vr  = '║';
-
-    if ($type eq 'THIN') {
-        $tl  = '┌';
-        $tr  = '┐';
-        $bl  = '└';
-        $br  = '┘';
-        $top = '─';
-        $bot = '─';
-        $vl  = '│';
-        $vr  = '│';
-    } elsif ($type eq 'ROUND') {
-        $tl  = '╭';
-        $tr  = '╮';
-        $bl  = '╰';
-        $br  = '╯';
-        $top = '─';
-        $bot = '─';
-        $vl  = '│';
-        $vr  = '│';
-    } elsif ($type eq 'THICK') {
-        $tl  = '┏';
-        $tr  = '┓';
-        $bl  = '┗';
-        $br  = '┛';
-        $top = '━';
-        $bot = '━';
-        $vl  = '┃';
-        $vl  = '┃';
-    } elsif ($type eq 'BLOCK') {
-        $tl  = '🬚';
-        $tr  = '🬩';
-        $bl  = '🬌';
-        $br  = '🬍';
-        $top = '🬋';
-        $bot = '🬋';
-        $vl  = '▌';
-        $vr  = '▐';
-    } elsif ($type eq 'WEDGE') {
-        $tl  = '🭊';
-        $tr  = '🬿';
-        $bl  = '🭥';
-        $br  = '🭚';
-        $top = '▅';
-        $bot = '🮄';
-        $vl  = '█';
-        $vr  = '█';
-    } elsif ($type eq 'BIG WEDGE') {
-        $tl  = '◢';
-        $tr  = '◣';
-        $bl  = '◥';
-        $br  = '◤';
-        $top = '█';
-        $bot = '█';
-        $vl  = '█';
-        $vr  = '█';
-    } elsif ($type eq 'DOTS') {
-        $tl  = '🞄';
-        $tr  = '🞄';
-        $bl  = '🞄';
-        $br  = '🞄';
-        $top = '🞄';
-        $bot = '🞄';
-        $vl  = '🞄';
-        $vr  = '🞄';
-    } elsif ($type eq 'DIAMOND') {
-        $tl  = '⧫';
-        $tr  = '⧫';
-        $bl  = '⧫';
-        $br  = '⧫';
-        $top = '⧫';
-        $bot = '⧫';
-        $vl  = '⧫';
-        $vr  = '⧫';
-    } elsif ($type eq 'STAR') {
-        $tl  = '⭑';
-        $tr  = '⭑';
-        $bl  = '⭑';
-        $br  = '⭑';
-        $top = '⭑';
-        $bot = '⭑';
-        $vl  = '⭑';
-        $vr  = '⭑';
-    } elsif ($type eq 'CIRCLE') {
-        $tl  = '○';
-        $tr  = '○';
-        $bl  = '○';
-        $br  = '○';
-        $top = '○';
-        $bot = '○';
-        $vl  = '○';
-        $vr  = '○';
-    } elsif ($type eq 'SQUARE') {
-        $tl  = '∎';
-        $tr  = '∎';
-        $bl  = '∎';
-        $br  = '∎';
-        $top = '∎';
-        $bot = '∎';
-        $vl  = '∎';
-        $vr  = '∎';
-    } elsif ($type eq 'DITHERED') {
-        $tl  = '▒';
-        $tr  = '▒';
-        $bl  = '▒';
-        $br  = '▒';
-        $top = '▒';
-        $bot = '▒';
-        $vl  = '▒';
-        $vr  = '▒';
-    } elsif ($type eq 'HEART') {
-        $tl  = '♥';
-        $tr  = '♥';
-        $bl  = '♥';
-        $br  = '♥';
-        $top = '♥';
-        $bot = '♥';
-        $vl  = '♥';
-        $vr  = '♥';
-    } elsif ($type eq 'CHRISTIAN') {
-        $tl  = '🕇';
-        $tr  = '🕇';
-        $bl  = '🕇';
-        $br  = '🕇';
-        $top = '🕇';
-        $bot = '🕇';
-        $vl  = '🕇';
-        $vr  = '🕇';
-    } elsif ($type eq 'NOTES') {
-        $tl  = '♪';
-        $tr  = '♪';
-        $bl  = '♪';
-        $br  = '♪';
-        $top = '♪';
-        $bot = '♪';
-        $vl  = '♪';
-        $vr  = '♪';
-    } elsif ($type eq 'PARALLELOGRAM') {
-        $tl  = '▰';
-        $tr  = '▰';
-        $bl  = '▰';
-        $br  = '▰';
-        $top = '▰';
-        $bot = '▰';
-        $vl  = '▰';
-        $vr  = '▰';
-    } elsif ($type eq 'BIG ARROWS') {
-        $tl  = '▶';
-        $tr  = '▶';
-        $bl  = '◀';
-        $br  = '◀';
-        $top = '▶';
-        $bot = '◀';
-        $vl  = '▲';
-        $vr  = '▼';
-    } elsif ($type eq 'ARROWS') {
-        $tl  = '🡕';
-        $tr  = '🡖';
-        $bl  = '🡔';
-        $br  = '🡗';
-        $top = '🡒';
-        $bot = '🡐';
-        $vl  = '🡑';
-        $vr  = '🡓';
-    } ## end elsif ($type eq 'ARROWS')
-
-    my $text = '';
-    my $xx   = $x;
-    my $yy   = $y;
-    $text .= locate($yy++, $xx) . $color . $tl . $top x ($w - 2) . $tr . '[% RESET %]';
-    foreach my $count (1 .. ($h - 2)) {
-        $text .= locate($yy++, $xx) . $color . $vl . '[% RESET %]' . ' ' x ($w - 2) . $color . $vr . '[% RESET %]';
-    }
-    $text .= locate($yy++,  $xx) . $color . $bl . $bot x ($w - 2) . $br . '[% RESET %]' . $self->{'ansi_sequences'}->{'SAVE'};
-    $text .= locate($y + 1, $x + 1);
-    chomp(my @lines = fuzzy_wrap($string, ($w - 3)));
-    $xx = $x + 1;
-    $yy = $y + 1;
-    foreach my $line (@lines) {
-        $text .= locate($yy++, $xx) . $line;
-    }
-    $text .= $self->{'ansi_sequences'}->{'RESTORE'};
-	$self->{'debug'}->DEBUG(['End Box']);
-    return ($text);
-} ## end sub box
 
 sub ansi_initialize {
     my $self = shift;
@@ -303,7 +110,7 @@ sub ansi_initialize {
     my $esc = chr(27);
     my $csi = $esc . '[';
 
-	$self->{'debug'}->DEBUG(['Start ANSI Initialize']);
+    $self->{'debug'}->DEBUG(['Start ANSI Initialize']);
     $self->{'ansi_prefix'} = $csi;
 
     $self->{'ansi_meta'} = {
@@ -382,10 +189,10 @@ sub ansi_initialize {
         },
 
         'cursor' => {
-			'BACKSPACE' => {
-				'out'  => chr(8),
-				'desc' => 'Backspace',
-			},
+            'BACKSPACE' => {
+                'out'  => chr(8),
+                'desc' => 'Backspace',
+            },
             'RETURN' => {
                 'out'  => chr(13),
                 'desc' => 'Carriage Return (ASCII 13)',
@@ -561,10 +368,10 @@ sub ansi_initialize {
                 'out'  => $csi . '50m',
                 'desc' => 'Turn off proportional text',
             },
-			'RING BELL' => {
-				'out' => chr(7),
-				'desc' => 'Console bell',
-			},
+            'RING BELL' => {
+                'out' => chr(7),
+                'desc' => 'Console bell',
+            },
         },
 
         # Color
@@ -8801,47 +8608,42 @@ sub ansi_initialize {
                 'out'  => $csi . '48:2:44:22:8m',
             },
         },
-    };
+  };
 
-    $self->{'debug'}->DEBUG(['  Add fonts']);
-    foreach my $count (1 .. 9) {
-        $self->{'ansi_meta'}->{'special'}->{ 'FONT ' . $count } = {
-            'desc' => "ANSI Font $count",
-            'out'  => $csi . ($count + 10) . 'm',
-        };
-    } ## end foreach my $count (1 .. 9)
+$self->{'debug'}->DEBUG(['  Add fonts']);
+foreach my $count (1 .. 9) {
+	$self->{'ansi_meta'}->{'special'}->{ 'FONT ' . $count } = {
+		'desc' => "ANSI Font $count",
+		'out'  => $csi . ($count + 10) . 'm',
+	};
+} ## end foreach my $count (1 .. 9)
 
-    $self->{'debug'}->DEBUG(['  Add ANSI256 Colors']);
-    foreach my $count (16 .. 231) {
-        $self->{'ansi_meta'}->{'foreground'}->{ 'COLOR ' . $count } = {
-            'desc' => "ANSI256 Color $count",
-            'out'  => $csi . "38;5;$count" . 'm',
-        };
-        $self->{'ansi_meta'}->{'background'}->{ 'B_COLOR ' . $count } = {
-            'desc' => "ANSI256 Color $count",
-            'out'  => $csi . "48;5;$count" . 'm',
-        };
-    } ## end foreach my $count (16 .. 231)
+$self->{'debug'}->DEBUG(['  Add ANSI256 Colors']);
+foreach my $count (16 .. 231) {
+	$self->{'ansi_meta'}->{'foreground'}->{ 'COLOR ' . $count } = {
+		'desc' => "ANSI256 Color $count",
+		'out'  => $csi . "38;5;$count" . 'm',
+	};
+	$self->{'ansi_meta'}->{'background'}->{ 'B_COLOR ' . $count } = {
+		'desc' => "ANSI256 Color $count",
+		'out'  => $csi . "48;5;$count" . 'm',
+	};
+} ## end foreach my $count (16 .. 231)
 
-    $self->{'debug'}->DEBUG(['  Add ANSI256 Grays']);
-    foreach my $count (232 .. 255) {
-        $self->{'ansi_meta'}->{'foreground'}->{ 'GRAY ' . ($count - 232) } = {
-            'desc' => "ANSI256 grey level " . ($count - 232),
-            'out'  => $csi . "38;5;$count" . 'm',
-        };
-        $self->{'ansi_meta'}->{'background'}->{ 'B_GRAY ' . ($count - 232) } = {
-            'desc' => "ANSI256 grey level " . ($count - 232),
-            'out'  => $csi . "48;5;$count" . 'm',
-        };
-    } ## end foreach my $count (232 .. 255)
+$self->{'debug'}->DEBUG(['  Add ANSI256 Grays']);
+foreach my $count (232 .. 255) {
+	$self->{'ansi_meta'}->{'foreground'}->{ 'GRAY ' . ($count - 232) } = {
+		'desc' => "ANSI256 grey level " . ($count - 232),
+		'out'  => $csi . "38;5;$count" . 'm',
+	};
+	$self->{'ansi_meta'}->{'background'}->{ 'B_GRAY ' . ($count - 232) } = {
+		'desc' => "ANSI256 grey level " . ($count - 232),
+		'out'  => $csi . "48;5;$count" . 'm',
+	};
+} ## end foreach my $count (232 .. 255)
 
-    $self->{'debug'}->DEBUG(['  Populate ansi_sequences']);
-    foreach my $code (qw(special clear cursor attributes foreground background)) {
-        foreach my $name (keys %{ $self->{'ansi_meta'}->{$code} }) {
-            $self->{'ansi_sequences'}->{$name} = $self->{'ansi_meta'}->{$code}->{$name}->{'out'};
-        }
-    }
-    $self->{'debug'}->DEBUG(['End ANSI Initialize']);
-    return ($self);
+$self->{'debug'}->DEBUG(['End ANSI Initialize']);
+# $self->{'debug'}->ERROR([$self->{'ansi_meta'}]);exit;
+return ($self);
 } ## end sub ansi_initialize
 1;
