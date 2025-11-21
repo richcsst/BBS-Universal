@@ -1096,8 +1096,8 @@ sub sysop_list_files {
 
     $self->{'debug'}->DEBUG(['Start SysOp List Files']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
-    $sth->execute();
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=?');
+    $sth->execute($self->{'USER'}->{'file_category'});
     my $sizes = {};
     while (my $row = $sth->fetchrow_hashref()) {
         foreach my $name (keys %{$row}) {
@@ -1105,22 +1105,22 @@ sub sysop_list_files {
                 my $size = format_number($row->{$name});
                 $sizes->{$name} = max(length($size), $sizes->{$name});
             } else {
-                $sizes->{$name} = max(length("$row->{$name}"), $sizes->{$name});
+                $sizes->{$name} = max(length($row->{$name}), $sizes->{$name});
             }
         } ## end foreach my $name (keys %{$row...})
     } ## end while (my $row = $sth->fetchrow_hashref...)
     $sth->finish();
     my $table;
     if ($wsize > 150) {
-        $table = Text::SimpleTable->new(max(5, $sizes->{'title'}), max(8, $sizes->{'filename'}), max(4, $sizes->{'type'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(6, $sizes->{'uploaded'}), max(9, $sizes->{'thumbs_up'}), max(11, $sizes->{'thumbs_down'}));
+        $table = Text::SimpleTable->new(max(5, $sizes->{'title'}), max(8, $sizes->{'filename'}), max(4, $sizes->{'type'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(8, $sizes->{'uploaded'}), max(9, $sizes->{'thumbs_up'}), max(11, $sizes->{'thumbs_down'}));
         $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE', 'UPLOADED', 'THUMBS UP', 'THUMBS DOWN');
     } else {
         $table = Text::SimpleTable->new(max(5, $sizes->{'filename'}), max(8, $sizes->{'title'}), max(4, $sizes->{'extension'}), max(11, $sizes->{'description'}), max(8, $sizes->{'username'}), max(4, $sizes->{'file_size'}), max(9, $sizes->{'thumbs_up'}), max(11, $sizes->{'thumbs_down'}));
         $table->row('TITLE', 'FILENAME', 'TYPE', 'DESCRIPTION', 'UPLOADER', 'SIZE', 'THUMBS UP', 'THUMBS DOWN');
     }
     $table->hr();
-    $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view');
-    $sth->execute();
+    $sth = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE category_id=?');
+    $sth->execute($self->{'USER'}->{'file_category'});
     my $category;
 
     while (my $row = $sth->fetchrow_hashref()) {

@@ -512,7 +512,7 @@ INSERT INTO file_categories (title,description) VALUES ('Homebrew','Homebrew Fil
 
 INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format',148513);
 INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format',533);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (2,'usa.ans','ANSI Token USA',(SELECT id FROM file_types WHERE extension='ANS'),'USA in USA Themed Font in ANSI Token Format',5303);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (2,'usa.ans','ANSI Token File USA',(SELECT id FROM file_types WHERE extension='ANS'),'USA in USA Themed Font in ANSI Token Format',5303);
 
 INSERT INTO news (
     news_title,

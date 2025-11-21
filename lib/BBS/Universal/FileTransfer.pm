@@ -110,6 +110,7 @@ sub files_list_summary {
 sub files_choices {
     my $self   = shift;
     my $record = shift;
+	my $view   = FALSE;
     my $mapping = {
         'TEXT' => '',
         'Z'    => {
@@ -138,6 +139,7 @@ sub files_choices {
         },
     };
     if ($record->{'extension'} =~ /^(TXT|ASC|ATA|PET|VT|ANS|MD|INF|CDF|PL|PM|PY|C|CPP|H|SH|CSS|HTM|HTML|SHTML|JS|JAVA|XML|BAT)$/ && $self->check_access_level('VETERAN')) {
+		$view = TRUE;
         $mapping->{'V'} = {
             'command'      => 'VIEW FILE',
             'color'        => 'CYAN',
@@ -150,7 +152,7 @@ sub files_choices {
     my $key;
     do {
         $key = uc($self->get_key());
-    } until($key =~ /D|N|R|V|Z/);
+    } until($key =~ /D|N|Z/ || ($key eq 'V' && $view) || ($key eq 'R' && $self->check_access_level('JUNION SYSOP')));
     $self->output($mapping->{$key}->{'command'} . "\n");
     if ($mapping->{$key}->{'command'} eq 'DOWNLOAD') {
         my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
