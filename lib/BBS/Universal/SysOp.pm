@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.013'; }
+BEGIN { our $VERSION = '0.014'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -28,9 +28,9 @@ sub sysop_initialize {
     my $bbs_versions = $self->sysop_versions_format($sections, TRUE);
     my $esc          = chr(27) . '[';
 
-    $self->{'sysop_menu_colors'} = [91,93,92,95,94,96];
-	$self->{'sysop_menu_files'}  = ['','','','',''];
-    $self->{'flags_default'} = {
+    $self->{'sysop_menu_colors'} = [91, 93, 92, 95, 94, 96];
+    $self->{'sysop_menu_files'}  = ['', '', '', '', ''];
+    $self->{'flags_default'}     = {
         'prefer_nickname' => 'Yes',
         'view_files'      => 'Yes',
         'upload_files'    => 'No',
@@ -45,6 +45,7 @@ sub sysop_initialize {
     };
 
     $self->{'sysop_tokens'} = {
+
         # Static Tokens
         'HOSTNAME'     => $self->sysop_hostname,
         'IP ADDRESS'   => $self->sysop_ip_address(),
@@ -110,57 +111,57 @@ sub sysop_initialize {
             return ($self->sysop_list_commands());
         },
         'MIDDLE VERTICAL RULE color' => sub {
-            my $self = shift;
+            my $self  = shift;
             my $color = shift;
-            return($self->sysop_locate_middle('B_' . $color));
+            return ($self->sysop_locate_middle('B_' . $color));
         },
     };
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
-            id
-            fullname
-            username
-            given
-            family
-            nickname
-            email
-            birthday
-            location
-            access_level
-            date_format
-            baud_rate
-            text_mode
-            max_columns
-            max_rows
-            timeout
-            retro_systems
-            accomplishments
-            prefer_nickname
-            view_files
-            upload_files
-            download_files
-            remove_files
-            play_fortunes
-            read_message
-            post_message
-            remove_message
-            sysop
-            page_sysop
-            banned
-            login_time
-            logout_time
+          id
+          fullname
+          username
+          given
+          family
+          nickname
+          email
+          birthday
+          location
+          access_level
+          date_format
+          baud_rate
+          text_mode
+          max_columns
+          max_rows
+          timeout
+          retro_systems
+          accomplishments
+          prefer_nickname
+          view_files
+          upload_files
+          download_files
+          remove_files
+          play_fortunes
+          read_message
+          post_message
+          remove_message
+          sysop
+          page_sysop
+          banned
+          login_time
+          logout_time
         )
     ];
     $self->{'SYSOP ORDER ABBREVIATED'} = [
         qw(
-            id
-            fullname
-            username
-            given
-            family
-            nickname
-            text_mode
+          id
+          fullname
+          username
+          given
+          family
+          nickname
+          text_mode
         )
     ];
 
@@ -379,12 +380,12 @@ sub sysop_list_commands {
     my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
     my $srow   = $size - 5;
     my @sys    = (sort(keys %{$main::SYSOP_COMMANDS}));
-    my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }, 'JUSTIFIED text ENDJUSTIFIED','WRAP text ENDWRAP'));
+    my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }, 'JUSTIFIED text ENDJUSTIFIED', 'WRAP text ENDWRAP'));
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
-    my @tkn    = (sort(keys %{ $self->{'TOKENS'} }, 'JUSTIFIED text ENDJUSTIFIED','WRAP text ENDWRAP'));
-    my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} },'HORIZONTAL RULE'));
-    my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} },'HORIZONTAL RULE color'));
-    my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },'HORIZONTAL RULE'));
+    my @tkn    = (sort(keys %{ $self->{'TOKENS'} }, 'JUSTIFIED text ENDJUSTIFIED', 'WRAP text ENDWRAP'));
+    my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} }, 'HORIZONTAL RULE'));
+    my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} }, 'HORIZONTAL RULE color'));
+    my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },   'HORIZONTAL RULE'));
     my $x      = 1;
     my $xt     = 1;
     my $y      = 1;
@@ -419,8 +420,8 @@ sub sysop_list_commands {
         }
     }
     if ($mode eq 'ASCII') {
-        my $table = Text::SimpleTable->new($asc,25);
-        $table->row('ASCII TOKENS','DESCRIPTION');
+        my $table = Text::SimpleTable->new($asc, 25);
+        $table->row('ASCII TOKENS', 'DESCRIPTION');
         $table->hr();
         my $ascii_tokens;
         while (scalar(@asctkn)) {
@@ -429,104 +430,105 @@ sub sysop_list_commands {
         }
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
     } elsif ($mode eq 'ANSI') {
-        my $crgb = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
-        my $c256 = (exists($ENV{'TERM'}) && $ENV{'TERM'} =~ /256/) ? TRUE : FALSE;
+        my $crgb  = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
+        my $c256  = (exists($ENV{'TERM'})      && $ENV{'TERM'} =~ /256/)            ? TRUE : FALSE;
         my $table = Text::SimpleTable->new(25, $ans, 55);
-		$text = "[% ORANGE %]╔═══════════════════════════╦═════════════════════════════════╦═════════════════════════════════════════════════════════╗[% RESET %]\n" .
-		        "[% ORANGE %]║ [% BRIGHT YELLOW %]TYPE                      [% ORANGE %]║ [% BRIGHT YELLOW %]ANSI TOKENS                     [% ORANGE %]║ [% BRIGHT YELLOW %]DESCRIPTION                                             [% ORANGE %]║[% RESET %]\n" .
-		        "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
-		  foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
-			if ($code eq 'foreground ANSI 256') {
-				my $ncode = 'foreground';
-				foreach my $number (16 .. 231) {
-					my $name = sprintf('COLOR %d',$number);
-					$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-				}
-				foreach my $number (0 .. 23) {
-					my $name = sprintf('GRAY %d',$number);
-					$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-				}
-			} elsif ($code eq 'background ANSI 256') {
-				my $ncode = 'background';
-				foreach my $number (16 .. 231) {
-					my $name = sprintf('B_COLOR %d',$number);
-					my $color = 'BLACK';
-					$color = 'WHITE' if ($number <= 22);
-					$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-				}
-				foreach my $number (0 .. 23) {
-					my $name = sprintf('B_GRAY %d',$number);
-					my $color = 'WHITE';
-					$color = 'BLACK' if ($number >= 10);
-					$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-				}
-			} elsif ($code =~ /^foreground/) {
+        $text = "[% ORANGE %]╔═══════════════════════════╦═════════════════════════════════╦═════════════════════════════════════════════════════════╗[% RESET %]\n" . "[% ORANGE %]║ [% BRIGHT YELLOW %]TYPE                      [% ORANGE %]║ [% BRIGHT YELLOW %]ANSI TOKENS                     [% ORANGE %]║ [% BRIGHT YELLOW %]DESCRIPTION                                             [% ORANGE %]║[% RESET %]\n" . "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
+        foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
+            if ($code eq 'foreground ANSI 256') {
                 my $ncode = 'foreground';
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$ncode}})) {
-                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-					if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					} elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					} elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					}
+                foreach my $number (16 .. 231) {
+                    my $name = sprintf('COLOR %d', $number);
+                    $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
                 }
+                foreach my $number (0 .. 23) {
+                    my $name = sprintf('GRAY %d', $number);
+                    $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                }
+            } elsif ($code eq 'background ANSI 256') {
+                my $ncode = 'background';
+                foreach my $number (16 .. 231) {
+                    my $name  = sprintf('B_COLOR %d', $number);
+                    my $color = 'BLACK';
+                    $color = 'WHITE' if ($number <= 22);
+                    $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                } ## end foreach my $number (16 .. 231)
+                foreach my $number (0 .. 23) {
+                    my $name  = sprintf('B_GRAY %d', $number);
+                    my $color = 'WHITE';
+                    $color = 'BLACK' if ($number >= 10);
+                    $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                } ## end foreach my $number (0 .. 23)
+            } elsif ($code =~ /^foreground/) {
+                my $ncode = 'foreground';
+                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$ncode} })) {
+                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
+                    if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    }
+                } ## end foreach my $name (sort(keys...))
             } elsif ($code =~ /^background/) {
                 my $ncode = 'background';
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$ncode}})) {
+                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$ncode} })) {
                     next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-					my $color = 'BLACK';
-					$color = 'WHITE' if ($name =~ /^(B_BLACK|B_DEFAULT)$/);
-					if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					} elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					} elsif($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-						$text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %][% $color %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					}
-                }
+                    my $color = 'BLACK';
+                    $color = 'WHITE' if ($name =~ /^(B_BLACK|B_DEFAULT)$/);
+                    if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
+                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
+                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
+                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    }
+                } ## end foreach my $name (sort(keys...))
             } elsif ($code =~ /cursor|special|clear/) {
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
-					$text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',$name,'[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
+                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$code} })) {
+                    $text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', $name, '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
                 }
             } elsif ($code eq 'attributes') {
-                foreach my $name (sort(keys %{$self->{'ansi_meta'}->{$code}})) {
-					if ($name eq 'HIDE') {
-						$text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',$name,'[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					} else {
-						$text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]','[% RESET %]',ucfirst($code),'[% ORANGE %]','[% RESET %]',"[% $name %]",$name,'[% RESET %]','[% ORANGE %]','[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'},'[% ORANGE %]','[% RESET %]') . "\n";
-					}
-                }
+                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$code} })) {
+                    if ($name eq 'HIDE') {
+                        $text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', $name, '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    } else {
+                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
+                    }
+                } ## end foreach my $name (sort(keys...))
+            } ## end elsif ($code eq 'attributes')
+            if ($code eq 'background ANSI TrueColor') {
+                $text .= "[% ORANGE %]╚═══════════════════════════╩═════════════════════════════════╩═════════════════════════════════════════════════════════╝[% RESET %]\n";
+            } else {
+                $text .= "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
             }
-			if ($code eq 'background ANSI TrueColor') {
-				$text .= "[% ORANGE %]╚═══════════════════════════╩═════════════════════════════════╩═════════════════════════════════════════════════════════╝[% RESET %]\n";
-			} else {
-				$text .= "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
-			}
-        }
-#		$self->sysop_output($text);
+        } ## end foreach my $code ('special'...)
+
+        #		$self->sysop_output($text);
     } elsif ($mode eq 'ATASCII') {
-        my $table = Text::SimpleTable->new(1,$ata,25);
-        $table->row('C','ATASCII TOKENS','DESCRIPTION');
+        my $table = Text::SimpleTable->new(1, $ata, 25);
+        $table->row('C', 'ATASCII TOKENS', 'DESCRIPTION');
         $table->hr();
         my $atascii_tokens;
         while (scalar(@atatkn)) {
             $atascii_tokens = shift(@atatkn);
             $table->row($self->{'atascii_meta'}->{$atascii_tokens}->{'unicode'}, $atascii_tokens, $self->{'atascii_meta'}->{$atascii_tokens}->{'desc'});
-#            $table->hr() if (scalar(@atatkn));
-        }
+
+            #            $table->hr() if (scalar(@atatkn));
+        } ## end while (scalar(@atatkn))
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
     } elsif ($mode eq 'PETSCII') {
-        my $table = Text::SimpleTable->new(1,$pet,28);
-        $table->row('C','PETSCII TOKENS','DESCRIPTION');
+        my $table = Text::SimpleTable->new(1, $pet, 28);
+        $table->row('C', 'PETSCII TOKENS', 'DESCRIPTION');
         $table->hr();
         my $petscii_tokens;
         while (scalar(@pettkn)) {
             $petscii_tokens = shift(@pettkn);
             $table->row($self->{'petscii_meta'}->{$petscii_tokens}->{'unicode'}, $petscii_tokens, $self->{'petscii_meta'}->{$petscii_tokens}->{'desc'});
-#            $table->hr() if (scalar(@pettkn));
-        }
+
+            #            $table->hr() if (scalar(@pettkn));
+        } ## end while (scalar(@pettkn))
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
         $text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;
         $text =~ s/│ (YELLOW)/│ \[\% YELLOW \%\]$1\[\% RESET \%\]/g;
@@ -544,7 +546,7 @@ sub sysop_list_commands {
         $table->row('USER MENU COMMANDS', 'USER TOKENS');
         $table->hr();
         my ($user_names, $token_names);
-        my $count = 0; # Try to follow the scroll logic
+        my $count = 0;    # Try to follow the scroll logic
         while (scalar(@usr) || scalar(@tkn)) {
             if (scalar(@usr)) {
                 $user_names = shift(@usr);
@@ -563,19 +565,19 @@ sub sysop_list_commands {
                 $table->hr();
                 $table->row('USER MENU COMMANDS', 'USER TOKENS');
                 $table->hr();
-            }
-        }
+            } ## end if ($count > $srow)
+        } ## end while (scalar(@usr) || scalar...)
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
-		foreach my $name (qw(color text)) {
-			my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
-			$text =~ s/$name/$ch/gs;
-		}
+        foreach my $name (qw(color text)) {
+            my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
+            $text =~ s/$name/$ch/gs;
+        }
     } elsif ($mode eq 'SYSOP') {
         my $table = Text::SimpleTable->new($x, $xt);
         $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS');
         $table->hr();
         my ($sysop_names, $sysop_tokens);
-        my $count = 0; # Try to follow the scroll logic
+        my $count = 0;    # Try to follow the scroll logic
         while (scalar(@sys) || scalar(@stkn)) {
             if (scalar(@sys)) {
                 $sysop_names = shift(@sys);
@@ -594,14 +596,15 @@ sub sysop_list_commands {
                 $table->hr();
                 $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS');
                 $table->hr();
-            }
-        }
+            } ## end if ($count > $srow)
+        } ## end while (scalar(@sys) || scalar...)
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
-		foreach my $name (qw(color text)) {
-			my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
-			$text =~ s/$name/$ch/gs;
-		}
-    }
+        foreach my $name (qw(color text)) {
+            my $ch = '[% ITALIC %][% FAINT %]' . $name . '[% RESET %]';
+            $text =~ s/$name/$ch/gs;
+        }
+    } ## end elsif ($mode eq 'SYSOP')
+
     # This monstrosity fixes up the pre-rendered table to add all of the colors and special characters for friendly output
     $text =~ s/ (C|DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS) / \[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\] /g;
     $self->{'debug'}->DEBUG(['End SysOp List Commands']);
@@ -624,7 +627,7 @@ sub sysop_versions_format {
 
     $self->{'debug'}->DEBUG(['Start SysOp Versions Format']);
     my $versions = "\n";
-    my $heading  = ''; #  = "\t";
+    my $heading  = '';          #  = "\t";
     my $counter  = $sections;
 
     for (my $count = $sections - 1; $count > 0; $count--) {
@@ -635,7 +638,7 @@ sub sysop_versions_format {
             $heading .= "\n";
         }
     } ## end for (my $count = $sections...)
-    $heading = '[% BRIGHT YELLOW %][% B_RED %]' .  $heading . '[% RESET %]';
+    $heading = '[% BRIGHT YELLOW %][% B_RED %]' . $heading . '[% RESET %]';
     foreach my $v (sort(keys %{ $self->{'VERSIONS'} })) {
         next if ($bbs_only && $v !~ /^BBS/);
         $versions .= sprintf(' %-28s  %.03f', $v, $self->{'VERSIONS'}->{$v});
@@ -646,7 +649,7 @@ sub sysop_versions_format {
         } else {
             $versions .= "\t";
         }
-    } ## end foreach my $v (keys %{ $self...})
+    } ## end foreach my $v (sort(keys %{...}))
     chop($versions) if (substr($versions, -1, 1) eq "\t");
     $self->{'debug'}->DEBUG(['End SysOp Versions Format']);
     return ($heading . $versions . "\n");
@@ -659,7 +662,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
     my $diskfree = '';
     if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF') eq 'TRUE') {
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-        $diskfree = "\n" . `duf -theme ansi -width $wsize`;
+        $diskfree = `duf -theme ansi -width $wsize`;
     } else {
         my @free  = split(/\n/, `nice df -h -T`);    # Get human readable disk free showing type
         my $width = 1;
@@ -690,15 +693,15 @@ sub sysop_load_menu {
     my $text    = locate($row, 1) . cldown;
     open(my $FILE, '<', $file);
 
-	shift(@{$self->{'sysop_menu_files'}});
-	push(@{$self->{'sysop_menu_files'}}, $file);
-	for(my $count=0;$count<5;$count++) {
-		if ($count == 4) {
-			print locate(($count + 1),108), colored(['green','on_black'],clline . $self->{'sysop_menu_files'}->[$count]);
-		} else {
-			print locate(($count + 1),108), colored(['ansi22','on_black'],clline . $self->{'sysop_menu_files'}->[$count]);
-		}
-	}
+    shift(@{ $self->{'sysop_menu_files'} });
+    push(@{ $self->{'sysop_menu_files'} }, $file);
+    for (my $count = 0; $count < 5; $count++) {
+        if ($count == 4) {
+            print locate(($count + 1), 108), colored(['green', 'on_black'], clline . $self->{'sysop_menu_files'}->[$count]);
+        } else {
+            print locate(($count + 1), 108), colored(['ansi22', 'on_black'], clline . $self->{'sysop_menu_files'}->[$count]);
+        }
+    } ## end for (my $count = 0; $count...)
     while (chomp(my $line = <$FILE>)) {
         next if ($line =~ /^\#/);
         if ($mode) {
@@ -732,22 +735,24 @@ sub sysop_pager {
     $self->{'debug'}->DEBUG(['Start SysOp Pager']);
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my @lines;
-    @lines  = split(/\n$/, $text);
-    my $size   = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
-    $size  -= $offset;
+    @lines = split(/\n$/, $text);
+    my $size = ($hsize - ($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')));
+    $size -= $offset;
     my $scroll = TRUE;
-    my $count = 1;
+    my $count  = 1;
+
     while (scalar(@lines)) {
         my $line = shift(@lines);
         $self->sysop_output("$line\n");
-#        $self->sysop_ansi_output("$line\n");
+
+        #        $self->sysop_ansi_output("$line\n");
         $count++;
         if ($count >= $size) {
-            $count = 1;
+            $count  = 1;
             $scroll = $self->sysop_scroll();
             last unless ($scroll);
         }
-    } ## end foreach my $line (@lines)
+    } ## end while (scalar(@lines))
     $self->{'debug'}->DEBUG(['End SysOp Pager']);
     return ($scroll);
 } ## end sub sysop_pager
@@ -757,7 +762,7 @@ sub sysop_parse_menu {
     my $row  = shift;
     my $file = shift;
 
-    my $row = $self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST');
+    my $row     = $self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST');
     my $animate = ($self->{'CONF'}->{'SYSOP ANIMATED MENU'}) ? TRUE : FALSE;
     $self->{'debug'}->DEBUG(['Start SysOp Parse Menu', "  SysOp Parse Menu $file"]);
     my $mapping = $self->sysop_load_menu($row, $file);
@@ -769,7 +774,7 @@ sub sysop_parse_menu {
     $self->sysop_prompt('Choose');
     my $key;
     do {
-        $key = uc($self->sysop_keypress($row,$animate));
+        $key = uc($self->sysop_keypress($row, $animate));
         threads->yield();
     } until (exists($mapping->{$key}));
     print $mapping->{$key}->{'command'}, "\n";
@@ -789,7 +794,7 @@ sub sysop_decision {
         $self->{'debug'}->DEBUG(['  SysOp Decision YES']);
         $self->{'debug'}->DEBUG(['End SysOp Decision']);
         return (TRUE);
-    }
+    } ## end if ($response eq 'Y')
     $self->{'debug'}->DEBUG(['  SysOp Decision NO']);
     print "NO\n";
     $self->{'debug'}->DEBUG(['End SysOp Decision']);
@@ -822,16 +827,9 @@ sub sysop_animate {
     my $self = shift;
     my $row  = shift;
 
-    my @color = @{$self->{'sysop_menu_colors'}};
+    my @color = @{ $self->{'sysop_menu_colors'} };
     ###
-    my $text = "\e[s" .
-               "\e[" . $row++ . ";1H\e[" . $color[0] . "m◥\e[" . ($color[0]+10) . "m \e[0m\e[" . $color[0] . "m\e[7m◥\e[0m" .
-               "\e[" . $row++ . ";2H\e[" . $color[1] . "m◥\e[" . ($color[1]+10) . "m \e[0m\e[" . $color[1] . "m\e[7m◥\e[0m" .
-               "\e[" . $row++ . ";3H\e[" . $color[2] . "m◥\e[" . ($color[2]+10) . "m \e[0m\e[" . $color[2] . "m\e[7m◥\e[0m" .
-               "\e[" . $row++ . ";3H\e[" . $color[3] . "m◢\e[" . ($color[3]+10) . "m \e[0m\e[" . $color[3] . "m\e[7m◢\e[0m" .
-               "\e[" . $row++ . ";2H\e[" . $color[4] . "m◢\e[" . ($color[4]+10) . "m \e[0m\e[" . $color[4] . "m\e[7m◢\e[0m" .
-               "\e[" . $row++ . ";1H\e[" . $color[5] . "m◢\e[" . ($color[5]+10) . "m \e[0m\e[" . $color[5] . "m\e[7m◢\e[0m" .
-               "\e[u";
+    my $text = "\e[s" . "\e[" . $row++ . ";1H\e[" . $color[0] . "m◥\e[" . ($color[0] + 10) . "m \e[0m\e[" . $color[0] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[1] . "m◥\e[" . ($color[1] + 10) . "m \e[0m\e[" . $color[1] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[2] . "m◥\e[" . ($color[2] + 10) . "m \e[0m\e[" . $color[2] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[3] . "m◢\e[" . ($color[3] + 10) . "m \e[0m\e[" . $color[3] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[4] . "m◢\e[" . ($color[4] + 10) . "m \e[0m\e[" . $color[4] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";1H\e[" . $color[5] . "m◢\e[" . ($color[5] + 10) . "m \e[0m\e[" . $color[5] . "m\e[7m◢\e[0m" . "\e[u";
     ###
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
     print $text;
@@ -840,14 +838,14 @@ sub sysop_animate {
     my $l = pop(@color);
     unshift(@color, $l);
     $self->{'sysop_menu_colors'} = \@color;
-}
+} ## end sub sysop_animate
 
 sub sysop_ip_address {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start SysOp IP Address']);
     chomp(my $ip = `nice hostname -I`);
-    $self->{'debug'}->DEBUG(["  SysOp IP Address:  $ip",'End SysOp IP Address']);
+    $self->{'debug'}->DEBUG(["  SysOp IP Address:  $ip", 'End SysOp IP Address']);
     return ($ip);
 } ## end sub sysop_ip_address
 
@@ -856,7 +854,7 @@ sub sysop_hostname {
 
     $self->{'debug'}->DEBUG(['Start SysOp Hostname']);
     chomp(my $hostname = `nice hostname`);
-    $self->{'debug'}->DEBUG(["  SysOp Hostname:  $hostname",'End SysOp Hostname']);
+    $self->{'debug'}->DEBUG(["  SysOp Hostname:  $hostname", 'End SysOp Hostname']);
     return ($hostname);
 } ## end sub sysop_hostname
 
@@ -866,12 +864,12 @@ sub sysop_locate_middle {
 
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
     my $middle = int($wsize / 2);
-	my $string;
-	if ($color =~ /^B_/) {
-		$string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'background'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
-	} else {
-		$string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'foreground'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
-	}
+    my $string;
+    if ($color =~ /^B_/) {
+        $string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'background'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
+    } else {
+        $string = "\r" . $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x $middle . $self->{'ansi_meta'}->{'foreground'}->{$color}->{'out'} . ' ' . $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'};
+    }
     return ($string);
 } ## end sub sysop_locate_middle
 
@@ -1048,9 +1046,9 @@ sub sysop_list_files {
 
     while (my $row = $sth->fetchrow_hashref()) {
         if ($wsize > 150) {
-            $table->row($row->{'title'}, $row->{'filename'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), $row->{'uploaded'}, sprintf('%-06u',$row->{'thumbs_up'}), sprintf('%-06u',$row->{'thumbs_down'}));
+            $table->row($row->{'title'}, $row->{'filename'}, $row->{'type'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), $row->{'uploaded'}, sprintf('%-06u', $row->{'thumbs_up'}), sprintf('%-06u', $row->{'thumbs_down'}));
         } else {
-            $table->row($row->{'title'}, $row->{'filename'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), sprintf('%-06u',$row->{'thumbs_up'}), sprintf('%-06u',$row->{'thumbs_down'}));
+            $table->row($row->{'title'}, $row->{'filename'}, $row->{'extension'}, $row->{'description'}, $row->{'username'}, format_number($row->{'file_size'}), sprintf('%-06u', $row->{'thumbs_up'}), sprintf('%-06u', $row->{'thumbs_down'}));
         }
         $category = $row->{'category'};
     } ## end while (my $row = $sth->fetchrow_hashref...)
@@ -1058,7 +1056,7 @@ sub sysop_list_files {
     $self->sysop_output("\n" . '[% B_ORANGE %][% BLACK %] Current Category [% RESET %] [% BRIGHT YELLOW %][% BLACK RIGHT-POINTING TRIANGLE %][% RESET %] [% BRIGHT WHITE %][% FILE CATEGORY %][% RESET %]');
     my $tbl = $table->twin('YELLOW')->draw();
     while ($tbl =~ / (TITLE|FILENAME|TYPE|DESCRIPTION|UPLOADER|SIZE|UPLOADED|THUMBS UP|THUMBS DOWN) /) {
-        my $ch = $1;
+        my $ch  = $1;
         my $new = '[% BRIGHT GREEN %]' . $ch . '[% RESET %]';
         $tbl =~ s/ $ch / $new /gs;
     }
@@ -1073,7 +1071,7 @@ sub sysop_color_border {
     my $self  = shift;
     my $tbl   = shift;
     my $color = shift;
-    my $type  = shift; # ROUNDED, DOUBLE, HEAVY, DEFAULT
+    my $type  = shift;    # ROUNDED, DOUBLE, HEAVY, DEFAULT
 
     $self->{'debug'}->DEBUG(['Start SysOp Color Border']);
     $color = '[% ' . $color . ' %]';
@@ -1088,7 +1086,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(─)/)
     if ($tbl =~ /(│)/) {
         my $ch = $1;
         $new = $ch;
@@ -1099,7 +1097,7 @@ sub sysop_color_border {
         }
         $new = '[% RESET %]' . $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(│)/)
     if ($tbl =~ /(┌)/) {
         my $ch = $1;
         $new = $ch;
@@ -1112,7 +1110,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┌)/)
     if ($tbl =~ /(└)/) {
         my $ch = $1;
         $new = $ch;
@@ -1125,7 +1123,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(└)/)
     if ($tbl =~ /(┬)/) {
         my $ch = $1;
         $new = $ch;
@@ -1136,7 +1134,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┬)/)
     if ($tbl =~ /(┐)/) {
         my $ch = $1;
         $new = $ch;
@@ -1149,7 +1147,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┐)/)
     if ($tbl =~ /(├)/) {
         my $ch = $1;
         $new = $ch;
@@ -1160,7 +1158,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(├)/)
     if ($tbl =~ /(┘)/) {
         my $ch = $1;
         $new = $ch;
@@ -1173,7 +1171,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┘)/)
     if ($tbl =~ /(┼)/) {
         my $ch = $1;
         $new = $ch;
@@ -1184,7 +1182,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┼)/)
     if ($tbl =~ /(┤)/) {
         my $ch = $1;
         $new = $ch;
@@ -1195,7 +1193,7 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┤)/)
     if ($tbl =~ /(┴)/) {
         my $ch = $1;
         $new = $ch;
@@ -1206,10 +1204,10 @@ sub sysop_color_border {
         }
         $new = $color . $new . '[% RESET %]';
         $tbl =~ s/$ch/$new/gs;
-    }
+    } ## end if ($tbl =~ /(┴)/)
     $self->{'debug'}->DEBUG(['End SysOp Color Border']);
-    return($tbl);
-}
+    return ($tbl);
+} ## end sub sysop_color_border
 
 sub sysop_select_file_category {
     my $self = shift;
@@ -1228,7 +1226,7 @@ sub sysop_select_file_category {
     $sth->finish();
     my $text = $table->twin('MAGENTA')->draw();
     while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
-        my $ch = $1;
+        my $ch  = $1;
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $text =~ s/ $ch / $new /gs;
     }
@@ -1245,7 +1243,7 @@ sub sysop_select_file_category {
         $sth->finish();
         $self->{'USER'}->{'file_category'} = $line + 0;
         $response = TRUE;
-    }
+    } ## end if ($line >= 1 && $line...)
     $self->{'debug'}->DEBUG(['End SysOp Select File Category']);
     return ($response);
 } ## end sub sysop_select_file_category
@@ -1265,7 +1263,7 @@ sub sysop_edit_file_categories {
     $sth->finish();
     my $text = $table->boxes->draw();
     while ($text =~ / (ID|TITLE|DESCRIPTION) /) {
-        my $ch = $1;
+        my $ch  = $1;
         my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
         $text =~ s/ $ch / $new /gs;
     }
@@ -1283,7 +1281,7 @@ sub sysop_edit_file_categories {
         $table->row('DESCRIPTION', "\n" . charnames::string_vianame('OVERLINE') x 80);
         my $text = $table->twin('MAGENTA')->draw();
         while ($text =~ / (TITLE|DESCRIPTION) /) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';
             $text =~ s/ $ch / $new /gs;
         }
@@ -1366,7 +1364,7 @@ sub sysop_view_configuration {
     $table->hr();
     my $count = 0;
     foreach my $conf (sort(keys %{ $self->{'CONF'} })) {
-		my $choice = chr(65 + $count);
+        my $choice = chr(65 + $count);
         next if ($conf eq 'STATIC');
         my $c = $self->{'CONF'}->{$conf};
         if ($conf eq 'DEFAULT TIMEOUT') {
@@ -1399,7 +1397,7 @@ sub sysop_view_configuration {
                 $ch = '[% GRAY 11 %]' . $change . '[% RESET %]';
             }
             $output =~ s/$change/$ch/gs;
-        }
+        } ## end if ($output =~ /$change/)
     } ## end foreach my $change ('AUTHOR EMAIL'...)
     {
         my $ch = colored(['cyan'], 'CHOICE');
@@ -1412,10 +1410,10 @@ sub sysop_view_configuration {
         $output =~ s/CONFIG NAME/$ch/gs;
         $ch = colored(['cyan'], 'CONFIG VALUE');
         $output =~ s/CONFIG VALUE/$ch/gs;
-		$ch = colored(['green'], 'TRUE');
-		$output =~ s/TRUE/$ch/gs;
-		$ch = colored(['red'], 'FALSE');
-		$output =~ s/FALSE/$ch/gs;
+        $ch = colored(['green'], 'TRUE');
+        $output =~ s/TRUE/$ch/gs;
+        $ch = colored(['red'], 'FALSE');
+        $output =~ s/FALSE/$ch/gs;
     }
     my $response;
     if ("$view" eq 'string') {
@@ -1433,7 +1431,7 @@ sub sysop_view_configuration {
         $response = TRUE;
     } ## end elsif ($view == FALSE)
     $self->{'debug'}->DEBUG(['End SysOp View Configuration']);
-    return($response);
+    return ($response);
 } ## end sub sysop_view_configuration
 
 sub sysop_edit_configuration {
@@ -1501,20 +1499,20 @@ sub sysop_edit_configuration {
             'type'    => RADIO,
             'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY',],
         },
-		'SYSOP ANIMATED MENU' => {
-			'max'     => 5,
-			'type'    => BOOLEAN,
-			'choices' => ['TRUE','FALSE'],
-		},
+        'SYSOP ANIMATED MENU' => {
+            'max'     => 5,
+            'type'    => BOOLEAN,
+            'choices' => ['TRUE', 'FALSE'],
+        },
         'USE DUF' => {
             'max'     => 5,
             'type'    => BOOLEAN,
-			'choices' => ['TRUE','FALSE'],
+            'choices' => ['TRUE', 'FALSE'],
         },
         'PLAY SYSOP SOUNDS' => {
             'max'     => 5,
             'type'    => BOOLEAN,
-			'choices' => ['TRUE','FALSE'],
+            'choices' => ['TRUE', 'FALSE'],
         },
     };
     my $choice;
@@ -1604,7 +1602,7 @@ sub sysop_get_line {
         }
         $line = shift;
     } ## end else [ if (ref($type) eq 'HASH')]
-	chomp($line);
+    chomp($line);
     $self->{'debug'}->DEBUGMAX([$type, $echo, $line]);
     print $line if ($line ne '');
     my $mode = 'ANSI';
@@ -1628,7 +1626,7 @@ sub sysop_get_line {
                         print uc($key);
                         $line .= uc($key);
                     } else {
-						print chr(7);
+                        print chr(7);
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1641,24 +1639,24 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-					print chr(7);
+                    print chr(7);
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
-	} elsif ($echo == BOOLEAN) {
+    } elsif ($echo == BOOLEAN) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line BOOLEAN']);
         do {
-			$key = $self->sysop_get_key(SILENT, BLOCKING);
-			if (uc($key) eq 'T') {
-				$line = 'TRUE';
-				print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 5,'TRUE', clline;
-			} elsif (uc($key) eq 'F') {
-				$line = 'FALSE';
-				print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 4,'FALSE', clline;
-			} elsif ($key ne chr(13) && $key ne chr(3)) {
-				print chr(7);
-			}
-		} until ($key eq chr(13) or $key eq chr(3));
+            $key = $self->sysop_get_key(SILENT, BLOCKING);
+            if (uc($key) eq 'T') {
+                $line = 'TRUE';
+                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 5, 'TRUE', clline;
+            } elsif (uc($key) eq 'F') {
+                $line = 'FALSE';
+                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 4, 'FALSE', clline;
+            } elsif ($key ne chr(13) && $key ne chr(3)) {
+                print chr(7);
+            }
+        } until ($key eq chr(13) or $key eq chr(3));
     } elsif ($echo == NUMERIC) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line NUMERIC']);
         while ($key ne chr(13) && $key ne chr(3)) {
@@ -1676,7 +1674,7 @@ sub sysop_get_line {
                         print $key;
                         $line .= $key;
                     } else {
-						print chr(7);
+                        print chr(7);
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1689,7 +1687,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-					print chr(7);
+                    print chr(7);
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1710,7 +1708,7 @@ sub sysop_get_line {
                         print lc($key);
                         $line .= lc($key);
                     } else {
-						print chr(7);
+                        print chr(7);
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1723,7 +1721,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-					print chr(7);
+                    print chr(7);
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1744,7 +1742,7 @@ sub sysop_get_line {
                         print $key;
                         $line .= $key;
                     } else {
-						print chr(7);
+                        print chr(7);
                     }
                 } ## end if (defined($key) && $key...)
             } else {
@@ -1757,7 +1755,7 @@ sub sysop_get_line {
                     print "$key $key";
                     chop($line);
                 } else {
-					print chr(7);
+                    print chr(7);
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while ($key ne chr(13) &&...)
@@ -1872,7 +1870,7 @@ sub sysop_user_edit {
             } ## end foreach my $field (@{ $self...})
             my $tbl = $table->round('BRIGHT CYAN')->draw();
             while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
-                my $ch  = $1;
+                my $ch = $1;
                 my $new;
                 if ($ch =~ /Yes/) {
                     $new = '[% GREEN %]' . $ch . '[% RESET %]';
@@ -1884,7 +1882,7 @@ sub sysop_user_edit {
                     $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
                 }
                 $tbl =~ s/$ch/$new/g;
-            }
+            } ## end while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /)
             $self->sysop_output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             $self->sysop_prompt('Choose');
@@ -1894,8 +1892,8 @@ sub sysop_user_edit {
             if ($key !~ /$key_exit/i) {
                 print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
                 if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/) {
-                    $user_row->{$choice{$key}} = ($user_row->{$choice{$key}} == 1) ? 0 : 1;
-                    my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{ $key } . '= !' . $choice{$key} . '  WHERE id=?');
+                    $user_row->{ $choice{$key} } = ($user_row->{ $choice{$key} } == 1) ? 0 : 1;
+                    my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{$key} . '= !' . $choice{$key} . '  WHERE id=?');
                     $sth->execute($user_row->{'id'});
                     $sth->finish();
                 } else {
@@ -1904,7 +1902,7 @@ sub sysop_user_edit {
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});
                     $sth->finish();
-                }
+                } ## end else [ if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/)]
             } else {
                 print "BACK\n";
             }
@@ -1978,7 +1976,7 @@ sub sysop_new_user_edit {
             } ## end foreach my $field (@{ $self...})
             my $tbl = $table->round('BRIGHT CYAN')->draw();
             while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /) {
-                my $ch  = $1;
+                my $ch = $1;
                 my $new;
                 if ($ch =~ /Yes/) {
                     $new = '[% GREEN %]' . $ch . '[% RESET %]';
@@ -1990,7 +1988,7 @@ sub sysop_new_user_edit {
                     $new = '[% RGB 50,50,150 %]' . $ch . '[% RESET %]';
                 }
                 $tbl =~ s/$ch/$new/g;
-            }
+            } ## end while ($tbl =~ / (CHOICE|FIELD|VALUE|No|Yes|USER. VETERAN. JUNIOR SYSOP. SYSOP|YEAR.MONTH.DAY, MONTH.DAY.YEAR, DAY.MONTH.YEAR|300. 600. 1200. 2400. 4800. 9600. 19200. FULL|ASCII. ANSI. ATASCII. PETSCII|Minutes) /)
             $self->sysop_output('[% CLS %]' . $tbl . "\n");
             $self->sysop_show_choices($mapping);
             $self->sysop_prompt('Choose');
@@ -2131,18 +2129,44 @@ sub sysop_show_choices {
     my $self    = shift;
     my $mapping = shift;
 
-    $self->{'debug'}->DEBUG(['Start SysOp Show Choices']);
-
-    print $self->sysop_menu_choice('TOP', '', '');
-    my $keys = '';
-    foreach my $kmenu (sort(keys %{$mapping})) {
-        next if ($kmenu eq 'TEXT');
-        print $self->sysop_menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-        $keys .= $kmenu;
+    $self->{'debug'}->DEBUG(['SysOp Show Choices']);
+    my @list = grep(!/TEXT/, (sort(keys %{$mapping})));
+    my $twin = FALSE;
+    $twin = TRUE if (scalar(@list) > 1 && $self->{'USER'}->{'max_columns'} > 40);
+    my $max = 0;
+    if ($twin) {
+        foreach my $name (@list) {
+            $max = max(length($mapping->{$name}->{'text'}), $max);
+        }
+        $max += 3;
+        $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]') . "\n");
+    } else {
+        $self->output('[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% BOX DRAWINGS LIGHT HORIZONTAL %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]' . "\n");
     }
-    print $self->sysop_menu_choice('BOTTOM', '', '');
-    $self->{'debug'}->DEBUG(['End SysOp Show Choices']);
-    return (TRUE);
+    while (scalar(@list)) {
+        my $kmenu = shift(@list);
+        if ($self->{'access_level'}->{ $mapping->{$kmenu}->{'access_level'} } <= $self->{'access_level'}->{ $self->{'USER'}->{'access_level'} }) {
+            if ($twin) {
+                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, sprintf('%-' . ($max - 1) . 's', $mapping->{$kmenu}->{'text'}));
+                if (scalar(@list)) {
+                    $kmenu = shift(@list);
+                    $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+                } else {
+                    $self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+                    $twin = FALSE;
+                }
+            } else {
+                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+            }
+            $self->output("\n");
+        } ## end if ($self->{'access_level'...})
+    } ## end while (scalar(@list))
+    if ($twin) {
+        $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+    } else {
+        $self->output('[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% BOX DRAWINGS LIGHT HORIZONTAL %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %]');
+    }
+    $self->{'debug'}->DEBUG(['End Show Choices']);
 } ## end sub sysop_show_choices
 
 sub sysop_validate_fields {
@@ -2153,7 +2177,7 @@ sub sysop_validate_fields {
     my $column = shift;
 
     $self->{'debug'}->DEBUG(['Start SysOp Validate Fields']);
-    my $size = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
+    my $size     = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
     my $response = TRUE;
     if ($name =~ /(username|given|family|baud_rate|timeout|_files|_message|sysop|prefer|password)/ && $val eq '') {    # cannot be empty
         print locate($row, ($column + $size)), colored(['red'], ' Cannot Be Empty'), locate($row, $column);
@@ -2190,7 +2214,7 @@ sub sysop_prompt {
     my $response = "\n" . '[% B_BRIGHT MAGENTA %][% BLACK %] SYSOP TOOL [% RESET %] ' . $text . ' [% PINK %][% BLACK RIGHTWARDS ARROWHEAD %][% RESET %] ';
     print $self->sysop_detokenize($response);
     $self->{'debug'}->DEBUG(['End SysOp Prompt']);
-    return(TRUE);
+    return (TRUE);
 } ## end sub sysop_prompt
 
 sub sysop_detokenize {
@@ -2203,7 +2227,7 @@ sub sysop_detokenize {
         if ($key eq 'MIDDLE VERTICAL RULE color' && $text =~ /\[\%\s+MIDDLE VERTICAL RULE (.*?)\s+\%\]/) {
             my $color = $1;
             if (ref($self->{'sysop_tokens'}->{$key}) eq 'CODE') {
-                $ch = $self->{'sysop_tokens'}->{$key}->($self,$color);
+                $ch = $self->{'sysop_tokens'}->{$key}->($self, $color);
             }
             $text =~ s/\[\%\s+MIDDLE VERTICAL RULE (.*?)\s+\%\]/$ch/gi;
         } elsif ($text =~ /\[\%\s+$key\s+\%\]/) {
@@ -2213,7 +2237,7 @@ sub sysop_detokenize {
                 $ch = $self->{'sysop_tokens'}->{$key};
             }
             $text =~ s/\[\%\s+$key\s+\%\]/$ch/gi;
-        }
+        } ## end elsif ($text =~ /\[\%\s+$key\s+\%\]/)
     } ## end foreach my $key (keys %{ $self...})
 
     $text = $self->ansi_decode($text);
@@ -2267,11 +2291,11 @@ sub sysop_showenv {
                     }
                     my $le = 11 - length($f);
                     $f .= ' ' x $le;
-                    $l = colored(['green'],    uc($l))                                                           if ($l =~ /^ok/i);
+                    $l = colored(['green'], uc($l))                                                                                                           if ($l =~ /^ok/i);
                     $l = colored(['bold red'], 'United') . ' ' . colored(['bold bright_white'], 'States') . ' of ' . colored(['bold bright_blue'], 'America') if ($l =~ /^us/i);
-                    $l = colored(['bold red'], 'Unit') . colored(['bold bright_white'], 'ed Kin') . colored(['bold bright_blue'], 'gdom') if ($l =~ /^uk/i);
-                    $l = colored(['bold bright_red'], 'Ca') . colored(['bold bright_white'], 'na') . colored(['bold bright_red'], 'da') if ($l =~ /^can/i);
-                    $l = colored(['bold bright_red'], 'Me') . colored(['bold bright_white'], 'xi') . colored(['bold green'], 'co') if ($l =~ /^mex/i);
+                    $l = colored(['bold red'], 'Unit') . colored(['bold bright_white'], 'ed Kin') . colored(['bold bright_blue'], 'gdom')                     if ($l =~ /^uk/i);
+                    $l = colored(['bold bright_red'], 'Ca') . colored(['bold bright_white'], 'na') . colored(['bold bright_red'], 'da')                       if ($l =~ /^can/i);
+                    $l = colored(['bold bright_red'], 'Me') . colored(['bold bright_white'], 'xi') . colored(['bold green'], 'co')                            if ($l =~ /^mex/i);
                     $text .= colored(['bold white'], sprintf("%${indent}s", $f)) . " = $l\n";
                 } else {
                     $text .= "$line\n";
@@ -2289,7 +2313,7 @@ sub sysop_showenv {
             $line =~ s/256color/$colorized/;
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
         } elsif ($env eq 'COLORTERM') {
-            my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'],'r');
+            my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
             my $line      = $ENV{$env};
             $line =~ s/truecolor/$colorized/;
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
@@ -2311,7 +2335,7 @@ sub sysop_showenv {
                 $orig =~ s/$1/$new/g;
             }
             if ($orig =~ /(mint)/i) {
-                $new = colored(['bright_green'],$1);
+                $new = colored(['bright_green'], $1);
                 $orig =~ s/$1/$new/g;
             }
             if ($orig =~ /(zorin)/i) {
@@ -2323,7 +2347,7 @@ sub sysop_showenv {
                 $orig =~ s/$1/$new/g;
             }
             $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $orig . "\n";
-        }
+        } ## end else [ if ($ENV{$env} =~ /\n/g...)]
     } ## end foreach my $env (sort(keys ...))
     $self->{'debug'}->DEBUG(['End SysOp ShowENV']);
     return ($text);
@@ -2334,7 +2358,7 @@ sub sysop_scroll {
 
     $self->{'debug'}->DEBUG(['Start SysOp Scroll']);
     my $response = TRUE;
-    print $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'},"\rScroll?  ";
+    print $self->{'ansi_meta'}->{'attributes'}->{'RESET'}->{'out'}, "\rScroll?  ";
     if ($self->sysop_keypress(ECHO, BLOCKING) =~ /N/i) {
         $response = FALSE;
     } else {
@@ -2369,7 +2393,7 @@ sub sysop_list_bbs {
     print 'Press a key to continue... ';
     $self->sysop_keypress();
     $self->{'debug'}->DEBUG(['End SysOp List BBS']);
-    return(TRUE);
+    return (TRUE);
 } ## end sub sysop_list_bbs
 
 sub sysop_edit_bbs {
@@ -2424,7 +2448,7 @@ sub sysop_edit_bbs {
         $sth->finish();
     }
     $self->{'debug'}->DEBUG(['End SysOp Edit BBS']);
-    return(TRUE);
+    return (TRUE);
 } ## end sub sysop_edit_bbs
 
 sub sysop_add_bbs {
@@ -2443,12 +2467,13 @@ sub sysop_add_bbs {
         'bbs_hostname' => '',
         'bbs_port'     => '',
     };
-    my $index = 0;
+    my $index    = 0;
     my $response = TRUE;
     $self->sysop_output($table->round('BRIGHT BLUE')->draw());
     print $self->{'ansi_meta'}->{'cursor'}->{'UP'}->{'out'} x 9, $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 19;
     $bbs->{'bbs_name'} = $self->sysop_get_line(ECHO, 50, '');
     $self->{'debug'}->DEBUG(['  BBS Name:  ' . $bbs->{'bbs_name'}]);
+
     if ($bbs->{'bbs_name'} ne '' && length($bbs->{'bbs_name'}) > 3) {
         print $self->{'ansi_meta'}->{'cursor'}->{'DOWN'}->{'out'} x 2, "\r", $self->{'ansi_meta'}->{'cursor'}->{'RIGHT'}->{'out'} x 19;
         $bbs->{'bbs_hostname'} = $self->sysop_get_line(ECHO, 50, '');
@@ -2616,25 +2641,25 @@ sub sysop_bbs_list_bulk_import {
         foreach my $row (@bbs) {
             if ($row =~ /^. \S/ && $row !~ /^\* = NEW/) {
                 $row =~ s/^\* /  /;
-                my ($name, $url) = (substr($row,2,41), substr($row,43));
+                my ($name, $url) = (substr($row, 2, 41), substr($row, 43));
                 $name =~ s/(.*?)\s+$/$1/;
-                my ($address, $port) = split(/:/,$url);
-                $port = 23 unless(defined($port));
+                my ($address, $port) = split(/:/, $url);
+                $port = 23 unless (defined($port));
                 $sth->execute($name, $address, $port, $self->{'USER'}->{'id'});
                 $self->sysop_output('[% GREEN %]│[% RESET %] ' . sprintf('%-65s', $name) . '[% GREEN %] │[% RESET %] ' . sprintf('%-32s', $address) . ' [% GREEN %]│[% RESET %] ' . sprintf('%5d', $port) . ' [% GREEN %]│[% RESET %]' . "\n");
-            }
-        }
+            } ## end if ($row =~ /^. \S/ &&...)
+        } ## end foreach my $row (@bbs)
         $sth->finish();
         $self->sysop_output('[% GREEN %]╰───────────────────────────────────────────────────────────────────┴──────────────────────────────────┴───────╯[% RESET %]' . "\n\nImport Complete\n");
     } else {
-		print "\n", chr(7), colored(['red'], 'Cannot find '), $filename, "\n";
+        print "\n", chr(7), colored(['red'], 'Cannot find '), $filename, "\n";
         $self->{'debug'}->WARNING(["Cannot find $filename"]);
     }
     print "\nPress any key to continue";
     $self->sysop_get_key(SILENT, BLOCKING);
     $self->{'debug'}->DEBUG(['End SysOp BBS List Bulk Import']);
-    return(TRUE);
-}
+    return (TRUE);
+} ## end sub sysop_bbs_list_bulk_import
 
 sub sysop_ansi_output {
     my $self = shift;
@@ -2645,8 +2670,9 @@ sub sysop_ansi_output {
     my $text   = $self->ansi_decode(shift);
     my $s_len  = length($text);
     my $nl     = $self->{'ansi_meta'}->{'cursor'}->{'NEWLINE'}->{'out'};
-    my @lines  = split(/\n/,$text);
+    my @lines  = split(/\n/, $text);
     my $size   = $self->{'USER'}->{'max_rows'};
+
     while (scalar(@lines)) {
         my $line = shift(@lines);
         print $line;
@@ -2657,49 +2683,49 @@ sub sysop_ansi_output {
         } else {
             print "\n";
         }
-    }
+    } ## end while (scalar(@lines))
     $self->{'debug'}->DEBUG(['End SysOp ANSI Output']);
     return (TRUE);
-}
+} ## end sub sysop_ansi_output
 
 sub sysop_output {
     my $self = shift;
-    $|=1;
+    $| = 1;
     $self->{'debug'}->DEBUG(['Start SysOp Output']);
     my $text = $self->detokenize_text(shift);
 
     my $response = TRUE;
     if (defined($text) && $text ne '') {
         while ($text =~ /\[\%\s+WRAP\s+\%\](.*?)\[\%\s+ENDWRAP\s+\%\]/si) {
-			my $wrapped = $1;
-			my $format = Text::Format->new(
-				'columns'     => $self->{'USER'}->{'max_columns'} - 1,
-				'tabstop'     => 4,
-				'extraSpace'  => TRUE,
-				'firstIndent' => 0,
-			);
-			$wrapped = $format->format($wrapped);
-			chomp($wrapped);
-			$text =~ s/\[\%\s+WRAP\s+\%\].*?\[\%\s+ENDWRAP\s+\%\]/$wrapped/s;
-		}
-		while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si) {
-			my $wrapped = $1;
-			my $format = Text::Format->new(
-				'columns'     => $self->{'USER'}->{'max_columns'} - 1,
-				'tabstop'     => 4,
-				'extraSpace'  => TRUE,
-				'firstIndent' => 0,
-				'justify'     => TRUE,
-			);
-			$wrapped = $format->format($wrapped);
-			chomp($wrapped);
-			$text =~ s/\[\%\s+JUSTIFIED\s+\%\].*?\[\%\s+ENDJUSTIFIED\s+\%\]/$wrapped/s;
-		}
-		$self->sysop_ansi_output($text);
+            my $wrapped = $1;
+            my $format  = Text::Format->new(
+                'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+                'tabstop'     => 4,
+                'extraSpace'  => TRUE,
+                'firstIndent' => 0,
+            );
+            $wrapped = $format->format($wrapped);
+            chomp($wrapped);
+            $text =~ s/\[\%\s+WRAP\s+\%\].*?\[\%\s+ENDWRAP\s+\%\]/$wrapped/s;
+        } ## end while ($text =~ /\[\%\s+WRAP\s+\%\](.*?)\[\%\s+ENDWRAP\s+\%\]/si)
+        while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si) {
+            my $wrapped = $1;
+            my $format  = Text::Format->new(
+                'columns'     => $self->{'USER'}->{'max_columns'} - 1,
+                'tabstop'     => 4,
+                'extraSpace'  => TRUE,
+                'firstIndent' => 0,
+                'justify'     => TRUE,
+            );
+            $wrapped = $format->format($wrapped);
+            chomp($wrapped);
+            $text =~ s/\[\%\s+JUSTIFIED\s+\%\].*?\[\%\s+ENDJUSTIFIED\s+\%\]/$wrapped/s;
+        } ## end while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si)
+        $self->sysop_ansi_output($text);
     } else {
         $response = FALSE;
     }
     $self->{'debug'}->DEBUG(['End SysOp Output']);
     return ($response);
-}
+} ## end sub sysop_output
 1;

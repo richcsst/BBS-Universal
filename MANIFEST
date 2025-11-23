@@ -72,7 +72,6 @@ lib/BBS/Universal/Messages.pm
 lib/BBS/Universal/News.pm
 lib/BBS/Universal/PETSCII.pm
 lib/BBS/Universal/SysOp.pm
-lib/BBS/Universal/Text_Editor.pm
 lib/BBS/Universal/Users.pm
 Makefile.PL
 MANIFEST			This list of files

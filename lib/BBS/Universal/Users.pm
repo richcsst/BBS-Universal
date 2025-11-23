@@ -12,7 +12,7 @@ sub users_initialize {
 
 sub users_change_access_level {
     my $self = shift;
-
+	return(FALSE) if ($self->{'USER'}->{'username'} eq 'sysop');
     $self->{'debug'}->DEBUG(['Start Users Change Access Level']);
     my $mapping = {
         'TEXT' => '',
@@ -228,6 +228,8 @@ sub users_toggle_permission {
     my $self  = shift;
     my $field = shift;
 
+	return(FALSE) if ($self->{'USER'}->{'username'} eq 'sysop');
+
     $self->{'debug'}->DEBUG(['Start Users Toggle Permission']);
     if (0 + $self->{'USER'}->{$field}) {
         $self->{'USER'}->{$field} = FALSE;
@@ -279,6 +281,7 @@ sub users_update_accomplishments {
 sub users_update_text_mode {
     my $self = shift;
 
+	return(FALSE) if ($self->{'USER'}->{'username'} eq 'sysop');
     $self->{'debug'}->DEBUG(['Start Users Update Text Mode']);
     my $mapping = {
         'TEXT' => '',
@@ -321,7 +324,7 @@ sub users_update_text_mode {
     $self->output($mapping->{$key}->{'command'} . "\n");
     unless ($key eq 'Z' || $key eq chr(3)) {
         my $command = $mapping->{$key}->{'command'};
-        my $sth = $self->{'dbh'}->prepare('UPDATE users SET text_mode=? WHERE id=?');
+        my $sth = $self->{'dbh'}->prepare('UPDATE users SET text_mode=(SELECT id FROM text_modes WHERE text_mode=?) WHERE id=?');
         $sth->execute($command,$self->{'USER'}->{'id'});
         $sth->finish;
         $self->{'USER'}->{'text_mode'} = $command;

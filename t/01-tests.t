@@ -24,7 +24,6 @@ my $tree = {
     'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
     'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
     'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
-    'BBS::Universal::Text_Editor'  => $BBS::Universal::TEXT_EDITOR_VERSION,
 };
 
 foreach my $name (sort(keys %{$tree})) {

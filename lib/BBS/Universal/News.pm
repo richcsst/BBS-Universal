@@ -7,7 +7,7 @@ sub news_initialize {
     $self->{'rss'} = XML::RSS::LibXML->new();
     $self->{'debug'}->DEBUG(['End News Initialize']);
     return ($self);
-}
+} ## end sub news_initialize
 
 sub news_display {
     my $self = shift;
@@ -37,7 +37,7 @@ sub news_display {
                 $news .= "* $today - Today is the author's birthday!\n\n" . $format->format("Great news!  Happy Birthday to Richard Kelsch (the author of BBS::Universal)!");
             }
             $news .= "\n";
-        }
+        } ## end if ($dt->month == 7 &&...)
     }
     my $df = $self->{'USER'}->{'date_format'};
     $df =~ s/YEAR/\%Y/;
@@ -54,6 +54,7 @@ sub news_display {
     };
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($df);
+
     if ($sth->rows > 0) {
         while (my $fields = $sth->fetchrow_hashref()) {
             if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
@@ -62,7 +63,7 @@ sub news_display {
                 $news .= '* ' . $fields->{'newsdate'} . ' - ' . $fields->{'news_title'} . "\n\n" . $format->format($fields->{'news_content'});
             }
             $news .= "\n";
-        }
+        } ## end while (my $fields = $sth->...)
     } else {
         $news = "No News\n\n";
     }
@@ -72,7 +73,7 @@ sub news_display {
     $self->get_key(SILENT, BLOCKING);
     $self->{'debug'}->DEBUG(['End News Display']);
     return (TRUE);
-}
+} ## end sub news_display
 
 sub news_summary {
     my $self = shift;
@@ -92,6 +93,7 @@ sub news_summary {
         ORDER BY news_date DESC};
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($format);
+
     if ($sth->rows > 0) {
         my $table = Text::SimpleTable->new(10, $self->{'USER'}->{'max_columns'} - 14);
         $table->row('DATE', 'TITLE');
@@ -102,18 +104,18 @@ sub news_summary {
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ANSI') {
             my $text = $table->boxes2('BRIGHT BLUE')->draw();
-            my $ch = colored(['bright_yellow'],'DATE');
+            my $ch   = colored(['bright_yellow'], 'DATE');
             $text =~ s/DATE/$ch/;
-            $ch = colored(['bright_yellow'],'TITLE');
+            $ch = colored(['bright_yellow'], 'TITLE');
             $text =~ s/TITLE/$ch/;
             $self->output($text);
         } elsif ($mode eq 'ATASCII') {
-            my $text = $self->color_border($table->boxes->draw(),'BLUE');
+            my $text = $self->color_border($table->boxes->draw(), 'BLUE');
             $self->output($text);
         } elsif ($mode eq 'PETSCII') {
             my $text = $table->boxes->draw();
             while ($text =~ / (DATE|TITLE) /s) {
-                my $ch = $1;
+                my $ch  = $1;
                 my $new = '[% YELLOW %]' . $ch . '[% RESET %]';
                 $text =~ s/ $ch / $new /gs;
             }
@@ -130,7 +132,7 @@ sub news_summary {
     $self->get_key(SILENT, BLOCKING);
     $self->{'debug'}->DEBUG(['End News Summary']);
     return (TRUE);
-}
+} ## end sub news_summary
 
 sub news_rss_categories {
     my $self = shift;
@@ -150,26 +152,27 @@ sub news_rss_categories {
         },
     };
     my @menu_choices = (qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y));
-    while(my $result = $sth->fetchrow_hashref()) {
+
+    while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
-            $mapping->{shift(@menu_choices)} = {
+            $mapping->{ shift(@menu_choices) } = {
                 'command'      => $result->{'title'},
                 'id'           => $result->{'id'},
                 'color'        => 'WHITE',
                 'access_level' => $result->{'access_level'},
                 'text'         => $result->{'description'},
             };
-        }
-    }
+        } ## end if ($self->check_access_level...)
+    } ## end while (my $result = $sth->...)
     $sth->finish();
     $self->show_choices($mapping);
     $self->prompt('Choose World News Feed Category');
     my $key;
     do {
         $key = uc($self->get_key(SILENT, BLOCKING));
-    } until(exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+    } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
     if ($key eq chr(3)) {
-        return('DISCONNECT');
+        return ('DISCONNECT');
     } else {
         $id      = $mapping->{$key}->{'id'};
         $command = $mapping->{$key}->{'command'};
@@ -184,21 +187,21 @@ sub news_rss_categories {
         $sth->finish();
         $self->{'USER'}->{'rss_category'} = $id;
         $command = 'BACK';
-    }
+    } ## end if ($self->is_connected...)
     $self->{'debug'}->DEBUG(['End News RSS Categories']);
-    return($command);
-}
+    return ($command);
+} ## end sub news_rss_categories
 
 sub news_rss_feeds {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start News RSS Feeds']);
     my $mode = $self->{'USER'}->{'text_mode'};
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM rss_view WHERE category=? ORDER BY title');
+    my $sth  = $self->{'dbh'}->prepare('SELECT * FROM rss_view WHERE category=? ORDER BY title');
     $sth->execute($self->{'USER'}->{'rss_category'});
     my $mapping = {
         'TEXT' => '',
-        'Z' => {
+        'Z'    => {
             'command'      => 'BACK',
             'color'        => 'WHITE',
             'access_level' => 'USER',
@@ -206,18 +209,18 @@ sub news_rss_feeds {
         },
     };
     my @menu_choices = (qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y));
-    while(my $result = $sth->fetchrow_hashref()) {
+    while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
-            $mapping->{shift(@menu_choices)} = {
+            $mapping->{ shift(@menu_choices) } = {
                 'command'      => $result->{'title'},
                 'id'           => $result->{'id'},
                 'color'        => 'WHITE',
                 'access_level' => $result->{'access_level'},
-                'text'         => $self->news_title_colorize($result->{'title'}),
+                'text'         => $result->{'title'},
                 'url'          => $result->{'url'},
             };
-        }
-    }
+        } ## end if ($self->check_access_level...)
+    } ## end while (my $result = $sth->...)
     $sth->finish();
     $self->show_choices($mapping);
     $self->prompt('Choose World News Feed');
@@ -227,7 +230,7 @@ sub news_rss_feeds {
     my $url;
     do {
         $key = uc($self->get_key(SILENT, BLOCKING));
-    } until(exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+    } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
     if ($key eq chr(3)) {
         $command = 'DISCONNECT';
     } else {
@@ -238,10 +241,10 @@ sub news_rss_feeds {
     if ($self->is_connected() && $command ne 'DISCONNECT' && $command ne 'BACK') {
         $self->output($command);
         my $rss_string = `curl -s $url`;
-        my $rss = XML::RSS::LibXML->new;
+        my $rss        = XML::RSS::LibXML->new;
         $rss->parse($rss_string);
 
-        my $list        = $rss->items;
+        my $list = $rss->items;
 
         my $text;
         foreach my $item (@{$list}) {
@@ -260,15 +263,15 @@ sub news_rss_feeds {
                 $text .= 'Description:  ' . $self->html_to_text($item->{'description'}) . "\n";
                 $text .= '       Link:  ' . $item->{'link'} . "\n\n";
             }
-        }
+        } ## end foreach my $item (@{$list})
         $self->output("\n\n" . $text);
         $self->output("\n\nPress any key to continue\n");
         $self->get_key(SILENT, BLOCKING);
         $command = 'BACK';
-    }
+    } ## end if ($self->is_connected...)
     $self->{'debug'}->DEBUG(['End News RSS Feeds']);
-    return($command);
-}
+    return ($command);
+} ## end sub news_rss_feeds
 
 sub news_title_colorize {
     my $self = shift;
@@ -332,8 +335,8 @@ sub news_title_colorize {
             my $b = '[% B_DARK ORANGE %][% BRIGHT WHITE %] B [% RESET %] Breitbart';
             $text =~ s/breitbart/$b/gsi;
         }
-    }
+    } ## end if ($mode eq 'ANSI')
     $self->{'debug'}->DEBUG(['End News Title Colorize']);
-    return($text);
-}
+    return ($text);
+} ## end sub news_title_colorize
 1;

@@ -14,8 +14,9 @@ sub messages_forum_categories {
     $self->{'debug'}->DEBUG(['Start Messages Forum Categories']);
     my $command = '';
     my $id;
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM message_categories WHERE id<>? ORDER BY name');
-    $sth->execute($self->{'USER'}->{'forum_category'});
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM message_categories ORDER BY name');
+	my $category = $self->{'USER'}->{'forum_category'};
+    $sth->execute(); # $self->{'USER'}->{'forum_category'});
     my $mapping = {
         'TEXT' => '',
         'Z'    => {
@@ -31,7 +32,7 @@ sub messages_forum_categories {
             $mapping->{shift(@menu_choices)} = {
                 'command'      => $result->{'name'},
                 'id'           => $result->{'id'},
-                'color'        => 'WHITE',
+                'color'        => ($category == $result->{'id'}) ? 'GREEN' : 'WHITE',
                 'access_level' => $result->{'access_level'},
                 'text'         => $result->{'description'},
             };
@@ -50,6 +51,7 @@ sub messages_forum_categories {
         $id      = $mapping->{$key}->{'id'};
         $command = $mapping->{$key}->{'command'};
     }
+	return($command) if ($key eq 'Z');
     if ($self->is_connected() && $command ne 'DISCONNECT') {
         $self->output($command);
         $sth = $self->{'dbh'}->prepare('UPDATE users SET forum_category=? WHERE id=?');
@@ -96,7 +98,7 @@ sub messages_list_messages {
             $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
 			$self->output("\n[% HORIZONTAL RULE MAGENTA %]\n");
         } elsif ($mode eq 'PETSCII') {
-			$self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
+			$self->output("[% CLS %][% GREEN %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "[% RESET %]\n");
             $self->output('[% GREEN   %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
             $self->output('[% YELLOW %]   Author [% RESET %] ');
             $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
@@ -104,7 +106,7 @@ sub messages_list_messages {
             $self->output('[% YELLOW %]    Title [% RESET %] ' . $result->{'title'} . "\n");
             $self->output('[% YELLOW %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
             $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
-			$self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
+			$self->output("\n[% GREEN %]" . '=' x $self->{'USER'}->{'max_columns'} . "[% RESET %]\n");
         } else {
 			$self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
             $self->output(' CATEGORY > [% FORUM CATEGORY %]' . "\n");
@@ -192,7 +194,6 @@ sub messages_edit_message {
     if ($mode eq 'ADD') {
         $self->{'debug'}->DEBUG(['  Add Message']);
         $self->output("Add New Message\n");
-        $self->output('-' x $self->{'USER'}->{'max_columns'} . "\n");
         $message = $self->messages_text_editor();
         if (defined($message)) {
             $message->{'from_id'} = $self->{'USER'}->{'id'};
@@ -289,7 +290,7 @@ sub messages_text_editor {
     $self->{'debug'}->DEBUG(['Start Messages Text Editor']);
     my $title = '';
     my $text  = '';
-    if ($self->{'local_mode'} || $self->{'sysop'} || $self->is_connected()) {
+    if ($self->{'local_mode'} || $self->is_connected()) {
         if (defined($message)) {
             $title = $message->{'title'};
             $text  = $message->{'message'};
@@ -297,7 +298,8 @@ sub messages_text_editor {
             $text  = $self->messages_text_edit($title,$text);
         } else {
             $self->prompt('Title');
-            $title = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+            $title = $self->get_line({ 'type' => STRING, 'max' => 255 }, '');
+			return(undef) unless (defined($title) && $title ne '');
             $self->prompt('Message');
             $text  = $self->messages_text_edit($title);
         }
@@ -332,14 +334,14 @@ sub messages_text_edit {
     do {
         my $counter = 0;
         if ($text_mode eq 'ANSI') {
-            $self->output('[% CLEAR %][% BRIGHT GREEN %]' . '=' x $columns . '[% RESET %]' . "\n");
+            $self->output('[% CLS %][% HORIZONTAL RULE BRIGHT GREEN %][% RESET %]' . "\n");
             $self->output('[% CYAN %]Subject[% RESET %]:  ' . $title . "\n");
             $self->output('[% BRIGHT GREEN %]' . '-' x $columns . '[% RESET %]' . "\n");
             $self->output("Type a command on a line by itself\n");
             $self->output('  :[% YELLOW %]S[% RESET %] = Save and exit' . "\n");
             $self->output('  :[% RED %]Q[% RESET %] = Cancel, do not save' . "\n");
             $self->output('  :[% BRIGHT BLUE %]E[% RESET %] = Edit a specific line number (:E5 edits line 5)' . "\n");
-            $self->output('[% BRIGHT GREEN %]' . '=' x $columns . '[% RESET %]' . "\n");
+            $self->output('[% HORIZONTAL RULE BRIGHT GREEN %][% RESET %]' . "\n");
         } elsif ($text_mode eq 'PETSCII') {
             $self->output('[% CLEAR %][% LIGHT GREEN %]' . '=' x $columns . "\n");
             $self->output('[% CYAN %]Subject[% WHITE %]:  ' . $title . "\n");
@@ -386,8 +388,8 @@ sub messages_text_edit {
             } else {
                 $self->output(sprintf('%03d ', ($counter + 1)));
             }
-            $text = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, $self->{'USER'}->{'max_columns'});
-            $self->output("\n");
+            $text = $self->get_line({ 'type' => STRING, 'max' => $self->{'USER'}->{'max_columns'} });
+#            $self->output("\n");
             if ($text =~ /^\:(.)(.*)/i) { # Process command
                 my $command = uc($1);
                 if ($command eq 'E') {

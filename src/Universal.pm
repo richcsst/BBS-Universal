@@ -1,4 +1,4 @@
-package BBS::Universal 0.015;
+package BBS::Universal 0.016;
 
 # Pragmas
 use 5.010;
@@ -22,10 +22,10 @@ use constant {
     NUMERIC     =>  2,
     RADIO       =>  3,
     TOGGLE      =>  4,
-	BOOLEAN     =>  4,
+    BOOLEAN     =>  4,
     HOST        =>  5,
     DATE        =>  6,
-	FILENAME    =>  7,
+    FILENAME    =>  7,
 
     ASCII   => 0,
     ATASCII => 1,
@@ -34,7 +34,7 @@ use constant {
 
     XMODEM => 0,
     YMODEM => 1,
-    ZMODEM => 2, 
+    ZMODEM => 2,
 
     LINEMODE => 34,
 
@@ -96,48 +96,47 @@ use XML::RSS::LibXML;
 # use BBS::Universal::Messages;
 # use BBS::Universal::News;
 # use BBS::Universal::SysOp;
-# use BBS::Universal::Text_Editor;
 # use BBS::Universal::Users;
 
 BEGIN {
     require Exporter;
 
-    our @ISA     = qw(Exporter);
-    our @EXPORT  = qw(
-        TRUE
-        FALSE
-        YES
-        NO
-        BLOCKING
-        NONBLOCKING
-        PASSWORD
-        ECHO
-        SILENT
-        NUMERIC
+    our @ISA    = qw(Exporter);
+    our @EXPORT = qw(
+      TRUE
+      FALSE
+      YES
+      NO
+      BLOCKING
+      NONBLOCKING
+      PASSWORD
+      ECHO
+      SILENT
+      NUMERIC
 
-        ASCII
-        ATASCII
-        PETSCII
-        ANSI
+      ASCII
+      ATASCII
+      PETSCII
+      ANSI
 
-        LINEMODE
+      LINEMODE
 
-        SE
-        NOP
-        DATA_MARK
-        BREAK
-        INTERRUPT_PROCESS
-        ABORT_OUTPUT
-        ARE_YOU_THERE
-        ERASE_CHARACTER
-        ERASE_LINE
-        GO_AHEAD
-        SB
-        WILL
-        WONT
-        DO
-        DONT
-        IAC
+      SE
+      NOP
+      DATA_MARK
+      BREAK
+      INTERRUPT_PROCESS
+      ABORT_OUTPUT
+      ARE_YOU_THERE
+      ERASE_CHARACTER
+      ERASE_LINE
+      GO_AHEAD
+      SB
+      WILL
+      WONT
+      DO
+      DONT
+      IAC
     );
     our @EXPORT_OK = qw();
     binmode(STDOUT, ":encoding(UTF-8)");
@@ -166,8 +165,8 @@ sub small_new {
                     'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
                 },
             ],
-              'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
-              'utf8'      => TRUE,
+            'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
+            'utf8'      => TRUE,
         }
     );
     $self->{'sysop'}      = TRUE;
@@ -216,9 +215,15 @@ sub new {    # Always call with the socket as a parameter
         'null'            => chr(0),
         'delete'          => chr(127),
         'suffixes'        => [qw( ASCII ATASCII PETSCII ANSI )],
-        'host'            => undef,
-        'port'            => undef,
-        'access_levels'   => {
+        'text_modes'      => {
+            'ASCII'   => 0,
+            'ATASCII' => 1,
+            'PETSCI'  => 2,
+            'ANSI'    => 3,
+        },
+        'host'          => undef,
+        'port'          => undef,
+        'access_levels' => {
             'USER'         => 0,
             'VETERAN'      => 1,
             'JUNIOR SYSOP' => 2,
@@ -237,8 +242,8 @@ sub new {    # Always call with the socket as a parameter
                     'address' => $self->{'CONF'}->{'MEMCACHED HOST'} . ':' . $self->{'CONF'}->{'MEMCACHED PORT'},
                 },
             ],
-              'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
-              'utf8'      => TRUE,
+            'namespace' => $self->{'CONF'}->{'MEMCACHED NAMESPACE'},
+            'utf8'      => TRUE,
         }
     );
     $self->{'debug'}->DEBUG(['End New']);
@@ -325,7 +330,7 @@ sub populate_common {
             } else {
                 $tid = sprintf('%02d', $tid);
             }
-            return($tid);
+            return ($tid);
         },
         'FORTUNE' => sub {
             my $self = shift;
@@ -466,17 +471,17 @@ sub populate_common {
         'SHOW FULL BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(FALSE);
-            return($self->load_menu('files/main/bbs_listing'));
+            return ($self->load_menu('files/main/bbs_listing'));
         },
         'SEARCH BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(TRUE);
-            return($self->load_menu('files/main/bbs_listing'));
+            return ($self->load_menu('files/main/bbs_listing'));
         },
         'RSS FEEDS' => sub {
             my $self = shift;
             $self->news_rss_feeds();
-            return($self->load_menu('files/main/news'));
+            return ($self->load_menu('files/main/news'));
         },
         'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
@@ -486,7 +491,7 @@ sub populate_common {
         'RSS CATEGORIES' => sub {
             my $self = shift;
             $self->news_rss_categories();
-            return($self->load_menu('files/main/news'));
+            return ($self->load_menu('files/main/news'));
         },
         'FORUM CATEGORIES' => sub {
             my $self = shift;
@@ -618,7 +623,7 @@ sub populate_common {
         },
         'UPLOAD FILE' => sub {
             my $self = shift;
-			$self->files_upload_choices();
+            $self->files_upload_choices();
             return ($self->load_menu('files/main/files_menu'));
         },
         'LIST FILES DETAILED' => sub {
@@ -677,6 +682,9 @@ sub run {
     $| = 1;
     $self->greeting();
     if ($self->login()) {
+		my $sth = $self->{'dbh'}->prepare('UPDATE users SET login_time=NOW() WHERE id=?');
+		$sth->execute($self->{'USER'}->{'id'});
+		$sth->finish();
         $self->main_menu('files/main/menu');
     }
     $self->disconnect();
@@ -787,7 +795,7 @@ sub create_account {
 
         $self->output("\nFirst (given) name:  ");
         $given = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
-        $self->{'debug'}->DEBUG(["  New First Name:  $given"]); 
+        $self->{'debug'}->DEBUG(["  New First Name:  $given"]);
 
         $self->output("\nLast (family) name:  ");
         $family = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
@@ -942,21 +950,46 @@ sub show_choices {
     my $mapping = shift;
 
     $self->{'debug'}->DEBUG(['Start Show Choices']);
-    my $keys = '';
-    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n");
+    my @list = grep(!/TEXT/, (sort(keys %{$mapping})));
+    my $twin = FALSE;
+    $twin = TRUE if (scalar(@list) > 1 && $self->{'USER'}->{'max_columns'} > 40);
+    my $max = 0;
+    foreach my $name (@list) {
+        $max = max(length($mapping->{$name}->{'text'}), $max);
     }
-    my $odd = 0;
-    foreach my $kmenu (sort(keys %{$mapping})) {
-        next if ($kmenu eq 'TEXT');
-        if ($self->{'access_level'}->{ $mapping->{$kmenu}->{'access_level'} } <= $self->{'access_level'}->{ $self->{'USER'}->{'access_level'} }) {
-            $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-            $self->output("\n");
+    if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+        if ($twin) {
+            $max += 3;
+            $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]') . "\n");
+        } else {
+            $self->output('[% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% BOX DRAWINGS LIGHT HORIZONTAL %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %]' . "\n");
         }
-    } ## end foreach my $kmenu (sort(keys...))
+    } ## end if ($self->{'USER'}->{...})
+    while (scalar(@list)) {
+        my $kmenu = shift(@list);
+        if ($self->{'access_level'}->{ $mapping->{$kmenu}->{'access_level'} } <= $self->{'access_level'}->{ $self->{'USER'}->{'access_level'} }) {
+            if ($twin) {
+                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'} . ' ' x (($max - 1) - length($mapping->{$kmenu}->{'text'})));
+                if (scalar(@list)) {
+                    $kmenu = shift(@list);
+                    $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+                } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+                    $self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+                    $twin = FALSE;
+                }
+            } else {
+                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+            }
+            $self->output("\n");
+        } ## end if ($self->{'access_level'...})
+    } ## end while (scalar(@list))
     if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
-        $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT'));
-    }
+        if ($twin) {
+            $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+        } else {
+            $self->output('[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% BOX DRAWINGS LIGHT HORIZONTAL %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %]');
+        }
+    } ## end if ($self->{'USER'}->{...})
     $self->{'debug'}->DEBUG(['End Show Choices']);
 } ## end sub show_choices
 
@@ -1057,6 +1090,9 @@ sub disconnect {
     # Load and print disconnect message here
     my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
+	my $sth = $self->{'dbh'}->prepare('UPDATE users SET logout_time=NOW() WHERE id=?');
+	$sth->execute($self->{'USER'}->{'id'});
+	$sth->finish();
     $self->{'debug'}->DEBUG(['End Disconnect']);
     return (TRUE);
 } ## end sub disconnect
@@ -1353,7 +1389,8 @@ sub get_line {
         } ## end while (($self->is_connected...))
     } elsif ($echo == FILENAME) {
         $self->{'debug'}->DEBUG(['  Mode:  FILENAME']);
-		# /^[a-zA-Z0-9](?:[a-zA-Z0-9 ._-]*[a-zA-Z0-9])?\.[a-zA-Z0-9_-]+$/
+
+        # /^[a-zA-Z0-9](?:[a-zA-Z0-9 ._-]*[a-zA-Z0-9])?\.[a-zA-Z0-9_-]+$/
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
                 $key = $self->get_key(SILENT, BLOCKING);
@@ -1366,12 +1403,12 @@ sub get_line {
                             chop($line);
                         }
                     } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-zA-Z0-9]|\.|_|-/) {
-						if ($line eq '' && $key !~ /^[a-zA-Z0-9]/) {
-							$self->output('[% RING BELL %]');
-						} else {
-							$self->output($key);
-							$line .= $key;
-						}
+                        if ($line eq '' && $key !~ /^[a-zA-Z0-9]/) {
+                            $self->output('[% RING BELL %]');
+                        } else {
+                            $self->output($key);
+                            $line .= $key;
+                        }
                     } else {
                         $self->output('[% RING BELL %]');
                     }
@@ -1493,7 +1530,7 @@ sub detokenize_text {    # Detokenize text markup
 
 sub output {
     my $self = shift;
-    $|=1;
+    $| = 1;
     $self->{'debug'}->DEBUG(['Start Output']);
     my $text = $self->detokenize_text(shift);
 
@@ -1501,19 +1538,19 @@ sub output {
     if (defined($text) && $text ne '') {
         while ($text =~ /\[\%\s+WRAP\s+\%\](.*?)\[\%\s+ENDWRAP\s+\%\]/si) {
             my $wrapped = $1;
-            my $format = Text::Format->new(
+            my $format  = Text::Format->new(
                 'columns'     => $self->{'USER'}->{'max_columns'} - 1,
                 'tabstop'     => 4,
                 'extraSpace'  => TRUE,
                 'firstIndent' => 0,
             );
             $wrapped = $format->format($wrapped);
-			chomp($wrapped);
+            chomp($wrapped);
             $text =~ s/\[\%\s+WRAP\s+\%\].*?\[\%\s+ENDWRAP\s+\%\]/$wrapped/s;
-        }
+        } ## end while ($text =~ /\[\%\s+WRAP\s+\%\](.*?)\[\%\s+ENDWRAP\s+\%\]/si)
         while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si) {
             my $wrapped = $1;
-            my $format = Text::Format->new(
+            my $format  = Text::Format->new(
                 'columns'     => $self->{'USER'}->{'max_columns'} - 1,
                 'tabstop'     => 4,
                 'extraSpace'  => TRUE,
@@ -1521,9 +1558,9 @@ sub output {
                 'justify'     => TRUE,
             );
             $wrapped = $format->format($wrapped);
-			chomp($wrapped);
+            chomp($wrapped);
             $text =~ s/\[\%\s+JUSTIFIED\s+\%\].*?\[\%\s+ENDJUSTIFIED\s+\%\]/$wrapped/s;
-        }
+        } ## end while ($text =~ /\[\%\s+JUSTIFIED\s+\%\](.*?)\[\%\s+ENDJUSTIFIED\s+\%\]/si)
         my $mode = $self->{'USER'}->{'text_mode'};
         if ($mode eq 'ATASCII') {
             $self->atascii_output($text);
@@ -1676,18 +1713,18 @@ sub configuration {
         $sth->execute($name);
         my ($result) = $sth->fetchrow_array();
         $sth->finish();
-		if ($name eq 'BBS ROOT') {
-			$result =~ s/\~/$ENV{HOME}/;
-		}
+        if ($name eq 'BBS ROOT') {
+            $result =~ s/\~/$ENV{HOME}/;
+        }
         return ($result);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
-		if ($name eq 'BBS ROOT') {
-			$fval =~ s/\~/$ENV{HOME}/;
-		}
+        if ($name eq 'BBS ROOT') {
+            $fval =~ s/\~/$ENV{HOME}/;
+        }
         $self->{'debug'}->DEBUG(['  Set a Single Value']);
-        my $sth  = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
+        my $sth = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
         $sth->execute($fval, $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
@@ -1699,14 +1736,14 @@ sub configuration {
         my $results = {};
         $sth->execute();
         while (my @row = $sth->fetchrow_array()) {
-			my $name = $row[0];
-			my $fval = $row[1];
-			if ($name eq 'BBS ROOT') {
-				$fval =~ s/\~/$ENV{HOME}/;
-			}
-            $results->{ $name } = $fval;
-            $self->{'CONF'}->{ $name } = $fval;
-        }
+            my $name = $row[0];
+            my $fval = $row[1];
+            if ($name eq 'BBS ROOT') {
+                $fval =~ s/\~/$ENV{HOME}/;
+            }
+            $results->{$name} = $fval;
+            $self->{'CONF'}->{$name} = $fval;
+        } ## end while (my @row = $sth->fetchrow_array...)
         $sth->finish();
         return ($self->{'CONF'});
     } ## end elsif ($count == 0)
@@ -1733,7 +1770,6 @@ sub parse_versions {
         'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
         'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
         'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
-        'BBS::Universal::Text_Editor'  => $BBS::Universal::TEXT_EDITOR_VERSION,
         'DBI'                          => $DBI::VERSION,
         'DBD::mysql'                   => $DBD::mysql::VERSION,
         'DateTime'                     => $DateTime::VERSION,
@@ -1772,7 +1808,7 @@ sub yes_no {
         }
     } ## end else [ if ($color && $self->{...})]
     $self->{'debug'}->DEBUG(['End Yes No']);
-    return($response);
+    return ($response);
 } ## end sub yes_no
 
 sub pad_center {
@@ -1813,7 +1849,7 @@ sub center {
         $response = $self->pad_center($text, $width);
     }
     $self->{'debug'}->DEBUG(['End Center']);
-    return($response);
+    return ($response);
 } ## end sub center
 
 sub trim {
@@ -1835,7 +1871,7 @@ sub get_fortune {
     $self->{'debug'}->DEBUG(['End Get Fortune']);
 
     return (($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
-}
+} ## end sub get_fortune
 
 sub playit {
     my $self = shift;
@@ -1871,177 +1907,177 @@ sub color_border {
     $tbl =~ s/\n/[% NEWLINE %]/gs;
     if ($mode eq 'ANSI') {
         if ($tbl =~ /(─+?)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(│)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┌)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND RIGHT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(└)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND RIGHT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┬)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┐)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC DOWN AND LEFT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(├)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┘)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOX DRAWINGS LIGHT ARC UP AND LEFT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┼)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┤)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┴)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
     } elsif ($mode eq 'ATASCII') {
         if ($tbl =~ /(─)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% HORIZONTAL BAR %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(│)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% MIDDLE VERTICAL BAR %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┌)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% TOP LEFT CORNER %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(└)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% BOTTOM LEFT CORNER %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┬)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% HORIZONTAL BAR MIDDLE TOP %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┐)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% TOP RIGHT CORNER %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(├)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% VERTICAL BAR MIDDLE RIGHT %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┘)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% BOTTOM RIGHT CORNER %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┼)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% CROSS BAR %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┤)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% VERTICAL BAR MIDDLE RIGHT %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┴)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% HORIZONTAL BAR MIDDLE BOTTOM %]';
             $tbl =~ s/$ch/$new/gs;
         }
     } elsif ($mode eq 'PETSCII') {
         $color = 'BROWN' if ($color eq 'ORANGE');
         if ($tbl =~ /(─)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% HORIZONTAL BAR %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(│)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% VERTICAL BAR %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┌)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% TOP LEFT CORNER %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(└)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOTTOM LEFT CORNER %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┬)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE TOP %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┐)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% TOP RIGHT CORNER %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(├)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% VERTICAL BAR MIDDLE LEFT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┘)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% BOTTOM RIGHT CORNER %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┼)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% CROSS BAR %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┤)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE RIGHT %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
         if ($tbl =~ /(┴)/) {
-            my $ch = $1;
+            my $ch  = $1;
             my $new = '[% ' . $color . ' %][% HORIZONTAL BAR MIDDLE BOTTOM %][% RESET %]';
             $tbl =~ s/$ch/$new/gs;
         }
-    }
+    } ## end elsif ($mode eq 'PETSCII')
     $self->{'debug'}->DEBUG(['End Color Border']);
-    return($tbl);
-}
+    return ($tbl);
+} ## end sub color_border
 
 sub html_to_text {
     my $self = shift;
@@ -2050,169 +2086,169 @@ sub html_to_text {
     $self->{'debug'}->DEBUG(['Start HTML To Text']);
     $text =~ s/(\n\n\n)+/\n/gs;
     my %entity = (
-        lt     => '<',     #a less-than
-        gt     => '>',     #a greater-than
-        amp    => '&',     #a nampersand
-        quot   => '"',     #a (verticle) double-quote
+        lt   => '<',    #a less-than
+        gt   => '>',    #a greater-than
+        amp  => '&',    #a nampersand
+        quot => '"',    #a (verticle) double-quote
 
-        nbsp   => chr 160, # no-break space
-        iexcl  => chr 161, # inverted exclamation mark
-        cent   => chr 162, # cent sign
-        pound  => chr 163, # pound sterling sign CURRENCY NOT WEIGHT
-        curren => chr 164, # general currency sign
-        yen    => chr 165, # yen sign
-        brvbar => chr 166, # broken (vertical) bar
-        sect   => chr 167, # section sign
-        uml    => chr 168, # umlaut (dieresis)
-        copy   => chr 169, # copyright sign
-        ordf   => chr 170, # ordinal indicator, feminine
-        laquo  => chr 171, # angle quotation mark, left
-        not    => chr 172, # not sign
-        shy    => chr 173, # soft hyphen
-        reg    => chr 174, # registered sign
-        macr   => chr 175, # macron
-        deg    => chr 176, # degree sign
-        plusmn => chr 177, # plus-or-minus sign
-        sup2   => chr 178, # superscript two
-        sup3   => chr 179, # superscript three
-        acute  => chr 180, # acute accent
-        micro  => chr 181, # micro sign
-        para   => chr 182, # pilcrow (paragraph sign)
-        middot => chr 183, # middle dot
-        cedil  => chr 184, # cedilla
-        sup1   => chr 185, # superscript one
-        ordm   => chr 186, # ordinal indicator, masculine
-        raquo  => chr 187, # angle quotation mark, right
-        frac14 => chr 188, # fraction one-quarter
-        frac12 => chr 189, # fraction one-half
-        frac34 => chr 190, # fraction three-quarters
-        iquest => chr 191, # inverted question mark
-        Agrave => chr 192, # capital A, grave accent
-        Aacute => chr 193, # capital A, acute accent
-        Acirc  => chr 194, # capital A, circumflex accent
-        Atilde => chr 195, # capital A, tilde
-        Auml   => chr 196, # capital A, dieresis or umlaut mark
-        Aring  => chr 197, # capital A, ring
-        AElig  => chr 198, # capital AE diphthong (ligature)
-        Ccedil => chr 199, # capital C, cedilla
-        Egrave => chr 200, # capital E, grave accent
-        Eacute => chr 201, # capital E, acute accent
-        Ecirc  => chr 202, # capital E, circumflex accent
-        Euml   => chr 203, # capital E, dieresis or umlaut mark
-        Igrave => chr 204, # capital I, grave accent
-        Iacute => chr 205, # capital I, acute accent
-        Icirc  => chr 206, # capital I, circumflex accent
-        Iuml   => chr 207, # capital I, dieresis or umlaut mark
-        ETH    => chr 208, # capital Eth, Icelandic
-        Ntilde => chr 209, # capital N, tilde
-        Ograve => chr 210, # capital O, grave accent
-        Oacute => chr 211, # capital O, acute accent
-        Ocirc  => chr 212, # capital O, circumflex accent
-        Otilde => chr 213, # capital O, tilde
-        Ouml   => chr 214, # capital O, dieresis or umlaut mark
-        times  => chr 215, # multiply sign
-        Oslash => chr 216, # capital O, slash
-        Ugrave => chr 217, # capital U, grave accent
-        Uacute => chr 218, # capital U, acute accent
-        Ucirc  => chr 219, # capital U, circumflex accent
-        Uuml   => chr 220, # capital U, dieresis or umlaut mark
-        Yacute => chr 221, # capital Y, acute accent
-        THORN  => chr 222, # capital THORN, Icelandic
-        szlig  => chr 223, # small sharp s, German (sz ligature)
-        agrave => chr 224, # small a, grave accent
-        aacute => chr 225, # small a, acute accent
-        acirc  => chr 226, # small a, circumflex accent
-        atilde => chr 227, # small a, tilde
-        auml   => chr 228, # small a, dieresis or umlaut mark
-        aring  => chr 229, # small a, ring
-        aelig  => chr 230, # small ae diphthong (ligature)
-        ccedil => chr 231, # small c, cedilla
-        egrave => chr 232, # small e, grave accent
-        eacute => chr 233, # small e, acute accent
-        ecirc  => chr 234, # small e, circumflex accent
-        euml   => chr 235, # small e, dieresis or umlaut mark
-        igrave => chr 236, # small i, grave accent
-        iacute => chr 237, # small i, acute accent
-        icirc  => chr 238, # small i, circumflex accent
-        iuml   => chr 239, # small i, dieresis or umlaut mark
-        eth    => chr 240, # small eth, Icelandic
-        ntilde => chr 241, # small n, tilde
-        ograve => chr 242, # small o, grave accent
-        oacute => chr 243, # small o, acute accent
-        ocirc  => chr 244, # small o, circumflex accent
-        otilde => chr 245, # small o, tilde
-        ouml   => chr 246, # small o, dieresis or umlaut mark
-        divide => chr 247, # divide sign
-        oslash => chr 248, # small o, slash
-        ugrave => chr 249, # small u, grave accent
-        uacute => chr 250, # small u, acute accent
-        ucirc  => chr 251, # small u, circumflex accent
-        uuml   => chr 252, # small u, dieresis or umlaut mark
-        yacute => chr 253, # small y, acute accent
-        thorn  => chr 254, # small thorn, Icelandic
-        yuml   => chr 255, # small y, dieresis or umlaut mark
+        nbsp   => chr 160,    # no-break space
+        iexcl  => chr 161,    # inverted exclamation mark
+        cent   => chr 162,    # cent sign
+        pound  => chr 163,    # pound sterling sign CURRENCY NOT WEIGHT
+        curren => chr 164,    # general currency sign
+        yen    => chr 165,    # yen sign
+        brvbar => chr 166,    # broken (vertical) bar
+        sect   => chr 167,    # section sign
+        uml    => chr 168,    # umlaut (dieresis)
+        copy   => chr 169,    # copyright sign
+        ordf   => chr 170,    # ordinal indicator, feminine
+        laquo  => chr 171,    # angle quotation mark, left
+        not    => chr 172,    # not sign
+        shy    => chr 173,    # soft hyphen
+        reg    => chr 174,    # registered sign
+        macr   => chr 175,    # macron
+        deg    => chr 176,    # degree sign
+        plusmn => chr 177,    # plus-or-minus sign
+        sup2   => chr 178,    # superscript two
+        sup3   => chr 179,    # superscript three
+        acute  => chr 180,    # acute accent
+        micro  => chr 181,    # micro sign
+        para   => chr 182,    # pilcrow (paragraph sign)
+        middot => chr 183,    # middle dot
+        cedil  => chr 184,    # cedilla
+        sup1   => chr 185,    # superscript one
+        ordm   => chr 186,    # ordinal indicator, masculine
+        raquo  => chr 187,    # angle quotation mark, right
+        frac14 => chr 188,    # fraction one-quarter
+        frac12 => chr 189,    # fraction one-half
+        frac34 => chr 190,    # fraction three-quarters
+        iquest => chr 191,    # inverted question mark
+        Agrave => chr 192,    # capital A, grave accent
+        Aacute => chr 193,    # capital A, acute accent
+        Acirc  => chr 194,    # capital A, circumflex accent
+        Atilde => chr 195,    # capital A, tilde
+        Auml   => chr 196,    # capital A, dieresis or umlaut mark
+        Aring  => chr 197,    # capital A, ring
+        AElig  => chr 198,    # capital AE diphthong (ligature)
+        Ccedil => chr 199,    # capital C, cedilla
+        Egrave => chr 200,    # capital E, grave accent
+        Eacute => chr 201,    # capital E, acute accent
+        Ecirc  => chr 202,    # capital E, circumflex accent
+        Euml   => chr 203,    # capital E, dieresis or umlaut mark
+        Igrave => chr 204,    # capital I, grave accent
+        Iacute => chr 205,    # capital I, acute accent
+        Icirc  => chr 206,    # capital I, circumflex accent
+        Iuml   => chr 207,    # capital I, dieresis or umlaut mark
+        ETH    => chr 208,    # capital Eth, Icelandic
+        Ntilde => chr 209,    # capital N, tilde
+        Ograve => chr 210,    # capital O, grave accent
+        Oacute => chr 211,    # capital O, acute accent
+        Ocirc  => chr 212,    # capital O, circumflex accent
+        Otilde => chr 213,    # capital O, tilde
+        Ouml   => chr 214,    # capital O, dieresis or umlaut mark
+        times  => chr 215,    # multiply sign
+        Oslash => chr 216,    # capital O, slash
+        Ugrave => chr 217,    # capital U, grave accent
+        Uacute => chr 218,    # capital U, acute accent
+        Ucirc  => chr 219,    # capital U, circumflex accent
+        Uuml   => chr 220,    # capital U, dieresis or umlaut mark
+        Yacute => chr 221,    # capital Y, acute accent
+        THORN  => chr 222,    # capital THORN, Icelandic
+        szlig  => chr 223,    # small sharp s, German (sz ligature)
+        agrave => chr 224,    # small a, grave accent
+        aacute => chr 225,    # small a, acute accent
+        acirc  => chr 226,    # small a, circumflex accent
+        atilde => chr 227,    # small a, tilde
+        auml   => chr 228,    # small a, dieresis or umlaut mark
+        aring  => chr 229,    # small a, ring
+        aelig  => chr 230,    # small ae diphthong (ligature)
+        ccedil => chr 231,    # small c, cedilla
+        egrave => chr 232,    # small e, grave accent
+        eacute => chr 233,    # small e, acute accent
+        ecirc  => chr 234,    # small e, circumflex accent
+        euml   => chr 235,    # small e, dieresis or umlaut mark
+        igrave => chr 236,    # small i, grave accent
+        iacute => chr 237,    # small i, acute accent
+        icirc  => chr 238,    # small i, circumflex accent
+        iuml   => chr 239,    # small i, dieresis or umlaut mark
+        eth    => chr 240,    # small eth, Icelandic
+        ntilde => chr 241,    # small n, tilde
+        ograve => chr 242,    # small o, grave accent
+        oacute => chr 243,    # small o, acute accent
+        ocirc  => chr 244,    # small o, circumflex accent
+        otilde => chr 245,    # small o, tilde
+        ouml   => chr 246,    # small o, dieresis or umlaut mark
+        divide => chr 247,    # divide sign
+        oslash => chr 248,    # small o, slash
+        ugrave => chr 249,    # small u, grave accent
+        uacute => chr 250,    # small u, acute accent
+        ucirc  => chr 251,    # small u, circumflex accent
+        uuml   => chr 252,    # small u, dieresis or umlaut mark
+        yacute => chr 253,    # small y, acute accent
+        thorn  => chr 254,    # small thorn, Icelandic
+        yuml   => chr 255,    # small y, dieresis or umlaut mark
     );
 
-    for my $chr ( 0 .. 255 ) {
+    for my $chr (0 .. 255) {
         $entity{ '#' . $chr } = chr $chr;
     }
 ###
     $text =~ s{ <!               # comments begin with a `<!'
-                                 # followed by 0 or more comments;
+          # followed by 0 or more comments;
 
-                    (.*?)        # this is actually to eat up comments in non 
-                                 # random places
+        (.*?)        # this is actually to eat up comments in non
+          # random places
 
-              (                  # not suppose to have any white space here
+        (                  # not suppose to have any white space here
 
-                                 # just a quick start; 
-               --                # each comment starts with a `--'
-                 .*?             # and includes all text up to and including
-               --                # the *next* occurrence of `--'
-                 \s*             # and may have trailing while space
-                                 #   (albeit not leading white space XXX)
-              )+                 # repetire ad libitum  XXX should be * not +
-                    (.*?)        # trailing non comment text
-            >                    # up to a `>'
+            # just a quick start;
+            --                # each comment starts with a `--'
+            .*?             # and includes all text up to and including
+            --                # the *next* occurrence of `--'
+            \s*             # and may have trailing while space
+            #   (albeit not leading white space XXX)
+        )+                 # repetire ad libitum  XXX should be * not +
+          (.*?)        # trailing non comment text
+          >                    # up to a `>'
     }{
         if ($1 || $3) {    # this silliness for embedded comments in tags
             "<!$1 $3>";
         }
-    }gesx;                 # mutate into nada, nothing, and niente
+    }gesx;    # mutate into nada, nothing, and niente
 
     $text =~ s{ <                    # opening angle bracket
 
-                 (?:                 # Non-backreffing grouping paren
-                      [^>'"] *       # 0 or more things that are neither > nor ' nor "
-                         |           #    or else
-                      ".*?"          # a section between double quotes (stingy match)
-                         |           #    or else
-                      '.*?'          # a section between single quotes (stingy match)
-                 ) +                 # repetire ad libitum
-                                     #  hm.... are null tags <> legal? XXX
-                >                    # closing angle bracket
-             }{}gsx;                 # mutate into nada, nothing, and niente
+        (?:                 # Non-backreffing grouping paren
+            [^>'"] *       # 0 or more things that are neither > nor ' nor "
+  |           #    or else
+  ".*?"          # a section between double quotes (stingy match)
+  |           #    or else
+  '.*?'          # a section between single quotes (stingy match)
+  ) +                 # repetire ad libitum
+  #  hm.... are null tags <> legal? XXX
+  >                    # closing angle bracket
+  }{}gsx;    # mutate into nada, nothing, and niente
 
-    $ text =~ s{ (
-                      &              # an entity starts with a semicolon
-                      ( 
-                          \x23\d+    # and is either a pound (#) and numbers
-                         |           #   or else
-                          \w+        # has alphanumunders up to a semi
-                      )
-                      ;?             # a semi terminates AS DOES ANYTHING ELSE (XXX)
-                 )
-    } {
+    $text =~ s{ (
+    &              # an entity starts with a semicolon
+    (
+        \x23\d+    # and is either a pound (#) and numbers
+        |           #   or else
+        \w+        # has alphanumunders up to a semi
+    )
+    ;?             # a semi terminates AS DOES ANYTHING ELSE (XXX)
+)
+} {
 
-        $entity{$2}        # if it's a known entity use that
-            ||             #   but otherwise
-            $1             # leave what we'd found; NO WARNINGS (XXX)
+    $entity{$2}        # if it's a known entity use that
+      ||             #   but otherwise
+      $1             # leave what we'd found; NO WARNINGS (XXX)
 
-    }gex;                  # execute replacement -- that's code not a string
+}gex;    # execute replacement -- that's code not a string
 ###
     $self->{'debug'}->DEBUG(['End HTML To Text']);
-    return($text);
-}
+    return ($text);
+} ## end sub html_to_text
 
 =head1 LICENSE
 
@@ -2235,148 +2271,173 @@ Disclaimer of Warranty: THE PACKAGE IS PROVIDED BY THE COPYRIGHT HOLDER AND CONT
 # MANUAL IMPORT HERE #
 
 sub Text::SimpleTable::round {
-	my $self  = shift;
-	my $color = shift;
-	$self->{'chs'} = {
+    my $self  = shift;
+    my $color = shift;
+    $self->{'chs'} = {
+
         # Top
-		'TOP_LEFT'      => '[% ' . $color . ' %]╭─',
-		'TOP_BORDER'    => '─',
-		'TOP_SEPARATOR' => '─┬─',
-		'TOP_RIGHT'     => '─╮[% RESET %]',
-		# Middle
-		'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
-		'MIDDLE_BORDER'    => '─',
-		'MIDDLE_SEPARATOR' => '─┼─',
-		'MIDDLE_RIGHT'     => '─┤[% RESET %]',
-		# Left
-		'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
-		'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
-		'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
-		# Bottom
-		'BOTTOM_LEFT'      => '[% ' . $color . ' %]╰─',
-		'BOTTOM_SEPARATOR' => '─┴─',
-		'BOTTOM_BORDER'    => '─',
-		'BOTTOM_RIGHT'     => '─╯[% RESET %]',
-		# Wrapper
-		'WRAP' => '-',
-	};
-	return($self);
-}
+        'TOP_LEFT'      => '[% ' . $color . ' %]╭─',
+        'TOP_BORDER'    => '─',
+        'TOP_SEPARATOR' => '─┬─',
+        'TOP_RIGHT'     => '─╮[% RESET %]',
+
+        # Middle
+        'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
+        'MIDDLE_BORDER'    => '─',
+        'MIDDLE_SEPARATOR' => '─┼─',
+        'MIDDLE_RIGHT'     => '─┤[% RESET %]',
+
+        # Left
+        'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
+        'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
+        'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
+
+        # Bottom
+        'BOTTOM_LEFT'      => '[% ' . $color . ' %]╰─',
+        'BOTTOM_SEPARATOR' => '─┴─',
+        'BOTTOM_BORDER'    => '─',
+        'BOTTOM_RIGHT'     => '─╯[% RESET %]',
+
+        # Wrapper
+        'WRAP' => '-',
+    };
+    return ($self);
+} ## end sub Text::SimpleTable::round
 
 sub Text::SimpleTable::twin {
-	my $self  = shift;
-	my $color = shift;
-	$self->{'chs'} = {
+    my $self  = shift;
+    my $color = shift;
+    $self->{'chs'} = {
+
         # Top
-		'TOP_LEFT'      => '[% ' . $color . ' %]╔═',
-		'TOP_BORDER'    => '═',
-		'TOP_SEPARATOR' => '═╦═',
-		'TOP_RIGHT'     => '═╗[% RESET %]',
-		# Middle
-		'MIDDLE_LEFT'      => '[% ' . $color . ' %]╠═',
-		'MIDDLE_BORDER'    => '═',
-		'MIDDLE_SEPARATOR' => '═╬═',
-		'MIDDLE_RIGHT'     => '═╣[% RESET %]',
-		# Left
-		'LEFT_BORDER'  => '[% ' . $color . ' %]║[% RESET %] ',
-		'SEPARATOR'    => ' [% ' . $color . ' %]║[% RESET %] ',
-		'RIGHT_BORDER' => ' [% ' . $color . ' %]║[% RESET %]',
-		# Bottom
-		'BOTTOM_LEFT'      => '[% ' . $color . ' %]╚═',
-		'BOTTOM_SEPARATOR' => '═╩═',
-		'BOTTOM_BORDER'    => '═',
-		'BOTTOM_RIGHT'     => '═╝[% RESET %]',
-		# Wrapper
-		'WRAP' => '-',
-	};
-	return($self);
-}
+        'TOP_LEFT'      => '[% ' . $color . ' %]╔═',
+        'TOP_BORDER'    => '═',
+        'TOP_SEPARATOR' => '═╦═',
+        'TOP_RIGHT'     => '═╗[% RESET %]',
+
+        # Middle
+        'MIDDLE_LEFT'      => '[% ' . $color . ' %]╠═',
+        'MIDDLE_BORDER'    => '═',
+        'MIDDLE_SEPARATOR' => '═╬═',
+        'MIDDLE_RIGHT'     => '═╣[% RESET %]',
+
+        # Left
+        'LEFT_BORDER'  => '[% ' . $color . ' %]║[% RESET %] ',
+        'SEPARATOR'    => ' [% ' . $color . ' %]║[% RESET %] ',
+        'RIGHT_BORDER' => ' [% ' . $color . ' %]║[% RESET %]',
+
+        # Bottom
+        'BOTTOM_LEFT'      => '[% ' . $color . ' %]╚═',
+        'BOTTOM_SEPARATOR' => '═╩═',
+        'BOTTOM_BORDER'    => '═',
+        'BOTTOM_RIGHT'     => '═╝[% RESET %]',
+
+        # Wrapper
+        'WRAP' => '-',
+    };
+    return ($self);
+} ## end sub Text::SimpleTable::twin
 
 sub Text::SimpleTable::thick {
-	my $self  = shift;
-	my $color = shift;
-	$self->{'chs'} = {
+    my $self  = shift;
+    my $color = shift;
+    $self->{'chs'} = {
+
         # Top
-		'TOP_LEFT'      => '[% ' . $color . ' %]┏━',
-		'TOP_BORDER'    => '━',
-		'TOP_SEPARATOR' => '━┳━',
-		'TOP_RIGHT'     => '━┓[% RESET %]',
-		# Middle
-		'MIDDLE_LEFT'      => '[% ' . $color . ' %]┣━',
-		'MIDDLE_BORDER'    => '━',
-		'MIDDLE_SEPARATOR' => '━╋━',
-		'MIDDLE_RIGHT'     => '━┫[% RESET %]',
-		# Left
-		'LEFT_BORDER'  => '[% ' . $color . ' %]┃[% RESET %] ',
-		'SEPARATOR'    => ' [% ' . $color . ' %]┃[% RESET %] ',
-		'RIGHT_BORDER' => ' [% ' . $color . ' %]┃[% RESET %]',
-		# Bottom
-		'BOTTOM_LEFT'      => '[% ' . $color . ' %]┗━',
-		'BOTTOM_SEPARATOR' => '━┻━',
-		'BOTTOM_BORDER'    => '━',
-		'BOTTOM_RIGHT'     => '━┛[% RESET %]',
-		# Wrapper
-		'WRAP' => '-',
-	};
-	return($self);
-}
+        'TOP_LEFT'      => '[% ' . $color . ' %]┏━',
+        'TOP_BORDER'    => '━',
+        'TOP_SEPARATOR' => '━┳━',
+        'TOP_RIGHT'     => '━┓[% RESET %]',
+
+        # Middle
+        'MIDDLE_LEFT'      => '[% ' . $color . ' %]┣━',
+        'MIDDLE_BORDER'    => '━',
+        'MIDDLE_SEPARATOR' => '━╋━',
+        'MIDDLE_RIGHT'     => '━┫[% RESET %]',
+
+        # Left
+        'LEFT_BORDER'  => '[% ' . $color . ' %]┃[% RESET %] ',
+        'SEPARATOR'    => ' [% ' . $color . ' %]┃[% RESET %] ',
+        'RIGHT_BORDER' => ' [% ' . $color . ' %]┃[% RESET %]',
+
+        # Bottom
+        'BOTTOM_LEFT'      => '[% ' . $color . ' %]┗━',
+        'BOTTOM_SEPARATOR' => '━┻━',
+        'BOTTOM_BORDER'    => '━',
+        'BOTTOM_RIGHT'     => '━┛[% RESET %]',
+
+        # Wrapper
+        'WRAP' => '-',
+    };
+    return ($self);
+} ## end sub Text::SimpleTable::thick
 
 sub Text::SimpleTable::boxes2 {
-	my $self  = shift;
-	my $color = shift || 'WHITE';
-	$self->{'chs'} = {
+    my $self  = shift;
+    my $color = shift || 'WHITE';
+    $self->{'chs'} = {
+
         # Top
-		'TOP_LEFT'      => '[% ' . $color . ' %]┌─',
-		'TOP_BORDER'    => '─',
-		'TOP_SEPARATOR' => '─┬─',
-		'TOP_RIGHT'     => '─┐[% RESET %]',
-		# Middle
-		'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
-		'MIDDLE_BORDER'    => '─',
-		'MIDDLE_SEPARATOR' => '─┼─',
-		'MIDDLE_RIGHT'     => '─┤[% RESET %]',
-		# Left
-		'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
-		'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
-		'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
-		# Bottom
-		'BOTTOM_LEFT'      => '[% ' . $color . ' %]└─',
-		'BOTTOM_SEPARATOR' => '─┴─',
-		'BOTTOM_BORDER'    => '─',
-		'BOTTOM_RIGHT'     => '─┘[% RESET %]',
-		# Wrapper
-		'WRAP' => '-',
-	};
-	return($self);
-}
+        'TOP_LEFT'      => '[% ' . $color . ' %]┌─',
+        'TOP_BORDER'    => '─',
+        'TOP_SEPARATOR' => '─┬─',
+        'TOP_RIGHT'     => '─┐[% RESET %]',
+
+        # Middle
+        'MIDDLE_LEFT'      => '[% ' . $color . ' %]├─',
+        'MIDDLE_BORDER'    => '─',
+        'MIDDLE_SEPARATOR' => '─┼─',
+        'MIDDLE_RIGHT'     => '─┤[% RESET %]',
+
+        # Left
+        'LEFT_BORDER'  => '[% ' . $color . ' %]│[% RESET %] ',
+        'SEPARATOR'    => ' [% ' . $color . ' %]│[% RESET %] ',
+        'RIGHT_BORDER' => ' [% ' . $color . ' %]│[% RESET %]',
+
+        # Bottom
+        'BOTTOM_LEFT'      => '[% ' . $color . ' %]└─',
+        'BOTTOM_SEPARATOR' => '─┴─',
+        'BOTTOM_BORDER'    => '─',
+        'BOTTOM_RIGHT'     => '─┘[% RESET %]',
+
+        # Wrapper
+        'WRAP' => '-',
+    };
+    return ($self);
+} ## end sub Text::SimpleTable::boxes2
 
 sub Text::SimpleTable::wedge {
-	my $self  = shift;
-	my $color = shift || 'WHITE';
-	$self->{'chs'} = {
+    my $self  = shift;
+    my $color = shift || 'WHITE';
+    $self->{'chs'} = {
+
         # Top
-		'TOP_LEFT'      => '[% ' . $color . ' %]◢█',
-		'TOP_BORDER'    => '█',
-		'TOP_SEPARATOR' => '███',
-		'TOP_RIGHT'     => '█◣[% RESET %]',
-		# Middle
-		'MIDDLE_LEFT'      => '[% ' . $color . ' %]██',
-		'MIDDLE_BORDER'    => '█',
-		'MIDDLE_SEPARATOR' => '███',
-		'MIDDLE_RIGHT'     => '██[% RESET %]',
-		# Left
-		'LEFT_BORDER'  => '[% ' . $color . ' %]█[% RESET %] ',
-		'SEPARATOR'    => ' [% ' . $color . ' %]█[% RESET %] ',
-		'RIGHT_BORDER' => ' [% ' . $color . ' %]█[% RESET %]',
-		# Bottom
-		'BOTTOM_LEFT'      => '[% ' . $color . ' %]◥█',
-		'BOTTOM_SEPARATOR' => '███',
-		'BOTTOM_BORDER'    => '█',
-		'BOTTOM_RIGHT'     => '█◤[% RESET %]',
-		# Wrapper
-		'WRAP' => '-',
-	};
-	return($self);
-}
+        'TOP_LEFT'      => '[% ' . $color . ' %]◢█',
+        'TOP_BORDER'    => '█',
+        'TOP_SEPARATOR' => '███',
+        'TOP_RIGHT'     => '█◣[% RESET %]',
+
+        # Middle
+        'MIDDLE_LEFT'      => '[% ' . $color . ' %]██',
+        'MIDDLE_BORDER'    => '█',
+        'MIDDLE_SEPARATOR' => '███',
+        'MIDDLE_RIGHT'     => '██[% RESET %]',
+
+        # Left
+        'LEFT_BORDER'  => '[% ' . $color . ' %]█[% RESET %] ',
+        'SEPARATOR'    => ' [% ' . $color . ' %]█[% RESET %] ',
+        'RIGHT_BORDER' => ' [% ' . $color . ' %]█[% RESET %]',
+
+        # Bottom
+        'BOTTOM_LEFT'      => '[% ' . $color . ' %]◥█',
+        'BOTTOM_SEPARATOR' => '███',
+        'BOTTOM_BORDER'    => '█',
+        'BOTTOM_RIGHT'     => '█◤[% RESET %]',
+
+        # Wrapper
+        'WRAP' => '-',
+    };
+    return ($self);
+} ## end sub Text::SimpleTable::wedge
 
 1;
