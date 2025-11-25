@@ -1766,6 +1766,7 @@ sub parse_versions {
         'BBS::Universal::BBS_List'     => $BBS::Universal::BBS_LIST_VERSION,
         'BBS::Universal::CPU'          => $BBS::Universal::CPU_VERSION,
         'BBS::Universal::Messages'     => $BBS::Universal::MESSAGES_VERSION,
+        'BBS::Universal::News'         => $BBS::Universal::NEWS_VERSION,
         'BBS::Universal::SysOp'        => $BBS::Universal::SYSOP_VERSION,
         'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
         'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,

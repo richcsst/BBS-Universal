@@ -395,31 +395,10 @@ sub sysop_list_commands {
     my $pet    = 1;
     my $asc    = 12;
     my $text   = '';
-    {
-        my $cell;
-        foreach $cell (@sys) {
-            $x = max(length($cell), $x);
-        }
-        foreach $cell (@stkn) {
-            $xt = max(length($cell), $xt);
-        }
-        foreach $cell (@usr) {
-            $y = max(length($cell), $y);
-        }
-        foreach $cell (@tkn) {
-            $z = max(length($cell), $z);
-        }
-        foreach $cell (@atatkn) {
-            $ata = max(length($cell), $ata);
-        }
-        foreach $cell (@pettkn) {
-            $pet = max(length($cell), $pet);
-        }
-        foreach $cell (@asctkn) {
+    if ($mode eq 'ASCII') {
+        foreach my $cell (@asctkn) {
             $asc = max(length($cell), $asc);
         }
-    }
-    if ($mode eq 'ASCII') {
         my $table = Text::SimpleTable->new($asc, 25);
         $table->row('ASCII TOKENS', 'DESCRIPTION');
         $table->hr();
@@ -507,6 +486,9 @@ sub sysop_list_commands {
 
         #		$self->sysop_output($text);
     } elsif ($mode eq 'ATASCII') {
+        foreach my $cell (@atatkn) {
+            $ata = max(length($cell), $ata);
+        }
         my $table = Text::SimpleTable->new(1, $ata, 25);
         $table->row('C', 'ATASCII TOKENS', 'DESCRIPTION');
         $table->hr();
@@ -519,6 +501,9 @@ sub sysop_list_commands {
         } ## end while (scalar(@atatkn))
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
     } elsif ($mode eq 'PETSCII') {
+        foreach my $cell (@pettkn) {
+            $pet = max(length($cell), $pet);
+        }
         my $table = Text::SimpleTable->new(1, $pet, 28);
         $table->row('C', 'PETSCII TOKENS', 'DESCRIPTION');
         $table->hr();
@@ -542,6 +527,9 @@ sub sysop_list_commands {
         $text =~ s/│ (GRAY)/│ \[\% GRAY 9 \%\]$1\[\% RESET \%\]/g;
         $text =~ s/│ (BROWN)/│ \[\% COLOR 94 \%\]$1\[\% RESET \%\]/g;
     } elsif ($mode eq 'USER') {
+        foreach my $cell (@usr) {
+            $y = max(length($cell), $y);
+        }
         my $table = Text::SimpleTable->new($y, $z);
         $table->row('USER MENU COMMANDS', 'USER TOKENS');
         $table->hr();
@@ -573,6 +561,12 @@ sub sysop_list_commands {
             $text =~ s/$name/$ch/gs;
         }
     } elsif ($mode eq 'SYSOP') {
+        foreach my $cell (@sys) {
+            $x = max(length($cell), $x);
+        }
+        foreach my $cell (@stkn) {
+            $xt = max(length($cell), $xt);
+        }
         my $table = Text::SimpleTable->new($x, $xt);
         $table->row('SYSOP MENU COMMANDS', 'SYSOP TOKENS');
         $table->hr();
@@ -2278,7 +2272,7 @@ sub sysop_showenv {
         if ($ENV{$env} =~ /\n/g || $env eq 'WHATISMYIP_INFO') {
             my @in     = split(/\n/, $ENV{$env});
             my $indent = $MAX + 4;
-            $text .= sprintf("%${MAX}s = ---" . $env) . "\n";
+            $text .= '[% BRIGHT WHITE %]' . sprintf("%${MAX}s", $env) . "[% RESET %] = ---\n";
             foreach my $line (@in) {
                 if ($line =~ /\:/) {
                     my ($f, $l) = $line =~ /^(.*?):(.*)/;
@@ -2291,37 +2285,29 @@ sub sysop_showenv {
                     }
                     my $le = 11 - length($f);
                     $f .= ' ' x $le;
-                    $l = colored(['green'], uc($l))                                                                                                           if ($l =~ /^ok/i);
-                    $l = colored(['bold red'], 'United') . ' ' . colored(['bold bright_white'], 'States') . ' of ' . colored(['bold bright_blue'], 'America') if ($l =~ /^us/i);
-                    $l = colored(['bold red'], 'Unit') . colored(['bold bright_white'], 'ed Kin') . colored(['bold bright_blue'], 'gdom')                     if ($l =~ /^uk/i);
-                    $l = colored(['bold bright_red'], 'Ca') . colored(['bold bright_white'], 'na') . colored(['bold bright_red'], 'da')                       if ($l =~ /^can/i);
-                    $l = colored(['bold bright_red'], 'Me') . colored(['bold bright_white'], 'xi') . colored(['bold green'], 'co')                            if ($l =~ /^mex/i);
-                    $text .= colored(['bold white'], sprintf("%${indent}s", $f)) . " = $l\n";
+                    $l = colored(['green'], uc($l))                                                                            if ($l =~ /^ok/i);
+                    $l = colored(['bold red'], 'U') . colored(['bold bright_white'], 'S') . colored(['bold bright_blue'], 'A') if ($l =~ /^us/i);
+                    $text .= colored(['bold bright_cyan'], sprintf("%${indent}s", $f)) . " = $l\n";
                 } else {
                     $text .= "$line\n";
                 }
-            } ## end foreach my $line (@in)
-        } elsif ($env eq 'SSH_CLIENT') {
-            my ($ip, $p1, $p2) = split(/ /, $ENV{$env});
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ip) . ' ' . colored(['cyan'], $p1) . ' ' . colored(['yellow'], $p2) . "\n";
-        } elsif ($env eq 'SSH_CONNECTION') {
-            my ($ip1, $p1, $ip2, $p2) = split(/ /, $ENV{$env});
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ip1) . ' ' . colored(['cyan'], $p1) . ' ' . colored(['bright_green'], $ip2) . ' ' . colored(['yellow'], $p2) . "\n";
-        } elsif ($env eq 'TERM') {
-            my $colorized = colored(['red'], '2') . colored(['green'], '5') . colored(['yellow'], '6') . colored(['cyan'], 'c') . colored(['bright_blue'], 'o') . colored(['magenta'], 'l') . colored(['bright_green'], 'o') . colored(['bright_blue'], 'r');
-            my $line      = $ENV{$env};
-            $line =~ s/256color/$colorized/;
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
-        } elsif ($env eq 'COLORTERM') {
-            my $colorized = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
-            my $line      = $ENV{$env};
-            $line =~ s/truecolor/$colorized/;
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . $line . "\n";
-        } elsif ($env eq 'WHATISMYIP') {
-            $text .= colored(['bold white'], sprintf("%${MAX}s", $env)) . ' = ' . colored(['bright_green'], $ENV{$env}) . "\n";
+            }
         } else {
             my $orig = $ENV{$env};
             my $new;
+
+			if ($orig =~ /(256color)/) {
+				$new = colored(['red'], '2') . colored(['green'], '5') . colored(['yellow'], '6') . colored(['cyan'], 'c') . colored(['bright_blue'], 'o') . colored(['magenta'], 'l') . colored(['bright_green'], 'o') . colored(['bright_blue'], 'r');
+				$orig =~ s/$1/$new/g;
+			}
+			if ($orig =~ /(truecolor)/) {
+				$new = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
+				$orig =~ s/$1/$new/g;
+			}
+			if ($orig =~ /(\d+\.\d+\.\d+\.\d+)/) {
+				$new = '[% BRIGHT GREEN %]' . $1 . '[% RESET %]';
+				$orig =~ s/$1/$new/g;
+			}
             if ($orig =~ /(ubuntu)/i) {
                 $new = '[% ORANGE %]' . $1 . '[% RESET %]';
                 $orig =~ s/$1/$new/g;
