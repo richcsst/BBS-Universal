@@ -1,6 +1,11 @@
 bin/bbs
 Changes
 conf/bbs.rc
+files/files/timex-sinclair-1000.ans
+files/files/timex-sinclair-1500.ans
+files/files/timex-sinclair-2048.ans
+files/files/timex-sinclair-2068.ans
+files/files/timex-sinclair.ans
 files/files/sinclair.ans
 files/files/BBS_Universal.png
 files/files/BBS_Universal_banner.vt

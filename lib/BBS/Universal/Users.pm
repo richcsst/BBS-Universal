@@ -622,6 +622,13 @@ sub users_file_category {
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
     $self->{'debug'}->DEBUG(['End Users File Category']);
+	if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
+		my $new = 'MS-[% RED %]D[% MAGENTA %]O[% YELLOW %]S[% RESET %]';
+		$category =~ s/MS-DOS/$new/;
+		$new = '[% RED %]FreeBSD[% RESET %]';
+		$category =~ s/FreeBSD/$new/;
+		$category =~ s/Linux/🐧Linux/;
+	}
     return ($category);
 }
 
