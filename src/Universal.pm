@@ -727,7 +727,7 @@ sub login {
         do {
             do {
                 $self->output("\n" . 'Please enter your username ("NEW" if you are a new user) > ');
-                $username = $self->get_line(ECHO, 32);
+                $username = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
                 $tries-- if ($username eq '');
                 last     if ($tries <= 0 || !$self->is_connected());
             } until ($username ne '');
@@ -742,7 +742,7 @@ sub login {
                 } else {
                     $self->{'debug'}->DEBUG(['    Asking for password']);
                     $self->output("\n\nPlease enter your password > ");
-                    my $password = $self->get_line(PASSWORD, 64);
+                    my $password = $self->get_line({ 'type' => PASSWORD, 'max' => 32, 'default' => ''  });
                     $valid = $self->users_load($username, $password);
                     if ($self->{'USER'}->{'banned'}) {
                         $valid = FALSE;
@@ -790,59 +790,59 @@ sub create_account {
     $self->output('Desired username:  ');
 
     if ($self->is_connected()) {
-        $username = $self->get_line({ 'type' => HOST, 'max' => 132 }, '');
+        $username = $self->get_line({ 'type' => HOST, 'max' => 132, 'default' => '' });
         $self->{'debug'}->DEBUG(["  New username:  $username"]);
 
         $self->output("\nFirst (given) name:  ");
-        $given = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $given = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
         $self->{'debug'}->DEBUG(["  New First Name:  $given"]);
 
         $self->output("\nLast (family) name:  ");
-        $family = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+        $family = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
         $self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
 
         $self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
         if ($self->decision()) {
             $self->output("\nNickname:  ");
-            $nickname = $self->get_line({ 'type' => STRING, 'max' => 132 }, '');
+            $nickname = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
             $self->{'debug'}->DEBUG(["  New Nickname:  $nickname"]);
         }
         $self->output("\nScreen width (in columns):  ");
-        $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 40);
+        $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => '40' });
         $self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
 
         $self->output("\nScreen height (in rows):  ");
-        $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, 25);
+        $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => '25' });
         $self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
 
         $self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
-        $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'] }, 'ASCII');
+        $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'], 'default' => 'ASCII' });
         $self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
 
         $self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
-        $birthday = $self->get_line({ 'type' => DATE, 'max' => 10 }, '');
+        $birthday = $self->get_line({ 'type' => DATE, 'max' => 10, 'default' => '' });
         $self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
 
         $self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
-        $location = $self->get_line({ 'type' => STRING, 'max' => 255 }, '');
+        $location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
         $self->{'debug'}->DEBUG(["  New Location:  $location"]);
 
         $self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
-        $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'] }, 'YEAR/MONTH/DAY');
+        $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'], 'default' => 'YEAR/MONTH/DAY' });
         $self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
 
         $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
-        $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'] }, 'FULL');
+        $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
         $self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
 
         my $tries = 3;
         do {
             $self->output("\nPlease enter your password:  ");
-            $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password']);
 
             $self->output("\nEnter it again:  ");
-            $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64 }, '');
+            $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password2']);
 
             $self->output("\nPasswords do not match!  Try again\n");
@@ -1176,7 +1176,7 @@ sub get_key {
         threads->yield;
     } ## end elsif ($self->is_connected...)
     return ($key) if ($key eq chr(13));
-    if ($key eq chr(127)) {
+    if ($key eq chr(127) or $key eq chr(7)) {
         if ($mode eq 'ANSI') {
             $key = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
         } elsif ($mode eq 'ATASCII') {
@@ -1188,51 +1188,24 @@ sub get_key {
         }
         $self->output("$key $key") if ($echo);
     } ## end if ($key eq chr(127))
-    if ($echo == NUMERIC && defined($key)) {
-        if ($key =~ /[0-9]/) {
-            $self->output("$key");
-        } else {
-            $key = '';
-        }
-    } elsif ($echo == ECHO && defined($key)) {
-        $self->send_char($key);
-    } elsif ($echo == PASSWORD && defined($key)) {
-        $self->send_char('*');
-    }
     threads->yield;
     return ($key);
 } ## end sub get_key
 
 sub get_line {
     my $self = shift;
-    my $echo = shift;
-    my $type = $echo;
+    my $type = shift;
+	my $line = shift;
 
-    my $line;
-    my $limit;
-    my $choices;
-    my $key;
+	my $echo = $type->{'type'};
+    my $limit = $type->{'max'};
+	my $choices = $type->{'choices'} if (exists($type->{'choices'}));
+	if (exists($type->{'default'})) {
+		$line = $type->{'default'};
+	}
 
     $self->{'debug'}->DEBUG(['Start Get Line']);
     $self->flush_input();
-
-    if (ref($type) eq 'HASH') {
-        $limit = $type->{'max'};
-        if (exists($type->{'choices'})) {
-            $choices = $type->{'choices'};
-            if (exists($type->{'default'})) {
-                $line = $type->{'default'};
-            } else {
-                $line = shift;
-            }
-        } ## end if (exists($type->{'choices'...}))
-        $echo = $type->{'type'};
-    } else {
-        if ($echo == STRING || $echo == ECHO || $echo == NUMERIC || $echo == HOST) {
-            $limit = shift;
-        }
-        $line = shift;
-    } ## end else [ if (ref($type) eq 'HASH')]
 
     my $key;
 
@@ -1249,7 +1222,41 @@ sub get_line {
         $bs = $self->{'ascii_sequences'}->{'BACKSPACE'};
     }
 
-    if ($echo == RADIO) {
+    if ($type == PASSWORD) {
+        $self->{'debug'}->DEBUG(['  Mode:  PASSWORD']);
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $bs) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
+                        $self->output('*');
+                        $line .= $key;
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $bs)) {
+                    $key = $bs;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == RADIO) {
         $self->{'debug'}->DEBUG(['  Mode:  RADIO']);
         my $regexp = join('', @{ $type->{'choices'} });
         $self->{'debug'}->DEBUGMAX([$regexp]);
@@ -1419,40 +1426,6 @@ sub get_line {
                     return ('');
                 }
                 if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-                    $key = $bs;
-                    $self->output("$key $key");
-                    chop($line);
-                } else {
-                    $self->output('[% RING BELL %]');
-                }
-            } ## end else [ if (length($line) <= $limit)]
-        } ## end while (($self->is_connected...))
-    } elsif ($type == PASSWORD) {
-        $self->{'debug'}->DEBUG(['  Mode:  PASSWORD']);
-        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
-            if (length($line) <= $limit) {
-                $key = $self->get_key(SILENT, BLOCKING);
-                return ('') if (defined($key) && $key eq chr(3));
-                if (defined($key) && $key ne '') {
-                    if ($key eq $bs) {
-                        my $len = length($line);
-                        if ($len > 0) {
-                            $self->output("$key $key");
-                            chop($line);
-                        }
-                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && ord($key) > 31 && ord($key) < 127) {
-                        $self->output('*');
-                        $line .= $key;
-                    } else {
-                        $self->output('[% RING BELL %]');
-                    }
-                } ## end if (defined($key) && $key...)
-            } else {
-                $key = $self->get_key(SILENT, BLOCKING);
-                if (defined($key) && $key eq chr(3)) {
-                    return ('');
-                }
-                if (defined($key) && ($key eq $bs)) {
                     $key = $bs;
                     $self->output("$key $key");
                     chop($line);
@@ -1649,7 +1622,7 @@ sub choose_file_category {
     }
     $table->row('CHOICE', 'TITLE', 'DESCRIPTION');
     $table->hr();
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories');
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories ORDER BY title');
     $sth->execute();
     if ($sth->rows > 0) {
         while (my $row = $sth->fetchrow_hashref()) {

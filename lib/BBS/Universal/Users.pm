@@ -169,7 +169,7 @@ sub users_change_screen_size {
 
     $self->{'debug'}->DEBUG(['Start Users Change Screen Size']);
     $self->prompt("\nColumns");
-    my $columns = 0 + $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, $self->{'USER'}->{'max_columns'});
+    my $columns = 0 + $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $self->{'USER'}->{'max_columns'}});
     if ($columns >= 32 && $columns ne $self->{'USER'}->{'max_columns'} && $self->is_connected()) {
         $self->{'USER'}->{'max_columns'} = $columns;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET max_columns=? WHERE id=?');
@@ -178,7 +178,7 @@ sub users_change_screen_size {
         $self->{'debug'}->DEBUG(["  Columns:  $columns"]);
     }
     $self->prompt("\nRows");
-    my $rows = 0 + $self->get_line({ 'type' => NUMERIC, 'max' => 3 }, $self->{'USER'}->{'max_rows'});
+    my $rows = 0 + $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'defult' => $self->{'USER'}->{'max_rows'}});
     if ($rows >= 25 && $rows ne $self->{'USER'}->{'max_rows'} && $self->is_connected()) {
         $self->{'USER'}->{'max_rows'} = $rows;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET max_rows=? WHERE id=?');
@@ -195,7 +195,7 @@ sub users_update_retro_systems {
 
     $self->{'debug'}->DEBUG(['Start Users Update Retro Systems']);
     $self->prompt("\nName your retro computers");
-    my $retro = $self->get_line({ 'type' => STRING, 'max' => 65535 }, $self->{'USER'}->{'retro_systems'});
+    my $retro = $self->get_line({ 'type' => STRING, 'max' => 65535 , 'default' => $self->{'USER'}->{'retro_systems'}});
     if (length($retro) >= 5 && $retro ne $self->{'USER'}->{'retro_systems'} && $self->is_connected()) {
         $self->{'USER'}->{'retro_systems'} = $retro;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET retro_systems=? WHERE id=?');
@@ -212,7 +212,7 @@ sub users_update_email {
 
     $self->{'debug'}->DEBUG(['Start Users Update Email']);
     $self->prompt("\nEnter email address");
-    my $email = $self->get_line({ 'type' => STRING, 'max' => 255 }, $self->{'USER'}->{'email'});
+    my $email = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => $self->{'USER'}->{'email'}});
     if (length($email) > 5 && $email ne $self->{'USER'}->{'email'} && $self->is_connected()) {
         $self->{'USER'}->{'email'} = $email;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET email=? WHERE id=?');
@@ -249,7 +249,7 @@ sub users_update_location {
 
     $self->{'debug'}->DEBUG(['Start Users Update Location']);
     $self->prompt("\nEnter your location");
-    my $location = $self->get_line({ 'type' => STRING, 'max' => 255 }, $self->{'USER'}->{'location'});
+    my $location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => $self->{'USER'}->{'location'}});
     if (length($location) >= 4 && $location ne $self->{'USER'}->{'location'} && $self->is_connected()) {
         $self->{'USER'}->{'location'} = $location;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET location=? WHERE id=?');
@@ -266,7 +266,7 @@ sub users_update_accomplishments {
 
     $self->{'debug'}->DEBUG(['Start Users Update Accomplishments']);
     $self->prompt("\nEnter your accomplishments");
-    my $accomplishments = $self->get_line({ 'type' => STRING, 'max' => 65535 }, $self->{'USER'}->{'accomplishments'});
+    my $accomplishments = $self->get_line({ 'type' => STRING, 'max' => 65535, 'default' => $self->{'USER'}->{'accomplishments'}});
     if (length($accomplishments) >= 4 && $accomplishments ne $self->{'USER'}->{'accomplishments'} && $self->is_connected()) {
         $self->{'USER'}->{'accomplishments'} = $accomplishments;
         my $sth = $self->{'dbh'}->prepare('UPDATE users SET accomplishments=? WHERE id=?');

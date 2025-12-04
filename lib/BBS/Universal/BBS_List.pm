@@ -16,17 +16,17 @@ sub bbs_list_add {
     my $index = 0;
     my $response = TRUE;
     $self->prompt('What is the BBS Name');
-    my $bbs_name = $self->get_line({ 'type' => STRING, 'max' => 255 }, '');
+    my $bbs_name = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
     $self->{'debug'}->DEBUG(["  BBS NAme:  $bbs_name"]);
     $self->output("\n");
     if ($bbs_name ne '' && length($bbs_name) > 3) {
         $self->prompt('What is the Hostname');
-        my $bbs_hostname = $self->get_line({ 'type' => HOST, 'max' => 255 }, '');
+        my $bbs_hostname = $self->get_line({ 'type' => HOST, 'max' => 255, 'default' => '' });
         $self->{'debug'}->DEBUG(["  BBS Hostname:  $bbs_hostname"]);
         $self->output("\n");
         if ($bbs_hostname ne '' && length($bbs_hostname) > 5) {
             $self->prompt('What is the Port number');
-            my $bbs_port = $self->get_line({ 'type' => NUMERIC, 'max' => 5 }, '');
+            my $bbs_port = $self->get_line({ 'type' => NUMERIC, 'max' => 5, 'default' => '' });
             $self->{'debug'}->DEBUG(["  BBS Port:  $bbs_port"]);
             $self->output("\n");
             if ($bbs_port ne '' && $bbs_port =~ /^\d+$/) {
@@ -60,7 +60,7 @@ sub bbs_list {
     if ($search) {
         $self->{'debug'}->DEBUG(['  Search BBS List']);
         $self->prompt('Please Enter The BBS To Search For');
-        $string = $self->get_line({'type' => HOST, 'max' => 255 }, '');
+        $string = $self->get_line({'type' => HOST, 'max' => 255, 'default' => '' });
         $self->{'debug'}->DEBUG(["  Search String:  $string"]);
         return(FALSE) unless(defined($string) && $string ne '');
         $sth = $self->{'dbh'}->prepare('SELECT * FROM bbs_listing_view WHERE bbs_name LIKE ? ORDER BY bbs_name');

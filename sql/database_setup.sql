@@ -384,7 +384,8 @@ INSERT INTO message_categories (name,description) VALUES ('Atari ST/STE/TT/Falco
 INSERT INTO message_categories (name,description) VALUES ('Commodore 8 Bit','Commodore 8 Bit Computers');
 INSERT INTO message_categories (name,description) VALUES ('Commodore Amiga','Commodore Amiga Computers');
 INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair','Timex/Sinclair Computers');
-INSERT INTO message_categories (name,description) VALUES ('Sinclair','Sinclair Computers');
+INSERT INTO message_categories (name,description) VALUES ('Amstrad','Amstrad Computers');
+INSERT INTO message_categories (name,description) VALUES ('Sinclair','Sinclair Research Computers');
 INSERT INTO message_categories (name,description) VALUES ('Heathkit','Heathkit Computers');
 INSERT INTO message_categories (name,description) VALUES ('CP/M','CP/M Computers');
 INSERT INTO message_categories (name,description) VALUES ('TRS-80','TRS-80 Discussion');
@@ -394,7 +395,10 @@ INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discu
 INSERT INTO message_categories (name,description) VALUES ('Windows','Windows Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discussion');
 INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Discussion');
+INSERT INTO message_categories (name,description) VALUES ('Texas Instruments','Texas Instruments Computers');
 INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');
+INSERT INTO message_categories (name,description) VALUES ('BBC Acorn','BBC Acorn Discussion');
+INSERT INTO message_categories (name,description) VALUES ('BBC Micro','BBC Micro Discussion');
 
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message 2','This is a test too');

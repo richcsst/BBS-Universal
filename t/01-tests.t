@@ -10,6 +10,15 @@ BEGIN {
 	use_ok('BBS::Universal');
 }
 
+diag("\n" . colored(['cyan on_black'], q{ _______        _   _              }));
+diag(colored(['cyan on_black'], q{|__   __|      | | (_)             }));
+diag(colored(['cyan on_black'], q{   | | ___  ___| |_ _ _ __   __ _  }));
+diag(colored(['cyan on_black'], q{   | |/ _ \/ __| __| | '_ \ / _` | }));
+diag(colored(['cyan on_black'], q{   | |  __/\__ \ |_| | | | | (_| | }));
+diag(colored(['cyan on_black'], q{   |_|\___||___/\__|_|_| |_|\__, | }));
+diag(colored(['cyan on_black'], q{                             __/ | }));
+diag(colored(['cyan on_black'], q{                            |___/  }));
+
 my $green = colored(['bright_green'], ' ok');
 my $red   = colored(['red'],          ' not ok');
 

@@ -46,13 +46,13 @@ sub files_list_summary {
     my $search = shift;
 
     $self->prompt('File Name? ');
-    my $file = $self->get_line({ 'type' => STRING, 'max' => 255},'');
+    my $file = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
     $self->{'debug'}->DEBUG(['Start Files List Summary']);
     my $sth;
     my $filter;
     if ($search) {
         $self->prompt('Search for');
-        $filter = $self->get_line({ 'type' => STRING, 'max' => 255},'');
+        $filter = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
         $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
         $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
     } else {
@@ -220,14 +220,14 @@ sub files_upload_choices {
     my $ckey;
 
     $self->prompt('File Name? ');
-    my $file = $self->get_line({ 'type' => FILENAME, 'max' => 255},'');
+    my $file = $self->get_line({ 'type' => FILENAME, 'max' => 255, 'default' => ''});
     my $ext  = uc($file =~ /\.(.*?)$/);
 
     $self->prompt('Title (Fiendly name)? ');
-    my $title = $self->get_line({ 'type' => STRING, 'max' => 255},'');
+    my $title = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
 
     $self->prompt('Description? ');
-    my $description = $self->get_line({ 'type' => STRING, 'max' => 255},'');
+    my $description = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
 
     my $file_category = $self->{'USER'}->{'file_category'};
 
@@ -310,7 +310,7 @@ sub files_list_detailed {
     my $columns = $self->{'USER'}->{'max_columns'};
     if ($search) {
         $self->prompt('Search for');
-        $filter = $self->get_line({ 'type' => STRING, 'max' => 255},'');
+        $filter = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
         $sth    = $self->{'dbh'}->prepare('SELECT * FROM files_view WHERE (filename LIKE ? OR title LIKE ?) AND category_id=? ORDER BY uploaded DESC');
         $sth->execute('%' . $filter . '%', '%' . $filter . '%', $self->{'USER'}->{'file_category'});
     } else {
