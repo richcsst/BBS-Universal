@@ -36,6 +36,14 @@ use constant {
     YMODEM => 1,
     ZMODEM => 2,
 
+    SOH => chr(0x01),
+      STX => chr(0x02),
+      EOT => chr(0x04),
+      ACK => chr(0x06),
+      NAK => chr(0x15),
+      CAN => chr(0x18),
+      C_CHAR => 'C',
+
     LINEMODE => 34,
 
     SE                => 240,
@@ -682,9 +690,9 @@ sub run {
     $| = 1;
     $self->greeting();
     if ($self->login()) {
-		my $sth = $self->{'dbh'}->prepare('UPDATE users SET login_time=NOW() WHERE id=?');
-		$sth->execute($self->{'USER'}->{'id'});
-		$sth->finish();
+        my $sth = $self->{'dbh'}->prepare('UPDATE users SET login_time=NOW() WHERE id=?');
+        $sth->execute($self->{'USER'}->{'id'});
+        $sth->finish();
         $self->main_menu('files/main/menu');
     }
     $self->disconnect();
@@ -1090,9 +1098,9 @@ sub disconnect {
     # Load and print disconnect message here
     my $text = $self->files_load_file('files/main/disconnect');
     $self->output($text);
-	my $sth = $self->{'dbh'}->prepare('UPDATE users SET logout_time=NOW() WHERE id=?');
-	$sth->execute($self->{'USER'}->{'id'});
-	$sth->finish();
+    my $sth = $self->{'dbh'}->prepare('UPDATE users SET logout_time=NOW() WHERE id=?');
+    $sth->execute($self->{'USER'}->{'id'});
+    $sth->finish();
     $self->{'debug'}->DEBUG(['End Disconnect']);
     return (TRUE);
 } ## end sub disconnect
@@ -1195,14 +1203,14 @@ sub get_key {
 sub get_line {
     my $self = shift;
     my $type = shift;
-	my $line = shift;
+    my $line = shift;
 
-	my $echo = $type->{'type'};
+    my $echo = $type->{'type'};
     my $limit = $type->{'max'};
-	my $choices = $type->{'choices'} if (exists($type->{'choices'}));
-	if (exists($type->{'default'})) {
-		$line = $type->{'default'};
-	}
+    my $choices = $type->{'choices'} if (exists($type->{'choices'}));
+    if (exists($type->{'default'})) {
+        $line = $type->{'default'};
+    }
 
     $self->{'debug'}->DEBUG(['Start Get Line']);
     $self->flush_input();
