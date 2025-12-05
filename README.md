@@ -66,12 +66,12 @@ S|SYSOP SETTINGS|COLOR 125|Change System Settings
 U|SYSOP USER MANAGER|CYAN|User Manager
 X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 ---
-[% BRIGHT RED     %]     [% BLACK LOWER RIGHT TRIANGLE %][% RESET                       %]  ____            _                   __  __
-[% BRIGHT YELLOW  %]    [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %] [% RESET %] / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _
-[% BRIGHT GREEN   %]   [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %]  [% RESET %] \___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |
-[% BRIGHT MAGENTA %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %]   [% RESET %]  ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |
-[% BRIGHT BLUE    %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %]    [% RESET %] |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|
-[% BRIGHT CYAN    %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT CYAN    %]     [% RESET %]        |___/
+    ____            _                   __  __
+   / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _
+   \___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |
+    ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |
+   |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|
+          |___/
 ```
 
 ## MAIN MENU FILE FORMAT
