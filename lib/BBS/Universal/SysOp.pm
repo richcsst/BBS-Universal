@@ -62,36 +62,44 @@ sub sysop_initialize {
         # Non-static tokens
         'THREADS COUNT' => sub {
             my $self = shift;
+			
             return ($self->{'CACHE'}->get('THREADS_RUNNING'));
         },
         'USERS COUNT' => sub {
             my $self = shift;
+			
             return ($self->db_count_users());
         },
         'UPTIME' => sub {
             my $self   = shift;
             my $uptime = `uptime -p`;
             chomp($uptime);
+			
             return ($uptime);
         },
         'DISK FREE SPACE' => sub {
             my $self = shift;
+			
             return ($self->sysop_disk_free());
         },
         'MEMORY' => sub {
             my $self = shift;
+			
             return ($self->sysop_memory());
         },
         'ONLINE' => sub {
             my $self = shift;
+			
             return ($self->sysop_online_count());
         },
         'CPU LOAD' => sub {
             my $self = shift;
+			
             return ($self->cpu_info->{'CPU LOAD'});
         },
         'ENVIRONMENT' => sub {
             my $self = shift;
+			
             return ($self->sysop_showenv());
         },
         'FILE CATEGORY' => sub {
@@ -100,19 +108,23 @@ sub sysop_initialize {
             my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
             $sth->execute($self->{'USER'}->{'file_category'});
             my ($result) = $sth->fetchrow_array();
+			
             return ($result);
         },
         'SYSOP VIEW CONFIGURATION' => sub {
             my $self = shift;
+			
             return ($self->sysop_view_configuration('string'));
         },
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
+			
             return ($self->sysop_list_commands());
         },
         'MIDDLE VERTICAL RULE color' => sub {
             my $self  = shift;
             my $color = shift;
+			
             return ($self->sysop_locate_middle('B_' . $color));
         },
     };

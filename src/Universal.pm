@@ -754,7 +754,7 @@ sub login {
                     $self->output("\n\nSysOp cannot connect remotely\n\n");
                 } else {
                     $self->{'debug'}->DEBUG(['    Asking for password']);
-                    $self->output("\n\nPlease enter your password > ");
+                    $self->output("\nPlease enter your password > ");
                     my $password = $self->get_line({ 'type' => PASSWORD, 'max' => 32, 'default' => '' });
                     $valid = $self->users_load($username, $password);
                     if ($self->{'USER'}->{'banned'}) {
@@ -2428,3 +2428,4 @@ sub Text::SimpleTable::wedge {
 } ## end sub Text::SimpleTable::wedge
 
 1;
+
