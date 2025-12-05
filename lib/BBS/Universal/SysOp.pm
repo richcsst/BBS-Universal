@@ -542,6 +542,9 @@ sub sysop_list_commands {
         foreach my $cell (@usr) {
             $y = max(length($cell), $y);
         }
+        foreach my $cell (@tkn) {
+            $z = max(length($cell), $z);
+        }
         my $table = Text::SimpleTable->new($y, $z);
         $table->row('USER MENU COMMANDS', 'USER TOKENS');
         $table->hr();
