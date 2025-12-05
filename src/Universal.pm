@@ -36,16 +36,16 @@ use constant {
     YMODEM => 1,
     ZMODEM => 2,
 
-    SOH => chr(0x01),
-      STX => chr(0x02),
-      EOT => chr(0x04),
-      ACK => chr(0x06),
-      NAK => chr(0x15),
-      CAN => chr(0x18),
-      C_CHAR => 'C',
+    SOH    => chr(0x01),
+    STX    => chr(0x02),
+    EOT    => chr(0x04),
+    ACK    => chr(0x06),
+    NAK    => chr(0x15),
+    CAN    => chr(0x18),
+    C_CHAR => 'C',
 
-    LINEMODE => 34,
-
+	SUPPRESS_GO_AHEAD => 3,
+    LINEMODE          => 34,
     SE                => 240,
     NOP               => 214,
     DATA_MARK         => 242,
@@ -91,6 +91,10 @@ use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
 use Cache::Memcached::Fast;
 use Number::Format 'format_number';
 use XML::RSS::LibXML;
+use File::Path;
+use Fcntl qw(:DEFAULT :flock);
+use IO::Select;
+use POSIX qw(:sys_wait_h);
 
 # The overhead of pulling these into the BBS::Universal namespace was a nightmare, so I just pulled them into the source at build time
 # use BBS::Universal::ANSI;
@@ -694,7 +698,7 @@ sub run {
         $sth->execute($self->{'USER'}->{'id'});
         $sth->finish();
         $self->main_menu('files/main/menu');
-    }
+    } ## end if ($self->login())
     $self->disconnect();
     $self->{'debug'}->DEBUG(['End Run']);
     return (defined($self->{'ERROR'}));
@@ -750,7 +754,7 @@ sub login {
                 } else {
                     $self->{'debug'}->DEBUG(['    Asking for password']);
                     $self->output("\n\nPlease enter your password > ");
-                    my $password = $self->get_line({ 'type' => PASSWORD, 'max' => 32, 'default' => ''  });
+                    my $password = $self->get_line({ 'type' => PASSWORD, 'max' => 32, 'default' => '' });
                     $valid = $self->users_load($username, $password);
                     if ($self->{'USER'}->{'banned'}) {
                         $valid = FALSE;
@@ -1195,7 +1199,7 @@ sub get_key {
             $key = $self->{'ascii_sequences'}->{'BACKSPACE'};
         }
         $self->output("$key $key") if ($echo);
-    } ## end if ($key eq chr(127))
+    } ## end if ($key eq chr(127) or...)
     threads->yield;
     return ($key);
 } ## end sub get_key
@@ -1205,8 +1209,8 @@ sub get_line {
     my $type = shift;
     my $line = shift;
 
-    my $echo = $type->{'type'};
-    my $limit = $type->{'max'};
+    my $echo    = $type->{'type'};
+    my $limit   = $type->{'max'};
     my $choices = $type->{'choices'} if (exists($type->{'choices'}));
     if (exists($type->{'default'})) {
         $line = $type->{'default'};
@@ -1476,7 +1480,7 @@ sub get_line {
                 }
             } ## end else [ if (length($line) <= $limit)]
         } ## end while (($self->is_connected...))
-    } ## end else [ if ($echo == RADIO) ]
+    } ## end else [ if ($type == PASSWORD)]
     threads->yield();
     $line = '' if ($key eq chr(3));
     $self->output("\n");

@@ -582,12 +582,9 @@ sub run_bbs {
         if (defined($client_socket)) {
             binmode($client_socket, ':ultra-raw');
 			# Turn off LINEMODE
-            # 255 252 34     // IAC WONT LINEMODE   (\377\375\042)
-            # 255 251 1      // IAC WILL ECHO       (\377\373\001)
-            # 255 251 3      // IAC WILL SUPPRESS-GO-AHEAD (\377\373\003)
-			print $client_socket chr(255),chr(252),chr(34);
-			print $client_socket chr(255),chr(251),chr(1);
-			print $client_socket chr(255),chr(251),chr(3);
+			print $client_socket chr(IAC),chr(WONT),chr(LINEMODE);
+			print $client_socket chr(IAC),chr(WILL),chr(ECHO);
+			print $client_socket chr(IAC),chr(WILL),chr(SUPPRESS_GO_AHEAD);
             $CACHE->set_multi(
                 [$thread_name, 'CONNECTED'],
                 ['UPDATE',     TRUE],

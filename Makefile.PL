@@ -100,6 +100,7 @@ WriteMakefile(
 		'Cache::Memcached::Fast' => '0.25',
 		'XML::RSS::LibXML'       => '0.3105',
 		'Number::Format'         => 0,
+		'File::Path'             => 0,
 	},
 
 	EXE_FILES => ['bin/bbs'],
