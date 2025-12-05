@@ -404,6 +404,7 @@ sub files_receive_file_xmodem {
         return 0;
     }
 
+	$self->output("\nStart sending your file via Xmodem\n");
     my $path = $file;
     my $FH;
     # Ensure directory exists
@@ -536,6 +537,7 @@ sub files_receive_file_xmodem {
       }
 
     close $FH;
+	$self->output("\nFile receive complete\n");
     $self->{'debug'}->DEBUG(['End files_receive_file_xmodem']);
     return $success;
 }
@@ -550,6 +552,7 @@ sub files_receive_file_ymodem {
         return 0;
     }
 
+	$self->output("\nStart sending your file via Ymodem\n");
     my $path = $file;
     # Ensure directory exists
     if ($path =~ m{^(.+)/[^/]+$}) {
@@ -767,6 +770,7 @@ sub files_receive_file_ymodem {
     }
 
     close $FH;
+	$self->output("\nFile receive complete\n");
     $self->{'debug'}->DEBUG(['End files_receive_file_ymodem']);
     return $success;
 }
@@ -839,6 +843,7 @@ sub files_send_xmodem {
         $self->{'debug'}->ERROR(["No client socket for XMODEM send"]);
         return 0;
     }
+	$self->output("\nStart Xmodem download\n");
     my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
     my $FH;
     unless (open $FH, '<:raw', $path) {
@@ -924,6 +929,7 @@ sub files_send_xmodem {
     } ## end if ($success)
 
     close $FH;
+	$self->output("\nFile download complete\n");
     $self->{'debug'}->DEBUG(['End files_send_xmodem']);
     return $success;
 } ## end sub files_send_xmodem
@@ -941,6 +947,7 @@ sub files_send_ymodem {
         return 0;
     }
 
+	$self->output("\nStart Ymodem download\n");
     my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
     my $FH;
     unless (open $FH, '<:raw', $path) {
@@ -1045,6 +1052,7 @@ sub files_send_ymodem {
     } ## end if ($success)
 
     close $FH;
+	$self->output("\nFile download complete\n");
     $self->{'debug'}->DEBUG(['End files_send_ymodem']);
     return $success;
 } ## end sub files_send_ymodem
@@ -1140,6 +1148,7 @@ sub files_send_zmodem {
         return 0;
     }
 
+	$self->output("\nStart Zmodem file download\n");
     # full path to file on server
     my $path = $file;
     unless (-e $path) {
@@ -1152,6 +1161,7 @@ sub files_send_zmodem {
     my @args = ('--zmodem', '--binary', '--quiet', '--resume', $path);
 
     my $ok = $self->_run_on_socket('sz', \@args);
+	$self->output("\nFile download complete\n");
     $self->{'debug'}->DEBUG(['End files_send_zmodem (using lrzsz)']);
     return $ok;
 }
@@ -1166,6 +1176,7 @@ sub files_receive_file_zmodem {
         return 0;
     }
 
+	$self->output("\nStart Zmodem file upload\n");
     # When rz receives files it writes them into the current working directory.
     # Use the destination directory from config (same place other uploads are stored).
     my $dest_dir = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'};
@@ -1184,6 +1195,7 @@ sub files_receive_file_zmodem {
 
     my $ok = $self->_run_on_socket('rz', \@args, $dest_dir);
 
+	$self->output("\nFile upload complete\n");
     $self->{'debug'}->DEBUG(['End files_receive_file_zmodem (using lrzsz)']);
     return $ok;
 }
