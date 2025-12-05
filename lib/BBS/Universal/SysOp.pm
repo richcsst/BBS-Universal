@@ -383,9 +383,9 @@ sub sysop_list_commands {
     my @stkn   = (sort(keys %{ $self->{'sysop_tokens'} }, 'JUSTIFIED text ENDJUSTIFIED', 'WRAP text ENDWRAP'));
     my @usr    = (sort(keys %{ $self->{'COMMANDS'} }));
     my @tkn    = (sort(keys %{ $self->{'TOKENS'} }, 'JUSTIFIED text ENDJUSTIFIED', 'WRAP text ENDWRAP'));
-    my @atatkn = (sort(keys %{ $self->{'atascii_sequences'} }, 'HORIZONTAL RULE'));
-    my @pettkn = (sort(keys %{ $self->{'petscii_sequences'} }, 'HORIZONTAL RULE color'));
-    my @asctkn = (sort(keys %{ $self->{'ascii_sequences'} },   'HORIZONTAL RULE'));
+    my @atatkn = (sort(keys %{ $self->{'atascii_meta'} }, 'HORIZONTAL RULE'));
+    my @pettkn = (sort(keys %{ $self->{'petscii_meta'} }, 'HORIZONTAL RULE color'));
+    my @asctkn = (sort(keys %{ $self->{'ascii_meta'} },   'HORIZONTAL RULE'));
     my $x      = 1;
     my $xt     = 1;
     my $y      = 1;

@@ -52,9 +52,6 @@ sub ascii_initialize {
 			'desc' => 'Console Bell',
 		},
     };
-	foreach my $name (keys %{ $self->{'ascii_meta'} }) {
-		$self->{'ascii_sequences'}->{$name} = $self->{'ascii_meta'}->{$name}->{'out'};
-	}
 	$self->{'debug'}->DEBUG(['End ACSII Initialize']);
     return ($self);
 }
@@ -67,16 +64,13 @@ sub ascii_output {
     my $mlines = (exists($self->{'USER'}->{'max_rows'})) ? $self->{'USER'}->{'max_rows'} - 3 : 21;
     my $lines  = $mlines;
     if (length($text) > 1) {
-        foreach my $string (keys %{ $self->{'ascii_sequences'} }) {
+        foreach my $string (keys %{ $self->{'ascii_meta'} }) {
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
                 $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
             } else {
-                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ascii_sequences'}->{$string}/gi;
+                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ascii_meta'}->{$string}->{'out'}/gi;
             }
-        }
-        foreach my $string (keys %{ $self->{'ascii_characters'} }) {
-            $text =~ s/\[\%\s+$string\s+\%\]/$self->{'ascii_characters'}->{$string}/gi;
         }
 		while($text =~ /\[\%\s+HORIZONTAL RULE\s+\%\]/) {
 			my $rule = '=' x $self->{'USER'}->{'max_columns'};
@@ -84,7 +78,7 @@ sub ascii_output {
 		}
     }
     my $s_len = length($text);
-    my $nl    = $self->{'ascii_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'ascii_meta'}->{'NEWLINE'}->{'out'};
 	foreach my $count (0 .. $s_len) {
 		my $char = substr($text, $count, 1);
 		if ($char eq "\n") {

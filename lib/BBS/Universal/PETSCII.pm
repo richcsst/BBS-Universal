@@ -452,9 +452,6 @@ sub petscii_initialize {
 			'desc' => 'Dithered Full Reverse',
 		},
 	};
-	foreach my $name (keys %{ $self->{'petscii_meta'} }) {
-		$self->{'petscii_sequences'}->{$name} = $self->{'petscii_meta'}->{$name}->{'out'};
-	}
     $self->{'debug'}->DEBUG(['End PETSCII Initialize']);
     return ($self);
 } ## end sub petscii_initialize
@@ -472,17 +469,17 @@ sub petscii_output {
             my $rule = "[% $1 %]" . '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'} . '[% RESET %]';
             $text =~ s/\[\%\s+HORIZONTAL RULE (.*?)\s+\%\]/$rule/gs;
         }
-        foreach my $string (keys %{ $self->{'petscii_sequences'} }) {    # Decode macros
+        foreach my $string (keys %{ $self->{'petscii_meta'} }) {    # Decode macros
             if ($string =~ /CLEAR|CLS/i && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
                 $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
             } else {
-                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_sequences'}->{$string}/gi;
+                $text =~ s/\[\%\s+$string\s+\%\]/$self->{'petscii_meta'}->{$string}->{'out'}/gi;
             }
         } ## end foreach my $string (keys %{...})
     } ## end if (length($text) > 1)
     my $s_len = length($text);
-    my $nl    = $self->{'petscii_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'petscii_meta'}->{'NEWLINE'}->{'out'};
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);
         if ($char eq "\n") {

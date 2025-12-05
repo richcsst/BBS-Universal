@@ -333,9 +333,6 @@ sub atascii_initialize {
 			'desc' => 'Insert',
 		},
 	};
-	foreach my $name (keys %{ $self->{'atascii_meta'} }) {
-		$self->{'atascii_sequences'}->{$name} = $self->{'atascii_meta'}->{$name}->{'out'};
-	}
     $self->{'debug'}->DEBUG(['End ATASCII Initialize']);
     return ($self);
 }
@@ -353,17 +350,17 @@ sub atascii_output {
             my $rule = '[% TOP HORIZONTAL BAR %]' x $self->{'USER'}->{'max_columns'};
             $text =~ s/\[\%\s+HORIZONTAL RULE\s+\%\]/$rule/gs;
         }
-        foreach my $string (keys %{ $self->{'atascii_sequences'} }) {
-            if ($string eq $self->{'atascii_sequences'}->{'CLEAR'} && ($self->{'sysop'} || $self->{'local_mode'})) {
+        foreach my $string (keys %{ $self->{'atascii_meta'} }) {
+            if ($string eq $self->{'atascii_meta'}->{'CLEAR'}->{'out'} && ($self->{'sysop'} || $self->{'local_mode'})) {
                 my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
                 $text =~ s/\[\%\s+$string\s+\%\]/$ch/gi;
             } else {
-                $text =~ s/\[\% $string \%\]/$self->{'atascii_sequences'}->{$string}/gi;
+                $text =~ s/\[\% $string \%\]/$self->{'atascii_meta'}->{$string}->{'out'}/gi;
             }
         }
     }
     my $s_len = length($text);
-    my $nl    = $self->{'atascii_sequences'}->{'NEWLINE'};
+    my $nl    = $self->{'atascii_meta'}->{'NEWLINE'}->{'out'};
     foreach my $count (0 .. $s_len) {
         my $char = substr($text, $count, 1);
         if ($char eq "\n") {

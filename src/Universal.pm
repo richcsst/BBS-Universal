@@ -133,6 +133,7 @@ BEGIN {
 
       LINEMODE
 
+      SUPPRESS_GO_AHEAD
       SE
       NOP
       DATA_MARK
@@ -1192,11 +1193,11 @@ sub get_key {
         if ($mode eq 'ANSI') {
             $key = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
         } elsif ($mode eq 'ATASCII') {
-            $key = $self->{'atascii_sequences'}->{'BACKSPACE'};
+            $key = $self->{'atascii_meta'}->{'BACKSPACE'}->{'out'};
         } elsif ($mode eq 'PETSCII') {
-            $key = $self->{'petscii_sequences'}->{'BACKSPACE'};
+            $key = $self->{'petscii_meta'}->{'BACKSPACE'}->{'out'};
         } else {
-            $key = $self->{'ascii_sequences'}->{'BACKSPACE'};
+            $key = $self->{'ascii_meta'}->{'BACKSPACE'}->{'out'};
         }
         $self->output("$key $key") if ($echo);
     } ## end if ($key eq chr(127) or...)
@@ -1227,11 +1228,11 @@ sub get_line {
     if ($mode eq 'ANSI') {
         $bs = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     } elsif ($mode eq 'ATASCII') {
-        $bs = $self->{'atascii_sequences'}->{'BACKSPACE'};
+        $bs = $self->{'atascii_meta'}->{'BACKSPACE'}->{'out'};
     } elsif ($mode eq 'PETSCII') {
-        $bs = $self->{'petscii_sequences'}->{'BACKSPACE'};
+        $bs = $self->{'petscii_meta'}->{'BACKSPACE'}->{'out'};
     } else {
-        $bs = $self->{'ascii_sequences'}->{'BACKSPACE'};
+        $bs = $self->{'ascii_meta'}->{'BACKSPACE'}->{'out'};
     }
 
     if ($type == PASSWORD) {

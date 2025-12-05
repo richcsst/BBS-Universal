@@ -25,25 +25,25 @@ sub ansi_decode {
 
     # HORIZONTAL RULE expands into a sequence of meta-tokens (resolved later).
     $text =~ s/\[\%\s*HORIZONTAL\s+RULE\s+(.*?)\s*\%\]/
-	  do {
-		  my $color = defined $1 && $1 ne '' ? uc $1 : 'DEFAULT';
-		  '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
-	  }/eigs;
+      do {
+          my $color = defined $1 && $1 ne '' ? uc $1 : 'DEFAULT';
+          '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
+      }/eigs;
 
     # 24-bit RGB foreground/background
     $text =~ s/\[\%\s*RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
-	  do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "38:2:$r:$g:$b" . 'm' }/eigs;
+      do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "38:2:$r:$g:$b" . 'm' }/eigs;
     $text =~ s/\[\%\s*B_RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
-	  do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "48:2:$r:$g:$b" . 'm' }/eigs;
+      do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "48:2:$r:$g:$b" . 'm' }/eigs;
 
     #
     # Flatten the ansi_meta lookup to a simple, case-insensitive hash for a single-pass
     # substitution of tokens like [% RED %], [% RESET %], etc.
     #
-	if ($text =~ /CLS/i && $self->{'local_mode'}) {
-		my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
-		$text =~ s/\[\%\s+CLS\s+\%\]/$ch/gsi;
-	}
+    if ($text =~ /CLS/i && $self->{'local_mode'}) {
+        my $ch = locate(($self->{'CACHE'}->get('START_ROW') + $self->{'CACHE'}->get('ROW_ADJUST')), 1) . cldown;
+        $text =~ s/\[\%\s+CLS\s+\%\]/$ch/gsi;
+    }
 
     my %lookup;
     for my $code (qw(foreground background special clear cursor attributes)) {
@@ -59,17 +59,17 @@ sub ansi_decode {
     # else leave token visible.
 ###
     $text =~ s/\[\%\s*(.+?)\s*\%\]/
-	  do {
-		  my $tok = $1;
-		  my $key = lc $tok;
-		  if ( exists $lookup{$key} ) {
-			  $lookup{$key};
-		  } elsif ( defined( my $char = charnames::string_vianame($tok) ) ) {
-			  $char;
-		  } else {
-			  $&;    # leave the original token intact
-		  }
-	  }/egis;
+      do {
+          my $tok = $1;
+          my $key = lc $tok;
+          if ( exists $lookup{$key} ) {
+              $lookup{$key};
+          } elsif ( defined( my $char = charnames::string_vianame($tok) ) ) {
+              $char;
+          } else {
+              $&;    # leave the original token intact
+          }
+      }/egis;
 ###
     return $text;
 } ## end sub ansi_decode
@@ -8608,42 +8608,42 @@ sub ansi_initialize {
                 'out'  => $csi . '48:2:44:22:8m',
             },
         },
-  };
+    };
 
-$self->{'debug'}->DEBUG(['  Add fonts']);
-foreach my $count (1 .. 9) {
-	$self->{'ansi_meta'}->{'special'}->{ 'FONT ' . $count } = {
-		'desc' => "ANSI Font $count",
-		'out'  => $csi . ($count + 10) . 'm',
-	};
-} ## end foreach my $count (1 .. 9)
+    $self->{'debug'}->DEBUG(['  Add fonts']);
+    foreach my $count (1 .. 9) {
+        $self->{'ansi_meta'}->{'special'}->{ 'FONT ' . $count } = {
+            'desc' => "ANSI Font $count",
+            'out'  => $csi . ($count + 10) . 'm',
+        };
+    } ## end foreach my $count (1 .. 9)
 
-$self->{'debug'}->DEBUG(['  Add ANSI256 Colors']);
-foreach my $count (16 .. 231) {
-	$self->{'ansi_meta'}->{'foreground'}->{ 'COLOR ' . $count } = {
-		'desc' => "ANSI256 Color $count",
-		'out'  => $csi . "38;5;$count" . 'm',
-	};
-	$self->{'ansi_meta'}->{'background'}->{ 'B_COLOR ' . $count } = {
-		'desc' => "ANSI256 Color $count",
-		'out'  => $csi . "48;5;$count" . 'm',
-	};
-} ## end foreach my $count (16 .. 231)
+    $self->{'debug'}->DEBUG(['  Add ANSI256 Colors']);
+    foreach my $count (16 .. 231) {
+        $self->{'ansi_meta'}->{'foreground'}->{ 'COLOR ' . $count } = {
+            'desc' => "ANSI256 Color $count",
+            'out'  => $csi . "38;5;$count" . 'm',
+        };
+        $self->{'ansi_meta'}->{'background'}->{ 'B_COLOR ' . $count } = {
+            'desc' => "ANSI256 Color $count",
+            'out'  => $csi . "48;5;$count" . 'm',
+        };
+    } ## end foreach my $count (16 .. 231)
 
-$self->{'debug'}->DEBUG(['  Add ANSI256 Grays']);
-foreach my $count (232 .. 255) {
-	$self->{'ansi_meta'}->{'foreground'}->{ 'GRAY ' . ($count - 232) } = {
-		'desc' => "ANSI256 grey level " . ($count - 232),
-		'out'  => $csi . "38;5;$count" . 'm',
-	};
-	$self->{'ansi_meta'}->{'background'}->{ 'B_GRAY ' . ($count - 232) } = {
-		'desc' => "ANSI256 grey level " . ($count - 232),
-		'out'  => $csi . "48;5;$count" . 'm',
-	};
-} ## end foreach my $count (232 .. 255)
+    $self->{'debug'}->DEBUG(['  Add ANSI256 Grays']);
+    foreach my $count (232 .. 255) {
+        $self->{'ansi_meta'}->{'foreground'}->{ 'GRAY ' . ($count - 232) } = {
+            'desc' => "ANSI256 grey level " . ($count - 232),
+            'out'  => $csi . "38;5;$count" . 'm',
+        };
+        $self->{'ansi_meta'}->{'background'}->{ 'B_GRAY ' . ($count - 232) } = {
+            'desc' => "ANSI256 grey level " . ($count - 232),
+            'out'  => $csi . "48;5;$count" . 'm',
+        };
+    } ## end foreach my $count (232 .. 255)
 
-$self->{'debug'}->DEBUG(['End ANSI Initialize']);
-# $self->{'debug'}->ERROR([$self->{'ansi_meta'}]);exit;
-return ($self);
+    $self->{'debug'}->DEBUG(['End ANSI Initialize']);
+    # $self->{'debug'}->ERROR([$self->{'ansi_meta'}]);exit;
+    return ($self);
 } ## end sub ansi_initialize
 1;
