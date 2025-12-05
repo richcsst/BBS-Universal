@@ -8,15 +8,14 @@ use IO::Select;
 use POSIX qw(:sys_wait_h);
 
 sub filetransfer_initialize {
-    my $self = shift;
+    my ($self) = @_;
     $self->{'debug'}->DEBUG(['Start FileTransfer Initialize']);
     $self->{'debug'}->DEBUG(['End FileTransfer Initialize']);
     return ($self);
 } ## end sub filetransfer_initialize
 
 sub files_type {
-	my $self = shift;
-	my $file = shift;
+	my ($self, $file) = @_;
 
 	$self->{'debug'}->DEBUG(['Start File Type']);
 	my @tmp = split(/\./,$file);
@@ -33,8 +32,7 @@ sub files_type {
 }
 
 sub files_load_file {
-	my $self = shift;
-	my $file = shift;
+	my ($self, $file) = @_;
 
 	$self->{'debug'}->DEBUG(['Start Files Load File']);
 	my $filename = sprintf('%s.%s', $file, $self->{'USER'}->{'text_mode'});
@@ -48,8 +46,7 @@ sub files_load_file {
 }
 
 sub files_list_summary {
-	my $self   = shift;
-	my $search = shift;
+	my ($self, $search) = @_;
 
 	$self->prompt('File Name? ');
 	my $file = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => ''});
@@ -114,8 +111,8 @@ sub files_list_summary {
 }
 
 sub files_choices {
-	my $self   = shift;
-	my $record = shift;
+	my ($self, $record) = @_;
+
 	my $view   = FALSE;
 	my $mapping = {
 		'TEXT' => '',
@@ -222,7 +219,7 @@ sub files_choices {
 }
 
 sub files_upload_choices {
-	my $self   = shift;
+	my ($self) = @_;
 	my $ckey;
 
 	$self->prompt('File Name? ');
@@ -307,8 +304,7 @@ sub files_upload_choices {
 }
 
 sub files_list_detailed {
-	my $self   = shift;
-	my $search = shift;
+	my ($self, $search) = @_;
 
 	$self->{'debug'}->DEBUG(['Start Files List Detailed']);
 	my $sth;
@@ -375,40 +371,31 @@ sub files_list_detailed {
 }
 
 sub files_save_file {
-	my $self = shift;
+	my ($self) = @_;
 	$self->{'debug'}->DEBUG(['Start Save File']);
 	$self->{'debug'}->DEBUG(['End Save File']);
 	return (TRUE);
 }
 
 sub files_receive_file {
-	my $self     = shift;
-	my $file     = shift;
-	my $protocol = shift;
+	my ($self, $file, $protocol) = @_;
 
 	my $success = TRUE;
 	$self->{'debug'}->DEBUG(['Start Receive File']);
 	unless ($self->{'local_mode'}) {
-#		chdir $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'};
-#		select $self->{'cl_socket'};
 		if ($protocol == YMODEM) {
 			$self->{'debug'}->DEBUG(["Send file $file with Ymodem"]);
 			$success = $self->files_receive_file_ymodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
-#			system('rz', '--binary', '--quiet', '--ymodem', '--rename', '--restricted', '--restricted');
 		} elsif ($protocol == ZMODEM) {
 			$self->{'debug'}->DEBUG(["Send file $file with Zmodem"]);
 			$success = $self->files_receive_file_zmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
-#			system('rz', '--binary', '--quiet', '--zmodem', '--rename', '--restricted', '--restricted');
 		} else { # Xmodem
 			$success = $self->files_receive_file_xmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
 			$self->{'debug'}->DEBUG(["Send file $file with Xmodem"]);
-#			system('rx', '--binary', '--quiet', '--xmodem', $file);
 		}
-#		select STDOUT;
 	} else {
 		$self->output("Upload not allowed in local mode\n");
 	}
-#	chdir $self->{'CONF'}->{'BBS ROOT'};
 	$self->{'debug'}->DEBUG(['End Receive File']);
 	return($success);
 }
@@ -444,7 +431,7 @@ sub _crc16_bytes {
 
 # Read a single byte from socket with timeout (seconds)
 sub _read_byte_timeout {
-    my ($sock, $timeout) = @_;
+    my ($self, $sock, $timeout) = @_;
     $timeout ||= 10;
     my $rin = '';
     my $rout;
@@ -464,7 +451,7 @@ sub _read_byte_timeout {
 
 # Send a single XMODEM/YMODEM block (128 or 1024) using CRC16
 sub _send_block {
-    my ($sock, $blknum, $data, $block_size) = @_;
+    my ($self, $sock, $blknum, $data, $block_size) = @_;
     $block_size ||= 128;
     my $hdr = ($block_size == 1024) ? STX : SOH;
     $data .= chr(0x1A) x ($block_size - length($data));    # pad with SUB
@@ -494,7 +481,8 @@ sub files_send_xmodem {
         return 0;
     }
     my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
-    unless (open my $fh, '<:raw', $path) {
+	my $FH;
+    unless (open $FH, '<:raw', $path) {
         $self->{'debug'}->ERROR(["Cannot open file $path: $!"]);
         return 0;
     }
@@ -503,7 +491,7 @@ sub files_send_xmodem {
     my $init_char = _read_byte_timeout($sock, 60);
     unless (defined $init_char) {
         $self->{'debug'}->ERROR(["Timeout waiting for receiver to start XMODEM"]);
-        close $fh;
+        close $FH;
         return 0;
     }
 
@@ -519,7 +507,7 @@ sub files_send_xmodem {
 
     while ($self->is_connected()) {
         my $data;
-        my $n = read($fh, $data, 128);
+        my $n = read($FH, $data, 128);
         if (defined $n && $n > 0) {
 
             # send block
@@ -527,12 +515,12 @@ sub files_send_xmodem {
             my $attempts = 0;
             while ($attempts < $max_retries && $self->is_connected()) {
                 $attempts++;
-                unless (_send_block($sock, $blockno, $data, 128)) {
+                unless ($self->_send_block($sock, $blockno, $data, 128)) {
                     $self->{'debug'}->ERROR(["Failed write while sending XMODEM block $blockno"]);
                     $success = 0;
                     last;
                 }
-                my $resp = _read_byte_timeout($sock, 10);
+                my $resp = $self->_read_byte_timeout($sock, 10);
                 unless (defined $resp) {
                     $self->{'debug'}->DEBUG(["No response for block $blockno, retry $attempts"]);
                     next;
@@ -565,7 +553,7 @@ sub files_send_xmodem {
         my $sent = 0;
         for (1 .. 10) {
             syswrite($sock, EOT);
-            my $r = _read_byte_timeout($sock, 10);
+            my $r = $self->_read_byte_timeout($sock, 10);
             if (defined $r && $r eq ACK) { $sent = 1; last; }
         }
         unless ($sent) {
@@ -576,7 +564,7 @@ sub files_send_xmodem {
         }
     } ## end if ($success)
 
-    close $fh;
+    close $FH;
     $self->{'debug'}->DEBUG(['End files_send_xmodem']);
     return $success;
 } ## end sub files_send_xmodem
@@ -595,7 +583,8 @@ sub files_send_ymodem {
     }
 
     my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
-    unless (open my $fh, '<:raw', $path) {
+	my $FH;
+    unless (open $FH, '<:raw', $path) {
         $self->{'debug'}->ERROR(["Cannot open file $path: $!"]);
         return 0;
     }
@@ -603,10 +592,10 @@ sub files_send_ymodem {
     $size = 0 unless defined $size;
 
     # Wait for initial 'C' (CRC) from receiver
-    my $init_char = _read_byte_timeout($sock, 60);
+    my $init_char = $self->_read_byte_timeout($sock, 60);
     unless (defined $init_char) {
         $self->{'debug'}->ERROR(["Timeout waiting for receiver to start YMODEM"]);
-        close $fh;
+        close $FH;
         return 0;
     }
 
@@ -615,18 +604,18 @@ sub files_send_ymodem {
     $header .= "\0" x (128 - length($header));
 
     # send header block and expect ACK then 'C'
-    unless (_send_block($sock, 0, $header, 128)) {
+    unless ($self->_send_block($sock, 0, $header, 128)) {
         $self->{'debug'}->ERROR(["Failed to send YMODEM header block"]);
-        close $fh;
+        close $FH;
         return 0;
     }
-    my $r1 = _read_byte_timeout($sock, 10);
-    my $r2 = _read_byte_timeout($sock, 10);
+    my $r1 = $self->_read_byte_timeout($sock, 10);
+    my $r2 = $self->_read_byte_timeout($sock, 10);
 
     # r1 should be ACK and r2 should be 'C' to begin 1k transfer (some receivers differ)
     unless (defined $r1 && $r1 eq ACK) {
         $self->{'debug'}->ERROR(["No ACK after YMODEM header"]);
-        close $fh;
+        close $FH;
         return 0;
     }
 
@@ -635,7 +624,7 @@ sub files_send_ymodem {
     my $success = 1;
     while ($self->is_connected()) {
         my $data;
-        my $n = read($fh, $data, 1024);
+        my $n = read($FH, $data, 1024);
         if (defined $n && $n > 0) {
 
             # send 1k block
@@ -643,12 +632,12 @@ sub files_send_ymodem {
             my $sent_ok  = 0;
             while ($attempts < 10 && $self->is_connected()) {
                 $attempts++;
-                unless (_send_block($sock, $blockno, $data, 1024)) {
+                unless ($self->_send_block($sock, $blockno, $data, 1024)) {
                     $self->{'debug'}->ERROR(["Failed write while sending YMODEM block $blockno"]);
                     $success = 0;
                     last;
                 }
-                my $resp = _read_byte_timeout($sock, 10);
+                my $resp = $self->_read_byte_timeout($sock, 10);
                 if (defined $resp && $resp eq ACK) { $sent_ok = 1; last; }
                 if (defined $resp && $resp eq NAK) { next; }
                 if (defined $resp && $resp eq CAN) { $self->{'debug'}->ERROR(["Received CAN during YMODEM send"]); $success = 0; last; }
@@ -696,7 +685,7 @@ sub files_send_ymodem {
         } ## end else
     } ## end if ($success)
 
-    close $fh;
+    close $FH;
     $self->{'debug'}->DEBUG(['End files_send_ymodem']);
     return $success;
 } ## end sub files_send_ymodem
@@ -718,9 +707,7 @@ sub files_send_zmodem {
 
 # files_send_file: route to appropriate pure-perl sender (X/Y) or Z stub
 sub files_send_file {
-    my $self     = shift;
-    my $file     = shift;
-    my $protocol = shift;
+    my ($self, $file, $protocol) = @_;
 
     my $success = TRUE;
     $self->{'debug'}->DEBUG(['Start Send File']);

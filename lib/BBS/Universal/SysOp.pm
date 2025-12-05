@@ -2139,21 +2139,19 @@ sub sysop_show_choices {
     }
     while (scalar(@list)) {
         my $kmenu = shift(@list);
-        if ($self->{'access_level'}->{ $mapping->{$kmenu}->{'access_level'} } <= $self->{'access_level'}->{ $self->{'USER'}->{'access_level'} }) {
-            if ($twin) {
-                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, sprintf('%-' . ($max - 1) . 's', $mapping->{$kmenu}->{'text'}));
-                if (scalar(@list)) {
-                    $kmenu = shift(@list);
-                    $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-                } else {
-                    $self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
-                    $twin = FALSE;
-                }
-            } else {
-                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-            }
-            $self->output("\n");
-        } ## end if ($self->{'access_level'...})
+		if ($twin) {
+			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, sprintf('%-' . ($max - 1) . 's', $mapping->{$kmenu}->{'text'}));
+			if (scalar(@list)) {
+				$kmenu = shift(@list);
+				$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+			} else {
+				$self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+				$twin = FALSE;
+			}
+		} else {
+			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+		}
+		$self->output("\n");
     } ## end while (scalar(@list))
     if ($twin) {
         $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
@@ -2582,7 +2580,7 @@ sub sysop_add_file {
                     if (defined($title) && $title ne '') {
                         $self->sysop_prompt('                Add a description');
                         my $description = $self->sysop_get_line(ECHO, 65535, '');
-                        if (defined(description) && $description ne '') {
+                        if (defined($description) && $description ne '') {
                             my $head = "\n" . '[% REVERSE %]    Category [% RESET %] [% FILE CATEGORY %]' . "\n" . '[% REVERSE %]   File Name [% RESET %] ' . $search . "\n" . '[% REVERSE %]       Title [% RESET %] ' . $title . "\n" . '[% REVERSE %] Description [% RESET %] ' . $description . "\n\n";
                             print $self->sysop_detokenize($head);
                             $self->sysop_prompt('Is this correct?');
@@ -2594,7 +2592,7 @@ sub sysop_add_file {
                                 }
                                 $sth->finish();
                             } ## end if ($self->sysop_decision...)
-                        } ## end if (defined(description...))
+                        } ## end if (defined($description...))
                     } ## end if (defined($title) &&...)
                 } ## end if (-e $filename)
             } ## end while (scalar(@names))
