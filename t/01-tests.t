@@ -3,7 +3,7 @@
 # BBS Universal Generalized Test
 
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 15;
 use Term::ANSIColor;
 
 BEGIN {
@@ -36,6 +36,7 @@ my $tree = {
     'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
     'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
     'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
+    'BBS::Universal::Plugins'      => $BBS::Universal::PLUGINS_VERSION,
 };
 
 foreach my $name (sort(keys %{$tree})) {

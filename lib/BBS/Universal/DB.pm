@@ -6,7 +6,7 @@ sub db_initialize {
     $self->{'debug'}->DEBUG(['Start DB Initialize']);
     $self->{'debug'}->DEBUG(['End DB Initialize']);
     return ($self);
-}
+} ## end sub db_initialize
 
 sub db_connect {
     my $self = shift;
@@ -15,7 +15,8 @@ sub db_connect {
     my @dbhosts = split(/\s*,\s*/, $self->{'CONF'}->{'STATIC'}->{'DATABASE HOSTNAME'});
     my $errors  = '';
     foreach my $host (@dbhosts) {
-        $errors        = '';
+        $errors = '';
+
         # This is for the brave that want to try SSL connections.
         #    $self->{'dsn'} = sprintf('dbi:%s:database=%s;' .
         #        'host=%s;' .
@@ -45,14 +46,14 @@ sub db_connect {
             },
         ) or $errors = $DBI::errstr;
         last if ($errors eq '');
-    }
+    } ## end foreach my $host (@dbhosts)
     if ($errors ne '') {
         $self->{'debug'}->ERROR(["Database Host not found!\n$errors"]);
         exit(1);
     }
     $self->{'debug'}->DEBUG(['End DB Connect']);
     return (TRUE);
-}
+} ## end sub db_connect
 
 sub db_count_users {
     my $self = shift;
@@ -64,7 +65,7 @@ sub db_count_users {
     my $response = $self->{'dbh'}->do('SELECT COUNT(id) FROM users');
     $self->{'debug'}->DEBUG(['End DB Count Users']);
     return ($response);
-}
+} ## end sub db_count_users
 
 sub db_disconnect {
     my $self = shift;
@@ -72,5 +73,5 @@ sub db_disconnect {
     $self->{'dbh'}->disconnect() if (defined($self->{'dbh'}));
     $self->{'debug'}->DEBUG(['End DB Disconnect']);
     return (TRUE);
-}
+} ## end sub db_disconnect
 1;

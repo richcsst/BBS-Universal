@@ -228,6 +228,7 @@ sub news_rss_feeds {
     my $key;
     my $command;
     my $url;
+    my $text;
     do {
         $key = uc($self->get_key(SILENT, BLOCKING));
     } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
@@ -237,36 +238,45 @@ sub news_rss_feeds {
         $id      = $mapping->{$key}->{'id'};
         $command = $mapping->{$key}->{'command'};
         $url     = $mapping->{$key}->{'url'};
-    }
+        $text    = $mapping->{$key}->{'text'};
+    } ## end else [ if ($key eq chr(3)) ]
     if ($self->is_connected() && $command ne 'DISCONNECT' && $command ne 'BACK') {
-        $self->output($command);
+        $self->output($self->news_title_colorize($text));
         my $rss_string = `curl -s $url`;
-        my $rss        = XML::RSS::LibXML->new;
-        $rss->parse($rss_string);
+        my $rss;
+        my $list;
+        eval {
+            $rss = XML::RSS::LibXML->new;
+            $rss->parse($rss_string);
+            $list = $rss->items;
+        };
 
-        my $list = $rss->items;
-
-        my $text;
-        foreach my $item (@{$list}) {
-            last unless ($self->is_connected());
-            if ($mode eq 'ANSI') {
-                $text .= '[% NAVY %]' . '━' x $self->{'USER'}->{'max_columns'} . "[% RESET %]\n";
-                $text .= '[% BRIGHT WHITE %][% B_TEAL %]       Title [% RESET %] [% GREEN %]' . $self->html_to_text($item->{'title'}) . "[% RESET %]\n";
-                $text .= '[% BRIGHT WHITE %][% B_TEAL %] Description [% RESET %] ' . $self->html_to_text($item->{'description'}) . "\n";
-                $text .= '[% BRIGHT WHITE %][% B_TEAL %]        Link [% RESET %] [% YELLOW %]' . $item->{'link'} . "[% RESET %]\n";
-            } elsif ($mode eq 'PETSCII') {
-                $text .= '[% YELLOW %]       Title [% RESET %] [% GREEN %]' . $self->html_to_text($item->{'title'}) . "\n";
-                $text .= '[% YELLOW %] Description [% RESET %] ' . $self->html_to_text($item->{'description'}) . "\n";
-                $text .= '[% YELLOW %]        Link [% RESET %] [% YELLOW %]' . $item->{'link'} . "[% RESET %]\n";
-            } else {
-                $text .= '      Title:  ' . $item->{'title'} . "\n";
-                $text .= 'Description:  ' . $self->html_to_text($item->{'description'}) . "\n";
-                $text .= '       Link:  ' . $item->{'link'} . "\n\n";
-            }
-        } ## end foreach my $item (@{$list})
-        $self->output("\n\n" . $text);
-        $self->output("\n\nPress any key to continue\n");
-        $self->get_key(SILENT, BLOCKING);
+        if ($@) {
+            $self->{'debug'}->ERROR([$@]);
+            $self->output("ERROR > $@");
+        } else {
+            my $text;
+            foreach my $item (@{$list}) {
+                last unless ($self->is_connected());
+                if ($mode eq 'ANSI') {
+                    $text .= '[% NAVY %]' . '━' x $self->{'USER'}->{'max_columns'} . "[% RESET %]\n";
+                    $text .= '[% BRIGHT WHITE %][% B_TEAL %]       Title [% RESET %] [% GREEN %]' . $self->html_to_text($item->{'title'}) . "[% RESET %]\n";
+                    $text .= '[% BRIGHT WHITE %][% B_TEAL %] Description [% RESET %] ' . $self->html_to_text($item->{'description'}) . "\n";
+                    $text .= '[% BRIGHT WHITE %][% B_TEAL %]        Link [% RESET %] [% YELLOW %]' . $item->{'link'} . "[% RESET %]\n";
+                } elsif ($mode eq 'PETSCII') {
+                    $text .= '[% YELLOW %]       Title [% RESET %] [% GREEN %]' . $self->html_to_text($item->{'title'}) . "\n";
+                    $text .= '[% YELLOW %] Description [% RESET %] ' . $self->html_to_text($item->{'description'}) . "\n";
+                    $text .= '[% YELLOW %]        Link [% RESET %] [% YELLOW %]' . $item->{'link'} . "[% RESET %]\n";
+                } else {
+                    $text .= '      Title:  ' . $item->{'title'} . "\n";
+                    $text .= 'Description:  ' . $self->html_to_text($item->{'description'}) . "\n";
+                    $text .= '       Link:  ' . $item->{'link'} . "\n\n";
+                }
+            } ## end foreach my $item (@{$list})
+            $self->output("\n\n" . $text);
+            $self->output("\n\nPress any key to continue\n");
+            $self->get_key(SILENT, BLOCKING);
+        } ## end else [ if ($@) ]
         $command = 'BACK';
     } ## end if ($self->is_connected...)
     $self->{'debug'}->DEBUG(['End News RSS Feeds']);
@@ -334,6 +344,54 @@ sub news_title_colorize {
         } elsif ($text =~ /breitbart/i) {
             my $b = '[% B_DARK ORANGE %][% BRIGHT WHITE %] B [% RESET %] Breitbart';
             $text =~ s/breitbart/$b/gsi;
+        } elsif ($text =~ /Timex\/Sinclair/) {
+            my $ts = '[% B_BRIGHT WHITE %][% BLACK %] Timex [% B_BLACK %][% BRIGHT WHITE %] sinclair [% RESET %]';
+            $text =~ s/Timex\/Sinclair/$ts/;
+        } elsif ($text =~ /Sinclair/) {
+            my $ts = '[% B_BLACK %][% BRIGHT WHITE %] sinclair [% RESET %]';
+            $text =~ s/Sinclair/$ts/;
+        } elsif ($text =~ /MS-DOS/) {
+            my $md = '[% BRIGHT WHITE %]MS[% RESET %]-[% RED %]D[% MAGENTA %]O[% YELLOW %]S[% RESET %]';
+            $text =~ s/MS-DOS/$md/;
+        } elsif ($text =~ /FreeBSD/) {
+            my $fb = '[% RED %]FreeBSD[% RESET %]';
+            $text =~ s/FreeBSD/$fb/;
+        } elsif ($text =~ /Linux/) {
+            my $lin = '[% PENGUIN %] Linux[% RESET %]';
+            $text =~ s/Linux/$lin/;
+        } elsif ($text =~ /Heathkit/) {
+            my $h = '[% RGB 55,165,153 %]Heathkit[% RESET %]';
+            $text =~ s/Heathkit/$h/;
+        } elsif ($text =~ /Atari/) {
+            my $a = '[% B_BRIGHT RED %][% BRIGHT WHITE %] ATARI [% RESET %]';
+            $text =~ s/Atari/$a/;
+        } elsif ($text =~ /Commodore/) {
+            my $co = '[% B_WHITE %][% NAVY %] Commodore [% RESET %]';
+            $text =~ s/Commodore/$co/;
+        } elsif ($text =~ /CP\/M/) {
+            my $cpm = '[% B_RGB 145,135,108 %][% MAROON %] CP/M [% RESET %]';
+            $text =~ s/CP\/M/$cpm/;
+        } elsif ($text =~ /BBC/) {
+            my $bbc = '[% B_RED %][% BRIGHT WHITE %] B [% RESET %] [% B_RED %][% BRIGHT WHITE %] B [% RESET %] [% B_RED %][% BRIGHT WHITE %] C [% RESET %]';
+            $text =~ s/BBC/$bbc/;
+        } elsif ($text =~ /Windows/) {
+            my $win = '[% BRIGHT BLUE %]Windows[% RESET %]';
+            $text =~ s/Windows/$win/;
+        } elsif ($text =~ /Texas Instruments/) {
+            my $ti = ' [% B_BRIGHT RED %] [% RESET %] [% B_GRAY 11 %][% BLACK %] TEXAS INSTRUMENTS [% RESET %]';
+            $text =~ s/Texas Instruments/$ti/;
+        } elsif ($text =~ /TRS-80/) {
+            my $tr = '[% BRIGHT WHITE %]🮚 [% B_BRIGHT WHITE %][% BLACK %] TRS-80 [% RESET %]';
+            $text =~ s/TRS-80/$tr/;
+        } elsif ($text =~ /MSX/) {
+            my $msx = '[% B_NAVY %][% WHITE %] MSX [% RESET %]';
+            $text =~ s/MSX/$msx/;
+        } elsif ($text =~ /Wang/) {
+            my $w = '[% B_BRIGHT WHITE %][% BLACK %][% RIGHT TRIANGULAR ONE QUARTER BLOCK %][% B_BLACK %][% BRIGHT WHITE %] WANG [% B_BRIGHT WHITE %][% BLACK %][% LEFT TRIANGULAR ONE QUARTER BLOCK %][% RESET %]';
+            $text =~ s/Wang/$w/;
+        } elsif ($text =~ /Oric/) {
+            my $oric = "\e[58;2;192;0;0m" . '[% B_BLACK %][% BRIGHT WHITE %] [% UNDERLINE %]ORIC[% RESET %][% B_BLACK %] [% RESET %]';
+            $text =~ s/Oric/$oric/;
         }
     } ## end if ($mode eq 'ANSI')
     $self->{'debug'}->DEBUG(['End News Title Colorize']);

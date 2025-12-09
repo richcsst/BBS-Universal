@@ -62,44 +62,44 @@ sub sysop_initialize {
         # Non-static tokens
         'THREADS COUNT' => sub {
             my $self = shift;
-			
+
             return ($self->{'CACHE'}->get('THREADS_RUNNING'));
         },
         'USERS COUNT' => sub {
             my $self = shift;
-			
+
             return ($self->db_count_users());
         },
         'UPTIME' => sub {
             my $self   = shift;
             my $uptime = `uptime -p`;
             chomp($uptime);
-			
+
             return ($uptime);
         },
         'DISK FREE SPACE' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_disk_free());
         },
         'MEMORY' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_memory());
         },
         'ONLINE' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_online_count());
         },
         'CPU LOAD' => sub {
             my $self = shift;
-			
+
             return ($self->cpu_info->{'CPU LOAD'});
         },
         'ENVIRONMENT' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_showenv());
         },
         'FILE CATEGORY' => sub {
@@ -108,23 +108,23 @@ sub sysop_initialize {
             my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
             $sth->execute($self->{'USER'}->{'file_category'});
             my ($result) = $sth->fetchrow_array();
-			
+
             return ($result);
         },
         'SYSOP VIEW CONFIGURATION' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_view_configuration('string'));
         },
         'COMMANDS REFERENCE' => sub {
             my $self = shift;
-			
+
             return ($self->sysop_list_commands());
         },
         'MIDDLE VERTICAL RULE color' => sub {
             my $self  = shift;
             my $color = shift;
-			
+
             return ($self->sysop_locate_middle('B_' . $color));
         },
     };
@@ -407,6 +407,7 @@ sub sysop_list_commands {
     my $pet    = 1;
     my $asc    = 12;
     my $text   = '';
+
     if ($mode eq 'ASCII') {
         foreach my $cell (@asctkn) {
             $asc = max(length($cell), $asc);
@@ -2154,19 +2155,19 @@ sub sysop_show_choices {
     }
     while (scalar(@list)) {
         my $kmenu = shift(@list);
-		if ($twin) {
-			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, sprintf('%-' . ($max - 1) . 's', $mapping->{$kmenu}->{'text'}));
-			if (scalar(@list)) {
-				$kmenu = shift(@list);
-				$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-			} else {
-				$self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
-				$twin = FALSE;
-			}
-		} else {
-			$self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
-		}
-		$self->output("\n");
+        if ($twin) {
+            $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, sprintf('%-' . ($max - 1) . 's', $mapping->{$kmenu}->{'text'}));
+            if (scalar(@list)) {
+                $kmenu = shift(@list);
+                $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+            } else {
+                $self->output(sprintf('%s%s%s', '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
+                $twin = FALSE;
+            }
+        } else {
+            $self->menu_choice($kmenu, $mapping->{$kmenu}->{'color'}, $mapping->{$kmenu}->{'text'});
+        }
+        $self->output("\n");
     } ## end while (scalar(@list))
     if ($twin) {
         $self->output(sprintf("%s%s%s%-${max}s %s%s%s", '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]', ' ' x $max, '[% BOX DRAWINGS LIGHT ARC UP AND RIGHT %]', '[% BOX DRAWINGS LIGHT HORIZONTAL %]', '[% BOX DRAWINGS LIGHT ARC UP AND LEFT %]'));
@@ -2298,29 +2299,29 @@ sub sysop_showenv {
                     }
                     my $le = 11 - length($f);
                     $f .= ' ' x $le;
-                    $l = colored(['green'], uc($l))                                                                            if ($l =~ /^ok/i);
+                    $l = colored(['green'],    uc($l))                                                                         if ($l =~ /^ok/i);
                     $l = colored(['bold red'], 'U') . colored(['bold bright_white'], 'S') . colored(['bold bright_blue'], 'A') if ($l =~ /^us/i);
                     $text .= colored(['bold bright_cyan'], sprintf("%${indent}s", $f)) . " = $l\n";
                 } else {
                     $text .= "$line\n";
                 }
-            }
+            } ## end foreach my $line (@in)
         } else {
             my $orig = $ENV{$env};
             my $new;
 
-			if ($orig =~ /(256color)/) {
-				$new = colored(['red'], '2') . colored(['green'], '5') . colored(['yellow'], '6') . colored(['cyan'], 'c') . colored(['bright_blue'], 'o') . colored(['magenta'], 'l') . colored(['bright_green'], 'o') . colored(['bright_blue'], 'r');
-				$orig =~ s/$1/$new/g;
-			}
-			if ($orig =~ /(truecolor)/) {
-				$new = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
-				$orig =~ s/$1/$new/g;
-			}
-			if ($orig =~ /(\d+\.\d+\.\d+\.\d+)/) {
-				$new = '[% BRIGHT GREEN %]' . $1 . '[% RESET %]';
-				$orig =~ s/$1/$new/g;
-			}
+            if ($orig =~ /(256color)/) {
+                $new = colored(['red'], '2') . colored(['green'], '5') . colored(['yellow'], '6') . colored(['cyan'], 'c') . colored(['bright_blue'], 'o') . colored(['magenta'], 'l') . colored(['bright_green'], 'o') . colored(['bright_blue'], 'r');
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(truecolor)/) {
+                $new = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
+                $orig =~ s/$1/$new/g;
+            }
+            if ($orig =~ /(\d+\.\d+\.\d+\.\d+)/) {
+                $new = '[% BRIGHT GREEN %]' . $1 . '[% RESET %]';
+                $orig =~ s/$1/$new/g;
+            }
             if ($orig =~ /(ubuntu)/i) {
                 $new = '[% ORANGE %]' . $1 . '[% RESET %]';
                 $orig =~ s/$1/$new/g;

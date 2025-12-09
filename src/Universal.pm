@@ -96,20 +96,6 @@ use Fcntl qw(:DEFAULT :flock);
 use IO::Select;
 use POSIX qw(:sys_wait_h);
 
-# The overhead of pulling these into the BBS::Universal namespace was a nightmare, so I just pulled them into the source at build time
-# use BBS::Universal::ANSI;
-# use BBS::Universal::ASCII;
-# use BBS::Universal::ATASCII;
-# use BBS::Universal::PETSCII;
-# use BBS::Universal::BBS_List;
-# use BBS::Universal::CPU;
-# use BBS::Universal::DB;
-# use BBS::Universal::FileTransfer;
-# use BBS::Universal::Messages;
-# use BBS::Universal::News;
-# use BBS::Universal::SysOp;
-# use BBS::Universal::Users;
-
 BEGIN {
     require Exporter;
 
@@ -305,6 +291,7 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
+	$self->plugins_initialize();
     $self->{'debug'}->DEBUG(['Libraries initialized']);
     chomp(my $os = `uname -a`);
     $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
@@ -360,11 +347,11 @@ sub populate_common {
         },
         'FORUM CATEGORY' => sub {
             my $self = shift;
-            return ($self->users_forum_category());
+            return ($self->news_title_colorize($self->users_forum_category()));
         },
         'RSS CATEGORY' => sub {
             my $self = shift;
-            return ($self->users_rss_category());
+            return ($self->news_title_colorize($self->users_rss_category()));
         },
         'USER INFO' => sub {
             my $self = shift;
@@ -378,6 +365,10 @@ sub populate_common {
             my $self = shift;
             return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
         },
+		'COUNT PLUGINS' => sub {
+			my $self = shift;
+			return($self->{'CONF'}->{'PLUGINS COUNT'});
+		},
         'USER PERMISSIONS' => sub {
             my $self = shift;
             return ($self->dump_permissions);
@@ -677,6 +668,12 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
+	if ($self->{'COUNT'}->{'CONF'}->{'PLUGINS COUNT'}) {
+		foreach my $count (1 .. $self->{'CONF'}->{'PLUGINS COUNT'}) {
+			my $stext = 'sub plugins { my $self = shift; return($self->plugins(' . $count . '));}';
+			$self->{'COMMANDS'}->{"PLUGIN$count"} = eval($stext);
+		}
+	}
     $self->{'debug'}->DEBUG(['End Populate Common']);
 } ## end sub populate_common
 
@@ -1698,12 +1695,20 @@ sub configuration {
         $self->{'debug'}->DEBUG(['  Get Single Value']);
         my $sth = $self->{'dbh'}->prepare('SELECT config_value FROM config WHERE config_name=?');
         $sth->execute($name);
-        my ($result) = $sth->fetchrow_array();
+        my ($fval) = $sth->fetchrow_array();
         $sth->finish();
         if ($name eq 'BBS ROOT') {
-            $result =~ s/\~/$ENV{HOME}/;
+            $fval =~ s/\~/$ENV{HOME}/;
+		} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+			$fval = 0 + $fval;
+		} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
+			if ($fval eq 'TRUE') {
+				$fval = TRUE;
+			} else {
+				$fval = FALSE;
+			}
         }
-        return ($result);
+        return ($fval);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
         my $fval = shift;
@@ -1712,7 +1717,7 @@ sub configuration {
         }
         $self->{'debug'}->DEBUG(['  Set a Single Value']);
         my $sth = $self->{'dbh'}->prepare('REPLACE INTO config (config_value, config_name) VALUES (?,?)');
-        $sth->execute($fval, $name);
+        $sth->execute("$fval", $name);
         $sth->finish();
         $self->{'CONF'}->{$name} = $fval;
         return (TRUE);
@@ -1727,6 +1732,14 @@ sub configuration {
             my $fval = $row[1];
             if ($name eq 'BBS ROOT') {
                 $fval =~ s/\~/$ENV{HOME}/;
+			} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+				$fval = 0 + $fval;
+			} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
+				if ($fval eq 'TRUE') {
+					$fval = TRUE;
+				} else {
+					$fval = FALSE;
+				}
             }
             $results->{$name} = $fval;
             $self->{'CONF'}->{$name} = $fval;
@@ -1758,6 +1771,7 @@ sub parse_versions {
         'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
         'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
         'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
+        'BBS::Universal::Plugins'      => $BBS::Universal::PLUGINS_VERSION,
         'DBI'                          => $DBI::VERSION,
         'DBD::mysql'                   => $DBD::mysql::VERSION,
         'DateTime'                     => $DateTime::VERSION,

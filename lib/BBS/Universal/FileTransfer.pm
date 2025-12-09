@@ -208,6 +208,8 @@ sub files_choices {
             return (TRUE);
         } elsif ($mapping->{$key}->{'command'} eq 'NEXT') {
             return (TRUE);
+        } elsif ($mapping->{$key}->{'command'} eq 'BACK') {
+            return (FALSE);
         }
     } ## end while ($self->is_connected...)
 } ## end sub files_choices

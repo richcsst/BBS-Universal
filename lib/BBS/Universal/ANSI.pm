@@ -369,7 +369,7 @@ sub ansi_initialize {
                 'desc' => 'Turn off proportional text',
             },
             'RING BELL' => {
-                'out' => chr(7),
+                'out'  => chr(7),
                 'desc' => 'Console bell',
             },
         },
@@ -8643,6 +8643,7 @@ sub ansi_initialize {
     } ## end foreach my $count (232 .. 255)
 
     $self->{'debug'}->DEBUG(['End ANSI Initialize']);
+
     # $self->{'debug'}->ERROR([$self->{'ansi_meta'}]);exit;
     return ($self);
 } ## end sub ansi_initialize

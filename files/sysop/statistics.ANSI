@@ -15,7 +15,7 @@ Z|BACK|WHITE|Return to System Menu
 [% BOLD %]CPU Cores[% RESET %]        [% MAGENTA %]▰▰▰[% RESET %]   [% CPU CORES     %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Load[% RESET %]       ▰▰▰  [% CPU LOAD %]
 [% BOLD %]CPU Threads[% RESET %]      [% MAGENTA %]▰▰▰[% RESET %]   [% CPU THREADS   %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]CPU Bits[% RESET %]       ▰▰▰  [% CPU BITS %]
 [% BOLD %]Servers Running[% RESET %]  [% MAGENTA %]▰▰▰[% RESET %]   [% THREADS COUNT %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]User Count[% RESET %]     ▰▰▰  [% USERS COUNT %] users, [% ONLINE %] Online
-[% BOLD %]IP Address[% RESET %]       [% MAGENTA %]▰▰▰[% RESET %]   [% IP ADDRESS %]
+[% BOLD %]IP Address[% RESET %]       [% MAGENTA %]▰▰▰[% RESET %]   [% IP ADDRESS    %][% MIDDLE VERTICAL RULE MAGENTA %]  [% BOLD %]Plugins[% RESET %]        ▰▰▰  [% COUNT PLUGINS %] Active Plugins
 
 [% BOLD %][% BRIGHT GREEN %]Memory[% RESET %]           [% MAGENTA %]▰▰▰[% RESET %]
 

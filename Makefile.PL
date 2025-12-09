@@ -143,7 +143,7 @@ sub merge {    # Perl sometimes is a pain in the ...
 
     my $master = slurp_file('src/Universal.pm');
     foreach my $file (sort(@dir)) {
-        next if ($file !~ /\.pm$/);
+        next if ($file !~ /\.pm$/ || $file =~ /^\./);
         my $shortfile = "$file";
         $shortfile =~ s/\.pm//;
         $shortfile = uc($shortfile) . '_VERSION';

@@ -326,6 +326,7 @@ INSERT INTO config (config_name, config_value) VALUES ('MEMCACHED NAMESPACE','BB
 INSERT INTO config (config_name, config_value) VALUES ('PLAY SYSOP SOUNDS','TRUE');
 INSERT INTO config (config_name, config_value) VALUES ('USE DUF','FALSE'); -- Use "duf" or instead "df"?
 INSERT INTO config (config_name, config_value) VALUES ('SYSOP ANIMATED MENU','TRUE');
+INSERT INTO config (config_name, config_value) VALUES ('PLUGINS COUNT','0');
 
 INSERT INTO text_modes (text_mode) VALUES ('ASCII');
 INSERT INTO text_modes (text_mode) VALUES ('ATASCII');
@@ -389,7 +390,7 @@ INSERT INTO message_categories (name,description) VALUES ('Sinclair','Sinclair R
 INSERT INTO message_categories (name,description) VALUES ('Heathkit','Heathkit Computers');
 INSERT INTO message_categories (name,description) VALUES ('CP/M','CP/M Computers');
 INSERT INTO message_categories (name,description) VALUES ('TRS-80','TRS-80 Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Apple II','Apple 8 Bit Computers');
+INSERT INTO message_categories (name,description) VALUES ('Apple ][','Apple 8 Bit Computers');
 INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh','Apple Macintosh Discussion');
 INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discussion');
 INSERT INTO message_categories (name,description) VALUES ('Windows','Windows Discussion');
@@ -399,6 +400,9 @@ INSERT INTO message_categories (name,description) VALUES ('Texas Instruments','T
 INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');
 INSERT INTO message_categories (name,description) VALUES ('BBC Acorn','BBC Acorn Discussion');
 INSERT INTO message_categories (name,description) VALUES ('BBC Micro','BBC Micro Discussion');
+INSERT INTO message_categories (name,description) VALUES ('MSX','MSX Computers');
+INSERT INTO message_categories (name,description) VALUES ('Wang','Wang Computers');
+INSERT INTO message_categories (name,description) VALUES ('Oric','Oric Computers');
 
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
 INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message 2','This is a test too');
@@ -513,6 +517,9 @@ INSERT INTO file_categories (title,description) VALUES ('Windows','Windows Files
 INSERT INTO file_categories (title,description) VALUES ('Linux','Linux Files');
 INSERT INTO file_categories (title,description) VALUES ('FreeBSD','FreeBSD Files');
 INSERT INTO file_categories (title,description) VALUES ('Homebrew','Homebrew Files');
+INSERT INTO file_categories (title,description) VALUES ('MSX','MSX Files');
+INSERT INTO file_categories (title,description) VALUES ('Wang','Wang Files');
+INSERT INTO file_categories (title,description) VALUES ('Oric','Oric Files');
 
 INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
 INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);
