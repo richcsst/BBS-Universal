@@ -1637,12 +1637,13 @@ sub choose_file_category {
     $table->hr();
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories ORDER BY description');
     $sth->execute();
+	my $index = 0;
     if ($sth->rows > 0) {
         while (my $row = $sth->fetchrow_hashref()) {
-			my $index = $row->{'id'} - 1;
             $table->row($choices->[$index], $row->{'title'}, $row->{'description'});
             $hchoice->{ $choices->[$index] } = $row->{'id'};
             push(@categories, $row->{'title'});
+			$index++;
         }
         $sth->finish();
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {

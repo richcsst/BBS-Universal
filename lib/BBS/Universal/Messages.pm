@@ -26,7 +26,7 @@ sub messages_forum_categories {
             'text'         => 'Return to Forum Menu',
         },
     };
-    my @menu_choices = @{$self->{'MENU CHOICES'}};
+    my @menu_choices = @{ $self->{'MENU CHOICES'} };
 
     while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
@@ -75,112 +75,117 @@ sub messages_list_messages {
     my $sth            = $self->{'dbh'}->prepare('SELECT id,from_id,category,author_fullname,author_nickname,author_username,title,created FROM messages_view WHERE category=? ORDER BY created DESC');
     my @index;
     $sth->execute($forum_category);
-    while (my $record = $sth->fetchrow_hashref) {
-        push(@index, $record);
-    }
-    $sth->finish();
-    my $result;
-    my $count = 0;
-    do {
-        $result = $index[$count];
-        $sth    = $self->{'dbh'}->prepare('SELECT message FROM messages_view WHERE id=? ORDER BY created DESC');
-        $sth->execute($result->{'id'});
-        $result->{'message'} = $sth->fetchrow_array();
+    if ($sth->rows()) {
+        while (my $record = $sth->fetchrow_hashref) {
+            push(@index, $record);
+        }
         $sth->finish();
-        my $mode = $self->{'USER'}->{'text_mode'};
-        if ($mode eq 'ANSI') {
-            $self->output("[% CLS %][% HORIZONTAL RULE MAGENTA %][% B_MAGENTA %][% BLACK %]" . $self->pad_center('FORUM MESSAGE', $self->{'USER'}->{'max_columns'}) . "[% RESET %]\n");
-            $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% BOLD %][% GREEN %][% FORUM CATEGORY %][% RESET %]' . "\n");
-            $self->output('[% BRIGHT WHITE %][% B_BLUE %]   Author [% RESET %] ');
-            $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
-            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
-            $self->output('[% BRIGHT WHITE %][% B_BLUE %]    Title [% RESET %] ' . $result->{'title'} . "\n");
-            $self->output('[% BRIGHT WHITE %][% B_BLUE %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
-            $self->output("\n[% HORIZONTAL RULE MAGENTA %]\n");
-        } elsif ($mode eq 'PETSCII') {
-            $self->output("[% CLS %][% GREEN %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "[% RESET %]\n");
-            $self->output('[% GREEN   %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
-            $self->output('[% YELLOW %]   Author [% RESET %] ');
-            $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
-            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
-            $self->output('[% YELLOW %]    Title [% RESET %] ' . $result->{'title'} . "\n");
-            $self->output('[% YELLOW %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
-            $self->output("\n[% GREEN %]" . '=' x $self->{'USER'}->{'max_columns'} . "[% RESET %]\n");
-        } else {
-            $self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
-            $self->output(' CATEGORY > [% FORUM CATEGORY %]' . "\n");
-            $self->output('  Author:  ');
-            $self->output(($result->{'prefer_nickname'}) ? $result->{'nickname'} : $result->{'author_fullname'});
-            $self->output(' (' . $result->{'author_username'} . ')' . "\n");
-            $self->output('   Title:  ' . $result->{'title'} . "\n");
-            $self->output(' Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");
-            $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
-            $self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
-        } ## end else [ if ($mode eq 'ANSI') ]
-        my $mapping = {
-            'Z' => {
-                'id'           => $result->{'id'},
-                'command'      => 'BACK',
-                'color'        => 'WHITE',
-                'access_level' => 'USER',
-                'text'         => 'Return to the Forum Menu',
-            },
-            'N' => {
-                'id'           => $result->{'id'},
-                'command'      => 'NEXT',
-                'color'        => 'BRIGHT BLUE',
-                'access_level' => 'USER',
-                'text'         => 'Next Message',
-            },
-        };
-        if ($self->{'USER'}->{'post_message'}) {
-            $mapping->{'R'} = {
-                'id'           => $result->{'id'},
-                'command'      => 'REPLY',
-                'color'        => 'BRIGHT GREEN',
-                'access_level' => 'USER',
-                'text'         => 'Reply',
-            };
-        } ## end if ($self->{'USER'}->{...})
-        if ($self->{'USER'}->{'remove_message'}) {
-            $mapping->{'D'} = {
-                'id'           => $result->{'id'},
-                'command'      => 'DELETE',
-                'color'        => 'RED',
-                'access_level' => 'JUNIOR SYSOP',
-                'text'         => 'Delete Message',
-            };
-        } ## end if ($self->{'USER'}->{...})
-        $self->show_choices($mapping);
-        $self->prompt('Choose');
-        my $key;
+        my $result;
+        my $count = 0;
         do {
-            $key = uc($self->get_key(SILENT, FALSE));
-        } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
-        if ($key eq chr(3)) {
-            $id      = undef;
-            $command = 'DISCONNECT';
-        } else {
-            $id      = $mapping->{$key}->{'id'};
-            $command = $mapping->{$key}->{'command'};
-        }
-        $self->output($command);
-        if ($command eq 'REPLY') {
-            my $message = $self->messages_edit_message('REPLY', $result);
-            push(@index, $message);
-            $count = 0;
-        } elsif ($command eq 'DELETE') {
-            $self->messages_delete_message($result);
-            delete($index[$count]);
-        } else {
-            $count++;
-        }
-        unless ($self->{'local_mode'} || $self->{'sysop'} || $self->is_connected()) {
-            $command = 'DISCONNECT';
-        }
-    } until ($count >= scalar(@index) || $command =~ /^(DISCONNECT|BACK)$/);
+            $result = $index[$count];
+            $sth    = $self->{'dbh'}->prepare('SELECT message FROM messages_view WHERE id=? ORDER BY created DESC');
+            $sth->execute($result->{'id'});
+            $result->{'message'} = $sth->fetchrow_array();
+            $sth->finish();
+            my $mode = $self->{'USER'}->{'text_mode'};
+            if ($mode eq 'ANSI') {
+                $self->output("[% CLS %][% HORIZONTAL RULE MAGENTA %][% B_MAGENTA %][% BLACK %]" . $self->pad_center('FORUM MESSAGE', $self->{'USER'}->{'max_columns'}) . "[% RESET %]\n");
+                $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% BOLD %][% GREEN %][% FORUM CATEGORY %][% RESET %]' . "\n");
+                $self->output('[% BRIGHT WHITE %][% B_BLUE %]   Author [% RESET %] ');
+                $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
+                $self->output(' (' . $result->{'author_username'} . ')' . "\n");
+                $self->output('[% BRIGHT WHITE %][% B_BLUE %]    Title [% RESET %] ' . $result->{'title'} . "\n");
+                $self->output('[% BRIGHT WHITE %][% B_BLUE %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
+                $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+                $self->output("\n[% HORIZONTAL RULE MAGENTA %]\n");
+            } elsif ($mode eq 'PETSCII') {
+                $self->output("[% CLS %][% GREEN %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "[% RESET %]\n");
+                $self->output('[% GREEN   %] CATEGORY [% RESET %] [% FORUM CATEGORY %]' . "\n");
+                $self->output('[% YELLOW %]   Author [% RESET %] ');
+                $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
+                $self->output(' (' . $result->{'author_username'} . ')' . "\n");
+                $self->output('[% YELLOW %]    Title [% RESET %] ' . $result->{'title'} . "\n");
+                $self->output('[% YELLOW %]  Created [% RESET %] ' . $self->users_get_date($result->{'created'}) . "\n\n");
+                $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+                $self->output("\n[% GREEN %]" . '=' x $self->{'USER'}->{'max_columns'} . "[% RESET %]\n");
+            } else {
+                $self->output("[% CLS %]== FORUM " . '=' x ($self->{'USER'}->{'max_columns'} - 7) . "\n");
+                $self->output(' CATEGORY > [% FORUM CATEGORY %]' . "\n");
+                $self->output('  Author:  ');
+                $self->output(($result->{'prefer_nickname'}) ? $result->{'nickname'} : $result->{'author_fullname'});
+                $self->output(' (' . $result->{'author_username'} . ')' . "\n");
+                $self->output('   Title:  ' . $result->{'title'} . "\n");
+                $self->output(' Created:  ' . $self->users_get_date($result->{'created'}) . "\n\n");
+                $self->output($result->{'message'}) if ($self->{'USER'}->{'read_message'});
+                $self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
+            } ## end else [ if ($mode eq 'ANSI') ]
+            my $mapping = {
+                'Z' => {
+                    'id'           => $result->{'id'},
+                    'command'      => 'BACK',
+                    'color'        => 'WHITE',
+                    'access_level' => 'USER',
+                    'text'         => 'Return to the Forum Menu',
+                },
+                'N' => {
+                    'id'           => $result->{'id'},
+                    'command'      => 'NEXT',
+                    'color'        => 'BRIGHT BLUE',
+                    'access_level' => 'USER',
+                    'text'         => 'Next Message',
+                },
+            };
+            if ($self->{'USER'}->{'post_message'}) {
+                $mapping->{'R'} = {
+                    'id'           => $result->{'id'},
+                    'command'      => 'REPLY',
+                    'color'        => 'BRIGHT GREEN',
+                    'access_level' => 'USER',
+                    'text'         => 'Reply',
+                };
+            } ## end if ($self->{'USER'}->{...})
+            if ($self->{'USER'}->{'remove_message'}) {
+                $mapping->{'D'} = {
+                    'id'           => $result->{'id'},
+                    'command'      => 'DELETE',
+                    'color'        => 'RED',
+                    'access_level' => 'JUNIOR SYSOP',
+                    'text'         => 'Delete Message',
+                };
+            } ## end if ($self->{'USER'}->{...})
+            $self->show_choices($mapping);
+            $self->prompt('Choose');
+            my $key;
+            do {
+                $key = uc($self->get_key(SILENT, FALSE));
+            } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+            if ($key eq chr(3)) {
+                $id      = undef;
+                $command = 'DISCONNECT';
+            } else {
+                $id      = $mapping->{$key}->{'id'};
+                $command = $mapping->{$key}->{'command'};
+            }
+            $self->output($command);
+            if ($command eq 'REPLY') {
+                my $message = $self->messages_edit_message('REPLY', $result);
+                push(@index, $message);
+                $count = 0;
+            } elsif ($command eq 'DELETE') {
+                $self->messages_delete_message($result);
+                delete($index[$count]);
+            } else {
+                $count++;
+            }
+            unless ($self->{'local_mode'} || $self->{'sysop'} || $self->is_connected()) {
+                $command = 'DISCONNECT';
+            }
+        } until ($count >= scalar(@index) || $command =~ /^(DISCONNECT|BACK)$/);
+    } else {
+		$self->output("\nNo messages\n\nPress any key\n");
+		$self->get_key(SILENT, BLOCKING);
+	} # end if ($sth->rows())
     $self->{'debug'}->DEBUG(['End Messages List Messages']);
     return (TRUE);
 } ## end sub messages_list_messages
