@@ -115,7 +115,7 @@ sub bbs_list {
         } ## end else [ if ($self->{'USER'}->{...})]
         my $response;
         if ($mode eq 'ANSI') {
-            $response = $table->wedge('BRIGHT BLUE')->draw();
+            $response = $table->boxes2('BRIGHT BLUE')->draw();
             while ($response =~ / (NAME|HOSTNAME.PHONE|PORT|POSTER) /) {
                 my $ch  = $1;
                 my $new = '[% BRIGHT YELLOW %]' . $ch . '[% RESET %]';

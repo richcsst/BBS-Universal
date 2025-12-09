@@ -132,6 +132,10 @@ our $SYSOP_COMMANDS = {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-introduction.ANSI'));
     },
+    'SYSOP MANUAL PLUGINS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-plugins.ANSI'));
+    },
     'SYSOP MANUAL MENUS' => sub {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-menus.ANSI'));
@@ -360,7 +364,7 @@ sub logo {
     $DEBUG->DEBUG(['Start Logo']);
     $CACHE->set('ROW_ADJUST', 0);
     my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
-    my $banner  = colored(['red','on_black'],        q{  ____  ____ ____    _   _       _                          _  } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' [% VERSION %]                            ') . colored(['blue'], '│') . "\n";
+    my $banner  = colored(['red','on_black'],         q{  ____  ____ ____    _   _       _                          _  } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' [% VERSION %]                            ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['yellow','on_black'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Written By Richard Kelsch                ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2025 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['magenta','on_black'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' All Rights Reserved                      ') . colored(['blue'], '│') . "\n";

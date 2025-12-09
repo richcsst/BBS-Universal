@@ -55,6 +55,7 @@ files/README.md
 files/sysop/manual.ANSI
 files/sysop/manual-introduction.ANSI
 files/sysop/manual-menus.ANSI
+files/sysop/manual-plugins.ANSI
 files/sysop/adduser.ANSI
 files/sysop/bbs_listing_manager.ANSI
 files/sysop/commands_reference.ANSI
