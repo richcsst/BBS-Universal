@@ -1,5 +1,5 @@
 package BBS::Universal::News;
-BEGIN { our $VERSION = '0.003'; }
+BEGIN { our $VERSION = '0.004'; }
 
 sub news_initialize {
     my $self = shift;

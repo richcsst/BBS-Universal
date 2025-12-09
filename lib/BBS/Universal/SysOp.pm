@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.014'; }
+BEGIN { our $VERSION = '0.015'; }
 
 sub sysop_initialize {
     my $self = shift;

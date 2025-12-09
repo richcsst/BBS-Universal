@@ -1,5 +1,5 @@
 package BBS::Universal::Messages;
-BEGIN { our $VERSION = '0.002'; }
+BEGIN { our $VERSION = '0.003'; }
 
 sub messages_initialize {
     my $self = shift;
