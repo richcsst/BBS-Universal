@@ -591,7 +591,7 @@ sub users_file_category {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start Users File Category']);
-    my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
+    my $sth = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
     $sth->execute($self->{'USER'}->{'file_category'});
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();
@@ -606,7 +606,7 @@ sub users_forum_category {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start Users Forum Category']);
-    my $sth = $self->{'dbh'}->prepare('SELECT name FROM message_categories WHERE id=?');
+    my $sth = $self->{'dbh'}->prepare('SELECT description FROM message_categories WHERE id=?');
     $sth->execute($self->{'USER'}->{'forum_category'});
     my ($category) = ($sth->fetchrow_array());
     $sth->finish();

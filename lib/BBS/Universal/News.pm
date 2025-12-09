@@ -140,7 +140,7 @@ sub news_rss_categories {
     $self->{'debug'}->DEBUG(['Start News RSS Categories']);
     my $command = '';
     my $id;
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM rss_feed_categories WHERE id<>? ORDER BY title');
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM rss_feed_categories WHERE id<>? ORDER BY description');
     $sth->execute($self->{'USER'}->{'rss_category'});
     my $mapping = {
         'TEXT' => '',
@@ -151,7 +151,7 @@ sub news_rss_categories {
             'text'         => 'Return to News Menu',
         },
     };
-    my @menu_choices = (qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y));
+    my @menu_choices = @{$self->{'MENU CHOICES'}};
 
     while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
@@ -208,7 +208,7 @@ sub news_rss_feeds {
             'text'         => 'Return to News Menu',
         },
     };
-    my @menu_choices = (qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y));
+    my @menu_choices = @{$self->{'MENU CHOICES'}};
     while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
             $mapping->{ shift(@menu_choices) } = {
@@ -344,9 +344,9 @@ sub news_title_colorize {
         } elsif ($text =~ /breitbart/i) {
             my $b = '[% B_DARK ORANGE %][% BRIGHT WHITE %] B [% RESET %] Breitbart';
             $text =~ s/breitbart/$b/gsi;
-        } elsif ($text =~ /Timex\/Sinclair/) {
+        } elsif ($text =~ /Timex\/Sinclair /) {
             my $ts = '[% B_BRIGHT WHITE %][% BLACK %] Timex [% B_BLACK %][% BRIGHT WHITE %] sinclair [% RESET %]';
-            $text =~ s/Timex\/Sinclair/$ts/;
+            $text =~ s/Timex\/Sinclair /$ts/;
         } elsif ($text =~ /Sinclair/) {
             my $ts = '[% B_BLACK %][% BRIGHT WHITE %] sinclair [% RESET %]';
             $text =~ s/Sinclair/$ts/;
@@ -380,6 +380,9 @@ sub news_title_colorize {
         } elsif ($text =~ /Texas Instruments/) {
             my $ti = ' [% B_BRIGHT RED %] [% RESET %] [% B_GRAY 11 %][% BLACK %] TEXAS INSTRUMENTS [% RESET %]';
             $text =~ s/Texas Instruments/$ti/;
+        } elsif ($text =~ /TRS-80 Color Computer/) {
+            my $tr = '[% BRIGHT WHITE %]🮚 [% B_BRIGHT WHITE %][% BLACK %] [% UNDERLINE %]' . "\e[58;2;255;0;0m" . 'TR' . "\e[58;2;0;255;0m" . 'S-' . "\e[58;2;0;0;255m" . '80[% RESET %][% B_BRIGHT WHITE %][% BLACK %] [% RESET %]';
+            $text =~ s/TRS-80/$tr/;
         } elsif ($text =~ /TRS-80/) {
             my $tr = '[% BRIGHT WHITE %]🮚 [% B_BRIGHT WHITE %][% BLACK %] TRS-80 [% RESET %]';
             $text =~ s/TRS-80/$tr/;

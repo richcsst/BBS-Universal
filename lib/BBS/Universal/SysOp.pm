@@ -105,11 +105,11 @@ sub sysop_initialize {
         'FILE CATEGORY' => sub {
             my $self = shift;
 
-            my $sth = $self->{'dbh'}->prepare('SELECT title FROM file_categories WHERE id=?');
+            my $sth = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
             $sth->execute($self->{'USER'}->{'file_category'});
             my ($result) = $sth->fetchrow_array();
 
-            return ($result);
+            return ($self->news_title_colorize($result));
         },
         'SYSOP VIEW CONFIGURATION' => sub {
             my $self = shift;
@@ -2264,7 +2264,7 @@ sub sysop_menu_choice {
     if ($choice eq 'TOP') {
         $response = charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC DOWN AND LEFT') . "\n";
     } elsif ($choice eq 'BOTTOM') {
-        $response = charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT') . "\n";
+        $response = $self->news_title_colorize(charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND RIGHT') . charnames::string_vianame('BOX DRAWINGS LIGHT HORIZONTAL') . charnames::string_vianame('BOX DRAWINGS LIGHT ARC UP AND LEFT')) . "\n";
     } else {
         $response = $self->ansi_decode(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% BOLD %][% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . ' [% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %] ' . $desc . "\n");
     }

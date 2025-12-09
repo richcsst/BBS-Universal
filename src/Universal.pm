@@ -305,6 +305,8 @@ sub populate_common {
         '19200' => 0.0003125,
     };
 
+	$self->{'MENU CHOICES'} = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 1 2 3 4 5 6 7 8 9 = - + * ! @ # $ % ^ &)];
+
     $self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
     $self->{'TOKENS'}  = {
         'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
@@ -1623,7 +1625,7 @@ sub choose_file_category {
 
     $self->{'debug'}->DEBUG(['Start Choose File Category']);
     my $table;
-    my $choices = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 0 1 2 3 4 5 6 7 8 9)];
+    my $choices = $self->{'MENU CHOICES'};
     my $hchoice = {};
     my @categories;
     if ($self->{'USER'}->{'max_columns'} <= 40) {
@@ -1633,12 +1635,13 @@ sub choose_file_category {
     }
     $table->row('CHOICE', 'TITLE', 'DESCRIPTION');
     $table->hr();
-    my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories ORDER BY title');
+    my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories ORDER BY description');
     $sth->execute();
     if ($sth->rows > 0) {
         while (my $row = $sth->fetchrow_hashref()) {
-            $table->row($choices->[$row->{'id'} - 1], $row->{'title'}, $row->{'description'});
-            $hchoice->{ $choices->[$row->{'id'} - 1] } = $row->{'id'};
+			my $index = $row->{'id'} - 1;
+            $table->row($choices->[$index], $row->{'title'}, $row->{'description'});
+            $hchoice->{ $choices->[$index] } = $row->{'id'};
             push(@categories, $row->{'title'});
         }
         $sth->finish();

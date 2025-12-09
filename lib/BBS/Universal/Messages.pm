@@ -14,7 +14,7 @@ sub messages_forum_categories {
     $self->{'debug'}->DEBUG(['Start Messages Forum Categories']);
     my $command = '';
     my $id;
-    my $sth      = $self->{'dbh'}->prepare('SELECT * FROM message_categories ORDER BY name');
+    my $sth      = $self->{'dbh'}->prepare('SELECT * FROM message_categories ORDER BY description');
     my $category = $self->{'USER'}->{'forum_category'};
     $sth->execute();    # $self->{'USER'}->{'forum_category'});
     my $mapping = {
@@ -26,7 +26,7 @@ sub messages_forum_categories {
             'text'         => 'Return to Forum Menu',
         },
     };
-    my @menu_choices = (qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y));
+    my @menu_choices = @{$self->{'MENU CHOICES'}};
 
     while (my $result = $sth->fetchrow_hashref()) {
         if ($self->check_access_level($result->{'access_level'})) {
