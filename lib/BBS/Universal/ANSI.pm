@@ -34,6 +34,7 @@ sub ansi_decode {
     }
 
     # Convenience CSI
+	my $am  = $self->{'ansi_meta'}->{'foreground'};
     my $csi = $self->{'ansi_meta'}->{'special'}->{'CSI'}->{'out'};
 
     #
@@ -43,19 +44,6 @@ sub ansi_decode {
     $text =~ s/\[\%\s*SCROLL\s+UP\s+(\d+)\s*\%\]/     $csi . $1 . 'S'           /eigs;
     $text =~ s/\[\%\s*SCROLL\s+DOWN\s+(\d+)\s*\%\]/   $csi . $1 . 'T'           /eigs;
 
-	# The loop is used, because there can be more than one token but have different values for red, green and blue
-    while($text =~ /\[\%\s+UNDERLINE COLOR RGB (\d+),(\d+),(\d+)\s+\%\]/) {
-        my ($red, $green, $blue) = ($1, $2, $3);
-        my $new = "\e[58;2;${red};${green};${blue}m";
-        $text =~ s/\[\%\s+UNDERLINE COLOR RGB $red,$green,$blue\s+\%\]/$new/gs;
-    }
-    while($text =~ /\[\%\s+UNDERLINE COLOR (.*?)\s+\%\]/) {
-        my $color = $1;
-        my $new;
-        $new = "\e[58;5;" . substr($self->{'ansi_meta'}->{'foreground'}->{$color}->{'out'},3);
-        $text =~ s/\[\%\s+UNDERLINE COLOR $color\s+\%\]/$new/gs;
-    }
-
     # HORIZONTAL RULE expands into a sequence of meta-tokens (resolved later).
     $text =~ s/\[\%\s*HORIZONTAL\s+RULE\s+(.*?)\s*\%\]/
       do {
@@ -63,10 +51,15 @@ sub ansi_decode {
           '[% RETURN %][% B_' . $color . ' %][% CLEAR LINE %][% RESET %]';
       }/eigs;
 
+	$text =~ s/\[\%\s+UNDERLINE\s+COLOR\s+RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s+\%\]/
+      do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "58:2:$r:$g:$b" }/eigs;
+	$text =~ s/\[\%\s+UNDERLINE\s+COLOR\s+(.*?)\s+\%\]/
+      do { my $c = substr($am->{$1}->{'out'},3); $csi . "58:5:$c" }/eigs;
+
     # 24-bit RGB foreground/background
-    $text =~ s/\[\%\s*RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
+    $text =~ s/\[\%\s+RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s+\%\]/
       do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "38:2:$r:$g:$b" . 'm' }/eigs;
-    $text =~ s/\[\%\s*B_RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\%\]/
+    $text =~ s/\[\%\s+B_RGB\s+(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s+\%\]/
       do { my ($r,$g,$b)=($1&255,$2&255,$3&255); $csi . "48:2:$r:$g:$b" . 'm' }/eigs;
 
     #
@@ -2825,627 +2818,502 @@ sub ansi_initialize {
             },
             'OFFICE GREEN' => {
                 'desc' => 'Office green',
-
                 'out' => $csi . '38:2:0:128:0m',
             },
             'OLD GOLD' => {
                 'desc' => 'Old gold',
-
                 'out' => $csi . '38:2:207:181:59m',
             },
             'OLD LACE' => {
                 'desc' => 'Old lace',
-
                 'out' => $csi . '38:2:253:245:230m',
             },
             'OLD LAVENDER' => {
                 'desc' => 'Old lavender',
-
                 'out' => $csi . '38:2:121:104:120m',
             },
             'OLD MAUVE' => {
                 'desc' => 'Old mauve',
-
                 'out' => $csi . '38:2:103:49:71m',
             },
             'OLD ROSE' => {
                 'desc' => 'Old rose',
-
                 'out' => $csi . '38:2:192:128:129m',
             },
             'OLIVE' => {
                 'desc' => 'Olive',
-
                 'out' => $csi . '38:2:128:128:0m',
             },
             'OLIVE DRAB' => {
                 'desc' => 'Olive Drab',
-
                 'out' => $csi . '38:2:107:142:35m',
             },
             'OLIVE GREEN' => {
                 'desc' => 'Olive Green',
-
                 'out' => $csi . '38:2:186:184:108m',
             },
             'OLIVINE' => {
                 'desc' => 'Olivine',
-
                 'out' => $csi . '38:2:154:185:115m',
             },
             'ONYX' => {
                 'desc' => 'Onyx',
-
                 'out' => $csi . '38:2:15:15:15m',
             },
             'OPERA MAUVE' => {
                 'desc' => 'Opera mauve',
-
                 'out' => $csi . '38:2:183:132:167m',
             },
             'ORANGE PEEL' => {
                 'desc' => 'Orange peel',
-
                 'out' => $csi . '38:2:255:159:0m',
             },
             'ORANGE RED' => {
                 'desc' => 'Orange red',
-
                 'out' => $csi . '38:2:255:69:0m',
             },
             'ORANGE YELLOW' => {
                 'desc' => 'Orange Yellow',
-
                 'out' => $csi . '38:2:248:213:104m',
             },
             'ORCHID' => {
                 'desc' => 'Orchid',
-
                 'out' => $csi . '38:2:218:112:214m',
             },
             'OTTER BROWN' => {
                 'desc' => 'Otter brown',
-
                 'out' => $csi . '38:2:101:67:33m',
             },
             'OUTER SPACE' => {
                 'desc' => 'Outer Space',
-
                 'out' => $csi . '38:2:65:74:76m',
             },
             'OUTRAGEOUS ORANGE' => {
                 'desc' => 'Outrageous Orange',
-
                 'out' => $csi . '38:2:255:110:74m',
             },
             'OXFORD BLUE' => {
                 'desc' => 'Oxford Blue',
-
                 'out' => $csi . '38:2:0:33:71m',
             },
             'PACIFIC BLUE' => {
                 'desc' => 'Pacific Blue',
-
                 'out' => $csi . '38:2:28:169:201m',
             },
             'PAKISTAN GREEN' => {
                 'desc' => 'Pakistan green',
-
                 'out' => $csi . '38:2:0:102:0m',
             },
             'PALATINATE BLUE' => {
                 'desc' => 'Palatinate blue',
-
                 'out' => $csi . '38:2:39:59:226m',
             },
             'PALATINATE PURPLE' => {
                 'desc' => 'Palatinate purple',
-
                 'out' => $csi . '38:2:104:40:96m',
             },
             'PALE AQUA' => {
                 'desc' => 'Pale aqua',
-
                 'out' => $csi . '38:2:188:212:230m',
             },
             'PALE BLUE' => {
                 'desc' => 'Pale blue',
-
                 'out' => $csi . '38:2:175:238:238m',
             },
             'PALE BROWN' => {
                 'desc' => 'Pale brown',
-
                 'out' => $csi . '38:2:152:118:84m',
             },
             'PALE CARMINE' => {
                 'desc' => 'Pale carmine',
-
                 'out' => $csi . '38:2:175:64:53m',
             },
             'PALE CERULEAN' => {
                 'desc' => 'Pale cerulean',
-
                 'out' => $csi . '38:2:155:196:226m',
             },
             'PALE CHESTNUT' => {
                 'desc' => 'Pale chestnut',
-
                 'out' => $csi . '38:2:221:173:175m',
             },
             'PALE COPPER' => {
                 'desc' => 'Pale copper',
-
                 'out' => $csi . '38:2:218:138:103m',
             },
             'PALE CORNFLOWER BLUE' => {
                 'desc' => 'Pale cornflower blue',
-
                 'out' => $csi . '38:2:171:205:239m',
             },
             'PALE GOLD' => {
                 'desc' => 'Pale gold',
-
                 'out' => $csi . '38:2:230:190:138m',
             },
             'PALE GOLDENROD' => {
                 'desc' => 'Pale goldenrod',
-
                 'out' => $csi . '38:2:238:232:170m',
             },
             'PALE GREEN' => {
                 'desc' => 'Pale green',
-
                 'out' => $csi . '38:2:152:251:152m',
             },
             'PALE LAVENDER' => {
                 'desc' => 'Pale lavender',
-
                 'out' => $csi . '38:2:220:208:255m',
             },
             'PALE MAGENTA' => {
                 'desc' => 'Pale magenta',
-
                 'out' => $csi . '38:2:249:132:229m',
             },
             'PALE PINK' => {
                 'desc' => 'Pale pink',
-
                 'out' => $csi . '38:2:250:218:221m',
             },
             'PALE PLUM' => {
                 'desc' => 'Pale plum',
-
                 'out' => $csi . '38:2:221:160:221m',
             },
             'PALE RED VIOLET' => {
                 'desc' => 'Pale red violet',
-
                 'out' => $csi . '38:2:219:112:147m',
             },
             'PALE ROBIN EGG BLUE' => {
                 'desc' => 'Pale robin egg blue',
-
                 'out' => $csi . '38:2:150:222:209m',
             },
             'PALE SILVER' => {
                 'desc' => 'Pale silver',
-
                 'out' => $csi . '38:2:201:192:187m',
             },
             'PALE SPRING BUD' => {
                 'desc' => 'Pale spring bud',
-
                 'out' => $csi . '38:2:236:235:189m',
             },
             'PALE TAUPE' => {
                 'desc' => 'Pale taupe',
-
                 'out' => $csi . '38:2:188:152:126m',
             },
             'PALE VIOLET RED' => {
                 'desc' => 'Pale violet red',
-
                 'out' => $csi . '38:2:219:112:147m',
             },
             'PANSY PURPLE' => {
                 'desc' => 'Pansy purple',
-
                 'out' => $csi . '38:2:120:24:74m',
             },
             'PAPAYA WHIP' => {
                 'desc' => 'Papaya whip',
-
                 'out' => $csi . '38:2:255:239:213m',
             },
             'PARIS GREEN' => {
                 'desc' => 'Paris Green',
-
                 'out' => $csi . '38:2:80:200:120m',
             },
             'PASTEL BLUE' => {
                 'desc' => 'Pastel blue',
-
                 'out' => $csi . '38:2:174:198:207m',
             },
             'PASTEL BROWN' => {
                 'desc' => 'Pastel brown',
-
                 'out' => $csi . '38:2:131:105:83m',
             },
             'PASTEL GRAY' => {
                 'desc' => 'Pastel gray',
-
                 'out' => $csi . '38:2:207:207:196m',
             },
             'PASTEL GREEN' => {
                 'desc' => 'Pastel green',
-
                 'out' => $csi . '38:2:119:221:119m',
             },
             'PASTEL MAGENTA' => {
                 'desc' => 'Pastel magenta',
-
                 'out' => $csi . '38:2:244:154:194m',
             },
             'PASTEL ORANGE' => {
                 'desc' => 'Pastel orange',
-
                 'out' => $csi . '38:2:255:179:71m',
             },
             'PASTEL PINK' => {
                 'desc' => 'Pastel pink',
-
                 'out' => $csi . '38:2:255:209:220m',
             },
             'PASTEL PURPLE' => {
                 'desc' => 'Pastel purple',
-
                 'out' => $csi . '38:2:179:158:181m',
             },
             'PASTEL RED' => {
                 'desc' => 'Pastel red',
-
                 'out' => $csi . '38:2:255:105:97m',
             },
             'PASTEL VIOLET' => {
                 'desc' => 'Pastel violet',
-
                 'out' => $csi . '38:2:203:153:201m',
             },
             'PASTEL YELLOW' => {
                 'desc' => 'Pastel yellow',
-
                 'out' => $csi . '38:2:253:253:150m',
             },
             'PATRIARCH' => {
                 'desc' => 'Patriarch',
-
                 'out' => $csi . '38:2:128:0:128m',
             },
             'PAYNE GRAY' => {
                 'desc' => 'Payne grey',
-
                 'out' => $csi . '38:2:83:104:120m',
             },
             'PEACH' => {
                 'desc' => 'Peach',
-
                 'out' => $csi . '38:2:255:229:180m',
             },
             'PEACH PUFF' => {
                 'desc' => 'Peach puff',
-
                 'out' => $csi . '38:2:255:218:185m',
             },
             'PEACH YELLOW' => {
                 'desc' => 'Peach yellow',
-
                 'out' => $csi . '38:2:250:223:173m',
             },
             'PEAR' => {
                 'desc' => 'Pear',
-
                 'out' => $csi . '38:2:209:226:49m',
             },
             'PEARL' => {
                 'desc' => 'Pearl',
-
                 'out' => $csi . '38:2:234:224:200m',
             },
             'PEARL AQUA' => {
                 'desc' => 'Pearl Aqua',
-
                 'out' => $csi . '38:2:136:216:192m',
             },
             'PERIDOT' => {
                 'desc' => 'Peridot',
-
                 'out' => $csi . '38:2:230:226:0m',
             },
             'PERIWINKLE' => {
                 'desc' => 'Periwinkle',
-
                 'out' => $csi . '38:2:204:204:255m',
             },
             'PERSIAN BLUE' => {
                 'desc' => 'Persian blue',
-
                 'out' => $csi . '38:2:28:57:187m',
             },
             'PERSIAN INDIGO' => {
                 'desc' => 'Persian indigo',
-
                 'out' => $csi . '38:2:50:18:122m',
             },
             'PERSIAN ORANGE' => {
                 'desc' => 'Persian orange',
-
                 'out' => $csi . '38:2:217:144:88m',
             },
             'PERSIAN PINK' => {
                 'desc' => 'Persian pink',
-
                 'out' => $csi . '38:2:247:127:190m',
             },
             'PERSIAN PLUM' => {
                 'desc' => 'Persian plum',
-
                 'out' => $csi . '38:2:112:28:28m',
             },
             'PERSIAN RED' => {
                 'desc' => 'Persian red',
-
                 'out' => $csi . '38:2:204:51:51m',
             },
             'PERSIAN ROSE' => {
                 'desc' => 'Persian rose',
-
                 'out' => $csi . '38:2:254:40:162m',
             },
             'PHLOX' => {
                 'desc' => 'Phlox',
-
                 'out' => $csi . '38:2:223:0:255m',
             },
             'PHTHALO BLUE' => {
                 'desc' => 'Phthalo blue',
-
                 'out' => $csi . '38:2:0:15:137m',
             },
             'PHTHALO GREEN' => {
                 'desc' => 'Phthalo green',
-
                 'out' => $csi . '38:2:18:53:36m',
             },
             'PIGGY PINK' => {
                 'desc' => 'Piggy pink',
-
                 'out' => $csi . '38:2:253:221:230m',
             },
             'PINE GREEN' => {
                 'desc' => 'Pine green',
-
                 'out' => $csi . '38:2:1:121:111m',
             },
             'PINK FLAMINGO' => {
                 'desc' => 'Pink Flamingo',
-
                 'out' => $csi . '38:2:252:116:253m',
             },
             'PINK PEARL' => {
                 'desc' => 'Pink pearl',
-
                 'out' => $csi . '38:2:231:172:207m',
             },
             'PINK SHERBET' => {
                 'desc' => 'Pink Sherbet',
-
                 'out' => $csi . '38:2:247:143:167m',
             },
             'PISTACHIO' => {
                 'desc' => 'Pistachio',
-
                 'out' => $csi . '38:2:147:197:114m',
             },
             'PLATINUM' => {
                 'desc' => 'Platinum',
-
                 'out' => $csi . '38:2:229:228:226m',
             },
             'PLUM' => {
                 'desc' => 'Plum',
-
                 'out' => $csi . '38:2:221:160:221m',
             },
             'PORTLAND ORANGE' => {
                 'desc' => 'Portland Orange',
-
                 'out' => $csi . '38:2:255:90:54m',
             },
             'POWDER BLUE' => {
                 'desc' => 'Powder blue',
-
                 'out' => $csi . '38:2:176:224:230m',
             },
             'PRINCETON ORANGE' => {
                 'desc' => 'Princeton orange',
-
                 'out' => $csi . '38:2:255:143:0m',
             },
             'PRUSSIAN BLUE' => {
                 'desc' => 'Prussian blue',
-
                 'out' => $csi . '38:2:0:49:83m',
             },
             'PSYCHEDELIC PURPLE' => {
                 'desc' => 'Psychedelic purple',
-
                 'out' => $csi . '38:2:223:0:255m',
             },
             'PUCE' => {
                 'desc' => 'Puce',
-
                 'out' => $csi . '38:2:204:136:153m',
             },
             'PUMPKIN' => {
                 'desc' => 'Pumpkin',
-
                 'out' => $csi . '38:2:255:117:24m',
             },
             'PURPLE' => {
                 'desc' => 'Purple',
-
                 'out' => $csi . '38:2:128:0:128m',
             },
             'PURPLE HEART' => {
                 'desc' => 'Purple Heart',
-
                 'out' => $csi . '38:2:105:53:156m',
             },
             'PURPLE MOUNTAIN MAJESTY' => {
                 'desc' => 'Purple mountain majesty',
-
                 'out' => $csi . '38:2:150:120:182m',
             },
             'PURPLE MOUNTAINS' => {
                 'desc' => 'Purple Mountains',
-
                 'out' => $csi . '38:2:157:129:186m',
             },
             'PURPLE PIZZAZZ' => {
                 'desc' => 'Purple pizzazz',
-
                 'out' => $csi . '38:2:254:78:218m',
             },
             'PURPLE TAUPE' => {
                 'desc' => 'Purple taupe',
-
                 'out' => $csi . '38:2:80:64:77m',
             },
             'RACKLEY' => {
                 'desc' => 'Rackley',
-
                 'out' => $csi . '38:2:93:138:168m',
             },
             'RADICAL RED' => {
                 'desc' => 'Radical Red',
-
                 'out' => $csi . '38:2:255:53:94m',
             },
             'RASPBERRY' => {
                 'desc' => 'Raspberry',
-
                 'out' => $csi . '38:2:227:11:93m',
             },
             'RASPBERRY GLACE' => {
                 'desc' => 'Raspberry glace',
-
                 'out' => $csi . '38:2:145:95:109m',
             },
             'RASPBERRY PINK' => {
                 'desc' => 'Raspberry pink',
-
                 'out' => $csi . '38:2:226:80:152m',
             },
             'RASPBERRY ROSE' => {
                 'desc' => 'Raspberry rose',
-
                 'out' => $csi . '38:2:179:68:108m',
             },
             'RAW SIENNA' => {
                 'desc' => 'Raw Sienna',
-
                 'out' => $csi . '38:2:214:138:89m',
             },
             'RAZZLE DAZZLE ROSE' => {
                 'desc' => 'Razzle dazzle rose',
-
                 'out' => $csi . '38:2:255:51:204m',
             },
             'RAZZMATAZZ' => {
                 'desc' => 'Razzmatazz',
-
                 'out' => $csi . '38:2:227:37:107m',
             },
             'RED BROWN' => {
                 'desc' => 'Red brown',
-
                 'out' => $csi . '38:2:165:42:42m',
             },
             'RED ORANGE' => {
                 'desc' => 'Red Orange',
-
                 'out' => $csi . '38:2:255:83:73m',
             },
             'RED VIOLET' => {
                 'desc' => 'Red violet',
-
                 'out' => $csi . '38:2:199:21:133m',
             },
             'RICH BLACK' => {
                 'desc' => 'Rich black',
-
                 'out' => $csi . '38:2:0:64:64m',
             },
             'RICH CARMINE' => {
                 'desc' => 'Rich carmine',
-
                 'out' => $csi . '38:2:215:0:64m',
             },
             'RICH ELECTRIC BLUE' => {
                 'desc' => 'Rich electric blue',
-
                 'out' => $csi . '38:2:8:146:208m',
             },
             'RICH LILAC' => {
                 'desc' => 'Rich lilac',
-
                 'out' => $csi . '38:2:182:102:210m',
             },
             'RICH MAROON' => {
                 'desc' => 'Rich maroon',
-
                 'out' => $csi . '38:2:176:48:96m',
             },
             'RIFLE GREEN' => {
                 'desc' => 'Rifle green',
-
                 'out' => $csi . '38:2:65:72:51m',
             },
             'ROBINS EGG BLUE' => {
                 'desc' => 'Robins Egg Blue',
-
                 'out' => $csi . '38:2:31:206:203m',
             },
             'ROSE' => {
                 'desc' => 'Rose',
-
                 'out' => $csi . '38:2:255:0:127m',
             },
             'ROSE BONBON' => {
                 'desc' => 'Rose bonbon',
-
                 'out' => $csi . '38:2:249:66:158m',
             },
             'ROSE EBONY' => {
                 'desc' => 'Rose ebony',
-
                 'out' => $csi . '38:2:103:72:70m',
             },
             'ROSE GOLD' => {
                 'desc' => 'Rose gold',
-
                 'out' => $csi . '38:2:183:110:121m',
             },
             'ROSE MADDER' => {
                 'desc' => 'Rose madder',
-
                 'out' => $csi . '38:2:227:38:54m',
             },
             'ROSE PINK' => {
                 'desc' => 'Rose pink',
-
                 'out' => $csi . '38:2:255:102:204m',
             },
             'ROSE QUARTZ' => {
