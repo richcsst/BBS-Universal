@@ -25,7 +25,7 @@ sub ansi_decode {
     my ($self, $text) = @_;
 
     # Nothing to do for very short strings
-    return $text unless defined $text && length($text) > 1;
+    return($text) unless ((defined $text && length($text) > 1) || $text !~ /\[\%/);
 
     # If a literal screen reset token exists, remove it and run reset once.
     if ($text =~ /\[\%\s*SCREEN\s+RESET\s*\%\]/i) {
@@ -34,7 +34,7 @@ sub ansi_decode {
     }
 
     # Convenience CSI
-    my $csi = $self->{'ansi_meta'}->{special}->{CSI}->{out};
+    my $csi = $self->{'ansi_meta'}->{'special'}->{'CSI'}->{'out'};
 
     #
     # Targeted parameterized tokens (single-pass). These are simple Regex -> CSI conversions.
@@ -43,6 +43,7 @@ sub ansi_decode {
     $text =~ s/\[\%\s*SCROLL\s+UP\s+(\d+)\s*\%\]/     $csi . $1 . 'S'           /eigs;
     $text =~ s/\[\%\s*SCROLL\s+DOWN\s+(\d+)\s*\%\]/   $csi . $1 . 'T'           /eigs;
 
+	# The loop is used, because there can be more than one token but have different values for red, green and blue
     while($text =~ /\[\%\s+UNDERLINE COLOR RGB (\d+),(\d+),(\d+)\s+\%\]/) {
         my ($red, $green, $blue) = ($1, $2, $3);
         my $new = "\e[58;2;${red};${green};${blue}m";
@@ -81,7 +82,7 @@ sub ansi_decode {
     for my $code (qw(foreground background special clear cursor attributes)) {
         my $map = $self->{'ansi_meta'}->{$code} or next;
         while (my ($name, $info) = each %{$map}) {
-            next unless defined $info->{out};
+            next unless (defined($info->{out}));
             $lookup{ lc $name } = $info->{out};
         }
     } ## end for my $code (qw(foreground background special clear cursor attributes))
