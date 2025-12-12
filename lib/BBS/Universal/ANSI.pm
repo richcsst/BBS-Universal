@@ -1,6 +1,26 @@
 package BBS::Universal::ANSI;
 BEGIN { our $VERSION = '0.007'; }
 
+# Returns a description of a token using the meta data.
+sub ansi_description {
+    my ($self, $code, $name) = @_;
+
+    return ($self->{'ansi_meta'}->{$code}->{$name}->{'desc'});
+}
+
+sub ansi_type {
+    my $self = shift;
+    my $text = substr(shift,2);
+    
+    if ($text =~ /^\d+m/) {
+        return('ANSI 16 COLORS');
+    } elsif ($text =~ /^\d+\;\d\;\d+m/) {
+        return('ANSI 256 COLOR');
+    } elsif ($text =~ /^\d+\:\d\:\d+\:\d+\:\d+m/) {
+        return('ANSI TRUECOLOR');
+    }
+}
+
 sub ansi_decode {
     my ($self, $text) = @_;
 
@@ -22,6 +42,18 @@ sub ansi_decode {
     $text =~ s/\[\%\s*LOCATE\s+(\d+)\s*,\s*(\d+)\s*\%\]/ $csi . "$2;$1" . 'H' /eigs;
     $text =~ s/\[\%\s*SCROLL\s+UP\s+(\d+)\s*\%\]/     $csi . $1 . 'S'           /eigs;
     $text =~ s/\[\%\s*SCROLL\s+DOWN\s+(\d+)\s*\%\]/   $csi . $1 . 'T'           /eigs;
+
+    while($text =~ /\[\%\s+UNDERLINE COLOR RGB (\d+),(\d+),(\d+)\s+\%\]/) {
+        my ($red, $green, $blue) = ($1, $2, $3);
+        my $new = "\e[58;2;${red};${green};${blue}m";
+        $text =~ s/\[\%\s+UNDERLINE COLOR RGB $red,$green,$blue\s+\%\]/$new/gs;
+    }
+    while($text =~ /\[\%\s+UNDERLINE COLOR (.*?)\s+\%\]/) {
+        my $color = $1;
+        my $new;
+        $new = "\e[58;5;" . substr($self->{'ansi_meta'}->{'foreground'}->{$color}->{'out'},3);
+        $text =~ s/\[\%\s+UNDERLINE COLOR $color\s+\%\]/$new/gs;
+    }
 
     # HORIZONTAL RULE expands into a sequence of meta-tokens (resolved later).
     $text =~ s/\[\%\s*HORIZONTAL\s+RULE\s+(.*?)\s*\%\]/
@@ -115,22 +147,6 @@ sub ansi_initialize {
 
     $self->{'ansi_meta'} = {
         'special' => {
-            'FONT DOUBLE-HEIGHT TOP' => {
-                'out'  => $esc . '#3',
-                'desc' => 'Double-Height Font Top Portion',
-            },
-            'FONT DOUBLE-HEIGHT BOTTOM' => {
-                'out'  => $esc . '#4',
-                'desc' => 'Double-Height Font Bottom Portion',
-            },
-            'FONT DOUBLE-WIDTH' => {
-                'out'  => $esc . '#6',
-                'desc' => 'Double-Width Font',
-            },
-            'FONT DEFAULT' => {
-                'out'  => $esc . '#5',
-                'desc' => 'Default Font Size',
-            },
             'APC' => {
                 'out'  => $esc . '_',
                 'desc' => 'Application Program Command',
@@ -260,6 +276,22 @@ sub ansi_initialize {
         },
 
         'attributes' => {
+            'FONT DOUBLE-HEIGHT TOP' => {
+                'out'  => $esc . '#3',
+                'desc' => 'Double-Height Font Top Portion',
+            },
+            'FONT DOUBLE-HEIGHT BOTTOM' => {
+                'out'  => $esc . '#4',
+                'desc' => 'Double-Height Font Bottom Portion',
+            },
+            'FONT DOUBLE-WIDTH' => {
+                'out'  => $esc . '#6',
+                'desc' => 'Double-Width Font',
+            },
+            'FONT DEFAULT SIZE' => {
+                'out'  => $esc . '#5',
+                'desc' => 'Default Font Size',
+            },
             'RESET' => {
                 'out'  => $csi . '0m',
                 'desc' => 'Restore all attributes and colors to their defaults',
@@ -356,7 +388,7 @@ sub ansi_initialize {
                 'out'  => $csi . '9m',
                 'desc' => 'Crossed out text',
             },
-            'DEFAULT FONT' => {
+            'FONT DEFAULT' => {
                 'out'  => $csi . '10m',
                 'desc' => 'Set default font',
             },
@@ -8612,7 +8644,7 @@ sub ansi_initialize {
 
     $self->{'debug'}->DEBUG(['  Add fonts']);
     foreach my $count (1 .. 9) {
-        $self->{'ansi_meta'}->{'special'}->{ 'FONT ' . $count } = {
+        $self->{'ansi_meta'}->{'attributes'}->{ 'FONT ' . $count } = {
             'desc' => "ANSI Font $count",
             'out'  => $csi . ($count + 10) . 'm',
         };

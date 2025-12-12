@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.015'; }
+BEGIN { our $VERSION = '0.016'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -131,49 +131,49 @@ sub sysop_initialize {
 
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          email
-          birthday
-          location
-          access_level
-          date_format
-          baud_rate
-          text_mode
-          max_columns
-          max_rows
-          timeout
-          retro_systems
-          accomplishments
-          prefer_nickname
-          view_files
-          upload_files
-          download_files
-          remove_files
-          play_fortunes
-          read_message
-          post_message
-          remove_message
-          sysop
-          page_sysop
-          banned
-          login_time
-          logout_time
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            email
+            birthday
+            location
+            access_level
+            date_format
+            baud_rate
+            text_mode
+            max_columns
+            max_rows
+            timeout
+            retro_systems
+            accomplishments
+            prefer_nickname
+            view_files
+            upload_files
+            download_files
+            remove_files
+            play_fortunes
+            read_message
+            post_message
+            remove_message
+            sysop
+            page_sysop
+            banned
+            login_time
+            logout_time
         )
     ];
     $self->{'SYSOP ORDER ABBREVIATED'} = [
         qw(
-          id
-          fullname
-          username
-          given
-          family
-          nickname
-          text_mode
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            text_mode
         )
     ];
 
@@ -422,82 +422,129 @@ sub sysop_list_commands {
         }
         $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
     } elsif ($mode eq 'ANSI') {
-        my $crgb  = (exists($ENV{'COLORTERM'}) && $ENV{'COLORTERM'} eq 'truecolor') ? TRUE : FALSE;
-        my $c256  = (exists($ENV{'TERM'})      && $ENV{'TERM'} =~ /256/)            ? TRUE : FALSE;
-        my $table = Text::SimpleTable->new(25, $ans, 55);
-        $text = "[% ORANGE %]╔═══════════════════════════╦═════════════════════════════════╦═════════════════════════════════════════════════════════╗[% RESET %]\n" . "[% ORANGE %]║ [% BRIGHT YELLOW %]TYPE                      [% ORANGE %]║ [% BRIGHT YELLOW %]ANSI TOKENS                     [% ORANGE %]║ [% BRIGHT YELLOW %]DESCRIPTION                                             [% ORANGE %]║[% RESET %]\n" . "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
-        foreach my $code ('special', 'clear', 'cursor', 'attributes', 'foreground ANSI 16', 'foreground ANSI 256', 'foreground ANSI TrueColor', 'background ANSI 16', 'background ANSI 256', 'background ANSI TrueColor') {
-            if ($code eq 'foreground ANSI 256') {
-                my $ncode = 'foreground';
-                foreach my $number (16 .. 231) {
-                    my $name = sprintf('COLOR %d', $number);
-                    $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                }
-                foreach my $number (0 .. 23) {
-                    my $name = sprintf('GRAY %d', $number);
-                    $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                }
-            } elsif ($code eq 'background ANSI 256') {
-                my $ncode = 'background';
-                foreach my $number (16 .. 231) {
-                    my $name  = sprintf('B_COLOR %d', $number);
-                    my $color = 'BLACK';
-                    $color = 'WHITE' if ($number <= 22);
-                    $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                } ## end foreach my $number (16 .. 231)
-                foreach my $number (0 .. 23) {
-                    my $name  = sprintf('B_GRAY %d', $number);
-                    my $color = 'WHITE';
-                    $color = 'BLACK' if ($number >= 10);
-                    $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                } ## end foreach my $number (0 .. 23)
-            } elsif ($code =~ /^foreground/) {
-                my $ncode = 'foreground';
-                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$ncode} })) {
-                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-                    if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    }
-                } ## end foreach my $name (sort(keys...))
-            } elsif ($code =~ /^background/) {
-                my $ncode = 'background';
-                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$ncode} })) {
-                    next unless (exists($self->{'ansi_meta'}->{$ncode}->{$name}));
-                    my $color = 'BLACK';
-                    $color = 'WHITE' if ($name =~ /^(B_BLACK|B_DEFAULT)$/);
-                    if ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+;\d;\d+m/ && $code =~ /256/ && $c256) {
-                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+:\d:\d+:\d+:\d+m/ && $code =~ /TrueColor/ && $crgb) {
-                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    } elsif ($self->{'ansi_meta'}->{$ncode}->{$name}->{'out'} =~ /^\e\[\d+m/ && $code =~ /16/) {
-                        $text .= sprintf('%s║%s %-25s %s║%s%s %-32s%s%s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %][% $color %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$ncode}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    }
-                } ## end foreach my $name (sort(keys...))
-            } elsif ($code =~ /cursor|special|clear/) {
-                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$code} })) {
-                    $text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', $name, '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                }
-            } elsif ($code eq 'attributes') {
-                foreach my $name (sort(keys %{ $self->{'ansi_meta'}->{$code} })) {
-                    if ($name eq 'HIDE') {
-                        $text .= sprintf('%s║%s %-25s %s║%s %-31s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', $name, '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    } else {
-                        $text .= sprintf('%s║%s %-25s %s║%s %s%-31s%s %s║%s %-55s %s║%s', '[% ORANGE %]', '[% RESET %]', ucfirst($code), '[% ORANGE %]', '[% RESET %]', "[% $name %]", $name, '[% RESET %]', '[% ORANGE %]', '[% RESET %]', $self->{'ansi_meta'}->{$code}->{$name}->{'desc'}, '[% ORANGE %]', '[% RESET %]') . "\n";
-                    }
-                } ## end foreach my $name (sort(keys...))
-            } ## end elsif ($code eq 'attributes')
-            if ($code eq 'background ANSI TrueColor') {
-                $text .= "[% ORANGE %]╚═══════════════════════════╩═════════════════════════════════╩═════════════════════════════════════════════════════════╝[% RESET %]\n";
-            } else {
-                $text .= "[% ORANGE %]╠═══════════════════════════╬═════════════════════════════════╬═════════════════════════════════════════════════════════╣[% RESET %]\n";
-            }
-        } ## end foreach my $code ('special'...)
 
-        #		$self->sysop_output($text);
+        my $text = '[% BRIGHT GREEN %]╭' . '─' x 122 . '╮[% RESET %]' . "\n";
+###
+		$text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                                 _    _   _ ____ ___   _____ ___  _  _______ _   _ ____                                   [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+		$text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                                / \  | \ | / ___|_ _| |_   _/ _ \| |/ / ____| \ | / ___|                                  [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+		$text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                               / _ \ |  \| \___ \| |    | || | | | ' /|  _| |  \| \___ \                                  [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+        $text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                              / ___ \| |\  |___) | |    | || |_| | . \| |___| |\  |___) |                                 [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+        $text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                             /_/   \_\_| \_|____/___|   |_| \___/|_|\_\_____|_| \_|____/                                  [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+        $text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                                                                                                                          [% BRIGHT GREEN %]│[% RESET %]} . "\n";
+
+        $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]CLEAR [% RESET %][% BRIGHT GREEN %]' . '═' x 56 . '╤' . '═' x 56 . '╡[% RESET %]' . "\n";
+
+        {
+            my @names = (sort(keys %{$self->{'ansi_meta'}->{'clear'}}));
+            while(scalar(@names)) {
+                my $name = shift(@names);
+                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('clear',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            }
+        }
+
+        $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]CURSOR [% RESET %][% BRIGHT GREEN %]' . '═' x 55 . '╪' . '═' x 56 . '╡[% RESET %]' . "\n";
+
+        {
+            my @names = (sort(keys %{$self->{'ansi_meta'}->{'cursor'}}));
+            while(scalar(@names)) {
+                my $name = shift(@names);
+                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('cursor',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            }
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','LOCATE column,row') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Sets the cursor location') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','SCROLL UP count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Scrolls the screen up by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','SCROLL DOWN count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Scrolls the screen down by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+
+        $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]ATTRIBUTES [% RESET %][% BRIGHT GREEN %]' . '═' x 51 . '╪' . '═' x 56 . '╡[% RESET %]' . "\n";
+
+        {
+            my @names = grep(!/^FONT \d/,(sort(keys %{$self->{'ansi_meta'}->{'attributes'}})));
+			foreach my $name (@names) {
+                if ($name =~ /FONT|HIDE|RING BELL|UNDERLINE COLOR/) {
+                    $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('attributes',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                    $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Set specific font (1-9)') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n" if ($name eq 'FONT DEFAULT');
+                } else {
+                    $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s',$name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('attributes',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                }
+            }
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s','UNDERLINE COLOR color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Set the underline color using color token.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+
+        {
+            my $f;
+            my $b;
+            foreach my $code ('ANSI 16 COLORS','ANSI 256 COLOR','ANSI TRUECOLOR') {
+                if ($code eq 'ANSI 16 COLORS') {
+                    $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╤═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+                } else {
+                    $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╪═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+                }
+                my @names = grep(!/^(DEFAULT|COLOR|GRAY)/,(sort(keys %{$self->{'ansi_meta'}->{'foreground'}})));
+                unshift(@names,'DEFAULT');
+                if ($code eq 'ANSI 256 COLOR') {
+                    foreach my $count (16 .. 231) {
+                        push(@names,"COLOR $count");
+                    }
+                    foreach my $count (0 .. 23) {
+                        push(@names,"GRAY $count");
+                    }
+                }
+                foreach my $name (@names) {
+                    next if ($self->ansi_type($self->{'ansi_meta'}->{'foreground'}->{$name}->{'out'}) ne $code);
+                    if ($name =~ /^(DEFAULT|NAVY|COLOR 16|BLACK)$/) {
+                        $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %]│' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                    } else {
+                        $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                    }
+                }
+            }
+            $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ','RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-31s ', 'B_RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ','Set color to a value 0-255 per primary color.') . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+
+        $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]SPECIAL [% RESET %][% BRIGHT GREEN %]════════════════════╧═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+
+        {
+            my @names = (sort(keys %{$self->{'ansi_meta'}->{'special'}}));
+            while(scalar(@names)) {
+                my $name = shift(@names);
+                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('special',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            }
+            $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'HORIZONTAL RULE color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Horizontal rule the width of the screen in the') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %]                                                                 [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','specified color.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','BOX color,column,row,width,height,type') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Shows framed text box in the selected frame type and') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',' ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'color.  Text goes between the BOX and ENDBOX token') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','    types:') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'See the "frames" option') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','DOUBLE, THIN, THICK, CIRCLE, ROUNDED, BLOCK, WEDGE') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','BIG WEDGE, DOTS, DIAMOND, STAR, SQUARE, DITHERED, NOTES') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','HEARTS, CHRISTIAN, ARROWS, BIG ARROWS, PARALLELOGRAM') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','ENDBOX') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Ends the BOX token function') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+        $text .= '[% BRIGHT GREEN %]╰─────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────╯[% RESET %]' . "\n";
+
+        ###
+
+        { # Post processing
+            my $new = 'UNDERLINE COLOR [% UNDERLINE %][% UNDERLINE COLOR RED %][% FAINT %][% ITALIC %]co[% RESET %][% UNDERLINE %][% UNDERLINE COLOR GREEN %][% FAINT %][% ITALIC %]l[% RESET %][% UNDERLINE %][% UNDERLINE COLOR BLUE %][% FAINT %][% ITALIC %]or[% RESET %]';
+            $text =~ s/UNDERLINE COLOR color/$new /gs;
+
+            $new = '[% FAINT %][% ITALIC %] color     [% RESET %]';
+            $text =~ s/ color     /$new/gs;
+
+            $new = '[% FAINT %][% ITALIC %] count     [% RESET %]';
+            $text =~ s/ count     /$new/gs;
+
+            $new = ' [% RED %][% ITALIC %]red[% RESET %],[% GREEN %][% ITALIC %]green[% RESET %],[% BLUE %][% ITALIC %]blue[% RESET %]';
+            $text =~ s/ red,green,blue/$new/gs;
+
+            $new = ' [% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %] ';
+            $text =~ s/ column,row /$new/gs;
+
+            $new = ' [% FAINT %][% ITALIC %]color[% RESET %],[% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %],[% FAINT %][% ITALIC %]width[% RESET %],[% FAINT %][% ITALIC %]height[% RESET %],[% FAINT %][% ITALIC %]type[% RESET %] ';
+            $text =~ s/ color,column,row,width,height,type /$new/gs;
+        }
+        $self->sysop_output($text);
     } elsif ($mode eq 'ATASCII') {
         foreach my $cell (@atatkn) {
             $ata = max(length($cell), $ata);
