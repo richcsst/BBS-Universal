@@ -64,6 +64,17 @@ use constant {
     IAC               => 255,
 
     PI => (4 * atan2(1, 1)),
+	MENU_CHOICES => [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 1 2 3 4 5 6 7 8 9 = - + * ! @ # $ % ^ &)],
+	SPEEDS       => {    # This depends on the granularity of Time::HiRes
+        'FULL'  => 0,
+        '300'   => 0.02,
+        '600'   => 0.01,
+        '1200'  => 0.005,
+        '2400'  => 0.0025,
+        '4800'  => 0.00125,
+        '9600'  => 0.000625,
+        '19200' => 0.0003125,
+    },
 };
 use open qw(:std :utf8);
 
@@ -92,6 +103,7 @@ use Cache::Memcached::Fast;
 use Number::Format 'format_number';
 use XML::RSS::LibXML;
 use File::Path;
+use File::Which;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Select;
 use POSIX qw(:sys_wait_h);
@@ -201,7 +213,7 @@ sub new {    # Always call with the socket as a parameter
         'backspace'       => chr(8),
         'carriage_return' => chr(13),
         'line_feed'       => chr(10),
-        'tab_stop'        => chr(9),
+        'tab'             => chr(9),
         'bell'            => chr(7),
         'ack'             => chr(6),
         'nak'             => chr(15),
@@ -217,7 +229,7 @@ sub new {    # Always call with the socket as a parameter
         'text_modes'      => {
             'ASCII'   => 0,
             'ATASCII' => 1,
-            'PETSCI'  => 2,
+            'PETSCII' => 2,
             'ANSI'    => 3,
         },
         'host'          => undef,
@@ -257,22 +269,17 @@ sub populate_common {
     if (exists($ENV{'EDITOR'})) {
         $self->{'EDITOR'} = $ENV{'EDITOR'};
     } else {
-        foreach my $editor ('/usr/bin/jed', '/usr/local/bin/jed', '/usr/bin/nano', '/usr/local/bin/nano', '/usr/bin/vim', '/usr/local/bin/vim', '/usr/bin/ed', '/usr/local/bin/ed') {
-            if (-e $editor) {
-                $self->{'EDITOR'} = $editor;
-                last;
-            }
-        } ## end foreach my $editor ('/usr/bin/jed'...)
+		my @candidates = qw(jed nano vim ed);
+		for my $e (@candidates) {
+			my $path = File::Which::which($e);
+			if ($path) { $self->{'EDITOR'} = $path; last }
+		}
     } ## end else [ if (exists($ENV{'EDITOR'...}))]
     $self->{'debug'}->DEBUGMAX(['EDITOR: ' . $self->{'EDITOR'}]);
-    $self->{'CPU'}  = $self->cpu_info();
-    $self->{'CONF'} = $self->configuration();
-    if (exists($self->{'CONF'}->{'EDITOR'})) {    # Configuration override
-        $self->{'EDITOR'} = $self->{'CONF'}->{'EDITOR'};
-    } else {
-        $self->configuration('EDITOR', $self->{'EDITOR'});
-    }
-    $self->{'VERSIONS'} = $self->parse_versions();
+    $self->{'CONF'} ||= $self->configuration();
+	$self->configuration('EDITOR', $self->{'EDITOR'}) unless exists $self->{'CONF'}->{'EDITOR'};
+    $self->{'CPU'}  ||= $self->cpu_info();
+    $self->{'VERSIONS'} ||= $self->parse_versions();
     $self->{'USER'}     = {
         'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
         'max_columns' => $wsize,
@@ -292,19 +299,11 @@ sub populate_common {
     $self->news_initialize();
     $self->bbs_list_initialize();
 	$self->plugins_initialize();
-    $self->{'debug'}->DEBUG(['Libraries initialized']);
-    $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
-        'FULL'  => 0,
-        '300'   => 0.02,
-        '600'   => 0.01,
-        '1200'  => 0.005,
-        '2400'  => 0.0025,
-        '4800'  => 0.00125,
-        '9600'  => 0.000625,
-        '19200' => 0.0003125,
-    };
 
-	$self->{'MENU CHOICES'} = [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 1 2 3 4 5 6 7 8 9 = - + * ! @ # $ % ^ &)];
+    $self->{'debug'}->DEBUG(['Libraries initialized']);
+
+    $self->{'SPEEDS'} ||= SPEEDS;
+	$self->{'MENU CHOICES'} = MENU_CHOICES;
 
     $self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
     $self->{'TOKENS'}  = {
@@ -669,7 +668,7 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
-	if ($self->{'COUNT'}->{'CONF'}->{'PLUGINS COUNT'}) {
+	if ($self->{'CONF'}->{'PLUGINS COUNT'}) {
 		foreach my $count (1 .. $self->{'CONF'}->{'PLUGINS COUNT'}) {
 			my $stext = 'sub plugins { my $self = shift; return($self->plugins(' . $count . '));}';
 			$self->{'COMMANDS'}->{"PLUGIN$count"} = eval($stext);

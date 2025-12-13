@@ -21,7 +21,7 @@ my $Speed = { # "Baud" speed values
 	'57600' => 0,
 };
 
-my $speed = (scalar(@ARGV)) ? $ARGV[0] : '2400';                      # For sleep to simulate 4800 baud
+my $speed = (scalar(@ARGV)) ? $ARGV[0] : '9600';                      # For sleep to simulate 9600 baud
 
 $speed = '57600' unless ($speed =~ /^(300|1200|2400|4800|9600|19200)$/);
 
@@ -82,9 +82,9 @@ WriteMakefile(
 	PREREQ_PRINT => 1,
 	PREREQ_FATAL => 1,
 	PREREQ_PM => {
-		'Config'                 => 0,
-		'English'                => 0,
-		'Time::HiRes'            => 0,
+		'Config'                 => '0',
+		'English'                => '0',
+		'Time::HiRes'            => '0',
 		'Text::Format'           => '0.50',
 		'Term::ANSIColor'        => '4.00',
 		'Term::ANSIScreen'       => '1.50',
@@ -95,12 +95,13 @@ WriteMakefile(
 		'DBD::mysql'             => '4.00',
 		'Term::ReadKey'          => '2.30',
 		'IO::Socket'             => '1.20',
-		'Debug::Easy'            => 0,
+		'Debug::Easy'            => '0',
 		'List::Util'             => '1.40',
 		'Cache::Memcached::Fast' => '0.25',
 		'XML::RSS::LibXML'       => '0.3105',
-		'Number::Format'         => 0,
-		'File::Path'             => 0,
+		'Number::Format'         => '0',
+		'File::Path'             => '0',
+		'File::Which'            => '0',
 	},
 
 	EXE_FILES => ['bin/bbs'],
