@@ -1908,8 +1908,8 @@ sub color_border {
 
     $self->{'debug'}->DEBUG(['Start Color Border']);
     my $mode = $self->{'USER'}->{'text_mode'};
-    $tbl =~ s/\n/[% NEWLINE %]/gs;
     if ($mode eq 'ANSI') {
+		$tbl =~ s/\n/[% NEWLINE %]/gs;
         if ($tbl =~ /(─+?)/) {
             my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
