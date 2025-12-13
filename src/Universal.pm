@@ -183,7 +183,7 @@ sub new {    # Always call with the socket as a parameter
     my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
 
     $params->{'debug'}->DEBUG(['Start New']);
-    my $os   = `/usr/bin/uname -a`;
+    chomp(my $os   = `/usr/bin/uname -a`);
     my $self = {
         'thread_name'     => $params->{'thread_name'},
         'thread_number'   => $params->{'thread_number'},
@@ -293,7 +293,6 @@ sub populate_common {
     $self->bbs_list_initialize();
 	$self->plugins_initialize();
     $self->{'debug'}->DEBUG(['Libraries initialized']);
-    chomp(my $os = `uname -a`);
     $self->{'SPEEDS'} = {    # This depends on the granularity of Time::HiRes
         'FULL'  => 0,
         '300'   => 0.02,
@@ -313,7 +312,7 @@ sub populate_common {
         'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
         'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
-        'OS'           => $os,
+        'OS'           => $self->{'os'},
         'PERL VERSION' => $self->{'VERSIONS'}->{'Perl'},
         'BBS VERSION'  => $self->{'VERSIONS'}->{'BBS Executable'},
         'SYSOP'        => sub {
