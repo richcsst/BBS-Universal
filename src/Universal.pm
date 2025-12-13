@@ -332,6 +332,26 @@ sub populate_common {
             }
             return ($tid);
         },
+		'NOW' => sub {
+			my $self = shift;
+			return($self->now());
+		},
+		'LAST LOGIN' => sub {
+			my $self = shift;
+			return($self->{'USER'}->{'login_time'});
+		},
+		'LAST LOGOUT' => sub {
+			my $self = shift;
+			return($self->{'USER'}->{'logout_time'});
+		},
+		'BIRTHDAY' => sub {
+			my $self = shift;
+			my $birthday = $self->{'USER'}->{'birthday'};
+			if (length($birthday) > 5) {
+				$birthday =~ s/\d\d\d\d\-(\d+)\-(\d+)/${1}-${2}/;
+			}
+			return($birthday);
+		},
         'FORTUNE' => sub {
             my $self = shift;
             return ($self->get_fortune);
@@ -715,6 +735,26 @@ sub greeting {
     return (TRUE);    # Login will also create new users
 } ## end sub greeting
 
+sub now {
+	my $self = shift;
+	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
+	my $now = sprintf('%04d-%02d-%02d', (1900 + $year), $mday, ($mon + 1));
+	return($now);
+}
+
+sub is_birthday {
+	my $self     = shift;
+	my $birthday = $self->{'USER'}->{'birthday'};
+	if (length($birthday) > 5) {
+		my ($y,$m,$d) = split(/-/,$birthday);
+		$birthday     = sprintf('%02d-%02d', $m, $d);
+	}
+	if ($birthday eq $self->now()) {
+		return(TRUE);
+	}
+	return(FALSE);
+}
+
 sub login {
     my $self = shift;
 
@@ -748,10 +788,10 @@ sub login {
                     $valid = $self->create_account();
                 } elsif ($username eq 'sysop' && !$self->{'local_mode'}) {
                     $self->{'debug'}->WARNING(['    Login as SysOp attempted!']);
-                    $self->output("\n\nSysOp cannot connect remotely\n\n");
+                    $self->output("\n\nSysOp cannot connect remotely\n");
                 } else {
                     $self->{'debug'}->DEBUG(['    Asking for password']);
-                    $self->output("\nPlease enter your password > ");
+                    $self->output("Please enter your password > ");
                     my $password = $self->get_line({ 'type' => PASSWORD, 'max' => 32, 'default' => '' });
                     $valid = $self->users_load($username, $password);
                     if ($self->{'USER'}->{'banned'}) {
@@ -760,7 +800,10 @@ sub login {
                 } ## end else [ if (uc($username) eq 'NEW')]
                 if ($valid) {
                     $self->{'debug'}->DEBUG(['  Password valid']);
-                    $self->output("\n\nWelcome " . $self->{'fullname'} . ' (' . $self->{'username'} . ")\n\n");
+                    $self->output("\nWelcome " . $self->{'USER'}->{'fullname'} . ' (' . $self->{'USER'}->{'username'} . ")\n");
+					$self->output("You last logged out on [% LAST LOGOUT %]\n");
+					$self->output("HAPPY BIRTHDAY!!\n") if ($self->is_birthday());
+					sleep 2;
                 } else {
                     $self->{'debug'}->WARNING(['  Password incorrect, try ' . $tries]);
                     $self->output("\n\nLogin incorrect\n\n");
@@ -1233,7 +1276,7 @@ sub get_line {
         $bs = $self->{'ascii_meta'}->{'BACKSPACE'}->{'out'};
     }
 
-    if ($type == PASSWORD) {
+    if ($echo == PASSWORD) {
         $self->{'debug'}->DEBUG(['  Mode:  PASSWORD']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
             if (length($line) <= $limit) {
