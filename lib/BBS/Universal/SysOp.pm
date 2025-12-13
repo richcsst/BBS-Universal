@@ -460,14 +460,14 @@ sub sysop_list_commands {
         {
             my @names = grep(!/^FONT \d/,(sort(keys %{$self->{'ansi_meta'}->{'attributes'}})));
 			foreach my $name (@names) {
-                if ($name =~ /FONT|HIDE|RING BELL|UNDERLINE COLOR/) {
+                if ($name =~ /FONT|HIDE|RING BELL/) {
                     $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('attributes',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
                     $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Set specific font (1-9)') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n" if ($name eq 'FONT DEFAULT');
                 } else {
                     $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s',$name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('attributes',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
                 }
             }
-            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s','UNDERLINE COLOR color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Set the underline color using color token.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s','UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Set the underline color using RGB values.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
         }
 
         {
@@ -526,8 +526,8 @@ sub sysop_list_commands {
         ###
 
         { # Post processing
-            my $new = 'UNDERLINE COLOR [% UNDERLINE %][% UNDERLINE COLOR RED %][% FAINT %][% ITALIC %]co[% RESET %][% UNDERLINE %][% UNDERLINE COLOR GREEN %][% FAINT %][% ITALIC %]l[% RESET %][% UNDERLINE %][% UNDERLINE COLOR BLUE %][% FAINT %][% ITALIC %]or[% RESET %]';
-            $text =~ s/UNDERLINE COLOR color/$new /gs;
+			my $new = 'UNDERLINE COLOR RGB [% UNDERLINE COLOR RGB 255,0,0 %][% UNDERLINE %]red[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,255,0 %]green[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,0,255 %]blue[% RESET %]';
+            $text =~ s/UNDERLINE COLOR RGB red,green,blue/$new /gs;
 
             $new = '[% FAINT %][% ITALIC %] color     [% RESET %]';
             $text =~ s/ color     /$new/gs;
@@ -544,6 +544,7 @@ sub sysop_list_commands {
             $new = ' [% FAINT %][% ITALIC %]color[% RESET %],[% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %],[% FAINT %][% ITALIC %]width[% RESET %],[% FAINT %][% ITALIC %]height[% RESET %],[% FAINT %][% ITALIC %]type[% RESET %] ';
             $text =~ s/ color,column,row,width,height,type /$new/gs;
         }
+
         $self->sysop_output($text);
     } elsif ($mode eq 'ATASCII') {
         foreach my $cell (@atatkn) {
