@@ -435,8 +435,6 @@ sub sysop_list_commands {
         # Use refactored dedicated ANSI builder while preserving original output
         $text = _render_ansi_catalog($self, $wsize);
 
-#        $self->sysop_output($text);
-
     } elsif ($mode && $mode eq 'ATASCII') {
         my @atatkn = (sort(keys %{ $self->{'atascii_meta'} }), 'HORIZONTAL RULE');
         my $ata    = 1;
@@ -544,7 +542,6 @@ sub sysop_list_commands {
     return ($self->ansi_decode($text));
 } ## end sub sysop_list_commands
 
-# ===== End refactored sysop_list_commands =====
 sub sysop_online_count {
     my $self = shift;
 
@@ -938,7 +935,7 @@ sub sysop_list_users {
     return ($self->sysop_keypress());
 } ## end sub sysop_list_users
 
-sub sysop_delete_files {
+sub sysop_delete_files { # Placeholder
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start SysOp Delete Files']);
@@ -1002,10 +999,7 @@ sub sysop_list_files {
 } ## end sub sysop_list_files
 
 sub sysop_color_border {
-    my $self  = shift;
-    my $tbl   = shift;
-    my $color = shift;
-    my $type  = shift;    # ROUNDED, DOUBLE, HEAVY, DEFAULT
+    my ($self, $tbl, $color, $type) = @_;
 
     $self->{'debug'}->DEBUG(['Start SysOp Color Border']);
     $color = '[% ' . $color . ' %]';
@@ -2102,11 +2096,7 @@ sub sysop_show_choices {
 } ## end sub sysop_show_choices
 
 sub sysop_validate_fields {
-    my $self   = shift;
-    my $name   = shift;
-    my $val    = shift;
-    my $row    = shift;
-    my $column = shift;
+    my ($self, $name, $val, $row, $column) = @_;
 
     $self->{'debug'}->DEBUG(['Start SysOp Validate Fields']);
     my $size     = max(3, $self->{'SYSOP FIELD TYPES'}->{$name}->{'max'});
