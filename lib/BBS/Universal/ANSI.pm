@@ -16,7 +16,7 @@ sub ansi_type {
         return ('ANSI 16 COLORS');
     } elsif ($text =~ /^\d+\;\d\;\d+m/) {
         return ('ANSI 256 COLOR');
-    } elsif ($text =~ /^\d+\:\d\:\d+\:\d+\:\d+m/) {
+    } elsif ($text =~ /^\d+\;\d\;\d+\;\d+\;\d+m/) {
         return ('ANSI TRUECOLOR');
     }
 } ## end sub ansi_type
