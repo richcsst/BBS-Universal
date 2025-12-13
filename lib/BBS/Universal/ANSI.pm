@@ -1,5 +1,5 @@
 package BBS::Universal::ANSI;
-BEGIN { our $VERSION = '0.007'; }
+BEGIN { our $VERSION = '0.008'; }
 
 # Returns a description of a token using the meta data.
 sub ansi_description {
