@@ -1,4 +1,4 @@
-package BBS::Universal 0.017;
+package BBS::Universal 0.016;
 
 # Pragmas
 use 5.010;
@@ -44,7 +44,7 @@ use constant {
     CAN    => chr(0x18),
     C_CHAR => 'C',
 
-    SUPPRESS_GO_AHEAD => 3,
+	SUPPRESS_GO_AHEAD => 3,
     LINEMODE          => 34,
     SE                => 240,
     NOP               => 214,
@@ -63,9 +63,9 @@ use constant {
     DONT              => 254,
     IAC               => 255,
 
-    PI           => (4 * atan2(1, 1)),
-    MENU_CHOICES => ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '-', '+', '*', '!', '@', '#', '$', '%', '^', '&'],
-    SPEEDS       => { # This depends on the granularity of Time::HiRes
+    PI => (4 * atan2(1, 1)),
+	MENU_CHOICES => [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 1 2 3 4 5 6 7 8 9 = - + * ! @ # $ % ^ &)],
+	SPEEDS       => {    # This depends on the granularity of Time::HiRes
         'FULL'  => 0,
         '300'   => 0.02,
         '600'   => 0.01,
@@ -195,7 +195,7 @@ sub new {    # Always call with the socket as a parameter
     my $lmode     = (exists($params->{'local_mode'}))    ? $params->{'local_mode'}    : FALSE;
 
     $params->{'debug'}->DEBUG(['Start New']);
-    chomp(my $os = `/usr/bin/uname -a`);
+    chomp(my $os   = `/usr/bin/uname -a`);
     my $self = {
         'thread_name'     => $params->{'thread_name'},
         'thread_number'   => $params->{'thread_number'},
@@ -261,130 +261,30 @@ sub new {    # Always call with the socket as a parameter
     return ($self);
 } ## end sub new
 
-sub register_token {
-    my ($self, $name, $coderef) = @_;
-    die "Token name required"    unless defined $name && length $name;
-    die "Token coderef required" unless ref($coderef) eq 'CODE';
-    $self->{'TOKENS'}->{$name} = $coderef;
-} ## end sub register_token
-
-sub get_token {
-    my ($self, $name) = @_;
-    my $code = $self->{'TOKENS'}->{$name};
-    return undef unless $code && ref($code) eq 'CODE';
-    return $code->($self);
-} ## end sub get_token
-
-sub expand_tokens {
-    my ($self, $text) = @_;
-    return '' unless defined $text;
-    $text =~ s/\[\%\s*([A-Z0-9 _\-]+)\s*\%\]/my $v = $self->get_token($1); defined $v ? $v : ''/ge;
-    return $text;
-} ## end sub expand_tokens
-
-sub register_command {
-    my ($self, $name, $coderef, $meta) = @_;
-    die "Command name required"    unless defined $name && length $name;
-    die "Command coderef required" unless ref($coderef) eq 'CODE';
-    $meta ||= {};
-    $self->{'COMMANDS'}->{$name} = {
-        code         => $coderef,
-        desc         => $meta->{desc}         // '',
-        access_level => $meta->{access_level} // 'USER',      # default minimum
-        category     => $meta->{category}     // 'general',
-    };
-} ## end sub register_command
-
-sub get_command {
-    my ($self, $name) = @_;
-    my $entry = $self->{'COMMANDS'}->{$name};
-    return $entry if $entry && ref($entry) eq 'HASH' && ref($entry->{code}) eq 'CODE';
-    return undef;
-} ## end sub get_command
-
-sub run_command {
-    my ($self, $name, @args) = @_;
-    my $cmd = $self->get_command($name);
-    unless ($cmd) {
-        $self->{'debug'}->WARNING(["Unknown command: $name"]);
-        return undef;
-    }
-
-    # Optional access control
-    my $required = $cmd->{access_level};
-    if (defined $required) {
-        my $user_level = $self->{'USER'}->{'access_level'} // 'USER';
-        my $accmap     = $self->{'access_level'}           // { 'USER' => 0, 'VETERAN' => 1, 'JUNIOR SYSOP' => 2, 'SYSOP' => 65535 };
-        if (($accmap->{$user_level} // 0) < ($accmap->{$required} // 0)) {
-            $self->{'debug'}->WARNING(["Insufficient access for command: $name"]);
-            $self->output("\nInsufficient access for command.\n");
-            return undef;
-        }
-    } ## end if (defined $required)
-    return $cmd->{code}->($self, @args);
-} ## end sub run_command
-
-sub list_commands {
-    my ($self, %opts) = @_;
-
-    # Optionally filter by category or min access
-    my $cat       = $opts{category};
-    my $min_level = $opts{min_access_level};
-    my @names     = sort keys %{ $self->{'COMMANDS'} // {} };
-    my @out;
-    for my $n (@names) {
-        my $c = $self->{'COMMANDS'}->{$n};
-        next if $cat && ($c->{category} // '') ne $cat;
-        if (defined $min_level) {
-            my $accmap = $self->{'access_level'} // { 'USER' => 0, 'VETERAN' => 1, 'JUNIOR SYSOP' => 2, 'SYSOP' => 65535 };
-            next if ($accmap->{ $c->{access_level} // 'USER' } // 0) < ($accmap->{$min_level} // 0);
-        }
-        push @out, { name => $n, desc => $c->{desc}, access_level => $c->{access_level}, category => $c->{category} };
-    } ## end for my $n (@names)
-    return \@out;
-} ## end sub list_commands
-
 sub populate_common {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start Populate Common']);
-
-    # Capture terminal size early
     my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-
-    # Resolve EDITOR: prefer ENV then fallback by which
-    if (exists($ENV{'EDITOR'}) && defined $ENV{'EDITOR'} && length $ENV{'EDITOR'}) {
+    if (exists($ENV{'EDITOR'})) {
         $self->{'EDITOR'} = $ENV{'EDITOR'};
     } else {
-        my @candidates = qw(jed nano vim ed);
-        for my $e (@candidates) {
-            my $path = File::Which::which($e);
-            if ($path) { $self->{'EDITOR'} = $path; last }
-        }
-        $self->{'EDITOR'} //= 'ed';    # final fallback
+		my @candidates = qw(jed nano vim ed);
+		for my $e (@candidates) {
+			my $path = File::Which::which($e);
+			if ($path) { $self->{'EDITOR'} = $path; last }
+		}
     } ## end else [ if (exists($ENV{'EDITOR'...}))]
-    $self->{'debug'}->DEBUGMAX(['EDITOR: ' . ($self->{'EDITOR'} // '[undef]')]);
-
-    # Load configuration and ensure EDITOR is stored
+    $self->{'debug'}->DEBUGMAX(['EDITOR: ' . $self->{'EDITOR'}]);
     $self->{'CONF'} ||= $self->configuration();
-    $self->configuration('EDITOR', $self->{'EDITOR'}) unless exists $self->{'CONF'}->{'EDITOR'};
-
-    # Initialize core info caches
-    $self->{'CPU'}      ||= $self->cpu_info();
+	$self->configuration('EDITOR', $self->{'EDITOR'}) unless exists $self->{'CONF'}->{'EDITOR'};
+    $self->{'CPU'}  ||= $self->cpu_info();
     $self->{'VERSIONS'} ||= $self->parse_versions();
-    $self->{'SPEEDS'}   ||= SPEEDS;
-    $self->{'MENU CHOICES'} = MENU_CHOICES;
-
-    # Initialize user defaults based on terminal
-    $self->{'USER'} ||= {};
-    $self->{'USER'}->{'text_mode'}   = $self->{'CONF'}->{'DEFAULT TEXT MODE'};
-    $self->{'USER'}->{'max_columns'} = $wsize;
-    $self->{'USER'}->{'max_rows'}    = ($hsize // 24) - 7;
-
-    # Initialize process start time for uptime token (avoids shelling out)
-    $self->{'PROCESS_START_TIME'} ||= time();
-
-    # Initialize libraries
+    $self->{'USER'}     = {
+        'text_mode'   => $self->{'CONF'}->{'DEFAULT TEXT MODE'},
+        'max_columns' => $wsize,
+        'max_rows'    => $hsize - 7,
+    };
     $self->{'debug'}->DEBUG(['Initializing all libraries']);
     $self->db_initialize();
     $self->ascii_initialize();
@@ -398,628 +298,382 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
-    $self->plugins_initialize();
+	$self->plugins_initialize();
+
     $self->{'debug'}->DEBUG(['Libraries initialized']);
 
-    # Fortune availability flag
+    $self->{'SPEEDS'} ||= SPEEDS;
+	$self->{'MENU CHOICES'} = MENU_CHOICES;
+
     $self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
-
-    # Prepare immutable/memoized values referenced by tokens
-    my $versions_str = '';
-    if (ref($self->{'VERSIONS'}) eq 'HASH') {
-        my @parts = map { "$_: " . ($self->{'VERSIONS'}->{$_} // '') } sort keys %{ $self->{'VERSIONS'} };
-        $versions_str = join(', ', @parts);
-    }
-    my $banner_cached = eval { $self->files_load_file('files/main/banner') };
-    $banner_cached = '' if $@ || !defined $banner_cached;
-
-    # Token registry reset and population (uniform coderefs)
-    $self->{'TOKENS'} = {};
-
-    # Helper for safe user field access
-    my $u = sub {
-        my ($s, $k, $default) = @_;
-        return defined $s->{'USER'}->{$k} ? $s->{'USER'}->{$k} : $default;
+    $self->{'TOKENS'}  = {
+        'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
+        'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
+        'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
+        'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
+        'OS'           => $self->{'os'},
+        'PERL VERSION' => $self->{'VERSIONS'}->{'Perl'},
+        'BBS VERSION'  => $self->{'VERSIONS'}->{'BBS Executable'},
+        'SYSOP'        => sub {
+            my $self = shift;
+            if ($self->{'sysop'}) {
+                return ('SYSOP CREDENTIALS');
+            } else {
+                return ('USER CREDENTIALS');
+            }
+        },
+        'THREAD ID' => sub {
+            my $self = shift;
+            my $tid  = threads->tid();
+            if ($tid == 0) {
+                $tid = 'LOCAL';
+            } else {
+                $tid = sprintf('%02d', $tid);
+            }
+            return ($tid);
+        },
+        'FORTUNE' => sub {
+            my $self = shift;
+            return ($self->get_fortune);
+        },
+        'BANNER' => sub {
+            my $self   = shift;
+            my $banner = $self->files_load_file('files/main/banner');
+            return ($banner);
+        },
+        'FILE CATEGORY' => sub {
+            my $self = shift;
+            return ($self->users_file_category());
+        },
+        'FORUM CATEGORY' => sub {
+            my $self = shift;
+            return ($self->news_title_colorize($self->users_forum_category()));
+        },
+        'RSS CATEGORY' => sub {
+            my $self = shift;
+            return ($self->news_title_colorize($self->users_rss_category()));
+        },
+        'USER INFO' => sub {
+            my $self = shift;
+            return ($self->users_info());
+        },
+        'BBS NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'BBS NAME'});
+        },
+        'AUTHOR NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
+        },
+		'COUNT PLUGINS' => sub {
+			my $self = shift;
+			return($self->{'CONF'}->{'PLUGINS COUNT'});
+		},
+        'USER PERMISSIONS' => sub {
+            my $self = shift;
+            return ($self->dump_permissions);
+        },
+        'USER ID' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'id'});
+        },
+        'USER FULLNAME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'fullname'});
+        },
+        'USER USERNAME' => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'prefer_nickname'}) {
+                return ($self->{'USER'}->{'nickname'});
+            } else {
+                return ($self->{'USER'}->{'username'});
+            }
+        },
+        'USER NICKNAME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'nickname'});
+        },
+        'USER EMAIL' => sub {
+            my $self = shift;
+            if ($self->{'USER'}->{'show_email'}) {
+                return ($self->{'USER'}->{'email'});
+            } else {
+                return ('[HIDDEN]');
+            }
+        },
+        'USERS COUNT' => sub {
+            my $self = shift;
+            return ($self->users_count());
+        },
+        'USER COLUMNS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_columns'});
+        },
+        'USER ROWS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_rows'});
+        },
+        'USER SCREEN SIZE' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'max_columns'} . 'x' . $self->{'USER'}->{'max_rows'});
+        },
+        'USER GIVEN' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'given'});
+        },
+        'USER FAMILY' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'family'});
+        },
+        'USER LOCATION' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'location'});
+        },
+        'USER BIRTHDAY' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'birthday'});
+        },
+        'USER RETRO SYSTEMS' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'retro_systems'});
+        },
+        'USER LOGIN TIME' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'login_time'});
+        },
+        'USER TEXT MODE' => sub {
+            my $self = shift;
+            return ($self->{'USER'}->{'text_mode'});
+        },
+        'BAUD RATE' => sub {
+            my $self = shift;
+            return ($self->{'baud_rate'});
+        },
+        'TIME' => sub {
+            my $self = shift;
+            return (DateTime->now);
+        },
+        'UPTIME' => sub {
+            my $self = shift;
+            chomp(my $uptime = `uptime -p`);
+            $self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
+            return ($uptime);
+        },
+        'SHOW USERS LIST' => sub {
+            my $self = shift;
+            return ($self->users_list());
+        },
+        'ONLINE' => sub {
+            my $self = shift;
+            return ($self->{'CACHE'}->get('ONLINE'));
+        },
+        'VERSIONS' => 'placeholder',
+        'UPTIME'   => 'placeholder',
     };
 
-    # Core tokens
-    $self->register_token('CPU IDENTITY', sub { my ($s) = @_; $s->{'CPU'}->{'CPU IDENTITY'} // '[UNKNOWN CPU]' });
-    $self->register_token('CPU CORES',    sub { my ($s) = @_; $s->{'CPU'}->{'CPU CORES'}    // 0 });
-    $self->register_token('CPU SPEED',    sub { my ($s) = @_; $s->{'CPU'}->{'CPU SPEED'}    // '[UNKNOWN]' });
-    $self->register_token('CPU THREADS',  sub { my ($s) = @_; $s->{'CPU'}->{'CPU THREADS'}  // 0 });
-    $self->register_token('OS',           sub { my ($s) = @_; $s->{'os'}                    // '[UNKNOWN OS]' });
-
-    # Memoized tokens
-    $self->register_token('VERSIONS', sub { $versions_str });
-    $self->register_token('BANNER',   sub { $banner_cached });
-
-    # Sysop/user status
-    $self->register_token('SYSOP', sub { my ($s) = @_; $s->{'sysop'} ? 'SYSOP CREDENTIALS' : 'USER CREDENTIALS' });
-
-    # Thread id as formatted string
-    $self->register_token(
-        'THREAD ID',
-        sub {
-            my $tid = threads->tid();
-            $tid = ($tid == 0) ? 'LOCAL' : sprintf('%02d', $tid);
-            return $tid;
-        }
-    );
-
-    # Fortune (delegated)
-    $self->register_token('FORTUNE', sub { my ($s) = @_; $s->get_fortune });
-
-    # Category tokens
-    $self->register_token('FILE CATEGORY',  sub { my ($s) = @_; $s->users_file_category() });
-    $self->register_token('FORUM CATEGORY', sub { my ($s) = @_; $s->news_title_colorize($s->users_forum_category()) });
-    $self->register_token('RSS CATEGORY',   sub { my ($s) = @_; $s->news_title_colorize($s->users_rss_category()) });
-
-    # User info aggregated
-    $self->register_token('USER INFO', sub { my ($s) = @_; $s->users_info() });
-
-    # Config-driven tokens
-    $self->register_token('BBS NAME',      sub { my ($s) = @_; $s->{'CONF'}->{'BBS NAME'}                // '[UNNAMED BBS]' });
-    $self->register_token('AUTHOR NAME',   sub { my ($s) = @_; $s->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'} // '[UNKNOWN AUTHOR]' });
-    $self->register_token('COUNT PLUGINS', sub { my ($s) = @_; $s->{'CONF'}->{'PLUGINS COUNT'}           // 0 });
-
-    # Permissions dump
-    $self->register_token('USER PERMISSIONS', sub { my ($s) = @_; $s->dump_permissions });
-
-    # User field tokens (safe access)
-    $self->register_token('USER ID',       sub { $u->($self, 'id',       '') });
-    $self->register_token('USER FULLNAME', sub { $u->($self, 'fullname', '') });
-    $self->register_token(
-        'USER USERNAME',
-        sub {
-            my ($s) = @_;
-            $s->{'USER'}->{'prefer_nickname'} ? ($u->($s, 'nickname', '')) : ($u->($s, 'username', ''));
-        }
-    );
-    $self->register_token('USER NICKNAME', sub { $u->($self, 'nickname', '') });
-    $self->register_token(
-        'USER EMAIL',
-        sub {
-            my ($s) = @_;
-            $s->{'USER'}->{'show_email'} ? ($u->($s, 'email', '[HIDDEN]')) : '[HIDDEN]';
-        }
-    );
-    $self->register_token('USERS COUNT',  sub { my ($s) = @_; $s->users_count() });
-    $self->register_token('USER COLUMNS', sub { $u->($self, 'max_columns', 40) });
-    $self->register_token('USER ROWS',    sub { $u->($self, 'max_rows',    24) });
-    $self->register_token(
-        'USER SCREEN SIZE',
-        sub {
-            my ($s)  = @_;
-            my $cols = $u->($s, 'max_columns', 40);
-            my $rows = $u->($s, 'max_rows',    24);
-            return $cols . 'x' . $rows;
-        }
-    );
-    $self->register_token('USER GIVEN',         sub { $u->($self, 'given',         '') });
-    $self->register_token('USER FAMILY',        sub { $u->($self, 'family',        '') });
-    $self->register_token('USER LOCATION',      sub { $u->($self, 'location',      '') });
-    $self->register_token('USER BIRTHDAY',      sub { $u->($self, 'birthday',      '') });
-    $self->register_token('USER RETRO SYSTEMS', sub { $u->($self, 'retro_systems', '') });
-    $self->register_token('USER LOGIN TIME',    sub { $u->($self, 'login_time',    '') });
-    $self->register_token('USER TEXT MODE',     sub { $u->($self, 'text_mode',     'ASCII') });
-
-    # Baud rate token
-    $self->register_token('BAUD RATE', sub { my ($s) = @_; $s->{'baud_rate'} // 'FULL' });
-
-    # Prefer deterministic formatted time string
-    $self->register_token('TIME', sub { DateTime->now->strftime('%Y-%m-%d %H:%M:%S') });
-
-    # UPTIME based on process start time to avoid shelling out
-    $self->register_token(
-        'UPTIME',
-        sub {
-            my ($s)  = @_;
-            my $secs = time() - ($s->{'PROCESS_START_TIME'} // time());
-            my $h    = int($secs / 3600);
-            my $m    = int(($secs % 3600) / 60);
-            my $sec  = int($secs % 60);
-            return sprintf('%02d:%02d:%02d', $h, $m, $sec);
-        }
-    );
-
-    # Data-driven list tokens
-    $self->register_token('SHOW USERS LIST', sub { my ($s) = @_; $s->users_list() });
-    $self->register_token('ONLINE',          sub { my ($s) = @_; $s->{'CACHE'}->get('ONLINE') });
-
-    # Commands adjustments: keep as-is from your original, but ensure plugin commands are registered safely
-    $self->{'COMMANDS'} = {};
-
-    # Helper to reduce repetition
-    my $R = sub {
-        my ($name, $code, $desc, $access, $cat) = @_;
-        $self->register_command($name, $code, { desc => $desc, access_level => $access, category => $cat });
-    };
-
-    # BBS List
-    $R->(
-        'SHOW FULL BBS LIST',
-        sub {
+    $self->{'COMMANDS'} = {
+        'SHOW FULL BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(FALSE);
-            return $self->load_menu('files/main/bbs_listing');
+            return ($self->load_menu('files/main/bbs_listing'));
         },
-        'Show all BBS entries',
-        'USER',
-        'bbs'
-    );
-
-    $R->(
-        'SEARCH BBS LIST',
-        sub {
+        'SEARCH BBS LIST' => sub {
             my $self = shift;
             $self->bbs_list(TRUE);
-            return $self->load_menu('files/main/bbs_listing');
+            return ($self->load_menu('files/main/bbs_listing'));
         },
-        'Search BBS entries',
-        'USER',
-        'bbs'
-    );
-
-    $R->(
-        'BBS LIST ADD',
-        sub {
-            my $self = shift;
-            $self->bbs_list_add();
-            return $self->load_menu('files/main/bbs_listing');
-        },
-        'Add a new BBS entry',
-        'JUNIOR SYSOP',
-        'bbs'
-    );
-
-    $R->(
-        'BBS LISTING',
-        sub {
-            my $self = shift;
-            return $self->load_menu('files/main/bbs_listing');
-        },
-        'BBS listing menu',
-        'USER',
-        'bbs'
-    );
-
-    # RSS / News
-    $R->(
-        'RSS FEEDS',
-        sub {
+        'RSS FEEDS' => sub {
             my $self = shift;
             $self->news_rss_feeds();
-            return $self->load_menu('files/main/news');
+            return ($self->load_menu('files/main/news'));
         },
-        'Fetch RSS feeds',
-        'USER',
-        'news'
-    );
-
-    $R->(
-        'RSS CATEGORIES',
-        sub {
-            my $self = shift;
-            $self->news_rss_categories();
-            return $self->load_menu('files/main/news');
-        },
-        'Manage RSS categories',
-        'USER',
-        'news'
-    );
-
-    $R->(
-        'NEWS',
-        sub {
-            my $self = shift;
-            return $self->load_menu('files/main/news');
-        },
-        'News menu',
-        'USER',
-        'news'
-    );
-
-    $R->(
-        'NEWS SUMMARY',
-        sub {
-            my $self = shift;
-            $self->news_summary();
-            return $self->load_menu('files/main/news');
-        },
-        'Summarize news',
-        'USER',
-        'news'
-    );
-
-    $R->(
-        'NEWS DISPLAY',
-        sub {
-            my $self = shift;
-            $self->news_display();
-            return $self->load_menu('files/main/news');
-        },
-        'Display selected news',
-        'USER',
-        'news'
-    );
-
-    # Forums
-    $R->(
-        'FORUMS',
-        sub {
-            my $self = shift;
-            return $self->load_menu('files/main/forums');
-        },
-        'Forums menu',
-        'USER',
-        'forums'
-    );
-
-    $R->(
-        'FORUM CATEGORIES',
-        sub {
-            my $self = shift;
-            $self->messages_forum_categories();
-            return $self->load_menu('files/main/forums');
-        },
-        'Choose forum category',
-        'USER',
-        'forums'
-    );
-
-    $R->(
-        'FORUM MESSAGES LIST',
-        sub {
-            my $self = shift;
-            $self->messages_list_messages();
-            return $self->load_menu('files/main/forums');
-        },
-        'List messages',
-        'USER',
-        'forums'
-    );
-
-    $R->(
-        'FORUM MESSAGES READ',
-        sub {
-            my $self = shift;
-            $self->messages_read_message();
-            return $self->load_menu('files/main/forums');
-        },
-        'Read a message',
-        'USER',
-        'forums'
-    );
-
-    $R->(
-        'FORUM MESSAGES EDIT',
-        sub {
-            my $self = shift;
-            $self->messages_edit_message('EDIT');
-            return $self->load_menu('files/main/forums');
-        },
-        'Edit a message',
-        'JUNIOR SYSOP',
-        'forums'
-    );
-
-    $R->(
-        'FORUM MESSAGES ADD',
-        sub {
-            my $self = shift;
-            $self->messages_edit_message('ADD');
-            return $self->load_menu('files/main/forums');
-        },
-        'Add a message',
-        'USER',
-        'forums'
-    );
-
-    $R->(
-        'FORUM MESSAGES DELETE',
-        sub {
-            my $self = shift;
-            $self->messages_delete_message();
-            return $self->load_menu('files/main/forums');
-        },
-        'Delete a message',
-        'JUNIOR SYSOP',
-        'forums'
-    );
-
-    # Files
-    $R->(
-        'FILES',
-        sub {
-            my $self = shift;
-            return $self->load_menu('files/main/files_menu');
-        },
-        'Files menu',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'FILE CATEGORY',
-        sub {
-            my $self = shift;
-            $self->choose_file_category();
-            return $self->load_menu('files/main/files_menu');
-        },
-        'Choose file category',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'LIST FILES SUMMARY',
-        sub {
-            my $self = shift;
-            $self->files_list_summary(FALSE);
-            return $self->load_menu('files/main/files_menu');
-        },
-        'List files (summary)',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'LIST FILES DETAILED',
-        sub {
-            my $self = shift;
-            $self->files_list_detailed(FALSE);
-            return $self->load_menu('files/main/files_menu');
-        },
-        'List files (detailed)',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'SEARCH FILES SUMMARY',
-        sub {
-            my $self = shift;
-            $self->files_list_summary(TRUE);
-            return $self->load_menu('files/main/files_menu');
-        },
-        'Search files (summary)',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'SEARCH FILES DETAILED',
-        sub {
-            my $self = shift;
-            $self->files_list_detailed(TRUE);
-            return $self->load_menu('files/main/files_menu');
-        },
-        'Search files (detailed)',
-        'USER',
-        'files'
-    );
-
-    $R->(
-        'UPLOAD FILE',
-        sub {
-            my $self = shift;
-            $self->files_upload_choices();
-            return $self->load_menu('files/main/files_menu');
-        },
-        'Upload a file',
-        'USER',
-        'files'
-    );
-
-    # Account
-    $R->(
-        'ACCOUNT MANAGER',
-        sub {
-            my $self = shift;
-            return $self->load_menu('files/main/account');
-        },
-        'Account management menu',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'UPDATE ACCOMPLISHMENTS',
-        sub {
+        'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
             $self->users_update_accomplishments();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Update accomplishments',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'UPDATE LOCATION',
-        sub {
+        'RSS CATEGORIES' => sub {
+            my $self = shift;
+            $self->news_rss_categories();
+            return ($self->load_menu('files/main/news'));
+        },
+        'FORUM CATEGORIES' => sub {
+            my $self = shift;
+            $self->messages_forum_categories();
+            return ($self->load_menu('files/main/forums'));
+        },
+        'FORUM MESSAGES LIST' => sub {
+            my $self = shift;
+            $self->messages_list_messages();
+            return ($self->load_menu('files/main/forums'));
+        },
+        'FORUM MESSAGES READ' => sub {
+            my $self = shift;
+            $self->messages_read_message();
+            return ($self->load_menu('files/main/forums'));
+        },
+        'FORUM MESSAGES EDIT' => sub {
+            my $self = shift;
+            $self->messages_edit_message('EDIT');
+            return ($self->load_menu('files/main/forums'));
+        },
+        'FORUM MESSAGES ADD' => sub {
+            my $self = shift;
+            $self->messages_edit_message('ADD');
+            return ($self->load_menu('files/main/forums'));
+        },
+        'FORUM MESSAGES DELETE' => sub {
+            my $self = shift;
+            $self->messages_delete_message();
+            return ($self->load_menu('files/main/forums'));
+        },
+        'UPDATE LOCATION' => sub {
             my $self = shift;
             $self->users_update_location();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Update location',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'UPDATE EMAIL',
-        sub {
+        'UPDATE EMAIL' => sub {
             my $self = shift;
             $self->users_update_email();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Update email',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'UPDATE RETRO SYSTEMS',
-        sub {
+        'UPDATE RETRO SYSTEMS' => sub {
             my $self = shift;
             $self->users_update_retro_systems();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Update retro systems',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'CHANGE ACCESS LEVEL',
-        sub {
+        'CHANGE ACCESS LEVEL' => sub {
             my $self = shift;
             $self->users_change_access_level();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Change access level',
-        'JUNIOR SYSOP',
-        'account'
-    );
-
-    $R->(
-        'CHANGE BAUD RATE',
-        sub {
+        'CHANGE BAUD RATE' => sub {
             my $self = shift;
             $self->users_change_baud_rate();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Change baud rate',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'CHANGE DATE FORMAT',
-        sub {
+        'CHANGE DATE FORMAT' => sub {
             my $self = shift;
             $self->users_change_date_format();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Change date format',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'CHANGE SCREEN SIZE',
-        sub {
+        'CHANGE SCREEN SIZE' => sub {
             my $self = shift;
             $self->users_change_screen_size();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Change screen size',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'CHOOSE TEXT MODE',
-        sub {
+        'CHOOSE TEXT MODE' => sub {
             my $self = shift;
             $self->users_update_text_mode();
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Choose text mode',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'TOGGLE SHOW EMAIL',
-        sub {
+        'TOGGLE SHOW EMAIL' => sub {
             my $self = shift;
             $self->users_toggle_permission('show_email');
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Toggle show email',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'TOGGLE PREFER NICKNAME',
-        sub {
+        'TOGGLE PREFER NICKNAME' => sub {
             my $self = shift;
             $self->users_toggle_permission('prefer_nickname');
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Toggle prefer nickname',
-        'USER',
-        'account'
-    );
-
-    $R->(
-        'TOGGLE PLAY FORTUNES',
-        sub {
+        'TOGGLE PLAY FORTUNES' => sub {
             my $self = shift;
             $self->users_toggle_permission('play_fortunes');
-            return $self->load_menu('files/main/account');
+            return ($self->load_menu('files/main/account'));
         },
-        'Toggle fortune playback',
-        'USER',
-        'account'
-    );
-
-    # Navigation / session
-    $R->(
-        'BACK',
-        sub {
+        'BBS LIST ADD' => sub {
             my $self = shift;
-            return $self->load_menu('files/main/menu');
+            $self->bbs_list_add();
+            return ($self->load_menu('files/main/bbs_listing'));
         },
-        'Back to main menu',
-        'USER',
-        'navigation'
-    );
-
-    $R->(
-        'DISCONNECT',
-        sub {
+        'BBS LISTING' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/bbs_listing'));
+        },
+        'LIST USERS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/list_users'));
+        },
+        'ACCOUNT MANAGER' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/account'));
+        },
+        'BACK' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/menu'));
+        },
+        'DISCONNECT' => sub {
             my $self = shift;
             $self->output("\nDisconnect, are you sure (y|N)?  ");
             unless ($self->decision()) {
-                return $self->load_menu('files/main/menu');
+                return ($self->load_menu('files/main/menu'));
             }
             $self->output("\n");
-            return undef;
         },
-        'Disconnect',
-        'USER',
-        'navigation'
-    );
-
-    $R->(
-        'ABOUT',
-        sub {
+        'FILE CATEGORY' => sub {
             my $self = shift;
-            return $self->load_menu('files/main/about');
+            $self->choose_file_category();
+            return ($self->load_menu('files/main/files_menu'));
         },
-        'About/credits',
-        'USER',
-        'navigation'
-    );
-
-    # Plugins: register PLUGIN1..PLUGINN without eval
-    if ($self->{'CONF'}->{'PLUGINS COUNT'}) {
-        foreach my $count (1 .. $self->{'CONF'}->{'PLUGINS COUNT'}) {
-            my $idx = $count;    # close over lexical
-            $self->register_command(
-                "PLUGIN$idx",
-                sub {
-                    my $self = shift;
-                    return $self->plugins($idx);
-                },
-                { desc => "Run plugin $idx", access_level => 'USER', category => 'plugin' }
-            );
-        } ## end foreach my $count (1 .. $self...)
-    } ## end if ($self->{'CONF'}->{...})
+        'FILES' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'LIST FILES SUMMARY' => sub {
+            my $self = shift;
+            $self->files_list_summary(FALSE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'UPLOAD FILE' => sub {
+            my $self = shift;
+            $self->files_upload_choices();
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'LIST FILES DETAILED' => sub {
+            my $self = shift;
+            $self->files_list_detailed(FALSE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'SEARCH FILES SUMMARY' => sub {
+            my $self = shift;
+            $self->files_list_summary(TRUE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'SEARCH FILES DETAILED' => sub {
+            my $self = shift;
+            $self->files_list_detailed(TRUE);
+            return ($self->load_menu('files/main/files_menu'));
+        },
+        'NEWS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/news'));
+        },
+        'NEWS SUMMARY' => sub {
+            my $self = shift;
+            $self->news_summary();
+            return ($self->load_menu('files/main/news'));
+        },
+        'NEWS DISPLAY' => sub {
+            my $self = shift;
+            $self->news_display();
+            return ($self->load_menu('files/main/news'));
+        },
+        'FORUMS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/forums'));
+        },
+        'ABOUT' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/about'));
+        },
+    };
+	if ($self->{'CONF'}->{'PLUGINS COUNT'}) {
+		foreach my $count (1 .. $self->{'CONF'}->{'PLUGINS COUNT'}) {
+			my $stext = 'sub plugins { my $self = shift; return($self->plugins(' . $count . '));}';
+			$self->{'COMMANDS'}->{"PLUGIN$count"} = eval($stext);
+		}
+	}
     $self->{'debug'}->DEBUG(['End Populate Common']);
 } ## end sub populate_common
 
@@ -1295,8 +949,7 @@ sub menu_choice {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc");
-
-        #        $self->output($self->news_title_colorize(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc"));
+#        $self->output($self->news_title_colorize(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc"));
     } else {
         $self->output(" $choice > $desc");
     }
@@ -1982,14 +1635,14 @@ sub choose_file_category {
     $table->hr();
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM file_categories ORDER BY description');
     $sth->execute();
-    my $index = 0;
+	my $index = 0;
     if ($sth->rows > 0) {
         while (my $row = $sth->fetchrow_hashref()) {
             $table->row($choices->[$index], $row->{'title'}, $row->{'description'});
             $hchoice->{ $choices->[$index] } = $row->{'id'};
             push(@categories, $row->{'title'});
-            $index++;
-        } ## end while (my $row = $sth->fetchrow_hashref...)
+			$index++;
+        }
         $sth->finish();
         if ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
             $self->output($table->boxes('CYAN')->draw());
@@ -2048,15 +1701,15 @@ sub configuration {
         $sth->finish();
         if ($name eq 'BBS ROOT') {
             $fval =~ s/\~/$ENV{HOME}/;
-        } elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
-            $fval = 0 + $fval;
-        } elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
-            if ($fval eq 'TRUE') {
-                $fval = TRUE;
-            } else {
-                $fval = FALSE;
-            }
-        } ## end elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/)
+		} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+			$fval = 0 + $fval;
+		} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
+			if ($fval eq 'TRUE') {
+				$fval = TRUE;
+			} else {
+				$fval = FALSE;
+			}
+        }
         return ($fval);
     } elsif ($count == 2) {    # Set a single value
         my $name = shift;
@@ -2081,15 +1734,15 @@ sub configuration {
             my $fval = $row[1];
             if ($name eq 'BBS ROOT') {
                 $fval =~ s/\~/$ENV{HOME}/;
-            } elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
-                $fval = 0 + $fval;
-            } elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
-                if ($fval eq 'TRUE') {
-                    $fval = TRUE;
-                } else {
-                    $fval = FALSE;
-                }
-            } ## end elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/)
+			} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+				$fval = 0 + $fval;
+			} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
+				if ($fval eq 'TRUE') {
+					$fval = TRUE;
+				} else {
+					$fval = FALSE;
+				}
+            }
             $results->{$name} = $fval;
             $self->{'CONF'}->{$name} = $fval;
         } ## end while (my @row = $sth->fetchrow_array...)
@@ -2256,7 +1909,7 @@ sub color_border {
     $self->{'debug'}->DEBUG(['Start Color Border']);
     my $mode = $self->{'USER'}->{'text_mode'};
     if ($mode eq 'ANSI') {
-        $tbl =~ s/\n/[% NEWLINE %]/gs;
+		$tbl =~ s/\n/[% NEWLINE %]/gs;
         if ($tbl =~ /(─+?)/) {
             my $ch  = $1;
             my $new = '[% ' . $color . ' %]' . $ch . '[% RESET %]';
@@ -2545,32 +2198,32 @@ sub html_to_text {
     }
 ###
     $text =~ s{ <!               # comments begin with a `<!'
-		  # followed by 0 or more comments;
+          # followed by 0 or more comments;
 
-		(.*?)        # this is actually to eat up comments in non
-		  # random places
+        (.*?)        # this is actually to eat up comments in non
+          # random places
 
-		(                  # not suppose to have any white space here
+        (                  # not suppose to have any white space here
 
-			# just a quick start;
-			--                # each comment starts with a `--'
-			.*?             # and includes all text up to and including
-			--                # the *next* occurrence of `--'
-			\s*             # and may have trailing while space
-			#   (albeit not leading white space XXX)
-		)+                 # repetire ad libitum  XXX should be * not +
-		  (.*?)        # trailing non comment text
-		  >                    # up to a `>'
-	}{
-		if ($1 || $3) {    # this silliness for embedded comments in tags
-			"<!$1 $3>";
-		}
-	}gesx;    # mutate into nada, nothing, and niente
+            # just a quick start;
+            --                # each comment starts with a `--'
+            .*?             # and includes all text up to and including
+            --                # the *next* occurrence of `--'
+            \s*             # and may have trailing while space
+            #   (albeit not leading white space XXX)
+        )+                 # repetire ad libitum  XXX should be * not +
+          (.*?)        # trailing non comment text
+          >                    # up to a `>'
+    }{
+        if ($1 || $3) {    # this silliness for embedded comments in tags
+            "<!$1 $3>";
+        }
+    }gesx;    # mutate into nada, nothing, and niente
 
     $text =~ s{ <                    # opening angle bracket
 
-		(?:                 # Non-backreffing grouping paren
-			[^>'"] *       # 0 or more things that are neither > nor ' nor "
+        (?:                 # Non-backreffing grouping paren
+            [^>'"] *       # 0 or more things that are neither > nor ' nor "
   |           #    or else
   ".*?"          # a section between double quotes (stingy match)
   |           #    or else
