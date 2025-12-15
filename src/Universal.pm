@@ -1,4 +1,4 @@
-package BBS::Universal 0.016;
+package BBS::Universal 0.017;
 
 # Pragmas
 use 5.010;
@@ -298,7 +298,6 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
-	$self->plugins_initialize();
 
     $self->{'debug'}->DEBUG(['Libraries initialized']);
 
@@ -385,10 +384,6 @@ sub populate_common {
             my $self = shift;
             return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
         },
-		'COUNT PLUGINS' => sub {
-			my $self = shift;
-			return($self->{'CONF'}->{'PLUGINS COUNT'});
-		},
         'USER PERMISSIONS' => sub {
             my $self = shift;
             return ($self->dump_permissions);
@@ -688,12 +683,6 @@ sub populate_common {
             return ($self->load_menu('files/main/about'));
         },
     };
-	if ($self->{'CONF'}->{'PLUGINS COUNT'}) {
-		foreach my $count (1 .. $self->{'CONF'}->{'PLUGINS COUNT'}) {
-			my $stext = 'sub plugins { my $self = shift; return($self->plugins(' . $count . '));}';
-			$self->{'COMMANDS'}->{"PLUGIN$count"} = eval($stext);
-		}
-	}
     $self->{'debug'}->DEBUG(['End Populate Common']);
 } ## end sub populate_common
 
@@ -1744,7 +1733,7 @@ sub configuration {
         $sth->finish();
         if ($name eq 'BBS ROOT') {
             $fval =~ s/\~/$ENV{HOME}/;
-		} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+		} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT)$/) {
 			$fval = 0 + $fval;
 		} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
 			if ($fval eq 'TRUE') {
@@ -1777,7 +1766,7 @@ sub configuration {
             my $fval = $row[1];
             if ($name eq 'BBS ROOT') {
                 $fval =~ s/\~/$ENV{HOME}/;
-			} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT|PLUGINS COUNT)$/) {
+			} elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT)$/) {
 				$fval = 0 + $fval;
 			} elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
 				if ($fval eq 'TRUE') {
@@ -1816,7 +1805,6 @@ sub parse_versions {
         'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
         'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
         'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
-        'BBS::Universal::Plugins'      => $BBS::Universal::PLUGINS_VERSION,
         'DBI'                          => $DBI::VERSION,
         'DBD::mysql'                   => $DBD::mysql::VERSION,
         'DateTime'                     => $DateTime::VERSION,

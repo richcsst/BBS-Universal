@@ -3,21 +3,21 @@
 # BBS Universal Generalized Test
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 14;
 use Term::ANSIColor;
 
 BEGIN {
 	use_ok('BBS::Universal');
 }
 
-diag("\n" . colored(['cyan on_black'], q{ _______        _   _              }));
-diag(colored(['cyan on_black'], q{|__   __|      | | (_)             }));
-diag(colored(['cyan on_black'], q{   | | ___  ___| |_ _ _ __   __ _  }));
-diag(colored(['cyan on_black'], q{   | |/ _ \/ __| __| | '_ \ / _` | }));
-diag(colored(['cyan on_black'], q{   | |  __/\__ \ |_| | | | | (_| | }));
-diag(colored(['cyan on_black'], q{   |_|\___||___/\__|_|_| |_|\__, | }));
-diag(colored(['cyan on_black'], q{                             __/ | }));
-diag(colored(['cyan on_black'], q{                            |___/  }));
+diag("\r  \n\r" . colored(['cyan on_black'], q{ _______        _   _              }));
+diag("\r" . colored(['cyan on_black'], q{|__   __|      | | (_)             }));
+diag("\r" . colored(['cyan on_black'], q{   | | ___  ___| |_ _ _ __   __ _  }));
+diag("\r" . colored(['cyan on_black'], q{   | |/ _ \/ __| __| | '_ \ / _` | }));
+diag("\r" . colored(['cyan on_black'], q{   | |  __/\__ \ |_| | | | | (_| | }));
+diag("\r" . colored(['cyan on_black'], q{   |_|\___||___/\__|_|_| |_|\__, | }));
+diag("\r" . colored(['cyan on_black'], q{                             __/ | }));
+diag("\r" . colored(['cyan on_black'], q{                            |___/  }) . "\n\r  ");
 
 my $green = colored(['bright_green'], ' ok');
 my $red   = colored(['red'],          ' not ok');
@@ -36,18 +36,18 @@ my $tree = {
     'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
     'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
     'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
-    'BBS::Universal::Plugins'      => $BBS::Universal::PLUGINS_VERSION,
 };
 
 foreach my $name (sort(keys %{$tree})) {
 	my $string = '';
 	ok((defined($tree->{$name}) && $tree->{$name} > 0), $name);
     if (defined($tree->{$name}) && $tree->{$name} > 0) {
-        $string .= colored(['bright_white'], sprintf('%-30s', $name)) . colored(['bright_yellow'], $tree->{$name}) . $green . "\n";
+        $string .= "\r" . colored(['bright_white'], sprintf('%-30s', $name)) . colored(['bright_yellow'], $tree->{$name}) . $green . "\n";
     } else {
-        $string .= colored(['bright_white'], sprintf('%-30s', $name)) . 'undef' . $red . "\n";
+        $string .= "\r" . colored(['bright_white'], sprintf('%-30s', $name)) . 'undef' . $red . "\n";
     }
 	diag($string);
 }
 
+diag("\r  ");
 exit(0);
