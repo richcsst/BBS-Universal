@@ -5,8 +5,8 @@ use 5.010;
 use strict;
 no strict 'subs';
 no warnings;
-
-# use Carp::Always;
+use English qw( -no_match_vars );
+use Config;
 use utf8;
 use constant {
     TRUE        =>  1,
@@ -21,28 +21,27 @@ use constant {
     STRING      =>  1,
     NUMERIC     =>  2,
     RADIO       =>  3,
-    TOGGLE      =>  4,
     BOOLEAN     =>  4,
     HOST        =>  5,
     DATE        =>  6,
     FILENAME    =>  7,
 
-    ASCII   => 0,
-    ATASCII => 1,
-    PETSCII => 2,
-    ANSI    => 3,
+    ASCII       => 0,
+    ATASCII     => 1,
+    PETSCII     => 2,
+    ANSI        => 3,
 
-    XMODEM => 0,
-    YMODEM => 1,
-    ZMODEM => 2,
+    XMODEM      => 0,
+    YMODEM      => 1,
+    ZMODEM      => 2,
 
-    SOH    => chr(0x01),
-    STX    => chr(0x02),
-    EOT    => chr(0x04),
-    ACK    => chr(0x06),
-    NAK    => chr(0x15),
-    CAN    => chr(0x18),
-    C_CHAR => 'C',
+    SOH         => chr(0x01),
+    STX         => chr(0x02),
+    EOT         => chr(0x04),
+    ACK         => chr(0x06),
+    NAK         => chr(0x15),
+    CAN         => chr(0x18),
+    C_CHAR      => 'C',
 
 	SUPPRESS_GO_AHEAD => 3,
     LINEMODE          => 34,
@@ -63,8 +62,9 @@ use constant {
     DONT              => 254,
     IAC               => 255,
 
-    PI => (4 * atan2(1, 1)),
-	MENU_CHOICES => [qw(A B C D E F G H I J K L M N O P Q R S T U V W X Y 1 2 3 4 5 6 7 8 9 = - + * ! @ # $ % ^ &)],
+    PI           => (4 * atan2(1, 1)),
+	MENU_CHOICES => ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '-', '+', '*', '!', '@', '#', '$', '%', '^', '&'],
+
 	SPEEDS       => {    # This depends on the granularity of Time::HiRes
         'FULL'  => 0,
         '300'   => 0.02,
@@ -79,13 +79,12 @@ use constant {
 use open qw(:std :utf8);
 
 # Modules
+use Exporter 'import';
 use threads (
     'yield',
     'exit' => 'threads_only',
     'stringify',
 );
-use English qw( -no_match_vars );
-use Config;
 use Debug::Easy;
 use DateTime;
 use DBI;
@@ -107,10 +106,9 @@ use File::Which;
 use Fcntl qw(:DEFAULT :flock);
 use IO::Select;
 use POSIX qw(:sys_wait_h);
+# use Carp::Always;
 
 BEGIN {
-    require Exporter;
-
     our @ISA    = qw(Exporter);
     our @EXPORT = qw(
       TRUE
@@ -124,15 +122,14 @@ BEGIN {
       SILENT
       NUMERIC
 
+      ANSI
       ASCII
       ATASCII
       PETSCII
-      ANSI
-
-      LINEMODE
 
       SUPPRESS_GO_AHEAD
       SE
+      LINEMODE
       NOP
       DATA_MARK
       BREAK
@@ -305,14 +302,76 @@ sub populate_common {
 	$self->{'MENU CHOICES'} = MENU_CHOICES;
 
     $self->{'FORTUNE'} = (-e '/usr/bin/fortune' || -e '/usr/local/bin/fortune') ? TRUE : FALSE;
+
     $self->{'TOKENS'}  = {
+        'AUTHOR NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
+        },
+        'BANNER' => sub {
+            my $self   = shift;
+            my $banner = $self->files_load_file('files/main/banner');
+            return ($banner);
+        },
+        'BBS NAME' => sub {
+            my $self = shift;
+            return ($self->{'CONF'}->{'BBS NAME'});
+        },
+        'BBS VERSION'  => $self->{'VERSIONS'}->{'BBS Executable'},
+		'BIRTHDAY' => sub {
+			my $self = shift;
+			my $birthday = $self->{'USER'}->{'birthday'};
+			if (length($birthday) > 5) {
+				$birthday =~ s/\d\d\d\d\-(\d+)\-(\d+)/${1}-${2}/;
+			}
+			return($birthday);
+		},
+        'BAUD RATE' => sub {
+            my $self = shift;
+            return ($self->{'baud_rate'});
+        },
         'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
         'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
         'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
         'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
+        'FORTUNE' => sub {
+            my $self = shift;
+            return ($self->get_fortune);
+        },
+        'FILE CATEGORY' => sub {
+            my $self = shift;
+            return ($self->users_file_category());
+        },
+        'FORUM CATEGORY' => sub {
+            my $self = shift;
+            return ($self->news_title_colorize($self->users_forum_category()));
+        },
+		'LAST LOGIN' => sub {
+			my $self = shift;
+			return($self->{'USER'}->{'login_time'});
+		},
+		'LAST LOGOUT' => sub {
+			my $self = shift;
+			return($self->{'USER'}->{'logout_time'});
+		},
+		'NOW' => sub {
+			my $self = shift;
+			return($self->now());
+		},
+        'ONLINE' => sub {
+            my $self = shift;
+            return ($self->{'CACHE'}->get('ONLINE'));
+        },
         'OS'           => $self->{'os'},
         'PERL VERSION' => $self->{'VERSIONS'}->{'Perl'},
-        'BBS VERSION'  => $self->{'VERSIONS'}->{'BBS Executable'},
+        'RSS CATEGORY' => sub {
+            my $self = shift;
+            return ($self->news_title_colorize($self->users_rss_category()));
+        },
+        'SHOW USERS LIST' => sub {
+            my $self = shift;
+            return ($self->users_list());
+        },
         'SYSOP'        => sub {
             my $self = shift;
             if ($self->{'sysop'}) {
@@ -331,58 +390,13 @@ sub populate_common {
             }
             return ($tid);
         },
-		'NOW' => sub {
-			my $self = shift;
-			return($self->now());
-		},
-		'LAST LOGIN' => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'login_time'});
-		},
-		'LAST LOGOUT' => sub {
-			my $self = shift;
-			return($self->{'USER'}->{'logout_time'});
-		},
-		'BIRTHDAY' => sub {
-			my $self = shift;
-			my $birthday = $self->{'USER'}->{'birthday'};
-			if (length($birthday) > 5) {
-				$birthday =~ s/\d\d\d\d\-(\d+)\-(\d+)/${1}-${2}/;
-			}
-			return($birthday);
-		},
-        'FORTUNE' => sub {
+        'TIME' => sub {
             my $self = shift;
-            return ($self->get_fortune);
-        },
-        'BANNER' => sub {
-            my $self   = shift;
-            my $banner = $self->files_load_file('files/main/banner');
-            return ($banner);
-        },
-        'FILE CATEGORY' => sub {
-            my $self = shift;
-            return ($self->users_file_category());
-        },
-        'FORUM CATEGORY' => sub {
-            my $self = shift;
-            return ($self->news_title_colorize($self->users_forum_category()));
-        },
-        'RSS CATEGORY' => sub {
-            my $self = shift;
-            return ($self->news_title_colorize($self->users_rss_category()));
+            return (DateTime->now);
         },
         'USER INFO' => sub {
             my $self = shift;
             return ($self->users_info());
-        },
-        'BBS NAME' => sub {
-            my $self = shift;
-            return ($self->{'CONF'}->{'BBS NAME'});
-        },
-        'AUTHOR NAME' => sub {
-            my $self = shift;
-            return ($self->{'CONF'}->{'STATIC'}->{'AUTHOR NAME'});
         },
         'USER PERMISSIONS' => sub {
             my $self = shift;
@@ -460,57 +474,74 @@ sub populate_common {
             my $self = shift;
             return ($self->{'USER'}->{'text_mode'});
         },
-        'BAUD RATE' => sub {
-            my $self = shift;
-            return ($self->{'baud_rate'});
-        },
-        'TIME' => sub {
-            my $self = shift;
-            return (DateTime->now);
-        },
         'UPTIME' => sub {
             my $self = shift;
             chomp(my $uptime = `uptime -p`);
             $self->{'debug'}->DEBUG(["Get Uptime $uptime"]);
             return ($uptime);
         },
-        'SHOW USERS LIST' => sub {
-            my $self = shift;
-            return ($self->users_list());
-        },
-        'ONLINE' => sub {
-            my $self = shift;
-            return ($self->{'CACHE'}->get('ONLINE'));
-        },
         'VERSIONS' => 'placeholder',
         'UPTIME'   => 'placeholder',
     };
 
     $self->{'COMMANDS'} = {
-        'SHOW FULL BBS LIST' => sub {
+        'ABOUT' => sub {
             my $self = shift;
-            $self->bbs_list(FALSE);
-            return ($self->load_menu('files/main/bbs_listing'));
+            return ($self->load_menu('files/main/about'));
         },
-        'SEARCH BBS LIST' => sub {
+        'ACCOUNT MANAGER' => sub {
             my $self = shift;
-            $self->bbs_list(TRUE);
-            return ($self->load_menu('files/main/bbs_listing'));
-        },
-        'RSS FEEDS' => sub {
-            my $self = shift;
-            $self->news_rss_feeds();
-            return ($self->load_menu('files/main/news'));
-        },
-        'UPDATE ACCOMPLISHMENTS' => sub {
-            my $self = shift;
-            $self->users_update_accomplishments();
             return ($self->load_menu('files/main/account'));
         },
-        'RSS CATEGORIES' => sub {
+        'BACK' => sub {
             my $self = shift;
-            $self->news_rss_categories();
-            return ($self->load_menu('files/main/news'));
+            return ($self->load_menu('files/main/menu'));
+        },
+        'BBS LIST ADD' => sub {
+            my $self = shift;
+            $self->bbs_list_add();
+            return ($self->load_menu('files/main/bbs_listing'));
+        },
+        'BBS LISTING' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/bbs_listing'));
+        },
+        'CHANGE ACCESS LEVEL' => sub {
+            my $self = shift;
+            $self->users_change_access_level();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE BAUD RATE' => sub {
+            my $self = shift;
+            $self->users_change_baud_rate();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE DATE FORMAT' => sub {
+            my $self = shift;
+            $self->users_change_date_format();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHANGE SCREEN SIZE' => sub {
+            my $self = shift;
+            $self->users_change_screen_size();
+            return ($self->load_menu('files/main/account'));
+        },
+        'CHOOSE TEXT MODE' => sub {
+            my $self = shift;
+            $self->users_update_text_mode();
+            return ($self->load_menu('files/main/account'));
+        },
+        'DISCONNECT' => sub {
+            my $self = shift;
+            $self->output("\nDisconnect, are you sure (y|N)?  ");
+            unless ($self->decision()) {
+                return ($self->load_menu('files/main/menu'));
+            }
+            $self->output("\n");
+        },
+        'FORUMS' => sub {
+            my $self = shift;
+            return ($self->load_menu('files/main/forums'));
         },
         'FORUM CATEGORIES' => sub {
             my $self = shift;
@@ -542,45 +573,29 @@ sub populate_common {
             $self->messages_delete_message();
             return ($self->load_menu('files/main/forums'));
         },
-        'UPDATE LOCATION' => sub {
+        'LIST USERS' => sub {
             my $self = shift;
-            $self->users_update_location();
-            return ($self->load_menu('files/main/account'));
+            return ($self->load_menu('files/main/list_users'));
         },
-        'UPDATE EMAIL' => sub {
+        'SHOW FULL BBS LIST' => sub {
             my $self = shift;
-            $self->users_update_email();
-            return ($self->load_menu('files/main/account'));
+            $self->bbs_list(FALSE);
+            return ($self->load_menu('files/main/bbs_listing'));
         },
-        'UPDATE RETRO SYSTEMS' => sub {
+        'SEARCH BBS LIST' => sub {
             my $self = shift;
-            $self->users_update_retro_systems();
-            return ($self->load_menu('files/main/account'));
+            $self->bbs_list(TRUE);
+            return ($self->load_menu('files/main/bbs_listing'));
         },
-        'CHANGE ACCESS LEVEL' => sub {
+        'RSS FEEDS' => sub {
             my $self = shift;
-            $self->users_change_access_level();
-            return ($self->load_menu('files/main/account'));
+            $self->news_rss_feeds();
+            return ($self->load_menu('files/main/news'));
         },
-        'CHANGE BAUD RATE' => sub {
+        'RSS CATEGORIES' => sub {
             my $self = shift;
-            $self->users_change_baud_rate();
-            return ($self->load_menu('files/main/account'));
-        },
-        'CHANGE DATE FORMAT' => sub {
-            my $self = shift;
-            $self->users_change_date_format();
-            return ($self->load_menu('files/main/account'));
-        },
-        'CHANGE SCREEN SIZE' => sub {
-            my $self = shift;
-            $self->users_change_screen_size();
-            return ($self->load_menu('files/main/account'));
-        },
-        'CHOOSE TEXT MODE' => sub {
-            my $self = shift;
-            $self->users_update_text_mode();
-            return ($self->load_menu('files/main/account'));
+            $self->news_rss_categories();
+            return ($self->load_menu('files/main/news'));
         },
         'TOGGLE SHOW EMAIL' => sub {
             my $self = shift;
@@ -597,34 +612,25 @@ sub populate_common {
             $self->users_toggle_permission('play_fortunes');
             return ($self->load_menu('files/main/account'));
         },
-        'BBS LIST ADD' => sub {
+        'UPDATE ACCOMPLISHMENTS' => sub {
             my $self = shift;
-            $self->bbs_list_add();
-            return ($self->load_menu('files/main/bbs_listing'));
-        },
-        'BBS LISTING' => sub {
-            my $self = shift;
-            return ($self->load_menu('files/main/bbs_listing'));
-        },
-        'LIST USERS' => sub {
-            my $self = shift;
-            return ($self->load_menu('files/main/list_users'));
-        },
-        'ACCOUNT MANAGER' => sub {
-            my $self = shift;
+            $self->users_update_accomplishments();
             return ($self->load_menu('files/main/account'));
         },
-        'BACK' => sub {
+        'UPDATE LOCATION' => sub {
             my $self = shift;
-            return ($self->load_menu('files/main/menu'));
+            $self->users_update_location();
+            return ($self->load_menu('files/main/account'));
         },
-        'DISCONNECT' => sub {
+        'UPDATE EMAIL' => sub {
             my $self = shift;
-            $self->output("\nDisconnect, are you sure (y|N)?  ");
-            unless ($self->decision()) {
-                return ($self->load_menu('files/main/menu'));
-            }
-            $self->output("\n");
+            $self->users_update_email();
+            return ($self->load_menu('files/main/account'));
+        },
+        'UPDATE RETRO SYSTEMS' => sub {
+            my $self = shift;
+            $self->users_update_retro_systems();
+            return ($self->load_menu('files/main/account'));
         },
         'FILE CATEGORY' => sub {
             my $self = shift;
@@ -673,14 +679,6 @@ sub populate_common {
             my $self = shift;
             $self->news_display();
             return ($self->load_menu('files/main/news'));
-        },
-        'FORUMS' => sub {
-            my $self = shift;
-            return ($self->load_menu('files/main/forums'));
-        },
-        'ABOUT' => sub {
-            my $self = shift;
-            return ($self->load_menu('files/main/about'));
         },
     };
     $self->{'debug'}->DEBUG(['End Populate Common']);

@@ -1,5 +1,5 @@
 package BBS::Universal::ASCII;
-BEGIN { our $VERSION = '0.003'; }
+BEGIN { our $VERSION = '0.003' };
 
 sub ascii_initialize {
     my $self = shift;
