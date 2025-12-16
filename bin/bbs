@@ -27,7 +27,7 @@ no warnings;
 # Use threads first, so others inherit
 use threads (
     'yield',
-	'stack_size' => 256 * 1024, # 256K
+    'stack_size' => 256 * 1024, # 256K
     'exit'       => 'threads_only',
     'stringify',
 );
@@ -51,20 +51,21 @@ use Cache::Memcached::Fast;
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.012';
+    our $VERSION = '0.013';
 }
 
+binmode(STDIN,  ':encoding(UTF-8)');
 binmode(STDOUT, ':encoding(UTF-8)');
 binmode(STDERR, ':encoding(UTF-8)');
 
-my $OLDDIR         = getcwd;
-my $LEVEL          = 'ERROR';
-my $SERVER_THREADS = {};
-my $RESTART        = FALSE;
-my @CALL           = @ARGV;
-my $SINGLE         = FALSE;
-my $MPLAYER        = FALSE;
-my $NOSOUND        = FALSE;
+our $OLDDIR         = getcwd;
+our $LEVEL          = 'ERROR';
+our $SERVER_THREADS = {};
+our $RESTART        = FALSE;
+our @CALL           = @ARGV;
+our $SINGLE         = FALSE;
+our $MPLAYER        = FALSE;
+our $NOSOUND        = FALSE;
 
 # Shared with threads
 
@@ -77,26 +78,28 @@ GetOptions(
     'nosound|silent' => \$NOSOUND,
 );
 
-$LEVEL = uc($LEVEL);
-my $DEBUG = Debug::Easy->new(
+our $DEBUG = Debug::Easy->new(
     'LogLevel' => $LEVEL,
     'Color'    => TRUE,
 );
-$DEBUG->DEBUG(['Initializing BBS...']);
+
 ############## BBS Core ###################
+$DEBUG->DEBUG(['Initializing BBS...']);
+
 print cls,locate(1,1),'Initializing BBS...';
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'nosound' => $NOSOUND });
+
 $DEBUG->DEBUG(['Initializing Memcached']);
-my $CACHE   = Cache::Memcached::Fast->new(
+our $CACHE   = Cache::Memcached::Fast->new(
     {
         'servers' => [
             {
                 'address' => $BBS_OBJ->{'CONF'}->{'MEMCACHED HOST'} . ':' . $BBS_OBJ->{'CONF'}->{'MEMCACHED PORT'},
             },
         ],
-        'namespace'      => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
-        'utf8'           => TRUE,
-        'close_on_error' => TRUE,
+          'namespace'      => $BBS_OBJ->{'CONF'}->{'MEMCACHED NAMESPACE'},
+          'utf8'           => TRUE,
+          'close_on_error' => TRUE,
     }
 );
 $CACHE->flush_all;
@@ -119,40 +122,26 @@ $SIG{'QUIT'} = $SIG{'INT'} = $SIG{'KILL'} = $SIG{'TERM'} = $SIG{'HUP'} = sub { h
 my $MAX_THREADS = ($SINGLE) ? 1 : min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BBS_OBJ->{'CONF'}->{'THREAD MULTIPLIER'}), 99);
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 $DEBUG->DEBUG(['Initializing SysOp Commands']);
+
 our $SYSOP_COMMANDS = {
-    'SYSOP SHOW ENVIRONMENT' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANSI'));
-    },
-    'SYSOP MANUAL' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual.ANSI'));
-    },
-    'SYSOP MANUAL INTRODUCTION' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-introduction.ANSI'));
-    },
-    'SYSOP MANUAL MENUS' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-menus.ANSI'));
-    },
     'SYSOP ADD FILE' => sub {
         my $self = shift;
         $self->sysop_add_file();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
-    'SYSOP BBS LISTINGS MANAGER' => sub {
+    'SYSOP ADD USER' => sub {
         my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
-    },
-    'SYSOP BBS EDIT' => sub {
-        my $self = shift;
-        $self->sysop_edit_bbs();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+        $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
     'SYSOP BBS ADD' => sub {
         my $self = shift;
         $self->sysop_add_bbs();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+    },
+    'SYSOP BBS BULK MERGE' => sub {
+        my $self = shift;
+        $self->sysop_bbs_list_bulk_import();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
     'SYSOP BBS DELETE' => sub {
@@ -160,139 +149,19 @@ our $SYSOP_COMMANDS = {
         $self->sysop_delete_bbs();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
+    'SYSOP BBS EDIT' => sub {
+        my $self = shift;
+        $self->sysop_edit_bbs();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+    },
     'SYSOP BBS LIST VIEW' => sub {
         my $self = shift;
         $self->sysop_list_bbs();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
-    'SYSOP EDIT FILE CATEGORIES' => sub {
+    'SYSOP COMMANDS REFERENCE ANSI' => sub {
         my $self = shift;
-        $self->sysop_edit_file_categories();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-    },
-    'SYSOP SELECT FILE CATEGORY' => sub {
-        my $self = shift;
-
-        $self->sysop_select_file_category();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-    },
-    'SYSOP FILE MANAGER' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-    },
-    'SYSOP LIST FILES' => sub {
-        my $self = shift;
-        $self->sysop_list_files();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-    },
-    'SYSOP DELETE FILES' => sub {
-        my $self = shift;
-        $self->sysop_delete_files();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-    },
-    'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
-        my $self = shift;
-        $self->sysop_list_users('VERTICAL ABBREVIATED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
-        my $self = shift;
-        $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANSI');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP LIST USERS VERTICAL DETAILED' => sub {
-        my $self = shift;
-        $self->sysop_list_users('VERTICAL DETAILED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP LIST USERS HORIZONTAL DETAILED' => sub {
-        my $self = shift;
-        $self->sysop_list_users('HORIZONTAL DETAILED');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP EDIT USER' => sub {
-        my $self = shift;
-        $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP EDIT NEW USERS' => sub {
-        my $self = shift;
-        $self->sysop_new_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP ADD USER' => sub {
-        my $self = shift;
-        $self->sysop_user_add($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/adduser.ANSI');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP DELETE USER' => sub {
-        my $self = shift;
-        $self->sysop_user_delete($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/deleteuser.ANSI');
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP SHUTDOWN' => sub {
-        my $self = shift;
-        print "\nShutdown BBS (y/N)?  ";
-        if ($self->sysop_decision) {
-            print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
-            $CACHE->set('RUNNING', FALSE);
-        } else {
-            return('BACK');
-        }
-    },
-    'SYSOP RESTART' => sub {
-        print "\n\nShutting down threads\n";
-        $CACHE->set('RUNNING', FALSE);
-        $RESTART = TRUE;
-    },
-    'SYSOP LOGIN SYSOP' => sub {
-        run_bbs_sysop(shift, TRUE, $DEBUG, $LEVEL);
-        return ('BACK');
-    },
-    'SYSOP LOGIN USER' => sub {
-        run_bbs_sysop(shift, FALSE, $DEBUG, $LEVEL);
-        return ('BACK');
-    },
-    'SYSOP STATISTICS' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/statistics.ANSI'));
-    },
-    'BACK' => sub {    # Dummy placeholder
-    },
-    'SYSOP USER MANAGER' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
-    },
-    'SYSOP SETTINGS' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
-    },
-    'SYSOP EDIT CONFIGURATION' => sub {
-        my $self = shift;
-        $self->sysop_edit_configuration();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
-    },
-    'SYSOP LIST COMMANDS' => sub {
-        my $self = shift;
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-    },
-    'SYSOP COMMANDS REFERENCE FULL' => sub {
-        my $self = shift;
-        $self->sysop_output($self->sysop_list_commands('FULL'));
-        print "\nPress a key to continue ";
-        $self->sysop_keypress(TRUE);
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-    },
-    'SYSOP COMMANDS REFERENCE USER' => sub {
-        my $self = shift;
-        $self->sysop_output($self->sysop_list_commands('USER'));
-        print "\nPress a key to continue ";
-        $self->sysop_keypress(TRUE);
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
-    },
-    'SYSOP COMMANDS REFERENCE SYSOP' => sub {
-        my $self = shift;
-        $self->sysop_output($self->sysop_list_commands('SYSOP'));
+        $self->sysop_output($self->sysop_list_commands('ANSI'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
@@ -311,9 +180,9 @@ our $SYSOP_COMMANDS = {
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
-    'SYSOP COMMANDS REFERENCE ANSI' => sub {
+    'SYSOP COMMANDS REFERENCE FULL' => sub {
         my $self = shift;
-        $self->sysop_output($self->sysop_list_commands('ANSI'));
+        $self->sysop_output($self->sysop_list_commands('FULL'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
@@ -325,12 +194,131 @@ our $SYSOP_COMMANDS = {
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
     },
-    'SYSOP BBS BULK MERGE' => sub {
+    'SYSOP COMMANDS REFERENCE SYSOP' => sub {
         my $self = shift;
-        $self->sysop_bbs_list_bulk_import();
-        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+        $self->sysop_output($self->sysop_list_commands('SYSOP'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
+    },
+    'SYSOP DELETE FILES' => sub {
+        my $self = shift;
+        $self->sysop_delete_files();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
+    },
+    'SYSOP DELETE USER' => sub {
+        my $self = shift;
+        $self->sysop_user_delete($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/deleteuser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP EDIT CONFIGURATION' => sub {
+        my $self = shift;
+        $self->sysop_edit_configuration();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
+    },
+    'SYSOP EDIT FILE CATEGORIES' => sub {
+        my $self = shift;
+        $self->sysop_edit_file_categories();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
+    },
+    'SYSOP EDIT NEW USERS' => sub {
+        my $self = shift;
+        $self->sysop_new_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP EDIT USER' => sub {
+        my $self = shift;
+        $self->sysop_user_edit($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST'), 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP LIST COMMANDS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
+    },
+    'SYSOP LIST FILES' => sub {
+        my $self = shift;
+        $self->sysop_list_files();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
+    },
+    'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
+        my $self = shift;
+        $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANSI');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP LIST USERS HORIZONTAL DETAILED' => sub {
+        my $self = shift;
+        $self->sysop_list_users('HORIZONTAL DETAILED');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP LIST USERS VERTICAL ABBREVIATED' => sub {
+        my $self = shift;
+        $self->sysop_list_users('VERTICAL ABBREVIATED');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP LIST USERS VERTICAL DETAILED' => sub {
+        my $self = shift;
+        $self->sysop_list_users('VERTICAL DETAILED');
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
+    },
+    'SYSOP LOGIN SYSOP' => sub {
+        run_bbs_sysop(shift, TRUE, $DEBUG, $LEVEL);
+        return ('BACK');
+    },
+    'SYSOP LOGIN USER' => sub {
+        run_bbs_sysop(shift, FALSE, $DEBUG, $LEVEL);
+        return ('BACK');
+    },
+    'SYSOP MANUAL' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual.ANSI'));
+    },
+    'SYSOP MANUAL INTRODUCTION' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-introduction.ANSI'));
+    },
+    'SYSOP MANUAL MENUS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-menus.ANSI'));
+    },
+    'SYSOP RESTART' => sub {
+        print "\n\nShutting down threads\n";
+        $CACHE->set('RUNNING', FALSE);
+        $RESTART = TRUE;
+    },
+    'SYSOP SELECT FILE CATEGORY' => sub {
+        my $self = shift;
+
+        $self->sysop_select_file_category();
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
+    },
+    'SYSOP SETTINGS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
+    },
+    'SYSOP SHUTDOWN' => sub {
+        my $self = shift;
+        print "\nShutdown BBS (y/N)?  ";
+        if ($self->sysop_decision) {
+            print "\n", colored(['bright_yellow','on_red'],' Shutting down threads '), "\n";
+            $CACHE->set('RUNNING', FALSE);
+        } else {
+            return('BACK');
+        }
+    },
+    'SYSOP SHOW ENVIRONMENT' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/environment.ANSI'));
+    },
+    'SYSOP STATISTICS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/statistics.ANSI'));
+    },
+    'SYSOP USER MANAGER' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/usermanager.ANSI'));
     },
 };
+
 $DEBUG->DEBUG(['SysOp Commands Initialized','Starting BBS']);
 system_menu($BBS_OBJ);
 chdir($OLDDIR);
@@ -341,52 +329,19 @@ if ($RESTART) {
 
 exit(0);
 
-###########################################
-
-sub shutdown_message {
-    $DEBUG->DEBUG(['Shutdown Beginning']);
-    logo();
-    print colored(['red'],q{
- ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
- ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸ 
- ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸}), "\n\n";
-    $DEBUG->DEBUG(['Shutdown Complete']);
-} ## end sub shutdown_message
-
-sub logo {
-    my $bbs_obj = shift;
-    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
-
-    $DEBUG->DEBUG(['Start Logo']);
-    $CACHE->set('ROW_ADJUST', 0);
-    my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
-    my $banner  = colored(['red','on_black'],         q{  ____  ____ ____    _   _       _                          _  } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' [% VERSION %]                            ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['yellow','on_black'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Written By Richard Kelsch                ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2025 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['magenta','on_black'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' All Rights Reserved                      ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['bright_blue','on_black'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Licensed Under The Perl Artistic License ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['blue','on_black'], q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷}) . "\n";
-
-    $banner =~ s/\[\% VERSION \%\]/$version/s;
-    print setscroll(1, $hsize), locate(1, 1);
-    $banner .= locate(6,108) . colored(['blue','on_black'], '━' x ($wsize - 107));
-    print $banner;
-    print locate($CACHE->get('START_ROW'), 1),  cldown;
-    $DEBUG->DEBUG(['End Logo']);
-    return ($wsize, $hsize, $wpixels, $hpixels);
-}
+##############################################################################
 
 sub ruler {
-	my $width   = shift;
+    my $width   = shift;
 
-	my $text = "\r" . '⏺' x $width;
-	for (my $count=0;$count<$width;$count++) {
-		my $v = $count / 10;
-		if (int($count / 10) == $v) {
-			substr($text,$count,1) = substr("$count",0,1);
-		}
-	}
-	return($text);
+    my $text = "\r" . '⏺' x $width;
+    for (my $count=0;$count<$width;$count++) {
+        my $v = $count / 10;
+        if (int($count / 10) == $v) {
+            substr($text,$count,1) = substr("$count",0,1);
+        }
+    }
+    return($text);
 }
 
 sub system_menu {
@@ -428,9 +383,9 @@ sub system_menu {
                     $bbs_obj,
                     {
                         'thread_number' => $thread,
-                        'thread_name'   => $name,
-                        'socket'        => $socket,
-                        'debuglevel'    => $LEVEL
+                          'thread_name'   => $name,
+                          'socket'        => $socket,
+                          'debuglevel'    => $LEVEL
                     }
                 );
                 $CACHE->set('UPDATE', TRUE);
@@ -581,10 +536,10 @@ sub run_bbs {
         my $client_socket = $socket->accept();
         if (defined($client_socket)) {
             binmode($client_socket, ':ultra-raw');
-			# Turn off LINEMODE
-			print $client_socket chr(IAC),chr(WONT),chr(LINEMODE);
-			print $client_socket chr(IAC),chr(WILL),chr(ECHO);
-			print $client_socket chr(IAC),chr(WILL),chr(SUPPRESS_GO_AHEAD);
+            # Turn off LINEMODE
+            print $client_socket chr(IAC),chr(WONT),chr(LINEMODE);
+            print $client_socket chr(IAC),chr(WILL),chr(ECHO);
+            print $client_socket chr(IAC),chr(WILL),chr(SUPPRESS_GO_AHEAD);
             $CACHE->set_multi(
                 [$thread_name, 'CONNECTED'],
                 ['UPDATE',     TRUE],
@@ -592,11 +547,11 @@ sub run_bbs {
             my $bbs = BBS::Universal->new(
                 {
                     'thread_name'   => $thread_name,
-                    'thread_number' => $thread_number,
-                    'socket'        => $socket,
-                    'client_socket' => $client_socket,
-                    'debug'         => $debug,
-                    'debuglevel'    => $params->{'debuglevel'},
+                      'thread_number' => $thread_number,
+                      'socket'        => $socket,
+                      'client_socket' => $client_socket,
+                      'debug'         => $debug,
+                      'debuglevel'    => $params->{'debuglevel'},
                 }
             );
             $bbs->run(FALSE);
@@ -631,9 +586,9 @@ sub run_bbs_sysop {
     my $bbs = BBS::Universal->new(
         {
             'thread_name' => 'CONSOLE',
-            'debug'       => $debug,
-            'debuglevel'  => $level,
-            'local_mode'  => TRUE,
+              'debug'       => $debug,
+              'debuglevel'  => $level,
+              'local_mode'  => TRUE,
         }
     );
     $bbs->run($sysop);
@@ -704,6 +659,39 @@ sub hard_finish {
     exit(1);
 }
 
+sub shutdown_message {
+    $DEBUG->DEBUG(['Shutdown Beginning']);
+    logo();
+    print colored(['red'],q{
+                               ┏━┓╻ ╻╻ ╻╺┳╸╺┳┓┏━┓╻ ╻┏┓╻   ┏━╸┏━┓┏┳┓┏━┓╻  ┏━╸╺┳╸┏━╸
+                               ┗━┓┣━┫┃ ┃ ┃  ┃┃┃ ┃┃╻┃┃┗┫   ┃  ┃ ┃┃┃┃┣━┛┃  ┣╸  ┃ ┣╸
+                               ┗━┛╹ ╹┗━┛ ╹ ╺┻┛┗━┛┗┻┛╹ ╹   ┗━╸┗━┛╹ ╹╹  ┗━╸┗━╸ ╹ ┗━╸}), "\n\n";
+    $DEBUG->DEBUG(['Shutdown Complete']);
+} ## end sub shutdown_message
+
+sub logo {
+    my $bbs_obj = shift;
+    my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
+
+    $DEBUG->DEBUG(['Start Logo']);
+    $CACHE->set('ROW_ADJUST', 0);
+    my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
+    my $banner  = colored(['red','on_black'],         q{  ____  ____ ____    _   _       _                          _  } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' [% VERSION %]                            ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['yellow','on_black'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Written By Richard Kelsch                ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2025 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['magenta','on_black'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' All Rights Reserved                      ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['bright_blue','on_black'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Licensed Under The Perl Artistic License ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['blue','on_black'], q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷}) . "\n";
+    $banner =~ s/\[\% VERSION \%\]/$version/s;
+
+    print setscroll(1, $hsize), locate(1, 1);
+    $banner .= locate(6,108) . colored(['blue','on_black'], '━' x ($wsize - 107));
+    print $banner;
+    print locate($CACHE->get('START_ROW'), 1),  cldown;
+    $DEBUG->DEBUG(['End Logo']);
+    return ($wsize, $hsize, $wpixels, $hpixels);
+}
+
 __END__
 
 =pod
@@ -715,7 +703,7 @@ __END__
  BBS::Universal
 
  =============================================================
-  ____  ____ ____    _   _       _                          _ 
+  ____  ____ ____    _   _       _                          _
  | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |
  |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |
  | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |
