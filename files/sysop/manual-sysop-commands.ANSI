@@ -1,0 +1,170 @@
+# Key | Command | Color | Description
+Z|SYSOP MANUAL|WHITE|Return To Table of Contents
+---
+[% CLS %][% BRIGHT RED %][% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT RED     %] [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %]  [% RED         %] ____  ____ ____    _   _       _                          _ [% RESET %] [% BRIGHT CYAN %] __  __                         _ [% RESET %]
+[% BRIGHT YELLOW       %] [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %] [% RESET %][% BRIGHT YELLOW  %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %] [% YELLOW      %]| __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| |[% RESET %] [% BRIGHT CYAN %]|  \/  | __ _ _ __  _   _  __ _| |[% RESET %]
+[% BRIGHT GREEN        %]  [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %] [% RESET %][% BRIGHT GREEN   %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% GREEN       %]|  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | |[% RESET %] [% BRIGHT CYAN %]| |\/| |/ _` | '_ \| | | |/ _` | |[% RESET %]
+[% BRIGHT MAGENTA      %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %] [% RESET %][% BRIGHT MAGENTA %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% MAGENTA     %]| |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | |[% RESET %] [% BRIGHT CYAN %]| |  | | (_| | | | | |_| | (_| | |[% RESET %]
+[% BRIGHT BLUE         %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %] [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% BRIGHT BLUE %]|____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_|[% RESET %] [% BRIGHT CYAN %]|_|  |_|\__,_|_| |_|\__,_|\__,_|_|[% RESET %]
+[% BRIGHT CYAN         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT CYAN    %] [% RESET %][% BRIGHT CYAN    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]
+
+[% HORIZONTAL RULE CYAN %][% BOLD %][% B_CYAN %][% BLACK %] SYSOP COMMANDS[% RESET %]
+
+[% JUSTIFIED %]SysOp mode is completely isolated from the user mode.  The following are commands to place in the command section of menus.  Do not place these commands in the text portion of menus.[% ENDJUSTIFIED %]
+
+[% JUSTIFIED %]The default menu files have commands that are where they are to be logically used.  However, commands can be used in any menu file, if you so desire.  I suggest that you only modify the [% ITALIC %]text[% RESET %] portion of menu files.[% ENDJUSTIFIED %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP ADD FILE[% RESET %]
+
+[% JUSTIFIED %]This scans the file path (default is [% ITALIC %]files/file[% RESET %]) for files not added to the database.[% ENDJUSTIFIED %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP ADD USER[% RESET %]
+
+This allows the SysOp to manually add a user.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS ADD[% RESET %]
+
+Manually add a BBS entry.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS BULK MERGE[% RESET %]
+
+This merges the latest BBS list file from:
+
+https://www.telnetbbsguide.com
+
+[% JUSTIFIED %]Extract the file "short_month_year.txt" (short_Dec_25.txt for example), rename it "bbs_list.txt" and move it to the BBS path.  Then run the Bulk Merge.  The BBS list is quickly updated.[% ENDJUSTIFIED %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS DELETE[% RESET %]
+
+[% JUSTIFIED %]Delete a BBS entry.  Note, if it is contained in a merged list and if you merge again, then it will reappear.[% ENDJUSTIFIED %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS EDIT[% RESET %]
+
+Edit a BBS entry.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS LIST VIEW[% RESET %]
+
+A sorted and formatted list of all BBS entries in the database.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP BBS LISTINGS MANAGER[% RESET %]
+
+This will load and parse the "file/sysop/bbs_listing_manager.ANSI" menu.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE ANSI[% RESET %]
+
+Shows a quick list of ANSI tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE ASCII[% RESET %]
+
+Shows a quick list of ASCII tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE ATASCII[% RESET %]
+
+Shows a quick list of ATASCII tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE PETSCII[% RESET %]
+
+Shows a quick list of PETSCII tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE SYSOP[% RESET %]
+
+Shows a quick list of SysOp commands and tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP COMMANDS REFERENCE USER[% RESET %]
+
+Shows a quick list of User mode commands and tokens
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP DELETE FILES[% RESET %]
+
+Delete files from the files database and the files path.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP DELETE USER[% RESET %]
+
+This marks the user as BANNED.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP EDIT CONFIGURATION[% RESET %]
+
+Edit the system configuration
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP EDIT FILE CATEGORIES[% RESET %]
+
+Edit file system categories
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP EDIT NEW USERS[% RESET %]
+
+[% JUSTIFIED %]All users default to "USER" access level.  This is a read-only access level.  This command lists each new ueser and allows you to raise their access level to "VETERAN".  Veterans are allowed to post and download/upload files.[% ENDJUSTIFIED %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP EDIT USER[% RESET %]
+
+This allows you to edit any arbitrary user and their attributes.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST COMMANDS[% RESET %]
+
+The lists the SysOp commands.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST FILES[% RESET %]
+
+List files in the current category.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST USERS HORIZONTAL ABBREVIATED[% RESET %]
+
+Show an abbreviated list of users.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST USERS HORIZONTAL DETAILED[% RESET %]
+
+Show a detailed list of users.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST USERS VERTICAL ABBREVIATED[% RESET %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LIST USERS VERTICAL DETAILED[% RESET %]
+
+Detailed list of users
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LOGIN SYSOP[% RESET %]
+
+Login as SysOp
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP LOGIN USER[% RESET %]
+
+Login as another user.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP MANUAL[% RESET %]
+
+Show the SysOp manual.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP MANUAL INTRODUCTION[% RESET %]
+
+The SysOp manual introduction.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP MANUAL MENUS[% RESET %]
+
+The SysOp manual for menus.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP RESTART[% RESET %]
+
+Restart the BBS.  [% B_RED %][% BRIGHT YELLOW %] DANGEROUS! [% RESET %]
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP SELECT FILE CATEGORY[% RESET %]
+
+Change the current file category for SysOp mode.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP SETTINGS[% RESET %]
+
+Change the BBS settings and defaults.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP SHOW ENVIRONMENT[% RESET %]
+
+Show the system environment variables.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP SHUTDOWN[% RESET %]
+
+Shutdown the BBS.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP STATISTICS[% RESET %]
+
+Show server statistics.
+
+[% HORIZONTAL RULE BLUE %][% BOLD %][% B_BLUE %][% BRIGHT YELLOW %] SYSOP USER MANAGER[% RESET %]
+
+Shows the user manager menu.
+

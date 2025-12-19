@@ -1039,7 +1039,7 @@ sub ansi_initialize {
 		my $bg_code = $code;
 		$bg_code =~ s/\[38;/[48;/;
 			[ "B_${name}", $bg_code, $desc ]
-			} @fg_extra;
+		} @fg_extra;
 
 		my $background = $pairs_to_map->(
 			map { [ $_->[0], $_->[1], $_->[2] ] } @bg16,
@@ -1055,8 +1055,7 @@ sub ansi_initialize {
 			background => $background,
 		};
 
-		$self->{'debug'}->DEBUG(['End ANSI Initialize']);
-#	$self->{'debug'}->ERROR([$self->{'ansi_meta'}]); exit;
-		return($self);
-	} ## end sub ansi_initialize
-	1;
+	$self->{'debug'}->DEBUG(['End ANSI Initialize']);
+	return($self);
+} ## end sub ansi_initialize
+1;

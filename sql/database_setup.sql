@@ -512,52 +512,52 @@ INSERT INTO file_types (type, extension) VALUES ('MS-DOS Command Executable','CO
 INSERT INTO file_types (type, extension) VALUES ('MS-DOS Batch','BAT');
 INSERT INTO file_types (type, extension) VALUES ('MS-DOS/Windows Executable','EXE');
 
-INSERT INTO file_categories (title,description) VALUES ('BBS::Universal Specific','All Files Relating to BBS Universal');
-INSERT INTO file_categories (title,description) VALUES ('General','General Files');
-INSERT INTO file_categories (title,description) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Files');
-INSERT INTO file_categories (title,description) VALUES ('Atari ST/STE','Atari ST/STE Files');
-INSERT INTO file_categories (title,description) VALUES ('Atari TT030','Atari TT030 Files');
-INSERT INTO file_categories (title,description) VALUES ('Atari Falcon030','Atari Falcon030 Files');
-INSERT INTO file_categories (title,description) VALUES ('Commodore PET','Commodore PET Files');
-INSERT INTO file_categories (title,description) VALUES ('Commodore VIC-20','Commodore VIC-20 Files');
-INSERT INTO file_categories (title,description) VALUES ('Commodore C64/128','Commodore C64/128 Files');
-INSERT INTO file_categories (title,description) VALUES ('Commodore TED','Commodore C16/Plus4 Files');
-INSERT INTO file_categories (title,description) VALUES ('Commodore Amiga','Commodore Amiga Files');
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Files');
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Files');
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Files');
-INSERT INTO file_categories (title,description) VALUES ('Sinclair Spectrum','Sinclair Spectrum Files');
-INSERT INTO file_categories (title,description) VALUES ('Heathkit','Heathkit Files');
-INSERT INTO file_categories (title,description) VALUES ('CP/M','CP/M Files');
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Files');
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Files');
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 Z80','TRS-80 Model I/II/III/4 Files');
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 68000','TRS-80 Model 16/6000 Files');
-INSERT INTO file_categories (title,description) VALUES ('Apple ][','Apple ][/Franklin Ace Files');
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh 680x0','Macintosh 68000 Files');
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh PPC','Macintosh PowerPC Files');
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files');
-INSERT INTO file_categories (title,description) VALUES ('MS-DOS','MS-DOS Files');
-INSERT INTO file_categories (title,description) VALUES ('Windows 3.xx','Windows 16 Bit Files');
-INSERT INTO file_categories (title,description) VALUES ('Windows NT','Windows NT Files');
-INSERT INTO file_categories (title,description) VALUES ('Windows 32/64 Bit','Windows 32/64 Bit Files');
-INSERT INTO file_categories (title,description) VALUES ('Linux','Linux Files');
-INSERT INTO file_categories (title,description) VALUES ('FreeBSD','FreeBSD Files');
-INSERT INTO file_categories (title,description) VALUES ('Homebrew','Homebrew Files');
-INSERT INTO file_categories (title,description) VALUES ('MSX','MSX Files');
-INSERT INTO file_categories (title,description) VALUES ('Wang','Wang Files');
-INSERT INTO file_categories (title,description) VALUES ('Oric','Oric Files');
+INSERT INTO file_categories (title,description) VALUES ('BBS::Universal Specific','All Files Relating to BBS Universal');       -- 1
+INSERT INTO file_categories (title,description) VALUES ('General','General Files');                                             -- 2
+INSERT INTO file_categories (title,description) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Files');                        -- 3
+INSERT INTO file_categories (title,description) VALUES ('Atari ST/STE','Atari ST/STE Files');                                   -- 4
+INSERT INTO file_categories (title,description) VALUES ('Atari TT030','Atari TT030 Files');                                     -- 5
+INSERT INTO file_categories (title,description) VALUES ('Atari Falcon030','Atari Falcon030 Files');                             -- 6
+INSERT INTO file_categories (title,description) VALUES ('Commodore PET','Commodore PET Files');                                 -- 7
+INSERT INTO file_categories (title,description) VALUES ('Commodore VIC-20','Commodore VIC-20 Files');                           -- 8
+INSERT INTO file_categories (title,description) VALUES ('Commodore C64/128','Commodore C64/128 Files');                         -- 9
+INSERT INTO file_categories (title,description) VALUES ('Commodore TED','Commodore C16/Plus4 Files');                           -- 10
+INSERT INTO file_categories (title,description) VALUES ('Commodore Amiga','Commodore Amiga Files');                             -- 11
+INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Files'); -- 12
+INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Files');                     -- 13
+INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Files');                     -- 14
+INSERT INTO file_categories (title,description) VALUES ('Sinclair Spectrum','Sinclair Spectrum Files');                         -- 15
+INSERT INTO file_categories (title,description) VALUES ('Heathkit','Heathkit Files');                                           -- 16
+INSERT INTO file_categories (title,description) VALUES ('CP/M','CP/M Files');                                                   -- 17
+INSERT INTO file_categories (title,description) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Files');                           -- 18
+INSERT INTO file_categories (title,description) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Files');                       -- 19
+INSERT INTO file_categories (title,description) VALUES ('TRS-80 Z80','TRS-80 Model I/II/III/4 Files');                          -- 20
+INSERT INTO file_categories (title,description) VALUES ('TRS-80 68000','TRS-80 Model 16/6000 Files');                           -- 21
+INSERT INTO file_categories (title,description) VALUES ('Apple ][','Apple ][/Franklin Ace Files');                              -- 22
+INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh 680x0','Macintosh 68000 Files');                       -- 23
+INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh PPC','Macintosh PowerPC Files');                       -- 24
+INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files');                         -- 25
+INSERT INTO file_categories (title,description) VALUES ('MS-DOS','MS-DOS Files');                                               -- 26
+INSERT INTO file_categories (title,description) VALUES ('Windows 3.xx','Windows 16 Bit Files');                                 -- 27
+INSERT INTO file_categories (title,description) VALUES ('Windows NT','Windows NT Files');                                       -- 28
+INSERT INTO file_categories (title,description) VALUES ('Windows 32/64 Bit','Windows 32/64 Bit Files');                         -- 29
+INSERT INTO file_categories (title,description) VALUES ('Linux','Linux Files');                                                 -- 30
+INSERT INTO file_categories (title,description) VALUES ('FreeBSD','FreeBSD Files');                                             -- 31
+INSERT INTO file_categories (title,description) VALUES ('Homebrew','Homebrew Files');                                           -- 32
+INSERT INTO file_categories (title,description) VALUES ('MSX','MSX Files');                                                     -- 33
+INSERT INTO file_categories (title,description) VALUES ('Wang','Wang Files');                                                   -- 34
+INSERT INTO file_categories (title,description) VALUES ('Oric','Oric Files');                                                   -- 35
 
-INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
-INSERT INTO files (filename,title,file_type,description,file_size) VALUES ('BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);
 INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (2,'usa.ans','ANSI Token File USA',(SELECT id FROM file_types WHERE extension='ANS'),'USA in USA Themed Font in ANSI Token Format', 5303);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (8,'sinclair.ans','ANSI Token File Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Sinclair Logo in ANSI Token Format', 6447);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (7,'timex-sinclair.ans','ANSI Token File Timex/Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair Logo in ANSI Token Format', 4206);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (7,'timex-sinclair-1000.ans','ANSI Token File Timex/Sinclair 1000 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1000 Logo in ANSI Token Format', 5109);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (7,'timex-sinclair-1500.ans','ANSI Token File Timex/Sinclair 1500 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1500 Logo in ANSI Token Format', 5582);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (7,'timex-sinclair-2048.ans','ANSI Token File Timex/Sinclair 2048 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2048 Logo in ANSI Token Format', 5151);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (7,'timex-sinclair-2068.ans','ANSI Token File Timex/Sinclair 2068 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2068 Logo in ANSI Token Format', 5179);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (16,'linux.vt','ANSI Linux Logo',(SELECT id FROM file_types WHERE extension='VT'),'Linux logo in ANSI format', 2650);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (15,'sinclair.ans','ANSI Token File Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Sinclair Logo in ANSI Token Format', 6447);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair.ans','ANSI Token File Timex/Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair Logo in ANSI Token Format', 4206);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair-1000.ans','ANSI Token File Timex/Sinclair 1000 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1000 Logo in ANSI Token Format', 5109);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair-1500.ans','ANSI Token File Timex/Sinclair 1500 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1500 Logo in ANSI Token Format', 5582);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (13,'timex-sinclair-2048.ans','ANSI Token File Timex/Sinclair 2048 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2048 Logo in ANSI Token Format', 5151);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (14,'timex-sinclair-2068.ans','ANSI Token File Timex/Sinclair 2068 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2068 Logo in ANSI Token Format', 5179);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (30,'linux.vt','ANSI Linux Logo',(SELECT id FROM file_types WHERE extension='VT'),'Linux logo in ANSI format', 2650);
 
 INSERT INTO news (
     news_title,

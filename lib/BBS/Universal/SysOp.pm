@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.017'; }
+BEGIN { our $VERSION = '0.018'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -92,45 +92,21 @@ sub sysop_initialize {
 
     # Field type definitions
     $self->{'SYSOP FIELD TYPES'} = {
-        'id'          => { 'type' => NUMERIC, 'max' => 2,   'min' => 2 },
-        'username'    => { 'type' => HOST,    'max' => 32,  'min' => 16 },
-        'fullname'    => { 'type' => STRING,  'max' => 20,  'min' => 15 },
-        'given'       => { 'type' => STRING,  'max' => 120, 'min' => 32 },
-        'family'      => { 'type' => STRING,  'max' => 120, 'min' => 32 },
-        'nickname'    => { 'type' => STRING,  'max' => 120, 'min' => 32 },
-        'email'       => { 'type' => STRING,  'max' => 120, 'min' => 32 },
-        'birthday'    => { 'type' => STRING,  'max' => 10,  'min' => 10 },
-        'location'    => { 'type' => STRING,  'max' => 120, 'min' => 40 },
-        'date_format' => {
-            'type'    => RADIO,
-            'max'     => 14,
-            'min'     => 14,
-            'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY'],
-            'default' => 'DAY/MONTH/YEAR',
-        },
-        'access_level' => {
-            'type'    => RADIO,
-            'max'     => 12,
-            'min'     => 12,
-            'choices' => ['USER', 'VETERAN', 'JUNIOR SYSOP', 'SYSOP'],
-            'default' => 'USER',
-        },
-        'baud_rate' => {
-            'type'    => RADIO,
-            'max'     => 5,
-            'min'     => 5,
-            'choices' => ['FULL', '19200', '9600', '4800', '2400', '1200', '600', '300'],
-            'default' => 'FULL',
-        },
-        'login_time'  => { 'type' => STRING, 'max' => 10, 'min' => 10 },
-        'logout_time' => { 'type' => STRING, 'max' => 10, 'min' => 10 },
-        'text_mode'   => {
-            'type'    => RADIO,
-            'max'     => 7,
-            'min'     => 9,
-            'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'],
-            'default' => 'ASCII',
-        },
+        'id'              => { 'type' => NUMERIC, 'max' => 2,   'min' => 2 },
+        'username'        => { 'type' => HOST,    'max' => 32,  'min' => 16 },
+        'fullname'        => { 'type' => STRING,  'max' => 20,  'min' => 15 },
+        'given'           => { 'type' => STRING,  'max' => 120, 'min' => 32 },
+        'family'          => { 'type' => STRING,  'max' => 120, 'min' => 32 },
+        'nickname'        => { 'type' => STRING,  'max' => 120, 'min' => 32 },
+        'email'           => { 'type' => STRING,  'max' => 120, 'min' => 32 },
+        'birthday'        => { 'type' => STRING,  'max' => 10,  'min' => 10 },
+        'location'        => { 'type' => STRING,  'max' => 120, 'min' => 40 },
+        'date_format'     => { 'type' => RADIO,   'max' => 14,  'min' => 14, 'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY'], 'default' => 'DAY/MONTH/YEAR', },
+        'access_level'    => { 'type' => RADIO,   'max' => 12,  'min' => 12, 'choices' => ['USER', 'VETERAN', 'JUNIOR SYSOP', 'SYSOP'], 'default' => 'USER', },
+        'baud_rate'       => { 'type' => RADIO,   'max' => 5,   'min' => 5, 'choices' => ['FULL', '19200', '9600', '4800', '2400', '1200', '600', '300'], 'default' => 'FULL', },
+        'login_time'      => { 'type' => STRING,  'max' => 10,  'min' => 10 },
+        'logout_time'     => { 'type' => STRING,  'max' => 10,  'min' => 10 },
+        'text_mode'       => { 'type' => RADIO,   'max' => 7,   'min' => 9, 'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'], 'default' => 'ASCII', },
         'max_rows'        => { 'type' => NUMERIC, 'max' => 3,   'min' => 3, 'default' => 25 },
         'max_columns'     => { 'type' => NUMERIC, 'max' => 3,   'min' => 3, 'default' => 80 },
         'timeout'         => { 'type' => NUMERIC, 'max' => 5,   'min' => 5, 'default' => 10 },
@@ -148,7 +124,7 @@ sub sysop_initialize {
         'play_fortunes'   => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'YES' },
         'sysop'           => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
         'page_sysop'      => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'password'        => { 'type' => STRING, 'max' => 64, 'min' => 32 },
+        'password'        => { 'type' => STRING,  'max' => 64,  'min' => 32 },
     };
 
     $self->{'debug'}->DEBUG(['End SysOp Initialize']);
@@ -759,9 +735,9 @@ sub sysop_animate {
     my $row  = shift;
 
     my @color = @{ $self->{'sysop_menu_colors'} };
-    ###
-    my $text = "\e[s" . "\e[" . $row++ . ";1H\e[" . $color[0] . "m◥\e[" . ($color[0] + 10) . "m \e[0m\e[" . $color[0] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[1] . "m◥\e[" . ($color[1] + 10) . "m \e[0m\e[" . $color[1] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[2] . "m◥\e[" . ($color[2] + 10) . "m \e[0m\e[" . $color[2] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[3] . "m◢\e[" . ($color[3] + 10) . "m \e[0m\e[" . $color[3] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[4] . "m◢\e[" . ($color[4] + 10) . "m \e[0m\e[" . $color[4] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";1H\e[" . $color[5] . "m◢\e[" . ($color[5] + 10) . "m \e[0m\e[" . $color[5] . "m\e[7m◢\e[0m" . "\e[u";
-    ###
+
+    my $text = "\e[s" . "\e[1;91H\e[48;2;0;0;96m\e[93m " . $self->clock() . " \e[" . $row++ . ";1H\e[" . $color[0] . "m◥\e[" . ($color[0] + 10) . "m \e[0m\e[" . $color[0] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[1] . "m◥\e[" . ($color[1] + 10) . "m \e[0m\e[" . $color[1] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[2] . "m◥\e[" . ($color[2] + 10) . "m \e[0m\e[" . $color[2] . "m\e[7m◥\e[0m" . "\e[" . $row++ . ";3H\e[" . $color[3] . "m◢\e[" . ($color[3] + 10) . "m \e[0m\e[" . $color[3] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";2H\e[" . $color[4] . "m◢\e[" . ($color[4] + 10) . "m \e[0m\e[" . $color[4] . "m\e[7m◢\e[0m" . "\e[" . $row++ . ";1H\e[" . $color[5] . "m◢\e[" . ($color[5] + 10) . "m \e[0m\e[" . $color[5] . "m\e[7m◢\e[0m" . "\e[u";
+
     $self->{'CACHE'}->set('SHOW_STATUS', FALSE);
     print $text;
     $self->{'CACHE'}->set('SHOW_STATUS', TRUE);
@@ -1537,40 +1513,30 @@ sub sysop_get_line {
     my $bs   = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     if ($echo == RADIO) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line RADIO']);
-        my $regexp = join('', @{ $type->{'choices'} });
-        $self->{'debug'}->DEBUGMAX([$regexp]);
-        while ($key ne chr(13) && $key ne chr(3)) {
-            if (length($line) <= $limit) {
-                $key = $self->sysop_get_key(SILENT, BLOCKING);
-                return ('') if (defined($key) && $key eq chr(3));
-                if (defined($key) && $key ne '') {
-                    if ($key eq $bs || $key eq chr(127)) {
-                        my $len = length($line);
-                        if ($len > 0) {
-                            print "$key $key";
-                            chop($line);
-                        }
-                    } elsif ($regexp =~ /$key/i) {
-                        print uc($key);
-                        $line .= uc($key);
-                    } else {
-                        print chr(7);
-                    }
-                } ## end if (defined($key) && $key...)
-            } else {
-                $key = $self->sysop_get_key(SILENT, BLOCKING);
-                if (defined($key) && $key eq chr(3)) {
-                    return ('');
-                }
-                if (defined($key) && ($key eq $bs)) {
-                    $key = $bs;
-                    print "$key $key";
-                    chop($line);
-                } else {
-                    print chr(7);
-                }
-            } ## end else [ if (length($line) <= $limit)]
-        } ## end while ($key ne chr(13) &&...)
+
+		my $mapping;
+		my @menu_choices = @{$self->{'MENU CHOICES'}};
+
+		foreach my $choice (@{$choices}) {
+			$mapping->{ shift(@menu_choices) } = {
+				'command'      => $choice,
+				'color'        => 'WHITE',
+				'access_level' => 'USER',
+				'text'         => $choice,
+			}
+		}
+		print "\n";
+		$self->sysop_show_choices($mapping);
+		$self->sysop_prompt('Choose');
+		my $key;
+		do {
+			$key = uc($self->sysop_get_key(SILENT, BLOCKING));
+		} until (exists($mapping->{$key}) || $key eq chr(3));
+		if ($key eq chr(3)) {
+			$line = '';
+		} else {
+			$line = $mapping->{$key}->{'command'};
+		}
     } elsif ($echo == BOOLEAN) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line BOOLEAN']);
         do {
@@ -1824,8 +1790,14 @@ sub sysop_user_edit {
                     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{$key} . '= !' . $choice{$key} . '  WHERE id=?');
                     $sth->execute($user_row->{'id'});
                     $sth->finish();
+				} elsif($choice{$key} =~ /text_mode/) {
+                    my $new = $self->sysop_get_line($self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }, $user_row->{ $choice{$key} });
+                    $user_row->{ $choice{$key} } = $new;
+                    my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
+                    $sth->execute($new, $self->{'text_modes'}->{$user_row->{'id'}});
+                    $sth->finish();
                 } else {
-                    my $new = $self->sysop_get_line(ECHO, 1 + $self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }->{'max'}, $user_row->{ $choice{$key} });
+                    my $new = $self->sysop_get_line($self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }, $user_row->{ $choice{$key} });
                     $user_row->{ $choice{$key} } = $new;
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});

@@ -123,6 +123,23 @@ my $MAX_THREADS = ($SINGLE) ? 1 : min(int($BBS_OBJ->{'CPU'}->{'CPU CORES'} * $BB
 chdir($BBS_OBJ->{'CONF'}->{'BBS ROOT'});
 $DEBUG->DEBUG(['Initializing SysOp Commands']);
 
+# ╭─────────┬───────────────────────╮
+# │ Unicode │ Character Token Names │
+# ├─────────┼───────────────────────┤
+# │ U+1FBF0 │  SEGMENTED DIGIT ZERO │ 🯰
+# │ U+1FBF1 │   SEGMENTED DIGIT ONE │ 🯱
+# │ U+1FBF2 │   SEGMENTED DIGIT TWO │ 🯲
+# │ U+1FBF3 │ SEGMENTED DIGIT THREE │ 🯳
+# │ U+1FBF4 │  SEGMENTED DIGIT FOUR │ 🯴
+# │ U+1FBF5 │  SEGMENTED DIGIT FIVE │ 🯵
+# │ U+1FBF6 │   SEGMENTED DIGIT SIX │ 🯶
+# │ U+1FBF7 │ SEGMENTED DIGIT SEVEN │ 🯷
+# │ U+1FBF8 │ SEGMENTED DIGIT EIGHT │ 🯸
+# │ U+1FBF9 │  SEGMENTED DIGIT NINE │ 🯹
+# ╰─────────┴───────────────────────╯
+
+our @CLOCK = ('🯰','🯱','🯲','🯳','🯴','🯵','🯶','🯷','🯸','🯹');
+
 our $SYSOP_COMMANDS = {
     'SYSOP ADD FILE' => sub {
         my $self = shift;
@@ -139,6 +156,10 @@ our $SYSOP_COMMANDS = {
         $self->sysop_add_bbs();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
+	'SYSOP BBS LISTINGS MANAGER' => sub {
+		my $self = shift;
+        return($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
+	},
     'SYSOP BBS BULK MERGE' => sub {
         my $self = shift;
         $self->sysop_bbs_list_bulk_import();
@@ -197,6 +218,13 @@ our $SYSOP_COMMANDS = {
     'SYSOP COMMANDS REFERENCE SYSOP' => sub {
         my $self = shift;
         $self->sysop_output($self->sysop_list_commands('SYSOP'));
+        print "\nPress a key to continue ";
+        $self->sysop_keypress(TRUE);
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
+    },
+    'SYSOP COMMANDS REFERENCE USER' => sub {
+        my $self = shift;
+        $self->sysop_output($self->sysop_list_commands('USER'));
         print "\nPress a key to continue ";
         $self->sysop_keypress(TRUE);
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/commands_reference.ANSI'));
@@ -275,6 +303,22 @@ our $SYSOP_COMMANDS = {
     'SYSOP MANUAL INTRODUCTION' => sub {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-introduction.ANSI'));
+    },
+    'SYSOP MANUAL SYSOP COMMANDS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-sysop-commands.ANSI'));
+    },
+    'SYSOP MANUAL SYSOP TOKENS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-sysop-tokens.ANSI'));
+    },
+    'SYSOP MANUAL USER COMMANDS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-user-commands.ANSI'));
+    },
+    'SYSOP MANUAL USER TOKENS' => sub {
+        my $self = shift;
+        return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/manual-user-tokens.ANSI'));
     },
     'SYSOP MANUAL MENUS' => sub {
         my $self = shift;
