@@ -12,51 +12,100 @@ Z|SYSOP MANUAL|WHITE|Return To Table of Contents
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] BBS NAME[% RESET %]
 
+Show the BBS name.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] BBS VERSIONS[% RESET %]
+
+Show BBS versions.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] COMMANDS REFERENCE[% RESET %]
 
+Show the "files/sysop/commands_reference.ANSI" menu.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU BITS[% RESET %]
+
+The number of bits the CPU processes (usually 32 or 64).
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU CORES[% RESET %]
 
+The number of CPU cores.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU IDENTITY[% RESET %]
+
+Show CPU identity.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU LOAD[% RESET %]
 
+Show the CPU load.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU SPEED[% RESET %]
+
+Show the CPU speed.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU THREADS[% RESET %]
 
+Show the number of CPU threads.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] DISK FREE SPACE[% RESET %]
+
+Show the 'df' or 'duf' disk free output.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] ENVIRONMENT[% RESET %]
 
+Show the system environment variables.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] FILE CATEGORY[% RESET %]
+
+Show the current file category.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] HARDWARE[% RESET %]
 
+Show the hardware description.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] HOSTNAME[% RESET %]
+
+Show the server hostname.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] IP ADDRESS[% RESET %]
 
+Show the server IP address.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] JUSTIFIED text ENDJUSTIFIED[% RESET %]
+
+Justify text between JUSTIFIED and ENDJUSTIFIED tokens.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] MEMORY[% RESET %]
 
+Shows the memory table.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] MIDDLE VERTICAL RULE color[% RESET %]
+
+Show a vertical rule centered and in the set color.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] ONLINE[% RESET %]
 
+Show number of users online.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] SYSOP VIEW CONFIGURATION[% RESET %]
+
+Show the system configuration.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] THREADS COUNT[% RESET %]
 
+Show the number of server threads.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] UPTIME[% RESET %]
+
+Show the system uptime.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] USERS COUNT[% RESET %]
 
+Show the number of users.
+
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] VERSIONS[% RESET %]
+
+Show complete versions output.
 
 [% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] WRAP text ENDWRAP[% RESET %]
 
+Wrap text between the WRAP and ENDWRAP tokens.
