@@ -1,5 +1,5 @@
-package BBS::Universal::ATASCII;
-BEGIN { our $VERSION = '0.007'; }
+\package BBS::Universal::ATASCII;
+BEGIN { our $VERSION = '0.006'; }
 
 sub atascii_initialize {
     my $self = shift;
