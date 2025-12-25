@@ -10,7 +10,7 @@ sub petscii_initialize {
 		'NULL 0'                                  => { 'out' => chr(0),   'unicode' => ' ', 'desc' => 'NOP 0', },
 		'NULL 1'                                  => { 'out' => chr(1),   'unicode' => ' ', 'desc' => 'NOP 1', },
 		'NULL 2'                                  => { 'out' => chr(2),   'unicode' => ' ', 'desc' => 'NOP 2', },
-		'STOP'                                    => { 'out' => chr(3),   'unicode' => ' ', 'desc' => 'PETSCII STOP',
+		'STOP'                                    => { 'out' => chr(3),   'unicode' => ' ', 'desc' => 'PETSCII STOP', },
 		'NULL 4'                                  => { 'out' => chr(4),   'unicode' => ' ', 'desc' => 'NOP 4', },
         'WHITE'                                   => { 'out' => chr(5),   'unicode' => ' ', 'desc' => 'White text', },
         'RESET'                                   => { 'out' => chr(5),   'unicode' => ' ', 'desc' => 'Reset back to white text', },
