@@ -43,50 +43,50 @@ sub sysop_initialize {
     # Field orderings
     $self->{'SYSOP ORDER DETAILED'} = [
         qw(
-			id
-			fullname
-			username
-			given
-			family
-			nickname
-			email
-			birthday
-			location
-			access_level
-			date_format
-			baud_rate
-			text_mode
-			max_columns
-			max_rows
-			timeout
-			retro_systems
-			accomplishments
-			prefer_nickname
-			view_files
-			upload_files
-			download_files
-			remove_files
-			play_fortunes
-			read_message
-			post_message
-			remove_message
-			sysop
-			page_sysop
-			banned
-			login_time
-			logout_time
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            email
+            birthday
+            location
+            access_level
+            date_format
+            baud_rate
+            text_mode
+            max_columns
+            max_rows
+            timeout
+            retro_systems
+            accomplishments
+            prefer_nickname
+            view_files
+            upload_files
+            download_files
+            remove_files
+            play_fortunes
+            read_message
+            post_message
+            remove_message
+            sysop
+            page_sysop
+            banned
+            login_time
+            logout_time
         )
     ];
 
     $self->{'SYSOP ORDER ABBREVIATED'} = [
         qw(
-			id
-			fullname
-			username
-			given
-			family
-			nickname
-			text_mode
+            id
+            fullname
+            username
+            given
+            family
+            nickname
+            text_mode
         )
     ];
 
@@ -147,16 +147,16 @@ sub _build_static_tokens {
     my ($self, $versions, $bbs_versions) = @_;
     return {
         'HOSTNAME'     => $self->sysop_hostname,
-		  'IP ADDRESS'   => $self->sysop_ip_address(),
-		  'CPU BITS'     => $self->{'CPU'}->{'CPU BITS'},
-		  'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
-		  'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
-		  'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
-		  'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
-		  'HARDWARE'     => $self->{'CPU'}->{'HARDWARE'},
-		  'VERSIONS'     => $versions,
-		  'BBS VERSIONS' => $bbs_versions,
-		  'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
+          'IP ADDRESS'   => $self->sysop_ip_address(),
+          'CPU BITS'     => $self->{'CPU'}->{'CPU BITS'},
+          'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
+          'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
+          'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
+          'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
+          'HARDWARE'     => $self->{'CPU'}->{'HARDWARE'},
+          'VERSIONS'     => $versions,
+          'BBS VERSIONS' => $bbs_versions,
+          'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
     };
 } ## end sub _build_static_tokens
 
@@ -165,23 +165,23 @@ sub _build_dynamic_tokens {
     my ($self) = @_;
     return {
         'THREADS COUNT'   => sub { my $self = shift; return $self->{'CACHE'}->get('THREADS_RUNNING'); },
-		  'USERS COUNT'     => sub { my $self = shift; return $self->db_count_users(); },
-		  'UPTIME'          => sub { my $self = shift; my $uptime = `uptime -p`; chomp($uptime); return $uptime; },
-		  'DISK FREE SPACE' => sub { my $self = shift; return $self->sysop_disk_free(); },
-		  'MEMORY'          => sub { my $self = shift; return $self->sysop_memory(); },
-		  'ONLINE'          => sub { my $self = shift; return $self->sysop_online_count(); },
-		  'CPU LOAD'        => sub { my $self = shift; return $self->cpu_info->{'CPU LOAD'}; },
-		  'ENVIRONMENT'     => sub { my $self = shift; return $self->sysop_showenv(); },
-		  'FILE CATEGORY'   => sub {
-			  my $self = shift;
-			  my $sth  = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
-			  $sth->execute($self->{'USER'}->{'file_category'});
-			  my ($result) = $sth->fetchrow_array();
-			  return $self->news_title_colorize($result);
-		  },
-		  'SYSOP VIEW CONFIGURATION'   => sub { my $self = shift; return $self->sysop_view_configuration('string'); },
-		  'COMMANDS REFERENCE'         => sub { my $self = shift; return $self->sysop_list_commands(); },
-		  'MIDDLE VERTICAL RULE color' => sub { my $self = shift; my $color = shift; return $self->sysop_locate_middle('B_' . $color); },
+          'USERS COUNT'     => sub { my $self = shift; return $self->db_count_users(); },
+          'UPTIME'          => sub { my $self = shift; my $uptime = `uptime -p`; chomp($uptime); return $uptime; },
+          'DISK FREE SPACE' => sub { my $self = shift; return $self->sysop_disk_free(); },
+          'MEMORY'          => sub { my $self = shift; return $self->sysop_memory(); },
+          'ONLINE'          => sub { my $self = shift; return $self->sysop_online_count(); },
+          'CPU LOAD'        => sub { my $self = shift; return $self->cpu_info->{'CPU LOAD'}; },
+          'ENVIRONMENT'     => sub { my $self = shift; return $self->sysop_showenv(); },
+          'FILE CATEGORY'   => sub {
+              my $self = shift;
+              my $sth  = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
+              $sth->execute($self->{'USER'}->{'file_category'});
+              my ($result) = $sth->fetchrow_array();
+              return $self->news_title_colorize($result);
+          },
+          'SYSOP VIEW CONFIGURATION'   => sub { my $self = shift; return $self->sysop_view_configuration('string'); },
+          'COMMANDS REFERENCE'         => sub { my $self = shift; return $self->sysop_list_commands(); },
+          'MIDDLE VERTICAL RULE color' => sub { my $self = shift; my $color = shift; return $self->sysop_locate_middle('B_' . $color); },
     };
 } ## end sub _build_dynamic_tokens
 
@@ -269,114 +269,114 @@ sub _render_ansi_catalog {
     # CLEAR section
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]CLEAR [% RESET %][% BRIGHT GREEN %]' . '═' x 56 . '╤' . '═' x 56 . '╡[% RESET %]' . "\n";
     {
-		my @names = (sort(keys %{ $self->{'ansi_meta'}->{'clear'} }));
-		while (scalar(@names)) {
-			my $name = shift(@names);
-			$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('clear', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		}
+        my @names = (sort(keys %{ $self->{'ansi_meta'}->{'clear'} }));
+        while (scalar(@names)) {
+            my $name = shift(@names);
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('clear', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
     }
 
     # CURSOR section
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]CURSOR [% RESET %][% BRIGHT GREEN %]' . '═' x 55 . '╪' . '═' x 56 . '╡[% RESET %]' . "\n";
     {
-		my @names = (sort(keys %{ $self->{'ansi_meta'}->{'cursor'} }));
-		while (scalar(@names)) {
-			my $name = shift(@names);
-			$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('cursor', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		}
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'LOCATE column,row') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Sets the cursor location') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL UP count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen up by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL DOWN count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen down by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        my @names = (sort(keys %{ $self->{'ansi_meta'}->{'cursor'} }));
+        while (scalar(@names)) {
+            my $name = shift(@names);
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('cursor', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'LOCATE column,row') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Sets the cursor location') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL UP count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen up by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL DOWN count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen down by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
     }
 
     # ATTRIBUTES section
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]ATTRIBUTES [% RESET %][% BRIGHT GREEN %]' . '═' x 51 . '╪' . '═' x 56 . '╡[% RESET %]' . "\n";
     {
-		my @names = grep(!/FONT \d/, (sort(keys %{ $self->{'ansi_meta'}->{'attributes'} })));
-		foreach my $name (@names) {
-			if ($name =~ /FONT|HIDE|RING BELL/) {
-				$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-				$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set specific font (1-9)') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n" if ($name eq 'FONT DEFAULT');
-			} else {
-				$text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s', $name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-			}
-		} ## end foreach my $name (@names)
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s', 'UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set the underline color using RGB') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-	}
+        my @names = grep(!/FONT \d/, (sort(keys %{ $self->{'ansi_meta'}->{'attributes'} })));
+        foreach my $name (@names) {
+            if ($name =~ /FONT|HIDE|RING BELL/) {
+                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set specific font (1-9)') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n" if ($name eq 'FONT DEFAULT');
+            } else {
+                $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s', $name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            }
+        } ## end foreach my $name (@names)
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s', 'UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set the underline color using RGB') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+    }
 
     {
-		my $f;
-		my $b;
-		foreach my $code ('ANSI 16 COLORS','ANSI 256 COLOR','ANSI TRUECOLOR') {
-			if ($code eq 'ANSI 16 COLORS') {
-				$text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╤═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
-			} else {
-				$text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╪═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
-			}
-			my @names = grep(!/^(DEFAULT|COLOR|GRAY)/,(sort(keys %{$self->{'ansi_meta'}->{'foreground'}})));
-			unshift(@names,'DEFAULT');
-			if ($code eq 'ANSI 256 COLOR') {
-				foreach my $count (16 .. 231) {
-					push(@names,"COLOR $count");
-				}
-				foreach my $count (0 .. 23) {
-					push(@names,"GRAY $count");
-				}
-			}
-			foreach my $name (@names) {
-				next if ($self->ansi_type($self->{'ansi_meta'}->{'foreground'}->{$name}->{'out'}) ne $code);
-				if ($name =~ /^(DEFAULT|NAVY|COLOR 16|BLACK)$/) {
-					$text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %]│' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
-				} else {
-					$text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
-				}
-			}
-		}
-		$text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ','RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-31s ', 'B_RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ','Set color to a value 0-255 per primary color.') . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
-	}
+        my $f;
+        my $b;
+        foreach my $code ('ANSI 16 COLORS','ANSI 256 COLOR','ANSI TRUECOLOR') {
+            if ($code eq 'ANSI 16 COLORS') {
+                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╤═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+            } else {
+                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╪═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+            }
+            my @names = grep(!/^(DEFAULT|COLOR|GRAY)/,(sort(keys %{$self->{'ansi_meta'}->{'foreground'}})));
+            unshift(@names,'DEFAULT');
+            if ($code eq 'ANSI 256 COLOR') {
+                foreach my $count (16 .. 231) {
+                    push(@names,"COLOR $count");
+                }
+                foreach my $count (0 .. 23) {
+                    push(@names,"GRAY $count");
+                }
+            }
+            foreach my $name (@names) {
+                next if ($self->ansi_type($self->{'ansi_meta'}->{'foreground'}->{$name}->{'out'}) ne $code);
+                if ($name =~ /^(DEFAULT|NAVY|COLOR 16|BLACK)$/) {
+                    $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %]│' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                } else {
+                    $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                }
+            }
+        }
+        $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ','RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-31s ', 'B_RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ','Set color to a value 0-255 per primary color.') . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+    }
 
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]SPECIAL [% RESET %][% BRIGHT GREEN %]════════════════════╧═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
 
     {
-		my @names = (sort(keys %{$self->{'ansi_meta'}->{'special'}}));
-		while(scalar(@names)) {
-			my $name = shift(@names);
-			$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('special',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		}
-		$text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'HORIZONTAL RULE color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Horizontal rule the width of the screen in the') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %]                                                                 [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','specified color.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','BOX color,column,row,width,height,type') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Shows framed text box in the selected frame type and') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',' ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'color.  Text goes between the BOX and ENDBOX token') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','    types:') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'See the "frames" option') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','DOUBLE, THIN, THICK, CIRCLE, ROUNDED, BLOCK, WEDGE') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','BIG WEDGE, DOTS, DIAMOND, STAR, SQUARE, DITHERED, NOTES') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','HEARTS, CHRISTIAN, ARROWS, BIG ARROWS, PARALLELOGRAM') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-		$text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','ENDBOX') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Ends the BOX token function') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-	}
+        my @names = (sort(keys %{$self->{'ansi_meta'}->{'special'}}));
+        while(scalar(@names)) {
+            my $name = shift(@names);
+            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('special',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        }
+        $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'HORIZONTAL RULE color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Horizontal rule the width of the screen in the') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %]                                                                 [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','specified color.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','BOX color,column,row,width,height,type') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Shows framed text box in the selected frame type and') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',' ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'color.  Text goes between the BOX and ENDBOX token') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','    types:') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'See the "frames" option') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','DOUBLE, THIN, THICK, CIRCLE, ROUNDED, BLOCK, WEDGE') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','BIG WEDGE, DOTS, DIAMOND, STAR, SQUARE, DITHERED, NOTES') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','HEARTS, CHRISTIAN, ARROWS, BIG ARROWS, PARALLELOGRAM') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','ENDBOX') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Ends the BOX token function') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+    }
     $text .= '[% BRIGHT GREEN %]╰─────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────╯[% RESET %]' . "\n";
 
     # Post processing identical to original
     {
-		my $new = 'UNDERLINE COLOR RGB [% UNDERLINE COLOR RGB 255,0,0 %][% UNDERLINE %]red[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,255,0 %]green[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,0,255 %]blue[% RESET %]';
-		$text =~ s/UNDERLINE COLOR RGB red,green,blue/$new /gs;
+        my $new = 'UNDERLINE COLOR RGB [% UNDERLINE COLOR RGB 255,0,0 %][% UNDERLINE %]red[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,255,0 %]green[% RESET %],[% UNDERLINE %][% UNDERLINE COLOR RGB 0,0,255 %]blue[% RESET %]';
+        $text =~ s/UNDERLINE COLOR RGB red,green,blue/$new /gs;
 
-		$new = '[% FAINT %][% ITALIC %] color     [% RESET %]';
-		$text =~ s/ color     /$new/gs;
+        $new = '[% FAINT %][% ITALIC %] color     [% RESET %]';
+        $text =~ s/ color     /$new/gs;
 
-		$new = '[% FAINT %][% ITALIC %] count     [% RESET %]';
-		$text =~ s/ count     /$new/gs;
+        $new = '[% FAINT %][% ITALIC %] count     [% RESET %]';
+        $text =~ s/ count     /$new/gs;
 
-		$new = ' [% RED %][% ITALIC %]red[% RESET %],[% GREEN %][% ITALIC %]green[% RESET %],[% BLUE %][% ITALIC %]blue[% RESET %]';
-		$text =~ s/ red,green,blue/$new/gs;
+        $new = ' [% RED %][% ITALIC %]red[% RESET %],[% GREEN %][% ITALIC %]green[% RESET %],[% BLUE %][% ITALIC %]blue[% RESET %]';
+        $text =~ s/ red,green,blue/$new/gs;
 
-		$new = ' [% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %] ';
-		$text =~ s/ column,row /$new/gs;
+        $new = ' [% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %] ';
+        $text =~ s/ column,row /$new/gs;
 
-		$new = ' [% FAINT %][% ITALIC %]color[% RESET %],[% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %],[% FAINT %][% ITALIC %]width[% RESET %],[% FAINT %][% ITALIC %]height[% RESET %],[% FAINT %][% ITALIC %]type[% RESET %] ';
-		$text =~ s/ color,column,row,width,height,type /$new/gs;
-	}
+        $new = ' [% FAINT %][% ITALIC %]color[% RESET %],[% FAINT %][% ITALIC %]column[% RESET %],[% FAINT %][% ITALIC %]row[% RESET %],[% FAINT %][% ITALIC %]width[% RESET %],[% FAINT %][% ITALIC %]height[% RESET %],[% FAINT %][% ITALIC %]type[% RESET %] ';
+        $text =~ s/ color,column,row,width,height,type /$new/gs;
+    }
 
     return $text;
 } ## end sub _render_ansi_catalog
@@ -412,30 +412,50 @@ sub sysop_list_commands {
         $text = _render_ansi_catalog($self, $wsize);
 
     } elsif ($mode && $mode eq 'ATASCII') {
-        my @atatkn = (sort(keys %{ $self->{'atascii_meta'} }), 'HORIZONTAL RULE');
-        my $ata    = 1;
-        foreach my $cell (@atatkn) { $ata = max(length($cell), $ata); }
-        my $table = Text::SimpleTable->new(1, $ata, 38);
-        $table->row('C', 'ATASCII TOKENS', 'DESCRIPTION');
-        $table->hr();
-        while (scalar(@atatkn)) {
-            my $atascii_tokens = shift(@atatkn);
-            $table->row($self->{'atascii_meta'}->{$atascii_tokens}->{'unicode'}, $atascii_tokens, $self->{'atascii_meta'}->{$atascii_tokens}->{'desc'});
+        my @atatkn = (sort(keys %{ $self->{'atascii_meta'} }));
+
+        $text  = '[% ORANGE %]╔' . '═' x 86 . '╗[% RESET %]' . "\n";
+        $text .= "[% ORANGE %]║[% YELLOW  %]    ## ## ##          [% BRIGHT BLUE %]╔═══╗ ╒═╦═╕ ╔═══╗ ╔═══╗ ╔═══╕ ╒═╦═╕ ╒═╦═╕       [% YELLOW  %]    ## ## ##    [% ORANGE %]║[% RESET %]\n";
+        $text .= "[% ORANGE %]║[% GREEN   %]    ## ## ##          [% BRIGHT BLUE %]║   ║   ║   ║   ║ ║   ╜ ║       ║     ║         [% GREEN   %]    ## ## ##    [% ORANGE %]║[% RESET %]\n";
+        $text .= "[% ORANGE %]║[% CYAN    %]    ## ## ##          [% BRIGHT BLUE %]╠═══╣   ║   ╠═══╣ ╚═══╗ ║       ║     ║         [% CYAN    %]    ## ## ##    [% ORANGE %]║[% RESET %]\n";
+        $text .= "[% ORANGE %]║[% BLUE    %]  ###  ##  ###        [% BRIGHT BLUE %]║   ║   ║   ║   ║ ╓   ║ ║       ║     ║         [% BLUE    %]  ###  ##  ###  [% ORANGE %]║[% RESET %]\n";
+        $text .= "[% ORANGE %]║[% MAGENTA %] ###   ##   ###       [% BRIGHT BLUE %]╜   ╙   ╙   ╜   ╙ ╚═══╝ ╚═══╛ ╘═╩═╛ ╘═╩═╛       [% MAGENTA %] ###   ##   ### [% ORANGE %]║[% RESET %]\n";
+        $text .= '[% ORANGE %]╠══════╦' . '═' x 39 . '╦' . '═' x 39 . '╣[% RESET %]' . "\n";
+        $text .= "[% ORANGE %]║[% BRIGHT YELLOW %] CHAR [% ORANGE %]║[% BRIGHT YELLOW %] ATASCII TOKENS                        [% ORANGE %]║[% BRIGHT YELLOW %] DESCRIPTION                           [% ORANGE %]║[% RESET %]\n";
+        $text .= '[% ORANGE %]╠══════╬' . '═' x 39 . '╬' . '═' x 39 . '╣[% RESET %]' . "\n";
+
+        foreach my $name (@atatkn) {
+            $text .= '[% ORANGE %]║[% RESET %]  ' . $self->{'atascii_meta'}->{$name}->{'unicode'} . '   [% ORANGE %]║[% RESET %] ' . sprintf('%-37s %s %-37s %s', $name, '[% ORANGE %]║[% RESET %]', $self->{'atascii_meta'}->{$name}->{'desc'}, '[% ORANGE %]║[% RESET %]') . "\n";
         }
-        $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
+		$text .= '[% ORANGE %]║[% RESET %] ' . '[% HORIZONTAL BAR %]' x 4 . ' [% ORANGE %]║[% RESET %] ' . sprintf('%-37s %s %-37s %s', 'HORIZONTAL RULE', '[% ORANGE %]║[% RESET %]', 'Horizontal rule', '[% ORANGE %]║[% RESET %]') . "\n";
+
+        $text .= "[% ORANGE %]╚══════╩═══════════════════════════════════════╩═══════════════════════════════════════╝[% RESET %]\n";
 
     } elsif ($mode && $mode eq 'PETSCII') {
-        my @pettkn = grep(!/NULL|CHAR .|F\d|ONE|TWO|THREE|FOUR|FIVE|SIX|SEVEN|EIGHT|NINE|TEN|ZERO/,(sort(keys %{ $self->{'petscii_meta'} }), 'HORIZONTAL RULE color'));
-        my $pet    = 1;
-        foreach my $cell (@pettkn) { $pet = max(length($cell), $pet); }
-        my $table = Text::SimpleTable->new(1, $pet, 40);
-        $table->row('C', 'PETSCII TOKENS', 'DESCRIPTION');
-        $table->hr();
-        while (scalar(@pettkn)) {
-            my $petscii_tokens = shift(@pettkn);
-            $table->row($self->{'petscii_meta'}->{$petscii_tokens}->{'unicode'}, $petscii_tokens, $self->{'petscii_meta'}->{$petscii_tokens}->{'desc'});
+        # ─ ━ │ ┃ ┄ ┅ ┆ ┇ ┈ ┉ ┊ ┋ ┌ ┍ ┎ ┏ ┐ ┑ ┒ ┓ └ ┕ ┖ ┗ ┘ ┙ ┚ ┛ ├ ┝ ┞ ┟ ┠ ┡ ┢ ┣ ┤ ┥ ┦ ┧ ┨ ┩ ┪ ┫ ┬ ┭ ┮ ┯ ┰ ┱ ┲ ┳ ┴ ┵ ┶ ┷ ┸ ┹ ┺ ┻ ┼ ┽ ┾ ┿ ╀ ╁ ╂ ╃ ╄ ╅ ╆ ╇ ╈ ╉ ╊ ╋ ╌ ╍ ╎ ╏ ═ ║ ╒ ╓ ╔ ╕ ╖ ╗ ╘ ╙ ╚ ╛ ╜ ╝ ╞ ╟ ╠ ╡ ╢ ╣ ╤ ╥ ╦ ╧ ╨ ╩ ╪ ╫ ╬ ╭ ╮ ╯ ╰ ╱ ╲ ╳ ╴ ╵ ╶ ╷ ╸ ╹ ╺ ╻ ╼ ╽ ╾ ╿
+		# 🬀 🬁 🬂 🬃 🬄 🬅 🬆 🬇 🬈 🬉 🬊 🬋 🬌 🬍 🬎 🬏 🬐 🬑 🬒 🬓 🬔 🬕 🬖 🬗 🬘 🬙 🬚 🬛 🬜 🬝 🬞 🬟 🬠 🬡 🬢 🬣 🬤 🬥 🬦 🬧 🬨 🬩 🬪 🬫 🬬 🬭 🬮 🬯 🬰 🬱 🬲 🬳 🬴 🬵 🬶 🬷 🬸 🬹 🬺 🬻 🬼 🬽 🬾 🬿 🭀 🭁 🭂 🭃 🭄 🭅 🭆 🭇 🭈 🭉 🭊 🭋 🭌 🭍 🭎 🭏 🭐 🭑 🭒 🭓 🭔 🭕 🭖 🭗 🭘 🭙 🭚 🭛 🭜 🭝 🭞 🭟 🭠 🭡 🭢 🭣 🭤 🭥 🭦 🭧 🭨 🭩 🭪 🭫 🭬 🭭 🭮 🭯
+		#  🭰 🭱 🭲 🭳 🭴 🭵 🭶 🭷 🭸 🭹 🭺 🭻 🭼 🭽 🭾 🭿 🮀 🮁 🮂 🮃 🮄 🮅 🮆 🮇 🮈 🮉 🮊 🮋 🮌 🮍 🮎 🮏 🮐 🮑 🮒 🮔 🮕 🮖 🮗 🮘 🮙 🮚 🮛 🮜 🮝 🮞 🮟 🮠 🮡 🮢 🮣 
+
+        my @pettkn = sort(keys %{ $self->{'petscii_meta'} });
+
+        $text  = '[% ORANGE %]╔' . '═' x 108 . '╗[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %] .o88b. [% RESET                                           %][% BRIGHT WHITE %]                          8""""8 8"""" ""8"" 8""""8 8""""8 8  8                        [% BLUE %] .o88b. [% RESET %]    [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %]d8P  Y8 [% RESET                                           %][% BRIGHT WHITE %]                          8    8 8       8   8      8    " 8  8                        [% BLUE %]d8P  Y8 [% RESET %]    [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %]8P     🮅🮅🮅🭚[% RESET                                           %][% BRIGHT WHITE %]                       8eeee8 8eeee   8e  8eeeee 8e     8e 8e                       [% BLUE %]8P     🮅🮅🮅🭚[% RESET %] [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %]8b     [% RED %][% REVERSE %]🮂🮂🮂[% RESET %][% RED %]🬿[% RESET %][% BRIGHT WHITE %]                       88     88      88      88 88     88 88                       [% BLUE %]8b     [% RED %][% REVERSE %]🮂🮂🮂[% RESET %][% RED %]🬿[% RESET %] [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %]Y8b  d8 [% RESET                                           %][% BRIGHT WHITE %]                          88     88      88  e   88 88   e 88 88                       [% BLUE %]Y8b  d8 [% RESET %]    [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% RESET %] [% BLUE %]' . " `Y88P'" . '[% RESET                                 %][% BRIGHT WHITE %]                           88     88eee   88  8eee88 88eee8 88 88                       ' . "[% BLUE %] `Y88P'" . '[% RESET %]     [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]╠══════╦' . '═' x 50 . '╦' . '═' x 50 . '╣[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]║[% BRIGHT YELLOW %] CHAR [% ORANGE %]║[% BRIGHT YELLOW %] PETSCII TOKENS                                   [% ORANGE %]║[% BRIGHT YELLOW %] DESCRIPTION                                      [% ORANGE %]║[% RESET %]' . "\n";
+        $text .= '[% ORANGE %]╠══════╬' . '═' x 50 . '╬' . '═' x 50 . '╣[% RESET %]' . "\n";
+
+        foreach my $name (@pettkn) {
+            $text .= '[% ORANGE %]║[% RESET %]  ' . $self->{'petscii_meta'}->{$name}->{'unicode'} . '   [% ORANGE %]║[% RESET %] ' . sprintf('%-48s %s %-48s %s', $name, '[% ORANGE %]║[% RESET %]', $self->{'petscii_meta'}->{$name}->{'desc'}, '[% ORANGE %]║[% RESET %]') . "\n";
         }
-        $text = $self->center($table->twin('ORANGE')->draw(), $wsize);
+        $text .= '[% ORANGE %]║[% RESET %] ' . '[% HORIZONTAL BAR %]' x 4 . ' [% ORANGE %]║[% RESET %] ' . sprintf('%-48s %s %-48s %s', 'HORIZONTAL RULE color', '[% ORANGE %]║[% RESET %]', 'Horizontal rule in specified color', '[% ORANGE %]║[% RESET %]') . "\n";
+
+        $text .= '[% ORANGE %]╚══════╩' . '═' x 50 . '╩' . '═' x 50 . '╝[% RESET %]' . "\n";
+
         $text =~ s/│ (WHITE)/│ \[\% BRIGHT WHITE \%\]$1\[\% RESET \%\]/g;
         $text =~ s/│ (YELLOW)/│ \[\% YELLOW \%\]$1\[\% RESET \%\]/g;
         $text =~ s/│ (CYAN)/│ \[\% CYAN \%\]$1\[\% RESET \%\]/g;
@@ -512,7 +532,7 @@ sub sysop_list_commands {
     } ## end elsif ($mode && $mode eq ...)
 
     # Common header highlights (preserving original behavior)
-    $text =~ s/ (C|DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|ATASCII TOKENS|PETSCII TOKENS|ASCII TOKENS) / \[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\] /g;
+    $text =~ s/ (DESCRIPTION|TYPE|SYSOP MENU COMMANDS|SYSOP TOKENS|USER MENU COMMANDS|USER TOKENS|PETSCII TOKENS|ASCII TOKENS) / \[\% BRIGHT YELLOW \%\]$1\[\% RESET \%\] /g;
 
     $self->{'debug'}->DEBUG(['End SysOp List Commands']);
     return ($self->ansi_decode($text));
@@ -1514,29 +1534,29 @@ sub sysop_get_line {
     if ($echo == RADIO) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line RADIO']);
 
-		my $mapping;
-		my @menu_choices = @{$self->{'MENU CHOICES'}};
+        my $mapping;
+        my @menu_choices = @{$self->{'MENU CHOICES'}};
 
-		foreach my $choice (@{$choices}) {
-			$mapping->{ shift(@menu_choices) } = {
-				'command'      => $choice,
-				'color'        => 'WHITE',
-				'access_level' => 'USER',
-				'text'         => $choice,
-			}
-		}
-		print "\n";
-		$self->sysop_show_choices($mapping);
-		$self->sysop_prompt('Choose');
-		my $key;
-		do {
-			$key = uc($self->sysop_get_key(SILENT, BLOCKING));
-		} until (exists($mapping->{$key}) || $key eq chr(3));
-		if ($key eq chr(3)) {
-			$line = '';
-		} else {
-			$line = $mapping->{$key}->{'command'};
-		}
+        foreach my $choice (@{$choices}) {
+            $mapping->{ shift(@menu_choices) } = {
+                'command'      => $choice,
+                'color'        => 'WHITE',
+                'access_level' => 'USER',
+                'text'         => $choice,
+            }
+        }
+        print "\n";
+        $self->sysop_show_choices($mapping);
+        $self->sysop_prompt('Choose');
+        my $key;
+        do {
+            $key = uc($self->sysop_get_key(SILENT, BLOCKING));
+        } until (exists($mapping->{$key}) || $key eq chr(3));
+        if ($key eq chr(3)) {
+            $line = '';
+        } else {
+            $line = $mapping->{$key}->{'command'};
+        }
     } elsif ($echo == BOOLEAN) {
         $self->{'debug'}->DEBUG(['  SysOp Get Line BOOLEAN']);
         do {
@@ -1790,7 +1810,7 @@ sub sysop_user_edit {
                     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{$key} . '= !' . $choice{$key} . '  WHERE id=?');
                     $sth->execute($user_row->{'id'});
                     $sth->finish();
-				} elsif($choice{$key} =~ /text_mode/) {
+                } elsif($choice{$key} =~ /text_mode/) {
                     my $new = $self->sysop_get_line($self->{'SYSOP FIELD TYPES'}->{ $choice{$key} }, $user_row->{ $choice{$key} });
                     $user_row->{ $choice{$key} } = $new;
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');

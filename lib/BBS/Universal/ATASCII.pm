@@ -8,23 +8,22 @@ sub atascii_initialize {
     $self->{'atascii_meta'} = {
         # Control
         'ESC'                          => { 'out' => chr(27),  'unicode' => '␛', 'desc' => 'Escape', },
-        'UP'                           => { 'out' => chr(28),  'unicode' => '🡹', 'desc' => 'Move Cursor Up', },
-        'DOWN'                         => { 'out' => chr(29),  'unicode' => '🡻', 'desc' => 'Move Cursor Down', },
-        'LEFT'                         => { 'out' => chr(30),  'unicode' => '🡸', 'desc' => 'Move Cursor Left', },
-        'RIGHT'                        => { 'out' => chr(31),  'unicode' => '🡺', 'desc' => 'Move Cursor Right', },
-        'CLEAR'                        => { 'out' => chr(125), 'unicode' => '🢰', 'desc' => 'Clear Screen', },
-        'BACKSPACE'                    => { 'out' => chr(126), 'unicode' => '◀', 'desc' => 'Backspace', },
-        'TAB'                          => { 'out' => chr(127), 'unicode' => '▶', 'desc' => 'Tab', },
-        'RETURN'                       => { 'out' => chr(155), 'unicode' => '␛', 'desc' => 'Carriage Return', },
-        'NEWLINE'                      => { 'out' => chr(155), 'unicode' => '␛', 'desc' => 'Newline', },
-        'DELETE LINE'                  => { 'out' => chr(156), 'unicode' => '🡹', 'desc' => 'Delete Line', },
-        'INSERT LINE'                  => { 'out' => chr(157), 'unicode' => '🡻', 'desc' => 'Insert Line', },
-        'CLEAR TAB STOP'               => { 'out' => chr(158), 'unicode' => '🡸', 'desc' => 'Clear Tab Stop', },
-        'SET TAB STOP'                 => { 'out' => chr(159), 'unicode' => '🡸', 'desc' => 'Set Tab Stop', },
-        'BUZZER'                       => { 'out' => chr(253), 'unicode' => '🢰', 'desc' => 'Console Bell', },
-        'RING BELL'                    => { 'out' => chr(253), 'unicode' => '🢰', 'desc' => 'Console Bell', },
-        'DELETE'                       => { 'out' => chr(254), 'unicode' => '◀', 'desc' => 'Delete', },
-        'INSERT'                       => { 'out' => chr(255), 'unicode' => '▶', 'desc' => 'Insert', },
+        'UP'                           => { 'out' => chr(28),  'unicode' => ' ', 'desc' => 'Move Cursor Up', },
+        'DOWN'                         => { 'out' => chr(29),  'unicode' => ' ', 'desc' => 'Move Cursor Down', },
+        'LEFT'                         => { 'out' => chr(30),  'unicode' => ' ', 'desc' => 'Move Cursor Left', },
+        'RIGHT'                        => { 'out' => chr(31),  'unicode' => ' ', 'desc' => 'Move Cursor Right', },
+        'CLEAR'                        => { 'out' => chr(125), 'unicode' => ' ', 'desc' => 'Clear Screen', },
+        'BACKSPACE'                    => { 'out' => chr(126), 'unicode' => ' ', 'desc' => 'Backspace', },
+        'TAB'                          => { 'out' => chr(127), 'unicode' => ' ', 'desc' => 'Tab', },
+        'RETURN'                       => { 'out' => chr(155), 'unicode' => ' ', 'desc' => 'Carriage Return', },
+        'DELETE LINE'                  => { 'out' => chr(156), 'unicode' => ' ', 'desc' => 'Delete Line', },
+        'INSERT LINE'                  => { 'out' => chr(157), 'unicode' => ' ', 'desc' => 'Insert Line', },
+        'CLEAR TAB STOP'               => { 'out' => chr(158), 'unicode' => ' ', 'desc' => 'Clear Tab Stop', },
+        'SET TAB STOP'                 => { 'out' => chr(159), 'unicode' => ' ', 'desc' => 'Set Tab Stop', },
+        'BUZZER'                       => { 'out' => chr(253), 'unicode' => ' ', 'desc' => 'Console Bell', },
+        'RING BELL'                    => { 'out' => chr(253), 'unicode' => ' ', 'desc' => 'Console Bell', },
+        'DELETE'                       => { 'out' => chr(254), 'unicode' => ' ', 'desc' => 'Delete', },
+        'INSERT'                       => { 'out' => chr(255), 'unicode' => ' ', 'desc' => 'Insert', },
 
         # Normal
 
@@ -39,7 +38,6 @@ sub atascii_initialize {
         'TOP LEFT WEDGE'               => { 'out' => chr(8),   'unicode' => '◢', 'desc' => 'Top Left Wedge', },
         'BOTTOM RIGHT BOX'             => { 'out' => chr(9),   'unicode' => '▗', 'desc' => 'Bottom Right Box', },
         'TOP RIGHT WEDGE'              => { 'out' => chr(10),  'unicode' => '◣', 'desc' => 'Top Right Wedge', },
-        'LINEFEED'                     => { 'out' => chr(10),  'unicode' => '🬁', 'desc' => 'Linefeed', },
         'TOP RIGHT BOX'                => { 'out' => chr(11),  'unicode' => '▝', 'desc' => 'Top Right Box', },
         'TOP LEFT BOX'                 => { 'out' => chr(12),  'unicode' => '▘', 'desc' => 'Top Left Box', },
         'TOP HORIZONTAL BAR'           => { 'out' => chr(13),  'unicode' => '🮂', 'desc' => 'Top Horizontal Bar', },
@@ -56,7 +54,6 @@ sub atascii_initialize {
         'HORIZONTAL BAR MIDDLE BOTTOM' => { 'out' => chr(24),  'unicode' => '┻', 'desc' => 'Horizontal Bar Middle Bottom', },
         'LEFT VERTICAL BAR'            => { 'out' => chr(25),  'unicode' => '▌', 'desc' => 'Left Vertical Bar', },
         'BOTTOM LEFT CORNER'           => { 'out' => chr(26),  'unicode' => '┗', 'desc' => 'Botom Left Corner', },
-        'ESC'                          => { 'out' => chr(27),  'unicode' => '␛', 'desc' => 'Escape', },
         'UP ARROW'                     => { 'out' => chr(28),  'unicode' => '🡹', 'desc' => 'Up Arrow', },
         'DOWN ARROW'                   => { 'out' => chr(29),  'unicode' => '🡻', 'desc' => 'Down Arrow', },
         'LEFT ARROW'                   => { 'out' => chr(30),  'unicode' => '🡸', 'desc' => 'Left Arrow', },
@@ -69,14 +66,16 @@ sub atascii_initialize {
         'RIGHT TRIANGLE'               => { 'out' => chr(127), 'unicode' => '▶', 'desc' => 'Right Triangle', },
     };
 
-    foreach my $name (keys %{ $self->{'atascii_meta'} }) {
-        $self->{'atascii_meta'}->{"INVERTED $name"}           = $self->{'atascii_meta'}->{$name};
-        $self->{'atascii_meta'}->{"INVERTED $name"}->{'out'}  = chr(128 + ord($self->{'atascii_meta'}->{$name}->{'out'}));
-        $self->{'atascii_meta'}->{"INVERTED $name"}->{'desc'} = 'Inverted ' . $self->{'atascii_meta'}->{$name}->{'desc'};
-    }
-
     my $inv = "\e[7m";
     my $ni  = "\e[27m";
+
+	my @list = keys %{ $self->{'atascii_meta'} };
+    foreach my $name (@list) {
+		next if ($name =~ /^(ESC|UP|DOWN|LEFT|RIGHT|CLEAR|BACKSPACE|TAB|RETURN|NEWLINE|DELETE LINE|INSERT LINE|CLEAR TAB STOP|BUZZER|RING BELL|DELETE|INSERT)$/);
+		$self->{'atascii_meta'}->{"REVERSED $name"}->{'unicode'} = $inv . $self->{'atascii_meta'}->{$name}->{'unicode'} . $ni;
+        $self->{'atascii_meta'}->{"REVERSED $name"}->{'out'}     = chr(128 + ord($self->{'atascii_meta'}->{$name}->{'out'}));
+        $self->{'atascii_meta'}->{"REVERSED $name"}->{'desc'}    = 'Reversed ' . $self->{'atascii_meta'}->{$name}->{'desc'};
+    }
 
     $self->{'atascii_table'} = [
         # Normal
