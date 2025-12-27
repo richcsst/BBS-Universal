@@ -165,23 +165,23 @@ sub _build_dynamic_tokens {
     my ($self) = @_;
     return {
         'THREADS COUNT'   => sub { my $self = shift; return $self->{'CACHE'}->get('THREADS_RUNNING'); },
-          'USERS COUNT'     => sub { my $self = shift; return $self->db_count_users(); },
-          'UPTIME'          => sub { my $self = shift; my $uptime = `uptime -p`; chomp($uptime); return $uptime; },
-          'DISK FREE SPACE' => sub { my $self = shift; return $self->sysop_disk_free(); },
-          'MEMORY'          => sub { my $self = shift; return $self->sysop_memory(); },
-          'ONLINE'          => sub { my $self = shift; return $self->sysop_online_count(); },
-          'CPU LOAD'        => sub { my $self = shift; return $self->cpu_info->{'CPU LOAD'}; },
-          'ENVIRONMENT'     => sub { my $self = shift; return $self->sysop_showenv(); },
-          'FILE CATEGORY'   => sub {
-              my $self = shift;
-              my $sth  = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
-              $sth->execute($self->{'USER'}->{'file_category'});
-              my ($result) = $sth->fetchrow_array();
-              return $self->news_title_colorize($result);
-          },
-          'SYSOP VIEW CONFIGURATION'   => sub { my $self = shift; return $self->sysop_view_configuration('string'); },
-          'COMMANDS REFERENCE'         => sub { my $self = shift; return $self->sysop_list_commands(); },
-          'MIDDLE VERTICAL RULE color' => sub { my $self = shift; my $color = shift; return $self->sysop_locate_middle('B_' . $color); },
+        'USERS COUNT'     => sub { my $self = shift; return $self->db_count_users(); },
+        'UPTIME'          => sub { my $self = shift; my $uptime = `uptime -p`; chomp($uptime); return $uptime; },
+        'DISK FREE SPACE' => sub { my $self = shift; return $self->sysop_disk_free(); },
+        'MEMORY'          => sub { my $self = shift; return $self->sysop_memory(); },
+        'ONLINE'          => sub { my $self = shift; return $self->sysop_online_count(); },
+        'CPU LOAD'        => sub { my $self = shift; return $self->cpu_info->{'CPU LOAD'}; },
+        'ENVIRONMENT'     => sub { my $self = shift; return $self->sysop_showenv(); },
+        'FILE CATEGORY'   => sub {
+			my $self = shift;
+			my $sth  = $self->{'dbh'}->prepare('SELECT description FROM file_categories WHERE id=?');
+			$sth->execute($self->{'USER'}->{'file_category'});
+			my ($result) = $sth->fetchrow_array();
+			return $self->news_title_colorize($result);
+		},
+        'SYSOP VIEW CONFIGURATION'   => sub { my $self = shift; return $self->sysop_view_configuration('string'); },
+        'COMMANDS REFERENCE'         => sub { my $self = shift; return $self->sysop_list_commands(); },
+        'MIDDLE VERTICAL RULE color' => sub { my $self = shift; my $color = shift; return $self->sysop_locate_middle('B_' . $color); },
     };
 } ## end sub _build_dynamic_tokens
 
@@ -304,37 +304,38 @@ sub _render_ansi_catalog {
         $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s', 'UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set the underline color using RGB') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
     }
 
+    # Colors
     {
         my $f;
         my $b;
-        foreach my $code ('ANSI 16 COLORS','ANSI 256 COLOR','ANSI TRUECOLOR') {
-            if ($code eq 'ANSI 16 COLORS') {
-                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╤═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+        foreach my $code ('ANSI 3 BIT','ANSI 4 BIT','ANSI 8 BIT','ANSI 24 BIT') {
+            if ($code eq 'ANSI 3 BIT') {
+                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . sprintf('%-11s',$code) . ' [% RESET %][% BRIGHT GREEN %]════════════════╤═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
             } else {
-                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . $code . ' [% RESET %][% BRIGHT GREEN %]═════════════╪═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
+                $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]' . sprintf('%-11s',$code) . ' [% RESET %][% BRIGHT GREEN %]════════════════╪═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
             }
-            my @names = grep(!/^(DEFAULT|COLOR|GRAY)/,(sort(keys %{$self->{'ansi_meta'}->{'foreground'}})));
-            unshift(@names,'DEFAULT');
-            if ($code eq 'ANSI 256 COLOR') {
-                foreach my $count (16 .. 231) {
-                    push(@names,"COLOR $count");
-                }
-                foreach my $count (0 .. 23) {
-                    push(@names,"GRAY $count");
-                }
+            if ($code eq 'ANSI 8 BIT') {
+				foreach my $count (16 .. 231) {
+					$text .= '[% BRIGHT GREEN %]│[% RESET %][% COLOR ' . $count . ' %]' . sprintf(' %-29s ',"COLOR $count") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_COLOR ' . $count . ' %]' . sprintf(' %-31s ', "B_COLOR $count") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',"COLOR $count")) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+				}
+				foreach my $count (0 .. 23) {
+					$text .= '[% BRIGHT GREEN %]│[% RESET %][% GRAY ' . $count . ' %]' . sprintf(' %-29s ', "GRAY $count") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_GRAY ' . $count . ' %]' . sprintf(' %-31s ', "B_GRAY $count") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',"GRAY $count")) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+				}
             }
-            foreach my $name (@names) {
-                next if ($self->ansi_type($self->{'ansi_meta'}->{'foreground'}->{$name}->{'out'}) ne $code);
-                if ($name =~ /^(DEFAULT|NAVY|COLOR 16|BLACK)$/) {
-                    $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %]│' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
-                } else {
-                    $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
-                }
+            foreach my $name (grep(!/COLOR |GRAY /,sort(keys %{$self->{'ansi_meta'}->{'foreground'}}))) {
+                if ($self->ansi_type($self->{'ansi_meta'}->{'foreground'}->{$name}->{'out'}) eq $code) {
+					if ($name =~ /^(DEFAULT|NAVY|COLOR 16|BLACK|MEDIUM BLUE|ARMY GREEN|BISTRE|BULGARIAN ROSE|CHARCOAL|COOL BLACK|DARK BLUE|DARK GREEN|DARK JUNGLE GREEN|DARK MIDNIGHT BLUE|DUKE BLUE|EGYPTIAN BLUE|MEDIUM JUNGLE GREEN|MIDNIGHT BLUE|NAVY BLUE|ONYX|OXFORD BLUE|PHTHALO BLUE|PHTHALO GREEN|PRUSSIAN BLUE|SAINT PATRICK BLUE|SEAL BROWN|SMOKEY BLACK|ULTRAMARINE|ZINNWALDITE BROWN)$/) {
+						$text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %]│' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+					} else {
+						$text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-29s ',$name) . '[% RESET %][% BRIGHT GREEN %]│[% RESET %][% BLACK %][% B_' . $name . ' %]' . sprintf(' %-31s ', "B_${name}") . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ',$self->ansi_description('foreground',$name)) . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
+					}
+				}
             }
         }
         $text .= '[% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-29s ','RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-31s ', 'B_RGB red,green,blue') . '[% RESET %][% BRIGHT GREEN %]│[% RESET %]' . sprintf(' %-54s ','Set color to a value 0-255 per primary color.') . '[% BRIGHT GREEN %]│[% RESET %]' . "\n";
     }
 
+    # Special
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]SPECIAL [% RESET %][% BRIGHT GREEN %]════════════════════╧═════════════════════════════════╪════════════════════════════════════════════════════════╡[% RESET %]' . "\n";
 
     {

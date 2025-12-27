@@ -11,13 +11,17 @@ sub ansi_description {
 sub ansi_type {
     my $self = shift;
     my $text = substr(shift, 2);
-
-    if ($text =~ /^\d+m/) {
-        return ('ANSI 16 COLORS');
-    } elsif ($text =~ /^\d+\;\d\;\d+m/) {
-        return ('ANSI 256 COLOR');
-    } elsif ($text =~ /^\d+\;\d\;\d+\;\d+\;\d+m/) {
-        return ('ANSI TRUECOLOR');
+    if ($text =~ /^38;2;\d+;\d+;\d+m/) {
+        return ('ANSI 24 BIT');
+    } elsif ($text =~ /^38;5;\d+m/) {
+        return ('ANSI 8 BIT');
+    } elsif ($text =~ /^(\d+)m/) {
+		my $color = $1 + 0;
+		if (($color >= 30 && $color <= 37) || ($color >= 40 && $color <= 47) || $color == 39 || $color == 49) {
+			return('ANSI 3 BIT');
+		} elsif (($color >= 90 && $color <= 97) || ($color >= 100 && $color <= 107)) {
+			return('ANSI 4 BIT');
+		}
     }
 } ## end sub ansi_type
 
@@ -295,12 +299,10 @@ sub ansi_initialize {
 		['BISQUE',                        "\e[38;2;255;228;196m",  'Bisque'],
 		['BISTRE',                        "\e[38;2;61;43;31m",     'Bistre'],
 		['BITTERSWEET',                   "\e[38;2;254;111;94m",   'Bittersweet'],
-		['BLACK',                         "\e[38;2;0;0;0m",        'Black'],
 		['BLANCHED ALMOND',               "\e[38;2;255;235;205m",  'Blanched Almond'],
 		['BLEU DE FRANCE',                "\e[38;2;49;140;231m",   'Bleu de France'],
 		['BLIZZARD BLUE',                 "\e[38;2;172;229;238m",  'Blizzard Blue'],
 		['BLOND',                         "\e[38;2;250;240;190m",  'Blond'],
-		['BLUE',                          "\e[38;2;0;0;255m",      'Blue'],
 		['BLUE BELL',                     "\e[38;2;162;162;208m",  'Blue Bell'],
 		['BLUE GRAY',                     "\e[38;2;102;153;204m",  'Blue Gray'],
 		['BLUE GREEN',                    "\e[38;2;13;152;186m",   'Blue green'],
@@ -415,7 +417,6 @@ sub ansi_initialize {
 		['CRIMSON',                       "\e[38;2;220;20;60m",    'Crimson'],
 		['CRIMSON RED',                   "\e[38;2;153;0;0m",      'Crimson Red'],
 		['CRIMSON GLORY',                 "\e[38;2;190;0;50m",     'Crimson glory'],
-		['CYAN',                          "\e[38;2;0;255;255m",    'Cyan'],
 		['DAFFODIL',                      "\e[38;2;255;255;49m",   'Daffodil'],
 		['DANDELION',                     "\e[38;2;240;225;48m",   'Dandelion'],
 		['DARK BLUE',                     "\e[38;2;0;0;139m",      'Dark blue'],
@@ -550,7 +551,6 @@ sub ansi_initialize {
 		['GRANNY SMITH APPLE',            "\e[38;2;168;228;160m",  'Granny Smith Apple'],
 		['GRAY',                          "\e[38;2;128;128;128m",  'Gray'],
 		['GRAY ASPARAGUS',                "\e[38;2;70;89;69m",     'Gray asparagus'],
-		['GREEN',                         "\e[38;2;0;255;0m",      'Green'],
 		['GREEN BLUE',                    "\e[38;2;17;100;180m",   'Green Blue'],
 		['GREEN YELLOW',                  "\e[38;2;173;255;47m",   'Green yellow'],
 		['GRULLO',                        "\e[38;2;169;154;134m",  'Grullo'],
@@ -646,7 +646,6 @@ sub ansi_initialize {
 		['LUST',                          "\e[38;2;230;32;32m",    'Lust'],
 		['MSU GREEN',                     "\e[38;2;24;69;59m",     'MSU Green'],
 		['MACARONI AND CHEESE',           "\e[38;2;255;189;136m",  'Macaroni and Cheese'],
-		['MAGENTA',                       "\e[38;2;255;0;255m",    'Magenta'],
 		['MAGIC MINT',                    "\e[38;2;170;240;209m",  'Magic mint'],
 		['MAGNOLIA',                      "\e[38;2;248;244;255m",  'Magnolia'],
 		['MAHOGANY',                      "\e[38;2;192;64;0m",     'Mahogany'],
@@ -795,7 +794,6 @@ sub ansi_initialize {
 		['PHTHALO GREEN',                 "\e[38;2;18;53;36m",     'Phthalo green'],
 		['PIGGY PINK',                    "\e[38;2;253;221;230m",  'Piggy pink'],
 		['PINE GREEN',                    "\e[38;2;1;121;111m",    'Pine green'],
-		['PINK',                          "\e[38;2;255;192;203m",  'Pink'],
 		['PINK FLAMINGO',                 "\e[38;2;252;116;253m",  'Pink Flamingo'],
 		['PINK SHERBET',                  "\e[38;2;247;143;167m",  'Pink Sherbet'],
 		['PINK PEARL',                    "\e[38;2;231;172;207m",  'Pink pearl'],
@@ -824,7 +822,6 @@ sub ansi_initialize {
 		['RAW SIENNA',                    "\e[38;2;214;138;89m",   'Raw Sienna'],
 		['RAZZLE DAZZLE ROSE',            "\e[38;2;255;51;204m",   'Razzle dazzle rose'],
 		['RAZZMATAZZ',                    "\e[38;2;227;37;107m",   'Razzmatazz'],
-		['RED',                           "\e[38;2;255;0;0m",      'Red'],
 		['RED ORANGE',                    "\e[38;2;255;83;73m",    'Red Orange'],
 		['RED BROWN',                     "\e[38;2;165;42;42m",    'Red brown'],
 		['RED VIOLET',                    "\e[38;2;199;21;133m",   'Red violet'],
@@ -984,7 +981,6 @@ sub ansi_initialize {
 		['WATERSPOUT',                    "\e[38;2;0;255;255m",    'Waterspout'],
 		['WENGE',                         "\e[38;2;100;84;82m",    'Wenge'],
 		['WHEAT',                         "\e[38;2;245;222;179m",  'Wheat'],
-		['WHITE',                         "\e[38;2;255;255;255m",  'White'],
 		['WHITE SMOKE',                   "\e[38;2;245;245;245m",  'White smoke'],
 		['WILD STRAWBERRY',               "\e[38;2;255;67;164m",   'Wild Strawberry'],
 		['WILD WATERMELON',               "\e[38;2;252;108;133m",  'Wild Watermelon'],
@@ -993,7 +989,6 @@ sub ansi_initialize {
 		['WISTERIA',                      "\e[38;2;201;160;220m",  'Wisteria'],
 		['XANADU',                        "\e[38;2;115;134;120m",  'Xanadu'],
 		['YALE BLUE',                     "\e[38;2;15;77;146m",    'Yale Blue'],
-		['YELLOW',                        "\e[38;2;255;255;0m",    'Yellow'],
 		['YELLOW ORANGE',                 "\e[38;2;255;174;66m",   'Yellow Orange'],
 		['YELLOW GREEN',                  "\e[38;2;154;205;50m",   'Yellow green'],
 		['ZAFFRE',                        "\e[38;2;0;20;168m",     'Zaffre'],
@@ -1001,10 +996,10 @@ sub ansi_initialize {
 	);
 
 	foreach my $count (16 .. 231) {
-		push(@fg_extra, ["COLOR $count", "\e[38;5;${count}m", "ANSI 256 color $count"]);
+		push(@fg_extra, ["COLOR $count", "\e[38;5;${count}m", "ANSI 8 bit color $count"]);
 	}
 	foreach my $gray (232 .. 255) {
-		push(@fg_extra, ['GRAY ' . ($gray - 232), "\e[38;5;${gray}m", 'ANSI 256 gray level ' . ($gray - 232)]);
+		push(@fg_extra, ['GRAY ' . ($gray - 232), "\e[38;5;${gray}m", 'ANSI gray level ' . ($gray - 232)]);
 	}
 
 	my $foreground = $pairs_to_map->(
