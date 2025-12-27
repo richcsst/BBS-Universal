@@ -1364,80 +1364,23 @@ sub sysop_edit_configuration {
     $self->{'debug'}->DEBUG(['Start SysOp Edit Configuration']);
     $self->sysop_view_configuration(FALSE);
     my $types = {
-        'BBS NAME' => {
-            'max'  => 50,
-            'type' => STRING,
-        },
-        'BBS ROOT' => {
-            'max'  => 60,
-            'type' => STRING,
-        },
-        'HOST' => {
-            'max'  => 20,
-            'type' => HOST,
-        },
-        'THREAD MULTIPLIER' => {
-            'max'  => 2,
-            'type' => NUMERIC,
-        },
-        'PORT' => {
-            'max'  => 5,
-            'type' => NUMERIC,
-        },
-        'DEFAULT BAUD RATE' => {
-            'max'     => 5,
-            'type'    => RADIO,
-            'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'],
-        },
-        'DEFAULT TEXT MODE' => {
-            'max'     => 7,
-            'type'    => RADIO,
-            'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'],
-        },
-        'DEFAULT TIMEOUT' => {
-            'max'  => 3,
-            'type' => NUMERIC,
-        },
-        'FILES PATH' => {
-            'max'  => 60,
-            'type' => STRING,
-        },
-        'LOGIN TRIES' => {
-            'max'  => 1,
-            'type' => NUMERIC,
-        },
-        'MEMCACHED HOST' => {
-            'max'  => 20,
-            'type' => HOST,
-        },
-        'MEMCACHED NAMESPACE' => {
-            'max'  => 32,
-            'type' => STRING,
-        },
-        'MEMCACHED PORT' => {
-            'max'  => 5,
-            'type' => NUMERIC,
-        },
-        'DATE FORMAT' => {
-            'max'     => 14,
-            'type'    => RADIO,
-            'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY',],
-        },
-        'SYSOP ANIMATED MENU' => {
-            'max'     => 5,
-            'type'    => BOOLEAN,
-            'choices' => ['TRUE', 'FALSE'],
-        },
-        'USE DUF' => {
-            'max'     => 5,
-            'type'    => BOOLEAN,
-            'choices' => ['TRUE', 'FALSE'],
-        },
-        'PLAY SYSOP SOUNDS' => {
-            'max'     => 5,
-            'type'    => BOOLEAN,
-            'choices' => ['TRUE', 'FALSE'],
-        },
+        'BBS NAME'            => { 'max' => 50, 'type' => STRING, },
+        'BBS ROOT'            => { 'max' => 60, 'type' => STRING, },
+        'HOST'                => { 'max' => 20, 'type' => HOST, },
+        'THREAD MULTIPLIER'   => { 'max' => 2,  'type' => NUMERIC, },
+        'PORT'                => { 'max' => 5,  'type' => NUMERIC, },
+        'DEFAULT BAUD RATE'   => { 'max' => 5,  'type' => RADIO, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], },
+        'DEFAULT TEXT MODE'   => { 'max' => 7,  'type' => RADIO, 'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'], },
+        'DEFAULT TIMEOUT'     => { 'max' => 3,  'type' => NUMERIC, },
+        'FILES PATH'          => { 'max' => 60, 'type' => STRING, },
+        'LOGIN TRIES'         => { 'max' => 1,  'type' => NUMERIC, },
+        'MEMCACHED HOST'      => { 'max' => 20, 'type' => HOST, },
+        'MEMCACHED NAMESPACE' => { 'max' => 32, 'type' => STRING, },
+        'MEMCACHED PORT'      => { 'max' => 5,  'type' => NUMERIC, },
+        'DATE FORMAT'         => { 'max' => 14, 'type' => RADIO,   'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY',], },
+        'SYSOP ANIMATED MENU' => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
+        'USE DUF'             => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
+        'PLAY SYSOP SOUNDS'   => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
     };
     my $choice;
     do {
