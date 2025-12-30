@@ -100,6 +100,7 @@ CREATE TABLE rss_feeds (
 CREATE TABLE file_categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title       VARCHAR(255) NOT NULL,
+	path        VARCHAR(255),
     description TEXT
 );
 
@@ -175,6 +176,7 @@ CREATE VIEW users_view
     users.logout_time                    AS logout_time,
     users.file_category                  AS file_category,
 	file_categories.title                AS file_category_title,
+	file_categories.path                 AS file_category_path,
     users.forum_category                 AS forum_category,
 	message_categories.name              AS forum_category_title,
     users.rss_category                   AS rss_category,
@@ -237,6 +239,7 @@ SELECT
     files.title                          AS title,
     file_categories.title                AS category,
     file_categories.id                   AS category_id,
+	file_categories.path                 AS category_path,
     file_types.type                      AS type,
     file_types.extension                 AS extension,
     files.description                    AS description,
@@ -512,41 +515,41 @@ INSERT INTO file_types (type, extension) VALUES ('MS-DOS Command Executable','CO
 INSERT INTO file_types (type, extension) VALUES ('MS-DOS Batch','BAT');
 INSERT INTO file_types (type, extension) VALUES ('MS-DOS/Windows Executable','EXE');
 
-INSERT INTO file_categories (title,description) VALUES ('BBS::Universal Specific','All Files Relating to BBS Universal');       -- 1
-INSERT INTO file_categories (title,description) VALUES ('General','General Files');                                             -- 2
-INSERT INTO file_categories (title,description) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Files');                        -- 3
-INSERT INTO file_categories (title,description) VALUES ('Atari ST/STE','Atari ST/STE Files');                                   -- 4
-INSERT INTO file_categories (title,description) VALUES ('Atari TT030','Atari TT030 Files');                                     -- 5
-INSERT INTO file_categories (title,description) VALUES ('Atari Falcon030','Atari Falcon030 Files');                             -- 6
-INSERT INTO file_categories (title,description) VALUES ('Commodore PET','Commodore PET Files');                                 -- 7
-INSERT INTO file_categories (title,description) VALUES ('Commodore VIC-20','Commodore VIC-20 Files');                           -- 8
-INSERT INTO file_categories (title,description) VALUES ('Commodore C64/128','Commodore C64/128 Files');                         -- 9
-INSERT INTO file_categories (title,description) VALUES ('Commodore TED','Commodore C16/Plus4 Files');                           -- 10
-INSERT INTO file_categories (title,description) VALUES ('Commodore Amiga','Commodore Amiga Files');                             -- 11
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Files'); -- 12
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Files');                     -- 13
-INSERT INTO file_categories (title,description) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Files');                     -- 14
-INSERT INTO file_categories (title,description) VALUES ('Sinclair Spectrum','Sinclair Spectrum Files');                         -- 15
-INSERT INTO file_categories (title,description) VALUES ('Heathkit','Heathkit Files');                                           -- 16
-INSERT INTO file_categories (title,description) VALUES ('CP/M','CP/M Files');                                                   -- 17
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Files');                           -- 18
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Files');                       -- 19
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 Z80','TRS-80 Model I/II/III/4 Files');                          -- 20
-INSERT INTO file_categories (title,description) VALUES ('TRS-80 68000','TRS-80 Model 16/6000 Files');                           -- 21
-INSERT INTO file_categories (title,description) VALUES ('Apple ][','Apple ][/Franklin Ace Files');                              -- 22
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh 680x0','Macintosh 68000 Files');                       -- 23
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh PPC','Macintosh PowerPC Files');                       -- 24
-INSERT INTO file_categories (title,description) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files');                         -- 25
-INSERT INTO file_categories (title,description) VALUES ('MS-DOS','MS-DOS Files');                                               -- 26
-INSERT INTO file_categories (title,description) VALUES ('Windows 3.xx','Windows 16 Bit Files');                                 -- 27
-INSERT INTO file_categories (title,description) VALUES ('Windows NT','Windows NT Files');                                       -- 28
-INSERT INTO file_categories (title,description) VALUES ('Windows 32/64 Bit','Windows 32/64 Bit Files');                         -- 29
-INSERT INTO file_categories (title,description) VALUES ('Linux','Linux Files');                                                 -- 30
-INSERT INTO file_categories (title,description) VALUES ('FreeBSD','FreeBSD Files');                                             -- 31
-INSERT INTO file_categories (title,description) VALUES ('Homebrew','Homebrew Files');                                           -- 32
-INSERT INTO file_categories (title,description) VALUES ('MSX','MSX Files');                                                     -- 33
-INSERT INTO file_categories (title,description) VALUES ('Wang','Wang Files');                                                   -- 34
-INSERT INTO file_categories (title,description) VALUES ('Oric','Oric Files');                                                   -- 35
+INSERT INTO file_categories (title,description,path) VALUES ('BBS::Universal Specific','All Files Relating to BBS Universal','BBS');           -- 1
+INSERT INTO file_categories (title,description,path) VALUES ('General','General Files','General');                                             -- 2
+INSERT INTO file_categories (title,description,path) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Files','A800');                           -- 3
+INSERT INTO file_categories (title,description,path) VALUES ('Atari ST/STE','Atari ST/STE Files','Atari-ST');                                  -- 4
+INSERT INTO file_categories (title,description,path) VALUES ('Atari TT030','Atari TT030 Files','Atari-TT');                                    -- 5
+INSERT INTO file_categories (title,description,path) VALUES ('Atari Falcon030','Atari Falcon030 Files','Atari-Falcon');                        -- 6
+INSERT INTO file_categories (title,description,path) VALUES ('Commodore PET','Commodore PET Files','Commoedore-PET');                          -- 7
+INSERT INTO file_categories (title,description,path) VALUES ('Commodore VIC-20','Commodore VIC-20 Files','Commodore-VIC20');                   -- 8
+INSERT INTO file_categories (title,description,path) VALUES ('Commodore C64/128','Commodore C64/128 Files','Commodore-C64');                   -- 9
+INSERT INTO file_categories (title,description,path) VALUES ('Commodore TED','Commodore C16/Plus4 Files','Commodore-TED');                     -- 10
+INSERT INTO file_categories (title,description,path) VALUES ('Commodore Amiga','Commodore Amiga Files','Commodore-Amiga');                     -- 11
+INSERT INTO file_categories (title,description,path) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Files','TS-1000'); -- 12
+INSERT INTO file_categories (title,description,path) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Files','TS-2048');                     -- 13
+INSERT INTO file_categories (title,description,path) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Files','TS-2068');                     -- 14
+INSERT INTO file_categories (title,description,path) VALUES ('Sinclair Spectrum','Sinclair Spectrum Files','ZX-Spectrum');                     -- 15
+INSERT INTO file_categories (title,description,path) VALUES ('Heathkit','Heathkit Files','Heathkit');                                          -- 16
+INSERT INTO file_categories (title,description,path) VALUES ('CP/M','CP/M Files','CP-M');                                                      -- 17
+INSERT INTO file_categories (title,description,path) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Files','TRS-80-CoCo');                       -- 18
+INSERT INTO file_categories (title,description,path) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Files','TRS-80-Portables');              -- 19
+INSERT INTO file_categories (title,description,path) VALUES ('TRS-80 Z80','TRS-80 Model I/II/III/4 Files','TRS-80-Z80');                       -- 20
+INSERT INTO file_categories (title,description,path) VALUES ('TRS-80 68000','TRS-80 Model 16/6000 Files','TRS-80-68000');                      -- 21
+INSERT INTO file_categories (title,description,path) VALUES ('Apple ][','Apple ][/Franklin Ace Files','Apple-II');                             -- 22
+INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh 680x0','Macintosh 68000 Files','Apple-Macintosh-68000');         -- 23
+INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh PPC','Macintosh PowerPC Files','Apple-Macintosh-PPC');           -- 24
+INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files','Apple-Macintosh-OS-X');                  -- 25
+INSERT INTO file_categories (title,description,path) VALUES ('MS-DOS','MS-DOS Files','MS-DOS');                                                -- 26
+INSERT INTO file_categories (title,description,path) VALUES ('Windows 3.xx','Windows 16 Bit Files','Win-3.11');                                -- 27
+INSERT INTO file_categories (title,description,path) VALUES ('Windows NT','Windows NT Files','Win-NT');                                        -- 28
+INSERT INTO file_categories (title,description,path) VALUES ('Windows 32/64 Bit','Windows 32/64 Bit Files','Modern-Windows');                  -- 29
+INSERT INTO file_categories (title,description,path) VALUES ('Linux','Linux Files','Linux');                                                   -- 30
+INSERT INTO file_categories (title,description,path) VALUES ('FreeBSD','FreeBSD Files','FreeBSD');                                             -- 31
+INSERT INTO file_categories (title,description,path) VALUES ('Homebrew','Homebrew Files','Homebrew');                                          -- 32
+INSERT INTO file_categories (title,description,path) VALUES ('MSX','MSX Files','MSX');                                                         -- 33
+INSERT INTO file_categories (title,description,path) VALUES ('Wang','Wang Files','Wang');                                                      -- 34
+INSERT INTO file_categories (title,description,path) VALUES ('Oric','Oric Files','Oric');                                                      -- 35
 
 INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
 INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);

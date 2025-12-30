@@ -1,5 +1,5 @@
 package BBS::Universal::FileTransfer;
-BEGIN { our $VERSION = '0.007'; }
+BEGIN { our $VERSION = '0.008'; }
 
 sub filetransfer_initialize {
     my ($self) = @_;
@@ -151,7 +151,7 @@ sub files_choices {
         } until ($key =~ /D|N|Z/ || ($key eq 'V' && $view) || ($key eq 'R' && $self->check_access_level('JUNION SYSOP')));
         $self->output($mapping->{$key}->{'command'} . "\n");
         if ($mapping->{$key}->{'command'} eq 'DOWNLOAD') {
-            my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
+            my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $record->{'filename'};
             $mapping = {
                 'B' => {
                     'command'      => 'BACK',
@@ -195,7 +195,7 @@ sub files_choices {
             }
             return (TRUE);
         } elsif ($mapping->{$key}->{'command'} eq 'VIEW FILE' && $self->check_access_level($mapping->{$key}->{'access_level'})) {
-            my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $record->{'filename'};
+            my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $record->{'filename'};
             open(my $VIEW, '<', $file);
             binmode($VIEW, ":encoding(UTF-8)");
             my $data;
@@ -262,7 +262,7 @@ sub files_upload_choices {
     $self->output($mapping->{$ckey}->{'command'});
     if ($mapping->{$ckey}->{'command'} eq 'XMODEM') {
         if ($self->files_receive_file($file, XMODEM)) {
-            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
+            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file;
             my $size     = (-s $filename);
             my $sth      = $self->{'dbh'}->prepare('INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (?,?,?,(SELECT id FROM file_types WHERE extension=?),?,?');
             $sth->execute($file_category, $file, $title, $ext, $description, $size);
@@ -270,7 +270,7 @@ sub files_upload_choices {
         } ## end if ($self->files_receive_file...)
     } elsif ($mapping->{$ckey}->{'command'} eq 'YMODEM') {
         if ($self->files_receive_file($file, YMODEM)) {
-            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
+            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file;
             my $size     = (-s $filename);
             my $sth      = $self->{'dbh'}->prepare('INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (?,?,?,(SELECT id FROM file_types WHERE extension=?),?,?');
             $sth->execute($file_category, $file, $title, $ext, $description, $size);
@@ -278,7 +278,7 @@ sub files_upload_choices {
         } ## end if ($self->files_receive_file...)
     } elsif ($mapping->{$ckey}->{'command'} eq 'ZMODEM') {
         if ($self->files_receive_file($file, ZMODEM)) {
-            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
+            my $filename = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file;
             my $size     = (-s $filename);
             my $sth      = $self->{'dbh'}->prepare('INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (?,?,?,(SELECT id FROM file_types WHERE extension=?),?,?');
             $sth->execute($file_category, $file, $title, $ext, $description, $size);
@@ -379,12 +379,12 @@ sub files_receive_file {
     unless ($self->{'local_mode'}) {
         if ($protocol == YMODEM) {
             $self->{'debug'}->DEBUG(["Send file $file with Ymodem"]);
-            $success = $self->files_receive_file_ymodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
+            $success = $self->files_receive_file_ymodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file);
         } elsif ($protocol == ZMODEM) {
             $self->{'debug'}->DEBUG(["Send file $file with Zmodem"]);
-            $success = $self->files_receive_file_zmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
+            $success = $self->files_receive_file_zmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file);
         } else {    # Xmodem
-            $success = $self->files_receive_file_xmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $file);
+            $success = $self->files_receive_file_xmodem($self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file);
             $self->{'debug'}->DEBUG(["Send file $file with Xmodem"]);
         }
     } else {
@@ -879,7 +879,7 @@ sub files_send_xmodem {
         return 0;
     }
     $self->output("\nStart Xmodem download\n");
-    my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
+    my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file;
     my $FH;
     unless (open $FH, '<:raw', $path) {
         $self->{'debug'}->ERROR(["Cannot open file $path: $!"]);
@@ -986,7 +986,7 @@ sub files_send_ymodem {
     }
 
     $self->output("\nStart Ymodem download\n");
-    my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . $file;
+    my $path = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $file;
     my $FH;
     unless (open $FH, '<:raw', $path) {
         $self->{'debug'}->ERROR(["Cannot open file $path: $!"]);
@@ -1225,7 +1225,7 @@ sub files_receive_file_zmodem {
 
     # When rz receives files it writes them into the current working directory.
     # Use the destination directory from config (same place other uploads are stored).
-    my $dest_dir = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'};
+    my $dest_dir = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'};
 
     # ensure directory exists
     unless (-d $dest_dir) {

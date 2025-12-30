@@ -1,4 +1,4 @@
-package BBS::Universal 0.019;
+package BBS::Universal 0.020;
 
 # Pragmas
 use 5.010;
