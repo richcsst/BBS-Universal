@@ -1,5 +1,5 @@
 package BBS::Universal::SysOp;
-BEGIN { our $VERSION = '0.019'; }
+BEGIN { our $VERSION = '0.020'; }
 
 sub sysop_initialize {
     my $self = shift;
@@ -266,6 +266,7 @@ sub _render_ansi_catalog {
     $text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                             /_/   \_\_| \_|____/___|   |_| \___/|_|\_\_____|_| \_|____/                                  [% BRIGHT GREEN %]│[% RESET %]} . "\n";
     $text .= q{[% BRIGHT GREEN %]│[% BRIGHT WHITE %]                                                                                                                          [% BRIGHT GREEN %]│[% RESET %]} . "\n";
 
+    my $bar = '[% BRIGHT GREEN %]│[% RESET %]';
     # CLEAR section
     $text .= '[% BRIGHT GREEN %]╞══ [% BOLD %][% BRIGHT YELLOW %]CLEAR [% RESET %][% BRIGHT GREEN %]' . '═' x 56 . '╤' . '═' x 56 . '╡[% RESET %]' . "\n";
     {
@@ -282,11 +283,11 @@ sub _render_ansi_catalog {
         my @names = (sort(keys %{ $self->{'ansi_meta'}->{'cursor'} }));
         while (scalar(@names)) {
             my $name = shift(@names);
-            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('cursor', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= "$bar " . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('cursor', $name)) . " $bar\n";
         }
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'LOCATE column,row') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Sets the cursor location') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL UP count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen up by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'SCROLL DOWN count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen down by "count" lines') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= "$bar " . sprintf('%-63s', 'LOCATE column,row') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Sets the cursor location') . " $bar\n";
+        $text .= "$bar " . sprintf('%-63s', 'SCROLL UP count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen up by "count" lines') . " $bar\n";
+        $text .= "$bar " . sprintf('%-63s', 'SCROLL DOWN count') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Scrolls the screen down by "count" lines') . " $bar\n";
     }
 
     # ATTRIBUTES section
@@ -295,13 +296,13 @@ sub _render_ansi_catalog {
         my @names = grep(!/FONT \d/, (sort(keys %{ $self->{'ansi_meta'}->{'attributes'} })));
         foreach my $name (@names) {
             if ($name =~ /FONT|HIDE|RING BELL/) {
-                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-                $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set specific font (1-9)') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n" if ($name eq 'FONT DEFAULT');
+                $text .= "$bar " . sprintf('%-63s', $name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . " $bar\n";
+                $text .= "$bar " . sprintf('%-63s', 'FONT 1-9') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set specific font (1-9)') . " $bar\n" if ($name eq 'FONT DEFAULT');
             } else {
-                $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s', $name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+                $text .= '[% BRIGHT GREEN %]│[% RESET %][% ' . $name . ' %]' . sprintf(' %-63s', $name) . ' [% RESET %][% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', $self->ansi_description('attributes', $name)) . " $bar\n";
             }
         } ## end foreach my $name (@names)
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-62s', 'UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set the underline color using RGB') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= "$bar " . sprintf('%-62s', 'UNDERLINE COLOR RGB red,green,blue ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Set the underline color using RGB') . " $bar\n";
     }
 
     # Colors
@@ -342,19 +343,19 @@ sub _render_ansi_catalog {
         my @names = (sort(keys %{$self->{'ansi_meta'}->{'special'}}));
         while(scalar(@names)) {
             my $name = shift(@names);
-            $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('special',$name)) . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+            $text .= "$bar " . sprintf('%-63s',$name) . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s',$self->ansi_description('special',$name)) . " $bar\n";
         }
         $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s', 'HORIZONTAL RULE color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Horizontal rule the width of the screen in the') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %]                                                                 [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','specified color.') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= "$bar " . sprintf('%-63s', 'HORIZONTAL RULE color') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','Horizontal rule the width of the screen in the') . " $bar\n";
+        $text .= '[% BRIGHT GREEN %]│[% RESET %]                                                                 [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s','specified color.') . " $bar\n";
         $text .= '[% BRIGHT GREEN %]│ ─────────────────────────────────────────────────────────────── │ ────────────────────────────────────────────────────── │[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','BOX color,column,row,width,height,type') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Shows framed text box in the selected frame type and') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s',' ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'color.  Text goes between the BOX and ENDBOX token') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','    types:') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'See the "frames" option') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','DOUBLE, THIN, THICK, CIRCLE, ROUNDED, BLOCK, WEDGE') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','BIG WEDGE, DOTS, DIAMOND, STAR, SQUARE, DITHERED, NOTES') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%63s','HEARTS, CHRISTIAN, ARROWS, BIG ARROWS, PARALLELOGRAM') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
-        $text .= '[% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-63s','ENDBOX') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Ends the BOX token function') . ' [% BRIGHT GREEN %]│[% RESET %]' . "\n";
+        $text .= "$bar " . sprintf('%-63s','BOX color,column,row,width,height,type') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Shows framed text box in the selected frame type and') . " $bar\n";
+        $text .= "$bar " . sprintf('%-63s',' ') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'color.  Text goes between the BOX and ENDBOX token') . " $bar\n";
+        $text .= "$bar " . sprintf('%-63s','    types:') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'See the "frames" option') . " $bar\n";
+        $text .= "$bar " . sprintf('%63s','DOUBLE, THIN, THICK, CIRCLE, ROUNDED, BLOCK, WEDGE') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . " $bar\n";
+        $text .= "$bar " . sprintf('%63s','BIG WEDGE, DOTS, DIAMOND, STAR, SQUARE, DITHERED, NOTES') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . " $bar\n";
+        $text .= "$bar " . sprintf('%63s','HEARTS, CHRISTIAN, ARROWS, BIG ARROWS, PARALLELOGRAM') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', ' ') . " $bar\n";
+        $text .= "$bar " . sprintf('%-63s','ENDBOX') . ' [% BRIGHT GREEN %]│[% RESET %] ' . sprintf('%-54s', 'Ends the BOX token function') . " $bar\n";
     }
     $text .= '[% BRIGHT GREEN %]╰─────────────────────────────────────────────────────────────────┴────────────────────────────────────────────────────────╯[% RESET %]' . "\n";
 
@@ -2387,6 +2388,44 @@ sub sysop_delete_bbs {
     $self->{'debug'}->DEBUG(['End SysOp Delete BBS']);
     return (TRUE);
 } ## end sub sysop_delete_bbs
+
+sub sysop_add_file_category {
+	my $self = shift;
+
+    my $bar = '[% BRIGHT GREEN %]│[% RESET %]';
+	my $max_columns = $self->{'USER'}->{'max_columns'};
+	my $table = '[% BRIGHT GREEN %]╭' . '─' x ($max_columns - 2) . '╮[% RESET %]' . "\n";
+	$table   .= sprintf('%s %s       TITLE? %s%-' . ($max_columns - 15) . 's %s', $bar, '[% B_GREEN %][% BLACK %]', '[% RESET %]', '', $bar) . "\n";
+	$table   .= sprintf('%s %s DESCRIPTION? %s%-' . ($max_columns - 15) . 's %s', $bar, '[% B_YELLOW %][% BLACK %]', '[% RESET %]', '', $bar) . "\n";
+	$table   .= sprintf('%s %s   FILE PATH? %s%-' . ($max_columns - 15) . 's %s', $bar, '[% B_MAGENTA %][% BLACK %]', '[% RESET %]', '', $bar) . "\n";
+	$table   .= '[% BRIGHT GREEN %]╰' . '─' x ($self->{'USER'}->{'max_columns'} - 2) . '╯[% RESET %]' . "\n";
+	$self->output($table);
+	$self->output('[% UP %]' x 4 . '[% RIGHT %]' x 17);
+	my $title = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, '');
+	$self->output('[% RIGHT %]' x 17);
+	my $desc  = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, '');
+	$self->output('[% RIGHT %]' x 17);
+	my $path  = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, lc($title));
+    $self->sysop_prompt('Is this correct [y/n]');
+    my $key;
+    do {
+        $key = $self->sysop_get_key();
+        threads->yield();
+    } until ($key =~ /y|n/i);
+	if ($key =~ /y/i) {
+		print "YES\n";
+		print "Adding category to the database...";
+		my $sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description,path) VALUES (?,?,?)');
+		$sth->execute($title, $desc, $path);
+		$sth->finish();
+		print "Done\nAdding ", $self->{'CONF'}->{'FILES PATH'},$path,'...';
+		mkdir($self->{'CONF'}->{'FILES PATH'} . $path);
+		print "Done\nFile category added\n";
+		sleep 1;
+	} else {
+		print "NO\n";
+	}
+}
 
 sub sysop_add_file {
     my $self = shift;
