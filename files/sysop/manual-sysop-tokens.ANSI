@@ -10,102 +10,105 @@ Z|SYSOP MANUAL|WHITE|Return To Table of Contents
 
 [% HORIZONTAL RULE CYAN %][% BOLD %][% B_CYAN %][% BLACK %] SYSOP TOKENS[% RESET %]
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] BBS NAME[% RESET %]
+Tokens are not commands, but macros that are inserted into the text at the token location.
+
+[% BOLD %][% B_YELLOW %][% BLACK %] BBS NAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the BBS name.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] BBS VERSIONS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BBS VERSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show BBS versions.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] COMMANDS REFERENCE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] COMMANDS REFERENCE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the "files/sysop/commands_reference.ANSI" menu.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU BITS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU BITS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The number of bits the CPU processes (usually 32 or 64).
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU CORES[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU CORES [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The number of CPU cores.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU IDENTITY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU IDENTITY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show CPU identity.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU LOAD[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU LOAD [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the CPU load.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU SPEED[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU SPEED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the CPU speed.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] CPU THREADS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU THREADS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the number of CPU threads.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] DISK FREE SPACE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] DISK FREE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the 'df' or 'duf' disk free output.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] ENVIRONMENT[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] ENVIRONMENT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the system environment variables.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] FILE CATEGORY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] FILE CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the current file category.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] HARDWARE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] HARDWARE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the hardware description.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] HOSTNAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] HOSTNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the server hostname.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] IP ADDRESS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] IP ADDRESS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the server IP address.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] JUSTIFIED text ENDJUSTIFIED[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] JUSTIFIED text ENDJUSTIFIED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Justify text between JUSTIFIED and ENDJUSTIFIED tokens.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] MEMORY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] MEMORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the memory table.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] MIDDLE VERTICAL RULE color[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] MIDDLE VERTICAL RULE color [% RESET %][% YELLOW %]🭬[% RESET %]
 
-Show a vertical rule centered and in the set color.
+Show a vertical rule centered and in the set color using the appropriate ANSI color token.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] ONLINE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] ONLINE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show number of users online.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] SYSOP VIEW CONFIGURATION[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] SYSOP VIEW CONFIGURATION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the system configuration.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] THREADS COUNT[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] THREADS COUNT [% RESET %][% YELLOW %]🭬[% RESET %]
 
-Show the number of server threads.
+Show the number of allocated server threads.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] UPTIME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] UPTIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the system uptime.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] USERS COUNT[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USERS COUNT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the number of users.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] VERSIONS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] VERSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show complete versions output.
 
-[% HORIZONTAL RULE MAROON %][% BOLD %][% B_MAROON %][% BRIGHT YELLOW %] WRAP text ENDWRAP[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] WRAP text ENDWRAP [% RESET %][% YELLOW %]🭬[% RESET %]
 
-Wrap text between the WRAP and ENDWRAP tokens.
+Word wrap text between the WRAP and ENDWRAP tokens.
+

@@ -21,3 +21,10 @@ serial to TCP/IP adapters and running old BBS programs on them.  Quite ingenious
 
 [% JUSTIFIED %]I decided to make this program, [% ITALIC %]BBS::Universal[% RESET %] to accommodate plain ASCII, ANSI, ATASCII, and PETSCII formats.
 Instead of a redirected modem program like many of the others, this one is written to be a network server.[% ENDJUSTIFIED %]
+
+[% BOLD %][% B_YELLOW %][% BLACK %] COMMANDS VERSUS TOKENS [% RESET %][% YELLOW %]🭬[% RESET %]
+
+The system bifercates the SysOp system from the user system.  This means SysOp tokens and commands will not work when a user is using the system.
+
+Commands are typically used in menus as a choice.  Tokens are macros that are embedded in text.  They can be colors, cursor controls, BBS system data.
+

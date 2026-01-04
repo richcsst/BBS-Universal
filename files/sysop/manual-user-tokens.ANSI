@@ -12,182 +12,183 @@ Z|SYSOP MANUAL|WHITE|Return To System Menu
 
 Tokens are designed to be embedded in menus and text files.  They are NOT commands.  They are replaced by data indicated by the token.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] AUTHOR NAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] AUTHOR NAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the author's name.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] BANNER[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BANNER [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS banner.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] BAUD RATE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BAUD RATE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current simulated baud rate.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] BBS NAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BBS NAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS name.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] BBS VERSION[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BBS VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS version.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] BIRTHDAY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's birthday.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] CPU CORES[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU CORES [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of CPU cores.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] CPU IDENTITY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU IDENTITY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the CPU identity.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] CPU SPEED[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU SPEED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the CPU speed.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] CPU THREADS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] CPU THREADS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of CPU thread modules.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] FILE CATEGORY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] FILE CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current file category.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] FORTUNE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] FORTUNE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the fortune.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] FORUM CATEGORY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] FORUM CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the current forum category.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] JUSTIFIED text ENDJUSTIFIED[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] JUSTIFIED text ENDJUSTIFIED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The text inbetween the JUSTIFIED and ENDJUSTIFIED tokens is justified to the user's screen width.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] LAST LOGIN[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] LAST LOGIN [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the last login date.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] LAST LOGOUT[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] LAST LOGOUT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the last logout date.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] NOW[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] NOW [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current date.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] ONLINE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] ONLINE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of connected users.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] OS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] OS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the OS the system is running on.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] PERL VERSION[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] PERL VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the Perl version.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] RSS CATEGORY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] RSS CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current World News category.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] SHOW USERS LIST[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] SHOW USERS LIST [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the list of system users.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] THREAD ID[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] THREAD ID [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The current server ID.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] TIME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] TIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The current time.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] UPTIME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] UPTIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the system uptime.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER BIRTHDAY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Raw user birthday.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER COLUMNS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER COLUMNS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's screen width.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER EMAIL[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER EMAIL [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's email.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER FAMILY[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER FAMILY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's last/family name.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER FULLNAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER FULLNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's full name.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER GIVEN[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER GIVEN [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's first/given name.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER ID[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER ID [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's user ID.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER INFO[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER INFO [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the complete users info table.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER LOCATION[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER LOCATION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's location.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER LOGIN TIME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER LOGIN TIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the time the user logged in.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER NICKNAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER NICKNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's nickname.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER PERMISSIONS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER PERMISSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's permissions.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER RETRO SYSTEMS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER RETRO SYSTEMS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's retro systems.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER ROWS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER ROWS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's screen height.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER SCREEN SIZE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER SCREEN SIZE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's set screen size.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER TEXT MODE[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER TEXT MODE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's text mode.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USER USERNAME[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USER USERNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's username.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] USERS COUNT[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] USERS COUNT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the number of users.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] VERSIONS[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] VERSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the versions.
 
-[% HORIZONTAL RULE ORANGE %][% BOLD %][% B_ORANGE %][% BLACK %] WRAP text ENDWRAP[% RESET %]
+[% BOLD %][% B_YELLOW %][% BLACK %] WRAP text ENDWRAP [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Similar to JUSTIFIED, except it just word wraps text between WRAP and ENDWRAP.
+

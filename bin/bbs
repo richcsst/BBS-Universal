@@ -9,7 +9,7 @@
 #
 # =============================================================
 # BBS::Universal
-# Copyright © 2023-2025 Richard Kelsch
+# Copyright © 2023-2026 Richard Kelsch
 # All Rights Reserved
 # Licensed under the GNU Public License Version 3
 #   See the LICENSE file for details
@@ -90,7 +90,7 @@ print cls,locate(1,1),'Initializing BBS...';
 my $BBS_OBJ = BBS::Universal->small_new({ 'debug' => $DEBUG, 'debuglevel' => $LEVEL, 'nosound' => $NOSOUND });
 
 $DEBUG->DEBUG(['Initializing Memcached']);
-our $CACHE   = Cache::Memcached::Fast->new(
+our $CACHE  = Cache::Memcached::Fast->new(
     {
         'servers' => [
             {
@@ -734,7 +734,7 @@ sub logo {
     $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2025 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['magenta','on_black'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' All Rights Reserved                      ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['bright_blue','on_black'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Licensed Under The Perl Artistic License ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['blue','on_black'], q{━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┷}) . "\n";
+    $banner    .= colored(['blue','on_black'], '━' x 63 . '┷' . '━' x 42 . '┷') . "\n";
     $banner =~ s/\[\% VERSION \%\]/$version/s;
 
     print setscroll(1, $hsize), locate(1, 1);

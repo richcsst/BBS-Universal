@@ -2164,36 +2164,28 @@ sub sysop_showenv {
             if ($orig =~ /(256color)/) {
                 $new = colored(['red'], '2') . colored(['green'], '5') . colored(['yellow'], '6') . colored(['cyan'], 'c') . colored(['bright_blue'], 'o') . colored(['magenta'], 'l') . colored(['bright_green'], 'o') . colored(['bright_blue'], 'r');
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(truecolor)/) {
+            } elsif ($orig =~ /(truecolor)/) {
                 $new = colored(['red'], 't') . colored(['green'], 'r') . colored(['yellow'], 'u') . colored(['cyan'], 'e') . colored(['bright_blue'], 'c') . colored(['magenta'], 'o') . colored(['bright_green'], 'l') . colored(['bright_blue'], 'o') . colored(['red'], 'r');
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(\d+\.\d+\.\d+\.\d+)/) {
+            } elsif ($orig =~ /(\d+\.\d+\.\d+\.\d+)/) {
                 $new = '[% BRIGHT GREEN %]' . $1 . '[% RESET %]';
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(ubuntu)/i) {
+            } elsif ($orig =~ /(ubuntu)/i) {
                 $new = '[% ORANGE %]' . $1 . '[% RESET %]';
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(redhat)/i) {
+            } elsif ($orig =~ /(redhat)/i) {
                 $new = colored(['bright_red'], $1);
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(fedora)/i) {
+            } elsif ($orig =~ /(fedora)/i) {
                 $new = colored(['bright_cyan'], $1);
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(mint)/i) {
+            } elsif ($orig =~ /(mint)/i) {
                 $new = colored(['bright_green'], $1);
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(zorin)/i) {
+            } elsif ($orig =~ /(zorin)/i) {
                 $new = colored(['bright_white'], $1);
                 $orig =~ s/$1/$new/g;
-            }
-            if ($orig =~ /(wayland)/i) {
+            } elsif ($orig =~ /(wayland)/i) {
                 $new = colored(['bright_yellow'], $1);
                 $orig =~ s/$1/$new/g;
             }
@@ -2402,17 +2394,15 @@ sub sysop_add_file_category {
 	$self->output($table);
 	$self->output('[% UP %]' x 4 . '[% RIGHT %]' x 17);
 	my $title = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, '');
+	return(FALSE) if (length($title) < 4);
 	$self->output('[% RIGHT %]' x 17);
 	my $desc  = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, '');
+	return(FALSE) if (length($desc) < 4);
 	$self->output('[% RIGHT %]' x 17);
 	my $path  = $self->sysop_get_line({ 'max' => ($max_columns - 17), 'type' => STRING, }, lc($title));
-    $self->sysop_prompt('Is this correct [y/n]');
-    my $key;
-    do {
-        $key = $self->sysop_get_key();
-        threads->yield();
-    } until ($key =~ /y|n/i);
-	if ($key =~ /y/i) {
+	return(FALSE) if (length($path) < 3);
+    $self->sysop_prompt('Is this correct [y/n]?');
+	if ($self->sysop_decision()) {
 		print "YES\n";
 		print "Adding category to the database...";
 		my $sth = $self->{'dbh'}->prepare('INSERT INTO file_categories (title,description,path) VALUES (?,?,?)');
@@ -2422,8 +2412,10 @@ sub sysop_add_file_category {
 		mkdir($self->{'CONF'}->{'FILES PATH'} . $path);
 		print "Done\nFile category added\n";
 		sleep 1;
+		return(TRUE);
 	} else {
 		print "NO\n";
+		return(FALSE);
 	}
 }
 
