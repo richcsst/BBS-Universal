@@ -12,183 +12,183 @@ Z|SYSOP MANUAL|WHITE|Return To System Menu
 
 Tokens are designed to be embedded in menus and text files.  They are NOT commands.  They are replaced by data indicated by the token.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] AUTHOR NAME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] AUTHOR NAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the author's name.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] BANNER [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] BANNER [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS banner.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] BAUD RATE [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] BAUD RATE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current simulated baud rate.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] BBS NAME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] BBS NAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS name.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] BBS VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] BBS VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the BBS version.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's birthday.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] CPU CORES [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] CPU CORES [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of CPU cores.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] CPU IDENTITY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] CPU IDENTITY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the CPU identity.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] CPU SPEED [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] CPU SPEED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the CPU speed.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] CPU THREADS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] CPU THREADS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of CPU thread modules.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] FILE CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] FILE CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current file category.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] FORTUNE [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] FORTUNE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the fortune.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] FORUM CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] FORUM CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the current forum category.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] JUSTIFIED text ENDJUSTIFIED [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] JUSTIFIED text ENDJUSTIFIED [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The text inbetween the JUSTIFIED and ENDJUSTIFIED tokens is justified to the user's screen width.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] LAST LOGIN [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] LAST LOGIN [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the last login date.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] LAST LOGOUT [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] LAST LOGOUT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the last logout date.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] NOW [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] NOW [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current date.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] ONLINE [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] ONLINE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the number of connected users.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] OS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] OS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the OS the system is running on.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] PERL VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] PERL VERSION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the Perl version.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] RSS CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] RSS CATEGORY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Shows the current World News category.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] SHOW USERS LIST [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] SHOW USERS LIST [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the list of system users.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] THREAD ID [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] THREAD ID [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The current server ID.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] TIME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] TIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The current time.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] UPTIME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] UPTIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the system uptime.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER BIRTHDAY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Raw user birthday.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER COLUMNS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER COLUMNS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's screen width.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER EMAIL [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER EMAIL [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's email.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER FAMILY [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER FAMILY [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's last/family name.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER FULLNAME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER FULLNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's full name.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER GIVEN [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER GIVEN [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's first/given name.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER ID [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER ID [% RESET %][% YELLOW %]🭬[% RESET %]
 
 The user's user ID.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER INFO [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER INFO [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the complete users info table.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER LOCATION [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER LOCATION [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's location.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER LOGIN TIME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER LOGIN TIME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the time the user logged in.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER NICKNAME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER NICKNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's nickname.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER PERMISSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER PERMISSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's permissions.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER RETRO SYSTEMS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER RETRO SYSTEMS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's retro systems.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER ROWS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER ROWS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's screen height.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER SCREEN SIZE [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER SCREEN SIZE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's set screen size.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER TEXT MODE [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER TEXT MODE [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's text mode.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USER USERNAME [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USER USERNAME [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the user's username.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] USERS COUNT [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] USERS COUNT [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the number of users.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] VERSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] VERSIONS [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Show the versions.
 
-[% BOLD %][% B_YELLOW %][% BLACK %] WRAP text ENDWRAP [% RESET %][% YELLOW %]🭬[% RESET %]
+[% BOLD %][% B_GREEN %][% BLACK %] WRAP text ENDWRAP [% RESET %][% YELLOW %]🭬[% RESET %]
 
 Similar to JUSTIFIED, except it just word wraps text between WRAP and ENDWRAP.
 

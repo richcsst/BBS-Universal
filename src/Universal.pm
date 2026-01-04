@@ -1,4 +1,4 @@
-package BBS::Universal 0.020;
+package BBS::Universal 0.021;
 
 # Pragmas
 use 5.010;
@@ -485,90 +485,137 @@ sub login {
     return ($valid);
 } ## end sub login
 
+sub username_match {
+	my $self     = shift;
+	my $username = shift;
+
+	my $sth = $self->{'dbh'}->prepare('SELECT username FROM users WHERE username=?');
+	$sth->execute($username);
+	if ($sth->rows() || $username =~ /sysop/i || length($username) < 4 || length($username) > 32) {
+		$sth->finish();
+		$self->output("\nUsername $username unavailable!  Try another one.\n\n");
+		return(TRUE);
+	} else {
+		$sth->finish();
+		return(FALSE);
+	}
+}
+
 sub create_account {
     my $self = shift;
 
     $self->{'debug'}->DEBUG(['Start Create account']);
-    my $heading = '[% CLS %]CREATE ACCOUNT' . "\n\n";
+    my $heading = '[% CLS %]CREATE ACCOUNT' . "\n\nLeaving a field blank will abort\naccount creation\n\n";
     $self->output($heading);
 
-    my $username;
-    my $given;
-    my $family;
-    my $nickname;
-    my $max_columns;
-    my $max_rows;
-    my $text_mode;
-    my $birthday;
-    my $location;
-    my $date_format;
-    my $accomplishments;
-    my $email;
-    my $baud_rate;
-    my $password;
-    my $password2;
-
-    $self->output('Desired username:  ');
+    my $username = '';
+    my $given = '';
+    my $family = '';
+    my $nickname = '';
+    my $max_columns = 32;
+    my $max_rows = 25;
+    my $text_mode = '';
+    my $birthday = '';
+    my $location = '';
+    my $date_format = '';
+    my $accomplishments = '';
+    my $email = '';
+    my $baud_rate = '';
+    my $password = '';
+    my $password2 = '';
 
     if ($self->is_connected()) {
-        $username = $self->get_line({ 'type' => HOST, 'max' => 132, 'default' => '' });
+		while ($self->is_connected() && length($username) < 4) {
+			$self->output('Desired username:  ');
+            $username = $self->get_line({ 'type' => HOST, 'max' => 32, 'default' => '' });
+			return(FALSE) if (! defined($username) || $username eq '');
+			last unless ($self->username_match($username));
+		}
         $self->{'debug'}->DEBUG(["  New username:  $username"]);
 
-        $self->output("\nFirst (given) name:  ");
-        $given = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
-        $self->{'debug'}->DEBUG(["  New First Name:  $given"]);
+		while($self->is_connected() && length($given) < 2) {
+			$self->output("\nFirst (given) name:  ");
+			$given = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
+			return(FALSE) if (! defined($given) || $given eq '');
+			$self->{'debug'}->DEBUG(["  New First Name:  $given"]);
+		}
 
-        $self->output("\nLast (family) name:  ");
-        $family = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
-        $self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
+		while($self->is_connected() && length($family) < 3) {
+			$self->output("\nLast (family) name:  ");
+			$family = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
+			return(FALSE) if (! defined($family) || $family eq '');
+			$self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
+		}
 
-        $self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
-        if ($self->decision()) {
+		$self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
+        if ($self->is_connected() && $self->decision()) {
             $self->output("\nNickname:  ");
             $nickname = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
             $self->{'debug'}->DEBUG(["  New Nickname:  $nickname"]);
         }
-        $self->output("\nScreen width (in columns):  ");
-        $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => '40' });
-        $self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
 
-        $self->output("\nScreen height (in rows):  ");
-        $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => '25' });
-        $self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
+		while($self->is_connected() && $max_columns < 32) {
+			$self->output("\nScreen width (in columns):  ");
+			$max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_columns });
+			return(FALSE) if (! defined($max_columns) || $max_columns eq '');
+			$self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
+		}
 
-        $self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
-        $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'], 'default' => 'ASCII' });
-        $self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
+		while($self->is_connected() && $max_rows < 4) {
+			$self->output("\nScreen height (in rows):  ");
+			$max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_rows });
+			return(FALSE) if (! defined($max_rows) || $max_rows eq '');
+			$self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
+		}
 
-        $self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
-        $birthday = $self->get_line({ 'type' => DATE, 'max' => 10, 'default' => '' });
-        $self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
+		while($self->is_connected() && $text_mode < 32) {
+			$self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
+			$text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'], 'default' => 'ASCII' });
+			return(FALSE) if (! defined($text_mode) || $text_mode eq '');
+			$self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
+		}
 
-        $self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
-        $location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
-        $self->{'debug'}->DEBUG(["  New Location:  $location"]);
+		if ($self->is_connected()) {
+			$self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
+			$birthday = $self->get_line({ 'type' => DATE, 'max' => 10, 'default' => '' });
+			$self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
+		}
 
-        $self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
-        $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'], 'default' => 'YEAR/MONTH/DAY' });
-        $self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
+		if ($self->is_connected()) {
+			$self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
+			$location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
+			$self->{'debug'}->DEBUG(["  New Location:  $location"]);
+		}
 
-        $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
-        $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
-        $self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
+		if ($self->is_connected()) {
+			$self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
+			$date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'], 'default' => 'YEAR/MONTH/DAY' });
+			return(FALSE) if (! defined($date_format) || $date_format eq '');
+			$self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
+		}
+
+		if ($self->is_connected()) {
+			$self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
+			$baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
+			return(FALSE) if (! defined($baud_rate) || $baud_rate eq '');
+			$self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
+		}
 
         my $tries = 3;
         do {
             $self->output("\nPlease enter your password:  ");
             $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password']);
+			return(FALSE) unless ($self->is_connected() && defined($password));
 
             $self->output("\nEnter it again:  ");
             $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password2']);
+			return(FALSE) unless ($self->is_connected() && defined($password2));
 
             $self->output("\nPasswords do not match!  Try again\n");
             $tries--;
-        } until (($self->is_connected() && $password eq $password2) || $tries <= 0);
+        } until (($password eq $password2) || $tries <= 0);
         if ($self->is_connected() && $password eq $password2) {
             my $tree = {
                 'username'    => $username,

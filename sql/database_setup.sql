@@ -25,7 +25,7 @@ CREATE TABLE text_modes (
 
 CREATE TABLE users (
     id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    username        VARCHAR(32) NOT NULL,
+    username        VARCHAR(32) UNIQUE NOT NULL,
     password        CHAR(128) NOT NULL,
     given           VARCHAR(255) NOT NULL,
     family          VARCHAR(255) NOT NULL,
@@ -36,7 +36,7 @@ CREATE TABLE users (
     accomplishments TEXT,
     retro_systems   TEXT,
     birthday        DATE,
-    date_format     CHAR(14) DEFAULT 'YEAR/MONTH/DAY',
+    date_format     ENUM('YEAR/MONTH/DAY','MONTH/DAY/YEAR','DAY/MONTH/YEAR') NOT NULL DEFAULT 'YEAR/MONTH/DAY',
     file_category   INT UNSIGNED NOT NULL DEFAULT 1,
     forum_category  INT UNSIGNED NOT NULL DEFAULT 1,
     rss_category    INT UNSIGNED NOT NULL DEFAULT 1,
@@ -59,7 +59,6 @@ CREATE TABLE permissions (
     post_message    BOOLEAN DEFAULT FALSE,
     remove_message  BOOLEAN DEFAULT FALSE,
     sysop           BOOLEAN DEFAULT FALSE,
-    page_sysop      BOOLEAN DEFAULT TRUE,
     prefer_nickname BOOLEAN DEFAULT FALSE,
     play_fortunes   BOOLEAN DEFAULT FALSE,
     banned          BOOLEAN DEFAULT FALSE,
@@ -197,7 +196,6 @@ CREATE VIEW users_view
     permissions.post_message             AS post_message,
     permissions.remove_message           AS remove_message,
     permissions.sysop                    AS sysop,
-    permissions.page_sysop               AS page_sysop,
     permissions.play_fortunes            AS play_fortunes,
     permissions.banned                   AS banned
  FROM
@@ -381,63 +379,83 @@ INSERT INTO permissions (
       LAST_INSERT_ID()
   );
 
-INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Computers');
-INSERT INTO message_categories (name,description) VALUES ('Atari ST/STE','Atari ST/STE Computers');
-INSERT INTO message_categories (name,description) VALUES ('Atari TT030','Atari Falcon03 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Atari Falcon030','Atari Falcon03 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Commodore PET','Commodore PET Computers');
-INSERT INTO message_categories (name,description) VALUES ('Commodore VIC-20','Commodore VIC-20 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Commodore C64/128','Commodore C64/128 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Commodore TED','Commodore C16/Plus4 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Commodore Amiga','Commodore Amiga Computers');
-INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Computers');
-INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Computer');
-INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Computer');
-INSERT INTO message_categories (name,description) VALUES ('Amstrad','Amstrad Computers');
-INSERT INTO message_categories (name,description) VALUES ('Sinclair','Sinclair Research Computers');
-INSERT INTO message_categories (name,description) VALUES ('Heathkit','Heathkit Computers');
-INSERT INTO message_categories (name,description) VALUES ('CP/M','CP/M Computers');
-INSERT INTO message_categories (name,description) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Discussion');
-INSERT INTO message_categories (name,description) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Discussion');
-INSERT INTO message_categories (name,description) VALUES ('TRS-80 Z80','TRS-80 Model 1/II/III/4 Discussion');
-INSERT INTO message_categories (name,description) VALUES ('TRS-80 68K','TRS-80 Model 16/6000 Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Apple ][','Apple ][/Franklin Ace Computers');
-INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh 680x0','Apple Macintosh 680x0 Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh PPC','Apple Macintosh PowerPC Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh OS-X','Apple Macintosh OS-X Discussion');
-INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Windows 3.xx','Windows 16 Bit Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Windows NT','Windows NT Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Windows 32/64','Windows 32/64 Bit Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discussion');
-INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Discussion');
-INSERT INTO message_categories (name,description) VALUES ('Texas Instruments','Texas Instruments Computers');
-INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');
-INSERT INTO message_categories (name,description) VALUES ('BBC Acorn','BBC Acorn Discussion');
-INSERT INTO message_categories (name,description) VALUES ('BBC Micro','BBC Micro Discussion');
-INSERT INTO message_categories (name,description) VALUES ('MSX','MSX Computers');
-INSERT INTO message_categories (name,description) VALUES ('Wang','Wang Computers');
-INSERT INTO message_categories (name,description) VALUES ('Oric','Oric Computers');
+INSERT INTO message_categories (name,description) VALUES ('General','General Discussion');                                            -- 1
+INSERT INTO message_categories (name,description) VALUES ('Atari 8 Bit','Atari 400/800/XL/XE/XEGS Computers');                        -- 2
+INSERT INTO message_categories (name,description) VALUES ('Atari ST/STE','Atari ST/STE Computers');                                   -- 3
+INSERT INTO message_categories (name,description) VALUES ('Atari TT030','Atari Falcon03 Computers');                                  -- 4
+INSERT INTO message_categories (name,description) VALUES ('Atari Falcon030','Atari Falcon03 Computers');                              -- 5
+INSERT INTO message_categories (name,description) VALUES ('Commodore PET','Commodore PET Computers');                                 -- 6
+INSERT INTO message_categories (name,description) VALUES ('Commodore VIC-20','Commodore VIC-20 Computers');                           -- 7
+INSERT INTO message_categories (name,description) VALUES ('Commodore C64/128','Commodore C64/128 Computers');                         -- 8
+INSERT INTO message_categories (name,description) VALUES ('Commodore TED','Commodore C16/Plus4 Computers');                           -- 9
+INSERT INTO message_categories (name,description) VALUES ('Commodore Amiga','Commodore Amiga Computers');                             -- 10
+INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair ZX81/1000/1500','Timex/Sinclair ZX81/1000/1500 Computers'); -- 11
+INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair 2048','Timex/Sinclair 2048 Computer');                      -- 12
+INSERT INTO message_categories (name,description) VALUES ('Timex/Sinclair 2068','Timex/Sinclair 2068 Computer');                      -- 13
+INSERT INTO message_categories (name,description) VALUES ('Amstrad','Amstrad Computers');                                             -- 14
+INSERT INTO message_categories (name,description) VALUES ('Sinclair','Sinclair Research Computers');                                  -- 15
+INSERT INTO message_categories (name,description) VALUES ('Heathkit','Heathkit Computers');                                           -- 16
+INSERT INTO message_categories (name,description) VALUES ('CP/M','CP/M Computers');                                                   -- 17
+INSERT INTO message_categories (name,description) VALUES ('TRS-80 Portables','TRS-80 Model 100/200 Discussion');                      -- 18
+INSERT INTO message_categories (name,description) VALUES ('TRS-80 CoCo','TRS-80 Color Computer Discussion');                          -- 19
+INSERT INTO message_categories (name,description) VALUES ('TRS-80 Z80','TRS-80 Model 1/II/III/4 Discussion');                         -- 20
+INSERT INTO message_categories (name,description) VALUES ('TRS-80 68K','TRS-80 Model 16/6000 Discussion');                            -- 21
+INSERT INTO message_categories (name,description) VALUES ('Apple ][','Apple ][/Franklin Ace Computers');                              -- 22
+INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh 680x0','Apple Macintosh 680x0 Discussion');                -- 23
+INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh PPC','Apple Macintosh PowerPC Discussion');                -- 24
+INSERT INTO message_categories (name,description) VALUES ('Apple Macintosh OS-X','Apple Macintosh OS-X Discussion');                  -- 25
+INSERT INTO message_categories (name,description) VALUES ('MS-DOS','MS-DOS Discussion');                                              -- 26
+INSERT INTO message_categories (name,description) VALUES ('Windows 3.xx','Windows 16 Bit Discussion');                                -- 27
+INSERT INTO message_categories (name,description) VALUES ('Windows NT','Windows NT Discussion');                                      -- 28
+INSERT INTO message_categories (name,description) VALUES ('Windows 32/64','Windows 32/64 Bit Discussion');                            -- 29
+INSERT INTO message_categories (name,description) VALUES ('Linux','Linux Discussion');                                                -- 30
+INSERT INTO message_categories (name,description) VALUES ('FreeBSD','FreeBSD Discussion');                                            -- 31
+INSERT INTO message_categories (name,description) VALUES ('Texas Instruments','Texas Instruments Computers');                         -- 32
+INSERT INTO message_categories (name,description) VALUES ('Homebrew','Homebrew Computers');                                           -- 33
+INSERT INTO message_categories (name,description) VALUES ('BBC Acorn','BBC Acorn Discussion');                                        -- 34
+INSERT INTO message_categories (name,description) VALUES ('BBC Micro','BBC Micro Discussion');                                        -- 35
+INSERT INTO message_categories (name,description) VALUES ('MSX','MSX Computers');                                                     -- 36
+INSERT INTO message_categories (name,description) VALUES ('Wang','Wang Computers');                                                   -- 37
+INSERT INTO message_categories (name,description) VALUES ('Oric','Oric Computers');                                                   -- 38
 
-INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message 2','This is a test too');
-INSERT INTO messages (category,from_id,title,message) VALUES (2,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (3,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (4,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (5,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (6,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (7,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (8,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (9,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (10,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (11,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (12,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (13,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (14,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (15,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (16,1,'First (test) Message','This is a test');
-INSERT INTO messages (category,from_id,title,message) VALUES (17,1,'First (test) Message','This is a test');
+INSERT INTO messages (category,from_id,title,message) VALUES (1,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (2,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (3,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (4,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (5,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (6,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (7,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (8,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (9,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (10,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (11,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (12,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (13,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (14,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (15,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (16,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (17,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (18,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (19,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (20,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (21,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (22,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (23,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (24,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (25,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (26,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (27,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (28,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (29,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (30,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (31,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (32,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (33,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (34,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (35,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (36,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (37,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
+INSERT INTO messages (category,from_id,title,message) VALUES (38,1,'First (test) Message','This is the first message, which can be deleted by the SysOp');
 
 INSERT INTO file_types (type, extension) VALUES ('Plain Text','TXT');
 INSERT INTO file_types (type, extension) VALUES ('ASCII Text','ASC');
@@ -539,7 +557,7 @@ INSERT INTO file_categories (title,description,path) VALUES ('TRS-80 68000','TRS
 INSERT INTO file_categories (title,description,path) VALUES ('Apple ][','Apple ][/Franklin Ace Files','Apple-II');                             -- 22
 INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh 680x0','Macintosh 68000 Files','Apple-Macintosh-68000');         -- 23
 INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh PPC','Macintosh PowerPC Files','Apple-Macintosh-PPC');           -- 24
-INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files','Apple-Macintosh-OS-X');                  -- 25
+INSERT INTO file_categories (title,description,path) VALUES ('Apple Macintosh OS-X','Macintosh OS-X Files','Apple-Macintosh-OS-X');            -- 25
 INSERT INTO file_categories (title,description,path) VALUES ('MS-DOS','MS-DOS Files','MS-DOS');                                                -- 26
 INSERT INTO file_categories (title,description,path) VALUES ('Windows 3.xx','Windows 16 Bit Files','Win-3.11');                                -- 27
 INSERT INTO file_categories (title,description,path) VALUES ('Windows NT','Windows NT Files','Win-NT');                                        -- 28
@@ -551,23 +569,17 @@ INSERT INTO file_categories (title,description,path) VALUES ('MSX','MSX Files','
 INSERT INTO file_categories (title,description,path) VALUES ('Wang','Wang Files','Wang');                                                      -- 34
 INSERT INTO file_categories (title,description,path) VALUES ('Oric','Oric Files','Oric');                                                      -- 35
 
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (1,'BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (2,'usa.ans','ANSI Token File USA',(SELECT id FROM file_types WHERE extension='ANS'),'USA in USA Themed Font in ANSI Token Format', 5303);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (15,'sinclair.ans','ANSI Token File Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Sinclair Logo in ANSI Token Format', 6447);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair.ans','ANSI Token File Timex/Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair Logo in ANSI Token Format', 4206);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair-1000.ans','ANSI Token File Timex/Sinclair 1000 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1000 Logo in ANSI Token Format', 5109);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (12,'timex-sinclair-1500.ans','ANSI Token File Timex/Sinclair 1500 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1500 Logo in ANSI Token Format', 5582);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (13,'timex-sinclair-2048.ans','ANSI Token File Timex/Sinclair 2048 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2048 Logo in ANSI Token Format', 5151);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (14,'timex-sinclair-2068.ans','ANSI Token File Timex/Sinclair 2068 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2068 Logo in ANSI Token Format', 5179);
-INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES (30,'linux.vt','ANSI Linux Logo',(SELECT id FROM file_types WHERE extension='VT'),'Linux logo in ANSI format', 2650);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="BBS::Universal Specific"),'BBS_Universal.png','BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='PNG'),'The BBS::Universal Logo in PNG format', 148513);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="BBS::Universal Specific"),'BBS_Universal_banner.vt','ANSI BBS::Universal Logo',(SELECT id FROM file_types WHERE extension='VT'),'The BBS::Universal Logo in ANSI format', 533);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="General"),'usa.ans','ANSI Token File USA',(SELECT id FROM file_types WHERE extension='ANS'),'USA in USA Themed Font in ANSI Token Format', 5303);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Sinclair Spectrum"),'sinclair.ans','ANSI Token File Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Sinclair Logo in ANSI Token Format', 6447);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Timex/Sinclair ZX81/1000/1500"),'timex-sinclair.ans','ANSI Token File Timex/Sinclair Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair Logo in ANSI Token Format', 4206);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Timex/Sinclair ZX81/1000/1500"),'timex-sinclair-1000.ans','ANSI Token File Timex/Sinclair 1000 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1000 Logo in ANSI Token Format', 5109);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Timex/Sinclair ZX81/1000/1500"),'timex-sinclair-1500.ans','ANSI Token File Timex/Sinclair 1500 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 1500 Logo in ANSI Token Format', 5582);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Timex/Sinclair 2048"),'timex-sinclair-2048.ans','ANSI Token File Timex/Sinclair 2048 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2048 Logo in ANSI Token Format', 5151);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Timex/Sinclair 2068"),'timex-sinclair-2068.ans','ANSI Token File Timex/Sinclair 2068 Logo',(SELECT id FROM file_types WHERE extension='ANS'),'Timex/Sinclair 2068 Logo in ANSI Token Format', 5179);
+INSERT INTO files (category,filename,title,file_type,description,file_size) VALUES ((SELECT id FROM file_categories WHERE title="Linux"),'linux.vt','ANSI Linux Logo',(SELECT id FROM file_types WHERE extension='VT'),'Linux logo in ANSI format', 2650);
 
-INSERT INTO news (
-    news_title,
-    news_content
-  ) VALUES (
-    'BBS Universal Installation',
-    'BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.'
-);
+INSERT INTO news (news_title,news_content) VALUES ('BBS Universal Installation','BBS::Universal, written by Richard Kelsch, a Perl based BBS server designed for retro and modern computers has been installed on this server.');
 
 -- END
