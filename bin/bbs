@@ -468,6 +468,7 @@ sub system_menu {
         my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANSI');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
+				$bbs_obj->playit('boing.mp3');
                 $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
             } else {
                 $DEBUG->ERROR(["$command is not a valid SysOp Command!"]);
