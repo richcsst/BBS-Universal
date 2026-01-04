@@ -156,10 +156,10 @@ our $SYSOP_COMMANDS = {
         $self->sysop_add_bbs();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
     },
-	'SYSOP BBS LISTINGS MANAGER' => sub {
-		my $self = shift;
+    'SYSOP BBS LISTINGS MANAGER' => sub {
+        my $self = shift;
         return($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/bbs_listing_manager.ANSI'));
-	},
+    },
     'SYSOP BBS BULK MERGE' => sub {
         my $self = shift;
         $self->sysop_bbs_list_bulk_import();
@@ -268,11 +268,11 @@ our $SYSOP_COMMANDS = {
         $self->sysop_list_files();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
-	'SYSOP ADD FILE CATEGORY' => sub {
-		my $self = shift;
-		$self->sysop_add_file_category();
+    'SYSOP ADD FILE CATEGORY' => sub {
+        my $self = shift;
+        $self->sysop_add_file_category();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-	},
+    },
     'SYSOP LIST USERS HORIZONTAL ABBREVIATED' => sub {
         my $self = shift;
         $self->sysop_list_users('HORIZONTAL ABBREVIATED', 'files/sysop/edituser.ANSI');
@@ -340,10 +340,10 @@ our $SYSOP_COMMANDS = {
         $self->sysop_select_file_category();
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
     },
-	'SYSOP FILE MANAGER' => sub {
-		my $self = shift;
+    'SYSOP FILE MANAGER' => sub {
+        my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/filemanager.ANSI'));
-	},
+    },
     'SYSOP SETTINGS' => sub {
         my $self = shift;
         return ($self->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/settings.ANSI'));
@@ -468,7 +468,7 @@ sub system_menu {
         my $command = $bbs_obj->sysop_parse_menu(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 'files/sysop/sysop.ANSI');
         while ($command !~ /BACK/ && $CACHE->get('RUNNING')) {
             if (exists($SYSOP_COMMANDS->{$command}) && ref($SYSOP_COMMANDS->{$command}) eq 'CODE') {
-				$bbs_obj->playit('boing.mp3');
+                $bbs_obj->playit('boing.mp3');
                 $command = $SYSOP_COMMANDS->{$command}->($bbs_obj);
             } else {
                 $DEBUG->ERROR(["$command is not a valid SysOp Command!"]);

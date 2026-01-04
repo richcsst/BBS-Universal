@@ -221,79 +221,79 @@ sub new {    # Always call with the socket as a parameter
         },
 ###
         'telnet_commands' => [
-			'SE (Subnegotiation end)',
-			'NOP (No operation)',
-			'Data Mark',
-			'Break',
-			'Interrupt Process',
-			'Abort output',
-			'Are you there?',
-			'Erase character',
-			'Erase Line',
-			'Go ahead',
-			'SB (Subnegotiation begin)',
-			'WILL',
-			"WON'T",
-			'DO',
-			"DON'T",
-			'IAC',
-		],
+            'SE (Subnegotiation end)',
+            'NOP (No operation)',
+            'Data Mark',
+            'Break',
+            'Interrupt Process',
+            'Abort output',
+            'Are you there?',
+            'Erase character',
+            'Erase Line',
+            'Go ahead',
+            'SB (Subnegotiation begin)',
+            'WILL',
+            "WON'T",
+            'DO',
+            "DON'T",
+            'IAC',
+        ],
         'telnet_options'  => [
-			'Binary Transmission',
-			'Echo',
-			'Reconnection',
-			'Suppress Go Ahead',
-			'Approx Message Size Negotiation',
-			'Status',
-			'Timing Mark',
-			'Remote Controlled Trans and Echo',
-			'Output Line Width',
-			'Output Page Size',
-			'Output Carriage-Return Disposition',
-			'Output Horizontal Tab Stops',
-			'Output Horizontal Tab Disposition',
-			'Output Formfeed Disposition',
-			'Output Vertical Tabstops',
-			'Output Vertical Tab Disposition',
-			'Output Linefeed Disposition',
-			'Extended ASCII',
-			'Logout',
-			'Byte Macro',
-			'Data Entry Terminal',
-			'RFC 1043',
-			'RFC 732',
-			'SUPDUP',
-			'RFC 736',
-			'RFC 734',
-			'SUPDUP Output',
-			'Send Location',
-			'Terminal Type',
-			'End of Record',
-			'TACACS User Identification',
-			'Output Marking',
-			'Terminal Location Number',
-			'Telnet 3270 Regime',
-			'30X.3 PAD',
-			'Negotiate About Window Size',
-			'Terminal Speed',
-			'Remote Flow Control',
-			'Linemode',
-			'X Display Location',
-			'Environment Option',
-			'Authentication Option',
-			'Encryption Option',
-			'New Environment Option',
-			'TN3270E',
-			'XAUTH',
-			'CHARSET',
-			'Telnet Remote Serial Port (RSP)',
-			'Com Port Control Option',
-			'Telnet Suppress Local Echo',
-			'Telnet Start TLS',
-			'KERMIT',
-			'SEND-URL',
-			'FORWARD_',
-		],
+            'Binary Transmission',
+            'Echo',
+            'Reconnection',
+            'Suppress Go Ahead',
+            'Approx Message Size Negotiation',
+            'Status',
+            'Timing Mark',
+            'Remote Controlled Trans and Echo',
+            'Output Line Width',
+            'Output Page Size',
+            'Output Carriage-Return Disposition',
+            'Output Horizontal Tab Stops',
+            'Output Horizontal Tab Disposition',
+            'Output Formfeed Disposition',
+            'Output Vertical Tabstops',
+            'Output Vertical Tab Disposition',
+            'Output Linefeed Disposition',
+            'Extended ASCII',
+            'Logout',
+            'Byte Macro',
+            'Data Entry Terminal',
+            'RFC 1043',
+            'RFC 732',
+            'SUPDUP',
+            'RFC 736',
+            'RFC 734',
+            'SUPDUP Output',
+            'Send Location',
+            'Terminal Type',
+            'End of Record',
+            'TACACS User Identification',
+            'Output Marking',
+            'Terminal Location Number',
+            'Telnet 3270 Regime',
+            '30X.3 PAD',
+            'Negotiate About Window Size',
+            'Terminal Speed',
+            'Remote Flow Control',
+            'Linemode',
+            'X Display Location',
+            'Environment Option',
+            'Authentication Option',
+            'Encryption Option',
+            'New Environment Option',
+            'TN3270E',
+            'XAUTH',
+            'CHARSET',
+            'Telnet Remote Serial Port (RSP)',
+            'Com Port Control Option',
+            'Telnet Suppress Local Echo',
+            'Telnet Start TLS',
+            'KERMIT',
+            'SEND-URL',
+            'FORWARD_',
+        ],
 ###
     };
 
@@ -352,8 +352,8 @@ sub populate_common {
     $self->cpu_initialize();
     $self->news_initialize();
     $self->bbs_list_initialize();
-	$self->tokens_initialize();
-	$self->commands_initialize();
+    $self->tokens_initialize();
+    $self->commands_initialize();
 
     $self->{'debug'}->DEBUG(['Libraries initialized']);
 
@@ -486,19 +486,19 @@ sub login {
 } ## end sub login
 
 sub username_match {
-	my $self     = shift;
-	my $username = shift;
+    my $self     = shift;
+    my $username = shift;
 
-	my $sth = $self->{'dbh'}->prepare('SELECT username FROM users WHERE username=?');
-	$sth->execute($username);
-	if ($sth->rows() || $username =~ /sysop/i || length($username) < 4 || length($username) > 32) {
-		$sth->finish();
-		$self->output("\nUsername $username unavailable!  Try another one.\n\n");
-		return(TRUE);
-	} else {
-		$sth->finish();
-		return(FALSE);
-	}
+    my $sth = $self->{'dbh'}->prepare('SELECT username FROM users WHERE username=?');
+    $sth->execute($username);
+    if ($sth->rows() || $username =~ /sysop/i || length($username) < 4 || length($username) > 32) {
+        $sth->finish();
+        $self->output("\nUsername $username unavailable!  Try another one.\n\n");
+        return(TRUE);
+    } else {
+        $sth->finish();
+        return(FALSE);
+    }
 }
 
 sub create_account {
@@ -525,93 +525,93 @@ sub create_account {
     my $password2 = '';
 
     if ($self->is_connected()) {
-		while ($self->is_connected() && length($username) < 4) {
-			$self->output('Desired username:  ');
+        while ($self->is_connected() && length($username) < 4) {
+            $self->output('Desired username:  ');
             $username = $self->get_line({ 'type' => HOST, 'max' => 32, 'default' => '' });
-			return(FALSE) if (! defined($username) || $username eq '');
-			last unless ($self->username_match($username));
-		}
+            return(FALSE) if (! defined($username) || $username eq '');
+            last unless ($self->username_match($username));
+        }
         $self->{'debug'}->DEBUG(["  New username:  $username"]);
 
-		while($self->is_connected() && length($given) < 2) {
-			$self->output("\nFirst (given) name:  ");
-			$given = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
-			return(FALSE) if (! defined($given) || $given eq '');
-			$self->{'debug'}->DEBUG(["  New First Name:  $given"]);
-		}
+        while($self->is_connected() && length($given) < 2) {
+            $self->output("\nFirst (given) name:  ");
+            $given = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
+            return(FALSE) if (! defined($given) || $given eq '');
+            $self->{'debug'}->DEBUG(["  New First Name:  $given"]);
+        }
 
-		while($self->is_connected() && length($family) < 3) {
-			$self->output("\nLast (family) name:  ");
-			$family = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
-			return(FALSE) if (! defined($family) || $family eq '');
-			$self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
-		}
+        while($self->is_connected() && length($family) < 3) {
+            $self->output("\nLast (family) name:  ");
+            $family = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
+            return(FALSE) if (! defined($family) || $family eq '');
+            $self->{'debug'}->DEBUG(["  New Last Name:  $family"]);
+        }
 
-		$self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
+        $self->output("\nWould you like to use a nickname/alias (Y/N)?  ");
         if ($self->is_connected() && $self->decision()) {
             $self->output("\nNickname:  ");
             $nickname = $self->get_line({ 'type' => STRING, 'max' => 132, 'default' => '' });
             $self->{'debug'}->DEBUG(["  New Nickname:  $nickname"]);
         }
 
-		while($self->is_connected() && $max_columns < 32) {
-			$self->output("\nScreen width (in columns):  ");
-			$max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_columns });
-			return(FALSE) if (! defined($max_columns) || $max_columns eq '');
-			$self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
-		}
+        while($self->is_connected() && $max_columns < 32) {
+            $self->output("\nScreen width (in columns):  ");
+            $max_columns = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_columns });
+            return(FALSE) if (! defined($max_columns) || $max_columns eq '');
+            $self->{'debug'}->DEBUG(["  New Screen Width:  $max_columns"]);
+        }
 
-		while($self->is_connected() && $max_rows < 4) {
-			$self->output("\nScreen height (in rows):  ");
-			$max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_rows });
-			return(FALSE) if (! defined($max_rows) || $max_rows eq '');
-			$self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
-		}
+        while($self->is_connected() && $max_rows < 4) {
+            $self->output("\nScreen height (in rows):  ");
+            $max_rows = $self->get_line({ 'type' => NUMERIC, 'max' => 3, 'default' => $max_rows });
+            return(FALSE) if (! defined($max_rows) || $max_rows eq '');
+            $self->{'debug'}->DEBUG(["  New Screen Height:  $max_rows"]);
+        }
 
-		while($self->is_connected() && $text_mode < 32) {
-			$self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
-			$text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'], 'default' => 'ASCII' });
-			return(FALSE) if (! defined($text_mode) || $text_mode eq '');
-			$self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
-		}
+        while($self->is_connected() && $text_mode < 32) {
+            $self->output("\nTerminal emulations available:\n\n* ASCII\n* ANSI\n* ATASCII\n* PETSCII\n\nWhich one (type it as you see it?  ");
+            $text_mode = $self->get_line({ 'type' => RADIO, 'max' => 7, 'choices' => ['ASCII', 'ANSI', 'ATASCII', 'PETSCII'], 'default' => 'ASCII' });
+            return(FALSE) if (! defined($text_mode) || $text_mode eq '');
+            $self->{'debug'}->DEBUG(["  New Text Mode:  $text_mode"]);
+        }
 
-		if ($self->is_connected()) {
-			$self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
-			$birthday = $self->get_line({ 'type' => DATE, 'max' => 10, 'default' => '' });
-			$self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
-		}
+        if ($self->is_connected()) {
+            $self->output("\nBirthdays can be with the year or use\n0000 for the year if you wish the year\nto be anonymous, but please enter the\nmonth and day (YEAR/MM/DD):  ");
+            $birthday = $self->get_line({ 'type' => DATE, 'max' => 10, 'default' => '' });
+            $self->{'debug'}->DEBUG(["  New Birthday:  $birthday"]);
+        }
 
-		if ($self->is_connected()) {
-			$self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
-			$location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
-			$self->{'debug'}->DEBUG(["  New Location:  $location"]);
-		}
+        if ($self->is_connected()) {
+            $self->output("\nPlease describe your location (you can\nbe as vague or specific as you want, or\nleave blank:  ");
+            $location = $self->get_line({ 'type' => STRING, 'max' => 255, 'default' => '' });
+            $self->{'debug'}->DEBUG(["  New Location:  $location"]);
+        }
 
-		if ($self->is_connected()) {
-			$self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
-			$date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'], 'default' => 'YEAR/MONTH/DAY' });
-			return(FALSE) if (! defined($date_format) || $date_format eq '');
-			$self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
-		}
+        if ($self->is_connected()) {
+            $self->output("\nDate formats:\n\n* YEAR/MONTH/DAY\n* DAY/MONTH/YEAR\n* MONTH/DAY/YEAR\n\nWhich date format do you prefer?  ");
+            $date_format = $self->get_line({ 'type' => RADIO, 'max' => 15, 'choices' => ['YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR'], 'default' => 'YEAR/MONTH/DAY' });
+            return(FALSE) if (! defined($date_format) || $date_format eq '');
+            $self->{'debug'}->DEBUG(["  New Date Format:  $date_format"]);
+        }
 
-		if ($self->is_connected()) {
-			$self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
-			$baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
-			return(FALSE) if (! defined($baud_rate) || $baud_rate eq '');
-			$self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
-		}
+        if ($self->is_connected()) {
+            $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
+            $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
+            return(FALSE) if (! defined($baud_rate) || $baud_rate eq '');
+            $self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
+        }
 
         my $tries = 3;
         do {
             $self->output("\nPlease enter your password:  ");
             $password = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password']);
-			return(FALSE) unless ($self->is_connected() && defined($password));
+            return(FALSE) unless ($self->is_connected() && defined($password));
 
             $self->output("\nEnter it again:  ");
             $password2 = $self->get_line({ 'type' => PASSWORD, 'max' => 64, 'default' => '' });
             $self->{'debug'}->DEBUG(['  New Password2']);
-			return(FALSE) unless ($self->is_connected() && defined($password2));
+            return(FALSE) unless ($self->is_connected() && defined($password2));
 
             $self->output("\nPasswords do not match!  Try again\n");
             $tries--;
@@ -1029,30 +1029,30 @@ sub get_line {
     } elsif ($echo == RADIO) {
         $self->{'debug'}->DEBUG(['  Mode:  RADIO']);
 
-		my $mapping;
-		my @menu_choices = @{$self->{'MENU CHOICES'}};
+        my $mapping;
+        my @menu_choices = @{$self->{'MENU CHOICES'}};
 
-		foreach my $choice (@{$choices}) {
-			$mapping->{ shift(@menu_choices) } = {
-				'command'      => $choice,
-				'color'        => 'WHITE',
-				'access_level' => 'USER',
-				'text'         => $choice,
-			}
-		}
-		$self->output("\n");
+        foreach my $choice (@{$choices}) {
+            $mapping->{ shift(@menu_choices) } = {
+                'command'      => $choice,
+                'color'        => 'WHITE',
+                'access_level' => 'USER',
+                'text'         => $choice,
+            }
+        }
+        $self->output("\n");
         $self->show_choices($mapping);
-		$self->prompt('Choose');
-		my $key;
-		do {
-			$key = uc($self->get_key(SILENT, BLOCKING));
-		} until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
-		if ($key eq chr(3)) {
-			$line = '';
-		} else {
-			$line = $mapping->{$key}->{'command'};
-		}
-		
+        $self->prompt('Choose');
+        my $key;
+        do {
+            $key = uc($self->get_key(SILENT, BLOCKING));
+        } until (exists($mapping->{$key}) || $key eq chr(3) || !$self->is_connected());
+        if ($key eq chr(3)) {
+            $line = '';
+        } else {
+            $line = $mapping->{$key}->{'command'};
+        }
+        
     } elsif ($echo == NUMERIC) {
         $self->{'debug'}->DEBUG(['  Mode:  NUMERIC']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
@@ -1523,8 +1523,8 @@ sub parse_versions {
         'BBS::Universal::FileTransfer' => $BBS::Universal::FILETRANSFER_VERSION,
         'BBS::Universal::Users'        => $BBS::Universal::USERS_VERSION,
         'BBS::Universal::DB'           => $BBS::Universal::DB_VERSION,
-		'BBS::Universal::Tokens'       => $BBS::Universal::TOKENS_VERSION,
-		'BBS::Universal::Commands'     => $BBS::Universal::COMMANDS_VERSION,
+        'BBS::Universal::Tokens'       => $BBS::Universal::TOKENS_VERSION,
+        'BBS::Universal::Commands'     => $BBS::Universal::COMMANDS_VERSION,
         'DBI'                          => $DBI::VERSION,
         'DBD::mysql'                   => $DBD::mysql::VERSION,
         'DateTime'                     => $DateTime::VERSION,
@@ -1636,7 +1636,7 @@ sub playit {
     unless ($self->{'nosound'}) {
         $self->{'debug'}->DEBUG(["  Play Sound $file"]);
         if ((-e '/usr/bin/mplayer' || -e '/usr/local/bin/mplayer') && $self->configuration('PLAY SYSOP SOUNDS') =~ /TRUE|1/i) {
-			my $path = $self->{'CONF'}->{'BBS ROOT'} . "/sysop_sounds/$file";
+            my $path = $self->{'CONF'}->{'BBS ROOT'} . "/sysop_sounds/$file";
             system("mplayer -really-quiet $path 1>/dev/null 2>&1 &");
         }
     } ## end unless ($self->{'nosound'})
@@ -2212,16 +2212,16 @@ sub Text::SimpleTable::wedge {
 # ╰─────────┴───────────────────────╯
 
 sub clock {
-	my $self = shift;
+    my $self = shift;
 
-	my @clock = ('🯰','🯱','🯲','🯳','🯴','🯵','🯶','🯷','🯸','🯹');
+    my @clock = ('🯰','🯱','🯲','🯳','🯴','🯵','🯶','🯷','🯸','🯹');
     my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime(time);
-	$hour -= 12 if ($hour > 12);
-	my $now = sprintf('%02d:%02d:%02d', $hour, $min, $sec);
-	for (my $digit = 0; $digit < 10; $digit++) {
-		$now =~ s/$digit/$clock[$digit] /g;
-	}
-	return($now);
+    $hour -= 12 if ($hour > 12);
+    my $now = sprintf('%02d:%02d:%02d', $hour, $min, $sec);
+    for (my $digit = 0; $digit < 10; $digit++) {
+        $now =~ s/$digit/$clock[$digit] /g;
+    }
+    return($now);
 }
 
 1;

@@ -18,6 +18,7 @@ sub db_connect {
         $errors = '';
 
         # This is for the brave that want to try SSL connections.
+        #
         #    $self->{'dsn'} = sprintf('dbi:%s:database=%s;' .
         #        'host=%s;' .
         #        'port=%s;' .
@@ -25,10 +26,10 @@ sub db_connect {
         #        'mysql_ssl_client_key=%s;' .
         #        'mysql_ssl_client_cert=%s;' .
         #        'mysql_ssl_ca_file=%s',
-        #        $self->{'CONF'}->{'DATABASE TYPE'},
-        #        $self->{'CONF'}->{'DATABASE NAME'},
-        #        $self->{'CONF'}->{'DATABASE HOSTNAME'},
-        #        $self->{'CONF'}->{'DATABASE PORT'},
+        #        $self->{'CONF'}->{'STATIC'}->{'DATABASE TYPE'},
+        #        $self->{'CONF'}->{'STATIC'}->{'DATABASE NAME'},
+        #        $self->{'CONF'}->{'STATIC'}->{'DATABASE HOSTNAME'},
+        #        $self->{'CONF'}->{'STATIC'}->{'DATABASE PORT'},
         #        TRUE,
         #        '/etc/mysql/certs/client-key.pem',
         #        '/etc/mysql/certs/client-cert.pem',
