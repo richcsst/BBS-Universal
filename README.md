@@ -28,6 +28,8 @@ You can use the default menu files or change them to your own taste.  See the ma
 
 A 100% Perl BBS server.  It supports ASCII, ANSI, ATASCII and PETSCII text formats.
 
+* NOTE:  This is still a work in progress.  The ASCII and ANSI features work fine.  ATASCII and PETSCII have not yet been refined and tested.  Also, file upload/download has not been tested.
+
 ## CONFIGURATION
 
 The system requires a very minimal static configuration file to give access to the database.  The rest of the configuration is stored in the database.
