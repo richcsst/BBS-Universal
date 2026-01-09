@@ -31,7 +31,6 @@ sub sysop_initialize {
         'post_message'    => 'Yes',
         'remove_message'  => 'No',
         'sysop'           => 'No',
-        'page_sysop'      => 'Yes',
         'show_email'      => 'No',
     };
 
@@ -71,7 +70,6 @@ sub sysop_initialize {
             post_message
             remove_message
             sysop
-            page_sysop
             banned
             login_time
             logout_time
@@ -123,7 +121,6 @@ sub sysop_initialize {
         'remove_message'  => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
         'play_fortunes'   => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'YES' },
         'sysop'           => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'page_sysop'      => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
         'password'        => { 'type' => STRING,  'max' => 64,  'min' => 32 },
     };
 
@@ -1750,7 +1747,7 @@ sub sysop_user_edit {
             } until ('1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ' =~ /$key/i);
             if ($key !~ /$key_exit/i) {
                 print 'Edit > (', $choice{$key}, ' = ', $user_row->{ $choice{$key} }, ') > ';
-                if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/) {
+                if ($choice{$key} =~ /^(play_fortunes|prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop)$/) {
                     $user_row->{ $choice{$key} } = ($user_row->{ $choice{$key} } == 1) ? 0 : 1;
                     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . $choice{$key} . '= !' . $choice{$key} . '  WHERE id=?');
                     $sth->execute($user_row->{'id'});
@@ -1767,7 +1764,7 @@ sub sysop_user_edit {
                     my $sth = $self->{'dbh'}->prepare('UPDATE users SET ' . $choice{$key} . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});
                     $sth->finish();
-                } ## end else [ if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop)$/)]
+                } ## end else [ if ($choice{$key} =~ /^(prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop)$/)]
             } else {
                 print "BACK\n";
             }
@@ -1868,7 +1865,7 @@ sub sysop_new_user_edit {
                     $new =~ s/^(No|Off)$/0/i;
                 }
                 $user_row->{ $choice{$key} } = $new;
-                if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop|page_sysop/) {
+                if ($key =~ /prefer_nickname|view_files|upload_files|download_files|remove_files|read_message|post_message|remove_message|sysop/) {
                     my $sth = $self->{'dbh'}->prepare('UPDATE permissions SET ' . choice { $key } . '=? WHERE id=?');
                     $sth->execute($new, $user_row->{'id'});
                     $sth->finish();

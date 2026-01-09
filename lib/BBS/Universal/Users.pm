@@ -364,7 +364,6 @@ sub users_load {
             read_message
             post_message
             remove_message
-            page_sysop
             play_fortunes
             banned
             sysop
@@ -526,13 +525,12 @@ sub users_add {
                 post_message,
                 remove_message,
                 sysop,
-                page_sysop,
                 play_fortunes,
                 timeout)
               VALUES (LAST_INSERT_ID(),?,?,?,?,?,?,?,?,?,?,?,?,?);
         }
     );
-    $sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'page_sysop'}, $user_template->{'play_fortunes'}, $user_template->{'timeout'},);
+    $sth->execute($user_template->{'prefer_nickname'}, $user_template->{'view_files'}, $user_template->{'upload_files'}, $user_template->{'download_files'}, $user_template->{'remove_files'}, $user_template->{'read_message'}, $user_template->{'show_email'}, $user_template->{'post_message'}, $user_template->{'remove_message'}, $user_template->{'sysop'}, $user_template->{'play_fortunes'}, $user_template->{'timeout'},);
     my $response;
 
     if ($self->{'dbh'}->err) {
@@ -686,7 +684,6 @@ sub users_info {
         $table .= sprintf('%-15s=%-25s', 'POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE)) . "\n";
         $table .= sprintf('%-15s=%-25s', 'REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE)) . "\n";
         $table .= sprintf('%-15s=%-25s', 'PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'},   FALSE)) . "\n";
-        $table .= sprintf('%-15s=%-25s', 'PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE)) . "\n";
         $table .= sprintf('%-15s=%-25s', 'ACCESS LEVEL',    $self->{'USER'}->{'access_level'}) . "\n";
         $table .= sprintf('%-15s=%-25s', 'RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'}) . "\n";
         $table .= sprintf('%-15s=%-25s', 'ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'}) . "\n";
@@ -705,9 +702,9 @@ sub users_info {
         $table->row('UPLOAD FILES',    $self->yes_no($self->{'USER'}->{'upload_files'}, FALSE),    'DOWNLOAD FILES',  $self->yes_no($self->{'USER'}->{'download_files'}, FALSE));
         $table->row('REMOVE FILES',    $self->yes_no($self->{'USER'}->{'remove_files'}, FALSE),    'READ MESSAGES',   $self->yes_no($self->{'USER'}->{'read_message'}, FALSE));
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'}, FALSE),    'REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'}, FALSE));
-        $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'}, FALSE),      'SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'}, FALSE));
-        $table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'},                          'PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'}, FALSE));
-        $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'},                       'RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
+        $table->row('SHOW EMAIL',      $self->yes_no($self->{'USER'}->{'show_email'}, FALSE),      'ACCESS LEVEL',    $self->{'USER'}->{'access_level'});
+		$table->row('PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'}, FALSE),   'ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
+		$table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'},'','');
     } else {
         $width = min($width + 7, $self->{'USER'}->{'max_columns'} - 7);
         $table = Text::SimpleTable->new(15, $width);
@@ -737,7 +734,6 @@ sub users_info {
         $table->row('POST MESSAGES',   $self->yes_no($self->{'USER'}->{'post_message'},    FALSE));
         $table->row('REMOVE MESSAGES', $self->yes_no($self->{'USER'}->{'remove_message'},  FALSE));
         $table->row('PLAY FORTUNES',   $self->yes_no($self->{'USER'}->{'play_fortunes'},   FALSE));
-        $table->row('PAGE SYSOP',      $self->yes_no($self->{'USER'}->{'page_sysop'},      FALSE));
         $table->row('ACCESS LEVEL',    $self->{'USER'}->{'access_level'});
         $table->row('RETRO SYSTEMS',   $self->{'USER'}->{'retro_systems'});
         $table->row('ACCOMPLISHMENTS', $self->{'USER'}->{'accomplishments'});
@@ -757,7 +753,7 @@ sub users_info {
         $text =~ s/ NO / $no /gs;
         $text =~ s/ YES / $yes /gs;
 
-        foreach $field ('PLAY FORTUNES', 'ACCESS LEVEL', 'SUFFIX', 'ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME', 'DATE FORMAT') {
+        foreach $field ('PLAY FORTUNES', 'ACCESS LEVEL', 'SUFFIX', 'ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'EMAIL', 'NICKNAME', 'DATE FORMAT') {
             my $ch = colored(['yellow'], $field);
             $text =~ s/$field/$ch/gs;
         }
@@ -772,7 +768,7 @@ sub users_info {
         $text =~ s/ NO / $no /gs;
         $text =~ s/ YES / $yes /gs;
 
-        foreach $field ('PLAY FORTUNES', 'ACCESS LEVEL', 'SUFFIX', 'ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'PAGE SYSOP', 'EMAIL', 'NICKNAME', 'DATE FORMAT') {
+        foreach $field ('PLAY FORTUNES', 'ACCESS LEVEL', 'SUFFIX', 'ACCOUNT NUMBER', 'USERNAME', 'FULLNAME', 'SCREEN', 'BIRTHDAY', 'LOCATION', 'BAUD RATE', 'LAST LOGIN', 'LAST LOGOUT', 'TEXT MODE', 'IDLE TIMEOUT', 'RETRO SYSTEMS', 'ACCOMPLISHMENTS', 'SHOW EMAIL', 'PREFER NICKNAME', 'VIEW FILES', 'UPLOAD FILES', 'DOWNLOAD FILES', 'REMOVE FILES', 'READ MESSAGES', 'POST MESSAGES', 'REMOVE MESSAGES', 'EMAIL', 'NICKNAME', 'DATE FORMAT') {
             my $ch = '[% BROWN %]' . $field . '[% RESET %]';
             $text =~ s/$field/$ch/gs;
         }

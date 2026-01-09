@@ -60,7 +60,7 @@ CREATE TABLE permissions (
     remove_message  BOOLEAN DEFAULT FALSE,
     sysop           BOOLEAN DEFAULT FALSE,
     prefer_nickname BOOLEAN DEFAULT FALSE,
-    play_fortunes   BOOLEAN DEFAULT FALSE,
+    play_fortunes   BOOLEAN DEFAULT TRUE,
     banned          BOOLEAN DEFAULT FALSE,
     timeout         SMALLINT UNSIGNED DEFAULT 10
 );

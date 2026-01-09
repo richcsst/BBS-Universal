@@ -1625,7 +1625,10 @@ sub get_fortune {
     $self->{'debug'}->DEBUG(['Get Fortune']);
     $self->{'debug'}->DEBUG(['End Get Fortune']);
 
-    return (($self->{'USER'}->{'play_fortunes'}) ? `fortune -s -u` : '');
+	my $fortune = `fortune -s -u`;
+	chomp($fortune);
+
+    return (($self->{'USER'}->{'play_fortunes'}) ? $fortune : '');
 } ## end sub get_fortune
 
 sub playit {
