@@ -1,4 +1,5 @@
-# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+# USER MODE MENU
+# Key | Command | Color | Access Level | Description
 S|NEWS SUMMARY|GREEN|USER|List System News Summary
 D|NEWS DISPLAY|MAGENTA|USER|Show System News in Detail
 C|RSS CATEGORIES|BRIGHT YELLOW|USER|World News Feed Categories

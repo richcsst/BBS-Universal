@@ -1,3 +1,5 @@
+# SYSOP MODE MENU
+# Key | Command | Color | Description
 A|SYSOP BBS ADD|YELLOW|Add a BBS to the List
 B|SYSOP BBS BULK MERGE|PINK|Bulk Add/Merge BBS List
 E|SYSOP BBS EDIT|GREEN|Edit a BBS on List

@@ -1,3 +1,5 @@
+# SYSOP MODE MENU
+# Key | Command | Color | Description
 A|SYSOP ADD FILE|CYAN|Add a File
 B|SYSOP ADD FILE CATEGORY|BRIGHT BLUE|Add a File Category
 C|SYSOP SELECT FILE CATEGORY|MAGENTA|Select File Category

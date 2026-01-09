@@ -51,7 +51,7 @@ use Cache::Memcached::Fast;
 use BBS::Universal;
 
 BEGIN {
-    our $VERSION = '0.013';
+    our $VERSION = '0.014';
 }
 
 binmode(STDIN,  ':encoding(UTF-8)');

@@ -1,4 +1,5 @@
-# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
+# USER MODE MENU
+# Key | Command | Color | Access Level | Description
 Z|BACK|WHITE|USER|Return to Main Menu
 ---
 [% YELLOW %]    _    _                 _[% RESET %]

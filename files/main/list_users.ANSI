@@ -1,4 +1,5 @@
-# KEY|COMMAND|COLOR|ACCESS LEVELS|DESCRIPTION
+# USER MODE MENU
+# Key | Command | Color | Access Level | Description
 Z|BACK|WHITE|USER|Return to the Main Menu
 ---
 [% CLS %][% ORANGE %][% BLACK UPPER RIGHT TRIANGLE %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% ORANGE %]   _     _     _     _   _[% RESET %]

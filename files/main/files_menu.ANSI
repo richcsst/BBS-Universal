@@ -1,4 +1,5 @@
-# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION (Tokens allowed)
+# USER MODE MENU
+# Key | Command | Color | Access Level | Description
 C|FILE CATEGORY|YELLOW|USER|Change File Category
 L|LIST FILES DETAILED|MAGENTA|USER|List files
 S|SEARCH FILES SUMMARY|BRIGHT BLUE|USER|Search for file (short format)
