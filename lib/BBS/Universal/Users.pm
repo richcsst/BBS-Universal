@@ -16,12 +16,7 @@ sub users_change_access_level {
     $self->{'debug'}->DEBUG(['Start Users Change Access Level']);
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Back to Account menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Back to Account menu' },
     };
     foreach my $result (keys %{ $self->{'access_levels'} }) {
         if (($self->{'access_levels'}->{$result} < $self->{'access_levels'}->{ $self->{'USER'}->{'access_level'} }) || $self->{'USER'}->{'access_level'} eq 'SYSOP') {
@@ -67,12 +62,7 @@ sub users_change_date_format {
     $self->{'debug'}->DEBUG(['Start Users Change Date Format']);
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Back to Account menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Back to Account menu' },
     };
     my $count = 1;
     foreach my $result ('YEAR/MONTH/DAY', 'MONTH/DAY/YEAR', 'DAY/MONTH/YEAR') {
@@ -118,12 +108,7 @@ sub users_change_baud_rate {
     $self->{'debug'}->DEBUG(['Start Users Change Baud Rate']);
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Back to Account menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Back to Account menu' },
     };
     my $count = 1;
     foreach my $result (qw(300 1200 2400 4800 9600 19200 FULL)) {
@@ -285,12 +270,7 @@ sub users_update_text_mode {
     $self->{'debug'}->DEBUG(['Start Users Update Text Mode']);
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Back to Account menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Back to Account menu' },
     };
     my $sth = $self->{'dbh'}->prepare('SELECT * FROM text_modes ORDER BY text_mode');
     $sth->execute();
@@ -410,17 +390,16 @@ sub users_list {
     $self->{'debug'}->DEBUG(['Start Users List']);
     my $sth = $self->{'dbh'}->prepare(
         q{
-            SELECT
-              username,
-              fullname,
-              nickname,
-              accomplishments,
-              retro_systems,
-              birthday,
-              prefer_nickname,
-              location
-            FROM users_view
-            WHERE banned=FALSE
+              SELECT username,
+                     fullname,
+                     nickname,
+                     accomplishments,
+                     retro_systems,
+                     birthday,
+                     prefer_nickname,
+                     location
+                FROM users_view
+               WHERE banned=FALSE
             ORDER BY username;
         }
     );
