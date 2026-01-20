@@ -109,39 +109,14 @@ sub files_choices {
         my $view    = FALSE;
         my $mapping = {
             'TEXT' => '',
-            'Z'    => {
-                'command'      => 'BACK',
-                'color'        => 'WHITE',
-                'access_level' => 'USER',
-                'text'         => 'Return to File Menu',
-            },
-            'N' => {
-                'command'      => 'NEXT',
-                'color'        => 'BLUE',
-                'access_level' => 'USER',
-                'text'         => 'Next file',
-            },
-            'D' => {
-                'command'      => 'DOWNLOAD',
-                'color'        => 'CYAN',
-                'access_level' => 'VETERAN',
-                'text'         => 'Download file',
-            },
-            'R' => {
-                'command'      => 'REMOVE FILE',
-                'color'        => 'RED',
-                'access_level' => 'JUNIOR SYSOP',
-                'text'         => 'Remove file',
-            },
+            'Z'    => { 'command' => 'BACK',        'color' => 'WHITE', 'access_level' => 'USER',         'text' => 'Return to File Menu' },
+            'N'    => { 'command' => 'NEXT',        'color' => 'BLUE',  'access_level' => 'USER',         'text' => 'Next file' },
+            'D'    => { 'command' => 'DOWNLOAD',    'color' => 'CYAN',  'access_level' => 'VETERAN',      'text' => 'Download file' },
+            'R'    => { 'command' => 'REMOVE FILE', 'color' => 'RED',   'access_level' => 'JUNIOR SYSOP', 'text' => 'Remove file' },
         };
         if ($record->{'extension'} =~ /^(TXT|ASC|ATA|PET|VT|ANS|MD|INF|CDF|PL|PM|PY|C|CPP|H|SH|CSS|HTM|HTML|SHTML|JS|JAVA|XML|BAT)$/ && $self->check_access_level('VETERAN')) {
             $view = TRUE;
-            $mapping->{'V'} = {
-                'command'      => 'VIEW FILE',
-                'color'        => 'CYAN',
-                'access_level' => 'VETERAN',
-                'text'         => 'View file',
-            };
+            $mapping->{'V'} = { 'command' => 'VIEW FILE', 'color' => 'CYAN', 'access_level' => 'VETERAN', 'text' => 'View file' };
         } ## end if ($record->{'extension'...})
         $self->show_choices($mapping);
         $self->prompt('Choose');
@@ -153,30 +128,10 @@ sub files_choices {
         if ($mapping->{$key}->{'command'} eq 'DOWNLOAD') {
             my $file = $self->{'CONF'}->{'BBS ROOT'} . '/' . $self->{'CONF'}->{'FILES PATH'} . '/' . $self->{'USER'}->{'file_category_path'} . '/' . $record->{'filename'};
             $mapping = {
-                'B' => {
-                    'command'      => 'BACK',
-                    'color'        => 'WHITE',
-                    'access_level' => 'USER',
-                    'text'         => 'Return to File Menu',
-                },
-                'Y' => {
-                    'command'      => 'YMODEM',
-                    'color'        => 'YELLOW',
-                    'access_level' => 'VETERAN',
-                    'text'         => 'Download with the Ymodem protocol',
-                },
-                'X' => {
-                    'command'      => 'XMODEM',
-                    'color'        => 'BRIGHT BLUE',
-                    'access_level' => 'VETERAN',
-                    'text'         => 'Download with the Xmodem protocol',
-                },
-                'Z' => {
-                    'command'      => 'ZMODEM',
-                    'color'        => 'GREEN',
-                    'access_level' => 'VETERAN',
-                    'text'         => 'Download with the Zmodem protocol',
-                },
+                'B' => { 'command' => 'BACK',   'color' => 'WHITE',       'access_level' => 'USER',    'text' => 'Return to File Menu' },
+                'Y' => { 'command' => 'YMODEM', 'color' => 'YELLOW',      'access_level' => 'VETERAN', 'text' => 'Download with the Ymodem protocol' },
+                'X' => { 'command' => 'XMODEM', 'color' => 'BRIGHT BLUE', 'access_level' => 'VETERAN', 'text' => 'Download with the Xmodem protocol' },
+                'Z' => { 'command' => 'ZMODEM', 'color' => 'GREEN',       'access_level' => 'VETERAN', 'text' => 'Download with the Zmodem protocol' },
             };
             $self->show_choices($mapping);
             $self->prompt('Choose');
@@ -229,30 +184,10 @@ sub files_upload_choices {
     my $file_category = $self->{'USER'}->{'file_category'};
 
     my $mapping = {
-        'B' => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Return to File Menu',
-        },
-        'Y' => {
-            'command'      => 'YMODEM',
-            'color'        => 'YELLOW',
-            'access_level' => 'VETERAN',
-            'text'         => 'Upload with the Ymodem protocol',
-        },
-        'X' => {
-            'command'      => 'XMODEM',
-            'color'        => 'BRIGHT BLUE',
-            'access_level' => 'VETERAN',
-            'text'         => 'Upload with the Xmodem protocol',
-        },
-        'Z' => {
-            'command'      => 'ZMODEM',
-            'color'        => 'GREEN',
-            'access_level' => 'VETERAN',
-            'text'         => 'Upload with the Zmodem protocol',
-        },
+        'B' => { 'command' => 'BACK',   'color' => 'WHITE',       'access_level' => 'USER',    'text' => 'Return to File Menu' },
+        'Y' => { 'command' => 'YMODEM', 'color' => 'YELLOW',      'access_level' => 'VETERAN', 'text' => 'Upload with the Ymodem protocol' },
+        'X' => { 'command' => 'XMODEM', 'color' => 'BRIGHT BLUE', 'access_level' => 'VETERAN', 'text' => 'Upload with the Xmodem protocol' },
+        'Z' => { 'command' => 'ZMODEM', 'color' => 'GREEN',       'access_level' => 'VETERAN', 'text' => 'Upload with the Zmodem protocol' },
     };
     $self->show_choices($mapping);
     $self->prompt('Choose');
@@ -461,7 +396,6 @@ sub files_receive_file_xmodem {
             last;
         }
         if ($hdr eq EOT) {
-
             # End of transmission
             syswrite($sock, ACK);
             last FILE_LOOP;
@@ -507,18 +441,15 @@ sub files_receive_file_xmodem {
 
             # validate block number
             if ((($blknum_val + ord($nblk)) & 0xFF) != 0xFF) {
-
                 # invalid complement
                 $self->{'debug'}->ERROR(["Invalid block number complement in XMODEM block"]);
                 syswrite($sock, NAK);
                 next;
             } ## end if ((($blknum_val + ord...)))
             if ($blknum_val == ($expected_blk & 0xFF)) {
-
                 # verify CRC
                 my $calc_crc = _crc16_bytes($data);
                 if ($calc_crc eq $recv_crc) {
-
                     # write data (for XMODEM we don't have exact file size; write all and later trim if needed)
                     # strip trailing SUB (0x1A) only when they appear at the end if sender padded
                     # We'll write raw data; caller may handle size if needed.
@@ -531,12 +462,10 @@ sub files_receive_file_xmodem {
                     next;
                 }
             } elsif ($blknum_val == (($expected_blk - 1) & 0xFF)) {
-
                 # duplicate block (sender retransmitted) - ACK and ignore
                 syswrite($sock, ACK);
                 next;
             } else {
-
                 # out of sequence
                 $self->{'debug'}->ERROR(["Unexpected XMODEM block number $blknum_val (expected $expected_blk)"]);
                 syswrite($sock, CAN x 2);
@@ -544,7 +473,6 @@ sub files_receive_file_xmodem {
                 last FILE_LOOP;
             } ## end else [ if ($blknum_val == ($expected_blk...))]
         } else {
-
             # unexpected byte - ignore/continue
             $self->{'debug'}->DEBUG(["Received unexpected byte during XMODEM receive: " . ord($hdr)]);
             next;
@@ -592,14 +520,12 @@ sub files_receive_file_ymodem {
         syswrite($sock, C_CHAR);
         my $b = $self->_read_byte_timeout($sock, 10);
         if (defined $b) {
-
             # If we immediately get SOH/STX as response, proceed (put it back)
             if ($b eq SOH || $b eq STX || $b eq CAN) {
                 $self->{'_ymodem_first'} = $b;
                 $init_ok = 1;
                 last;
             } else {
-
                 # continue waiting for block 0
                 $init_ok = 1;
                 last;
@@ -621,7 +547,6 @@ sub files_receive_file_ymodem {
 
   HEADER_LOOP:
     while ($self->is_connected()) {
-
         # read header/block
         my $hdr;
         if (defined $self->{'_ymodem_first'}) {
@@ -639,7 +564,6 @@ sub files_receive_file_ymodem {
             $success = 0;
             last HEADER_LOOP;
         } elsif ($hdr eq EOT) {
-
             # Should not occur before data; but handle: ack and finish
             syswrite($sock, ACK);
             last HEADER_LOOP;
@@ -683,11 +607,9 @@ sub files_receive_file_ymodem {
             }
             if ($blknum_val == $expected_blk) {
                 if ($expected_blk == 0) {
-
                     # header block: filename\0size\0
                     my ($fname, $size_str) = split(/\0/, $data, 3);
                     if (defined $fname && $fname ne '') {
-
                         # parse size
                         if (defined $size_str && $size_str =~ /(\d+)/) {
                             $filesize = $1 + 0;
@@ -702,21 +624,17 @@ sub files_receive_file_ymodem {
                         $expected_blk = 1;
                         next;
                     } else {
-
                         # empty filename => end of batch
                         syswrite($sock, ACK);
                         last HEADER_LOOP;
                     } ## end else [ if (defined $fname && ...)]
                 } else {
-
                     # data block
                     if ($writing) {
-
                         # if filesize known, write only up to remaining bytes
                         if (defined $filesize) {
                             my $remaining = $filesize - $bytes_written;
                             if ($remaining <= 0) {
-
                                 # already have enough data; ack and ignore
                             } else {
                                 my $to_write = $data;
@@ -736,7 +654,6 @@ sub files_receive_file_ymodem {
                     next;
                 } ## end else [ if ($expected_blk == 0)]
             } elsif ($blknum_val == (($expected_blk - 1) & 0xFF)) {
-
                 # duplicate block - ack and continue
                 syswrite($sock, ACK);
                 next;
@@ -747,7 +664,6 @@ sub files_receive_file_ymodem {
                 last HEADER_LOOP;
             } ## end else [ if ($blknum_val == $expected_blk)]
         } else {
-
             # unexpected byte - ignore and continue
             next;
         }
@@ -770,7 +686,6 @@ sub files_receive_file_ymodem {
                     $got_eot = 1;
                     last;
                 } else {
-
                     # keep waiting
                     next;
                 }
@@ -784,7 +699,6 @@ sub files_receive_file_ymodem {
             $self->{'debug'}->ERROR(["No proper EOT sequence received for YMODEM"]);
             $success = 0;
         } else {
-
             # After EOT and ACK, sender will send an empty header block (block 0 with empty filename) to signal end of batch.
             # Read and ack it
             my $hdr = $self->_read_byte_timeout($sock, 10);
@@ -908,7 +822,6 @@ sub files_send_xmodem {
         my $data;
         my $n = read($FH, $data, 128);
         if (defined $n && $n > 0) {
-
             # send block
             my $send_ok  = 0;
             my $attempts = 0;
@@ -934,7 +847,6 @@ sub files_send_xmodem {
                     $success = 0;
                     last;
                 } else {
-
                     # unexpected byte, retry
                     next;
                 }
@@ -942,7 +854,6 @@ sub files_send_xmodem {
             unless ($send_ok) { $success = 0; last; }
             $blockno = ($blockno + 1) % 256;
         } else {
-
             # EOF reached
             $eof = 1;
             last;
@@ -950,7 +861,6 @@ sub files_send_xmodem {
     } ## end while ($self->is_connected...)
 
     if ($success) {
-
         # send EOT and wait for ACK
         my $sent = 0;
         for (1 .. 10) {
@@ -1030,7 +940,6 @@ sub files_send_ymodem {
         my $data;
         my $n = read($FH, $data, 1024);
         if (defined $n && $n > 0) {
-
             # send 1k block
             my $attempts = 0;
             my $sent_ok  = 0;
@@ -1056,14 +965,12 @@ sub files_send_ymodem {
     } ## end while ($self->is_connected...)
 
     if ($success) {
-
         # End-of-file sequence: send EOT and expect ACK, then send an empty header block (block 0 with filename "")
         my $sent = 0;
         for (1 .. 10) {
             syswrite($sock, EOT);
             my $r = _read_byte_timeout($sock, 10);
             if (defined $r && $r eq NAK) {
-
                 # some receivers expect NAK then ACK, repeat
                 next;
             } elsif (defined $r && $r eq ACK) {
@@ -1075,7 +982,6 @@ sub files_send_ymodem {
             $self->{'debug'}->ERROR(["No ACK for EOT in YMODEM send"]);
             $success = 0;
         } else {
-
             # Send final empty header (indicates end of batch)
             my $empty_header = "\0" x 128;
             unless (_send_block($sock, 0, $empty_header, 128)) {
@@ -1143,7 +1049,6 @@ sub _run_on_socket {
     }
 
     if ($pid == 0) {
-
         # child: attach socket to STDIN/STDOUT/STDERR and exec the command
         # ensure we don't run any parent cleanup handlers
         local $SIG{CHLD} = 'DEFAULT';
