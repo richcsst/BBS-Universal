@@ -436,9 +436,9 @@ sub system_menu {
                     $bbs_obj,
                     {
                         'thread_number' => $thread,
-                          'thread_name'   => $name,
-                          'socket'        => $socket,
-                          'debuglevel'    => $LEVEL
+                        'thread_name'   => $name,
+                        'socket'        => $socket,
+                        'debuglevel'    => $LEVEL
                     }
                 );
                 $CACHE->set('UPDATE', TRUE);
@@ -640,9 +640,9 @@ sub run_bbs_sysop {
     my $bbs = BBS::Universal->new(
         {
             'thread_name' => 'CONSOLE',
-              'debug'       => $debug,
-              'debuglevel'  => $level,
-              'local_mode'  => TRUE,
+            'debug'       => $debug,
+            'debuglevel'  => $level,
+            'local_mode'  => TRUE,
         }
     );
     $bbs->run($sysop);
