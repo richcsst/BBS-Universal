@@ -144,16 +144,16 @@ sub _build_static_tokens {
     my ($self, $versions, $bbs_versions) = @_;
     return {
         'HOSTNAME'     => $self->sysop_hostname,
-          'IP ADDRESS'   => $self->sysop_ip_address(),
-          'CPU BITS'     => $self->{'CPU'}->{'CPU BITS'},
-          'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
-          'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
-          'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
-          'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
-          'HARDWARE'     => $self->{'CPU'}->{'HARDWARE'},
-          'VERSIONS'     => $versions,
-          'BBS VERSIONS' => $bbs_versions,
-          'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
+        'IP ADDRESS'   => $self->sysop_ip_address(),
+        'CPU BITS'     => $self->{'CPU'}->{'CPU BITS'},
+        'CPU CORES'    => $self->{'CPU'}->{'CPU CORES'},
+        'CPU SPEED'    => $self->{'CPU'}->{'CPU SPEED'},
+        'CPU IDENTITY' => $self->{'CPU'}->{'CPU IDENTITY'},
+        'CPU THREADS'  => $self->{'CPU'}->{'CPU THREADS'},
+        'HARDWARE'     => $self->{'CPU'}->{'HARDWARE'},
+        'VERSIONS'     => $versions,
+        'BBS VERSIONS' => $bbs_versions,
+        'BBS NAME'     => colored(['green'], $self->{'CONF'}->{'BBS NAME'}),
     };
 } ## end sub _build_static_tokens
 
