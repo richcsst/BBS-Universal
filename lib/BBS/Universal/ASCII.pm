@@ -6,51 +6,15 @@ sub ascii_initialize {
 
     $self->{'debug'}->DEBUG(['Start ASCII Initialize']);
     $self->{'ascii_meta'} = {
-        'RETURN' => {
-            'out'     => chr(13),
-            'unicode' => ' ',
-            'desc'    => 'Carriage Return',
-        },
-        'LINEFEED' => {
-            'out'     => chr(10),
-            'unicode' => ' ',
-            'desc'    => 'Linefeed',
-        },
-        'NEWLINE' => {
-            'out'     => chr(13) . chr(10),
-            'unicode' => ' ',
-            'desc'    => 'Newline',
-        },
-        'BACKSPACE' => {
-            'out'     => chr(8),
-            'unicode' => ' ',
-            'desc'    => 'Backspace',
-        },
-        'TAB' => {
-            'out'     => chr(9),
-            'unicode' => ' ',
-            'desc'    => 'Tab',
-        },
-        'DELETE' => {
-            'out'     => chr(127),
-            'unicode' => ' ',
-            'desc'    => 'Delete',
-        },
-        'CLS' => {
-            'out'     => chr(12),                     # Formfeed
-            'unicode' => ' ',
-            'desc'    => 'Clear Screen (Formfeed)',
-        },
-        'CLEAR' => {
-            'out'     => chr(12),
-            'unicode' => ' ',
-            'desc'    => 'Clear Screen (Formfeed)',
-        },
-        'RING BELL' => {
-            'out'     => chr(7),
-            'unicode' => ' ',
-            'desc'    => 'Console Bell',
-        },
+        'RETURN'    => { 'out' => chr(13),           'unicode' => ' ', 'desc' => 'Carriage Return' },
+        'LINEFEED'  => { 'out' => chr(10),           'unicode' => ' ', 'desc' => 'Linefeed' },
+        'NEWLINE'   => { 'out' => chr(13) . chr(10), 'unicode' => ' ', 'desc' => 'Newline' },
+        'BACKSPACE' => { 'out' => chr(8),            'unicode' => ' ', 'desc' => 'Backspace' },
+        'TAB'       => { 'out' => chr(9),            'unicode' => ' ', 'desc' => 'Tab' },
+        'DELETE'    => { 'out' => chr(127),          'unicode' => ' ', 'desc' => 'Delete' },
+        'CLS'       => { 'out' => chr(12),           'unicode' => ' ', 'desc' => 'Clear Screen (Formfeed)' },
+        'CLEAR'     => { 'out' => chr(12),           'unicode' => ' ', 'desc' => 'Clear Screen (Formfeed)' },
+        'RING BELL' => { 'out' => chr(7),            'unicode' => ' ', 'desc' => 'Console Bell' },
     };
     $self->{'debug'}->DEBUG(['End ACSII Initialize']);
     return ($self);
