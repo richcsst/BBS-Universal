@@ -44,12 +44,11 @@ sub news_display {
     $df =~ s/MONTH/\%m/;
     $df =~ s/DAY/\%d/;
     my $sql = q{
-        SELECT
-          news_id,
-          news_title,
-          news_content,
-          DATE_FORMAT(news_date,?) AS newsdate
-        FROM news
+          SELECT news_id,
+                 news_title,
+                 news_content,
+                 DATE_FORMAT(news_date,?) AS newsdate
+            FROM news
         ORDER BY news_date DESC
     };
     my $sth = $self->{'dbh'}->prepare($sql);
@@ -84,12 +83,11 @@ sub news_summary {
     $format =~ s/MONTH/\%m/;
     $format =~ s/DAY/\%d/;
     my $sql = q{
-        SELECT
-          news_id,
-          news_title,
-          news_content,
-          DATE_FORMAT(news_date,?) AS newsdate
-        FROM news
+          SELECT news_id,
+                 news_title,
+                 news_content,
+                 DATE_FORMAT(news_date,?) AS newsdate
+            FROM news
         ORDER BY news_date DESC};
     my $sth = $self->{'dbh'}->prepare($sql);
     $sth->execute($format);
@@ -144,12 +142,7 @@ sub news_rss_categories {
     $sth->execute($self->{'USER'}->{'rss_category'});
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Return to News Menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Return to News Menu' },
     };
     my @menu_choices = @{$self->{'MENU CHOICES'}};
 
@@ -201,12 +194,7 @@ sub news_rss_feeds {
     $sth->execute($self->{'USER'}->{'rss_category'});
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Return to News Menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Return to News Menu' },
     };
     my @menu_choices = @{$self->{'MENU CHOICES'}};
     while (my $result = $sth->fetchrow_hashref()) {
