@@ -16,8 +16,9 @@ sub cpu_info {
     my $cpu_cores   = scalar(@{ $cpu->{'CPU'} });
     my $cpu_threads = (exists($cpu->{'CPU'}->[0]->{'logical processors'})) ? $cpu->{'CPU'}->[0]->{'logical processors'} : 'No Hyperthreading';
     my $cpu_bits    = $cpu->{'HARDWARE'}->{'Bits'} + 0;
+    my $identity    = $cpu->{'CPU'}->[0]->{'model name'};
+
     chomp(my $load_average = `cat /proc/loadavg`);
-    my $identity = $cpu->{'CPU'}->[0]->{'model name'};
 
     my $speed = $cpu->{'CPU'}->[0]->{'cpu MHz'} if (exists($cpu->{'CPU'}->[0]->{'cpu MHz'}));
 
