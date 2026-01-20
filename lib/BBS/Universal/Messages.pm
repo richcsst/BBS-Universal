@@ -19,12 +19,7 @@ sub messages_forum_categories {
     $sth->execute();    # $self->{'USER'}->{'forum_category'});
     my $mapping = {
         'TEXT' => '',
-        'Z'    => {
-            'command'      => 'BACK',
-            'color'        => 'WHITE',
-            'access_level' => 'USER',
-            'text'         => 'Return to Forum Menu',
-        },
+        'Z'    => { 'command' => 'BACK', 'color' => 'WHITE', 'access_level' => 'USER', 'text' => 'Return to Forum Menu' },
     };
     my @menu_choices = @{ $self->{'MENU CHOICES'} };
 
@@ -90,7 +85,7 @@ sub messages_list_messages {
             $sth->finish();
             my $mode = $self->{'USER'}->{'text_mode'};
             if ($mode eq 'ANSI') {
-                $self->output("[% CLS %][% HORIZONTAL RULE MAGENTA %][% B_MAGENTA %][% BLACK %]" . $self->pad_center('FORUM MESSAGE', $self->{'USER'}->{'max_columns'}) . "[% RESET %]\n");
+                $self->output("[% CLS %][% HORIZONTAL RULE MAGENTA %][% B_MAGENTA %][% BLACK %]" . $self->pad_center('FORUM MESSAGE' . $self->{'USER'}->{'max_columns'}) . "[% RESET %]\n");
                 $self->output('[% B_BRIGHT GREEN %][% BLACK %] CATEGORY [% RESET %] [% BOLD %][% GREEN %][% FORUM CATEGORY %][% RESET %]' . "\n");
                 $self->output('[% BRIGHT WHITE %][% B_BLUE %]   Author [% RESET %] ');
                 $self->output(($result->{'prefer_nickname'}) ? $result->{'author_nickname'} : $result->{'author_fullname'});
@@ -121,38 +116,14 @@ sub messages_list_messages {
                 $self->output("\n" . '=' x $self->{'USER'}->{'max_columns'} . "\n");
             } ## end else [ if ($mode eq 'ANSI') ]
             my $mapping = {
-                'Z' => {
-                    'id'           => $result->{'id'},
-                    'command'      => 'BACK',
-                    'color'        => 'WHITE',
-                    'access_level' => 'USER',
-                    'text'         => 'Return to the Forum Menu',
-                },
-                'N' => {
-                    'id'           => $result->{'id'},
-                    'command'      => 'NEXT',
-                    'color'        => 'BRIGHT BLUE',
-                    'access_level' => 'USER',
-                    'text'         => 'Next Message',
-                },
+                'Z' => { 'id' => $result->{'id'}, 'command' => 'BACK', 'color' => 'WHITE',       'access_level' => 'USER', 'text' => 'Return to the Forum Menu' },
+                'N' => { 'id' => $result->{'id'}, 'command' => 'NEXT', 'color' => 'BRIGHT BLUE', 'access_level' => 'USER', 'text' => 'Next Message' },
             };
             if ($self->{'USER'}->{'post_message'}) {
-                $mapping->{'R'} = {
-                    'id'           => $result->{'id'},
-                    'command'      => 'REPLY',
-                    'color'        => 'BRIGHT GREEN',
-                    'access_level' => 'USER',
-                    'text'         => 'Reply',
-                };
+                $mapping->{'R'} = { 'id' => $result->{'id'}, 'command' => 'REPLY', 'color' => 'BRIGHT GREEN', 'access_level' => 'USER', 'text' => 'Reply' };
             } ## end if ($self->{'USER'}->{...})
             if ($self->{'USER'}->{'remove_message'}) {
-                $mapping->{'D'} = {
-                    'id'           => $result->{'id'},
-                    'command'      => 'DELETE',
-                    'color'        => 'RED',
-                    'access_level' => 'JUNIOR SYSOP',
-                    'text'         => 'Delete Message',
-                };
+                $mapping->{'D'} = { 'id' => $result->{'id'}, 'command' => 'DELETE', 'color' => 'RED', 'access_level' => 'JUNIOR SYSOP', 'text' => 'Delete Message' };
             } ## end if ($self->{'USER'}->{...})
             $self->show_choices($mapping);
             $self->prompt('Choose');
@@ -383,7 +354,6 @@ sub messages_text_edit {
             }
             $text = $self->get_line({ 'type' => STRING, 'max' => $self->{'USER'}->{'max_columns'}, 'default' => '' });
 
-            #            $self->output("\n");
             if ($text =~ /^\:(.)(.*)/i) {    # Process command
                 my $command = uc($1);
                 if ($command eq 'E') {
