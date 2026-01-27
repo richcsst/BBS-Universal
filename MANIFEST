@@ -97,8 +97,10 @@ MANIFEST			This list of files
 README.md
 sql/database_setup.sql
 src/Universal.pm
+sysop_sounds/boing.mp3
 sysop_sounds/README.md
 sysop_sounds/shutdown.mp3
 sysop_sounds/startup.mp3
-sysop_sounds/boing.mp3
 t/01-tests.t
+ymodem.txt
+zmodem.txt

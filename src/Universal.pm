@@ -67,14 +67,17 @@ use constant {
     MENU_CHOICES => ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '-', '+', '*', '!', '@', '#', '$', '%', '^', '&'],
 
     SPEEDS       => {    # This depends on the granularity of Time::HiRes
-        'FULL'  => 0,
-        '300'   => 0.02,
-        '600'   => 0.01,
-        '1200'  => 0.005,
-        '2400'  => 0.0025,
-        '4800'  => 0.00125,
-        '9600'  => 0.000625,
-        '19200' => 0.0003125,
+        'FULL'   => 0,
+        '300'    => 1 / (300 / 8),
+        '600'    => 1 / (600 / 8),
+        '1200'   => 1 / (1200 / 8),
+        '2400'   => 1 / (2400 / 8),
+        '4800'   => 1 / (4800 / 8),
+        '9600'   => 1 / (9600 / 8),
+        '19200'  => 1 / (19200 / 8),
+        '38400'  => 1 / (38400 / 8),
+        '57600'  => 1 / (57600 / 8),
+        '115200' => 1 / (115200 / 8),
     },
 };
 use open qw(:std :utf8);
@@ -509,21 +512,21 @@ sub create_account {
     my $heading = '[% CLS %]CREATE ACCOUNT' . "\n\nLeaving a field blank will abort\naccount creation\n\n";
     $self->output($heading);
 
-    my $username = '';
-    my $given = '';
-    my $family = '';
-    my $nickname = '';
-    my $max_columns = 32;
-    my $max_rows = 25;
-    my $text_mode = '';
-    my $birthday = '';
-    my $location = '';
-    my $date_format = '';
+    my $username        = '';
+    my $given           = '';
+    my $family          = '';
+    my $nickname        = '';
+    my $max_columns     = 32;
+    my $max_rows        = 25;
+    my $text_mode       = '';
+    my $birthday        = '';
+    my $location        = '';
+    my $date_format     = '';
     my $accomplishments = '';
-    my $email = '';
-    my $baud_rate = '';
-    my $password = '';
-    my $password2 = '';
+    my $email           = '';
+    my $baud_rate       = '';
+    my $password        = '';
+    my $password2       = '';
 
     if ($self->is_connected()) {
         while ($self->is_connected() && length($username) < 4) {
@@ -708,7 +711,6 @@ sub menu_choice {
         $self->output(" $choice > $desc");
     } elsif ($self->{'USER'}->{'text_mode'} eq 'ANSI') {
         $self->output(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc");
-#        $self->output($self->news_title_colorize(charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . $choice . '[% RESET %]' . charnames::string_vianame('BOX DRAWINGS LIGHT VERTICAL') . '[% ' . $color . ' %]' . charnames::string_vianame('BLACK RIGHT-POINTING TRIANGLE') . '[% RESET %]' . " $desc"));
     } else {
         $self->output(" $choice > $desc");
     }
@@ -982,15 +984,15 @@ sub get_line {
 
     $self->output($line) if ($line ne '');
     my $mode = $self->{'USER'}->{'text_mode'};
-    my $bs;
+    my $backspace;
     if ($mode eq 'ANSI') {
-        $bs = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
+        $backspace = $self->{'ansi_meta'}->{'cursor'}->{'BACKSPACE'}->{'out'};
     } elsif ($mode eq 'ATASCII') {
-        $bs = $self->{'atascii_meta'}->{'BACKSPACE'}->{'out'};
+        $backspace = $self->{'atascii_meta'}->{'BACKSPACE'}->{'out'};
     } elsif ($mode eq 'PETSCII') {
-        $bs = $self->{'petscii_meta'}->{'BACKSPACE'}->{'out'};
+        $backspace = $self->{'petscii_meta'}->{'BACKSPACE'}->{'out'};
     } else {
-        $bs = $self->{'ascii_meta'}->{'BACKSPACE'}->{'out'};
+        $backspace = $self->{'ascii_meta'}->{'BACKSPACE'}->{'out'};
     }
 
     if ($echo == PASSWORD) {
@@ -1000,7 +1002,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs) {
+                    if ($key eq $backspace) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1018,8 +1020,8 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs)) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace)) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1041,7 +1043,7 @@ sub get_line {
                 'text'         => $choice,
             }
         }
-        $self->output("\n");
+        $self->output("\n\n");
         $self->show_choices($mapping);
         $self->prompt('Choose');
         my $key;
@@ -1053,7 +1055,6 @@ sub get_line {
         } else {
             $line = $mapping->{$key}->{'command'};
         }
-        
     } elsif ($echo == NUMERIC) {
         $self->{'debug'}->DEBUG(['  Mode:  NUMERIC']);
         while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
@@ -1061,7 +1062,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs || $key eq chr(127)) {
+                    if ($key eq $backspace || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1079,8 +1080,8 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace || $key eq chr(127))) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1095,7 +1096,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs || $key eq chr(127)) {
+                    if ($key eq $backspace || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1113,8 +1114,8 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace || $key eq chr(127))) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1129,7 +1130,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs || $key eq chr(127)) {
+                    if ($key eq $backspace || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1147,8 +1148,8 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace || $key eq chr(127))) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1165,7 +1166,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs || $key eq chr(127)) {
+                    if ($key eq $backspace || $key eq chr(127)) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1187,8 +1188,47 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs || $key eq chr(127))) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace || $key eq chr(127))) {
+                    $key = $backspace;
+                    $self->output("$key $key");
+                    chop($line);
+                } else {
+                    $self->output('[% RING BELL %]');
+                }
+            } ## end else [ if (length($line) <= $limit)]
+        } ## end while (($self->is_connected...))
+    } elsif ($echo == EMAIL) {
+        $self->{'debug'}->DEBUG(['  Mode:  EMAIL']);
+
+        while (($self->is_connected() || $self->{'local_mode'}) && $key ne chr(13) && $key ne chr(3)) {
+            if (length($line) <= $limit) {
+                $key = $self->get_key(SILENT, BLOCKING);
+                return ('') if (defined($key) && $key eq chr(3));
+                if (defined($key) && $key ne '') {
+                    if ($key eq $backspace || $key eq chr(127)) {
+                        my $len = length($line);
+                        if ($len > 0) {
+                            $self->output("$key $key");
+                            chop($line);
+                        }
+                    } elsif ($key ne chr(13) && $key ne chr(3) && $key ne chr(10) && $key =~ /[a-zA-Z0-9]|\.|-|\+|\@/) {
+                        if ($line eq '' && $key !~ /^[a-zA-Z0-9]/) {
+                            $self->output('[% RING BELL %]');
+                        } else {
+                            $self->output($key);
+                            $line .= $key;
+                        }
+                    } else {
+                        $self->output('[% RING BELL %]');
+                    }
+                } ## end if (defined($key) && $key...)
+            } else {
+                $key = $self->get_key(SILENT, BLOCKING);
+                if (defined($key) && $key eq chr(3)) {
+                    return ('');
+                }
+                if (defined($key) && ($key eq $backspace || $key eq chr(127))) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1203,7 +1243,7 @@ sub get_line {
                 $key = $self->get_key(SILENT, BLOCKING);
                 return ('') if (defined($key) && $key eq chr(3));
                 if (defined($key) && $key ne '') {
-                    if ($key eq $bs) {
+                    if ($key eq $backspace) {
                         my $len = length($line);
                         if ($len > 0) {
                             $self->output("$key $key");
@@ -1221,8 +1261,8 @@ sub get_line {
                 if (defined($key) && $key eq chr(3)) {
                     return ('');
                 }
-                if (defined($key) && ($key eq $bs)) {
-                    $key = $bs;
+                if (defined($key) && ($key eq $backspace)) {
+                    $key = $backspace;
                     $self->output("$key $key");
                     chop($line);
                 } else {
@@ -1454,8 +1494,8 @@ sub configuration {
             $fval =~ s/\~/$ENV{HOME}/;
         } elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT)$/) {
             $fval = 0 + $fval;
-        } elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
-            if ($fval eq 'TRUE') {
+        } else {
+            if ($fval =~ /^(TRUE|ON|YES)$/) {
                 $fval = TRUE;
             } else {
                 $fval = FALSE;
@@ -1487,8 +1527,8 @@ sub configuration {
                 $fval =~ s/\~/$ENV{HOME}/;
             } elsif ($fval =~ /^(PORT|DEFAULT BAUD RATE|THREAD MULTIPLIER|DEFAULT TIMEOUT|LOGIN TRIES|MEMCACHED PORT)$/) {
                 $fval = 0 + $fval;
-            } elsif ($fval =~ /^(PLAY SYSOP SOUND|SYSOP ANIMATED MENU)$/) {
-                if ($fval eq 'TRUE') {
+            } else {
+                if ($fval =~ /^(TRUE|ON|YES)$/) {
                     $fval = TRUE;
                 } else {
                     $fval = FALSE;
