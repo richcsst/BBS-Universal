@@ -25,7 +25,6 @@ use constant {
     HOST        =>  5,
     DATE        =>  6,
     FILENAME    =>  7,
-	EMAIL       =>  8,
 
     ASCII       => 0,
     ATASCII     => 1,
@@ -600,7 +599,7 @@ sub create_account {
 
         if ($self->is_connected()) {
             $self->output("\nYou can have a simulated baud rate for\nnostalgia.  Rates available:\n\n* 300\n* 600\n* 1200\n* 2400\n* 4800\n* 9600\n* 19200\n* FULL\n\nWhich one (FULL=full speed)?  ");
-            $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', '38400', '57600', '115200', 'FULL'], 'default' => 'FULL' });
+            $baud_rate = $self->get_line({ 'type' => RADIO, 'max' => 5, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], 'default' => 'FULL' });
             return(FALSE) if (! defined($baud_rate) || $baud_rate eq '');
             $self->{'debug'}->DEBUG(["  New Baud Rate:  $baud_rate"]);
         }
