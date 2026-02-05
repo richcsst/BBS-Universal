@@ -1,4 +1,4 @@
-package BBS::Universal 0.021;
+package BBS::Universal 0.022;
 
 # Pragmas
 use 5.010;
@@ -1497,7 +1497,7 @@ sub configuration {
         } else {
             if ($fval =~ /^(TRUE|ON|YES)$/) {
                 $fval = TRUE;
-            } else {
+            } elsif ($fval =~ /^(FALSE|OFF|NO)$/) {
                 $fval = FALSE;
             }
         }
@@ -1530,7 +1530,7 @@ sub configuration {
             } else {
                 if ($fval =~ /^(TRUE|ON|YES)$/) {
                     $fval = TRUE;
-                } else {
+                } elsif ($fval =~ /^(FALSE|OFF|NO)$/) {
                     $fval = FALSE;
                 }
             }

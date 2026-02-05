@@ -46,6 +46,7 @@ use Text::SimpleTable;
 use List::Util qw(min max);
 use Text::Format;
 use IO::Socket qw(AF_INET SOCK_STREAM SHUT_WR SHUT_RDWR SHUT_RD);
+# use Cache::Memcached;
 use Cache::Memcached::Fast;
 
 use BBS::Universal;
@@ -102,6 +103,7 @@ our $CACHE  = Cache::Memcached::Fast->new(
           'close_on_error' => TRUE,
     }
 );
+$BBS_OBJ->{'debug'}->ERROR(['CACHE not defined']) unless (defined($CACHE));
 $CACHE->flush_all;
 $CACHE->enable_compress(TRUE);
 $CACHE->set_multi(
@@ -457,6 +459,7 @@ sub system_menu {
     print locate(($CACHE->get('START_ROW') + $CACHE->get('ROW_ADJUST')), 1), cldown;
     $bbs_obj->{'sysop'} = TRUE;
     $bbs_obj->users_load('sysop', '');
+	$CACHE->set('RUNNING', TRUE);
     while ($CACHE->get('RUNNING')) {
         ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         if ($wsize != $width || $hsize != $height) {
