@@ -10,35 +10,39 @@ use Time::HiRes qw(sleep);
 
 # It's nolstalgia folks
 
-my $Speed = { # "Baud" speed values
-	'300'   => 0.02,
-	'600'   => 0.01,
-	'1200'  => 0.005,
-	'2400'  => 0.0025,
-	'4800'  => 0.00125,
-	'9600'  => 0.000625,
-	'19200' => 0.0003125,
-	'57600' => 0,
-};
-
-my $speed = (scalar(@ARGV)) ? $ARGV[0] : '9600';                      # For sleep to simulate 9600 baud
-
-$speed = '57600' unless ($speed =~ /^(300|1200|2400|4800|9600|19200)$/);
+my $baud  = 9600;
+my $speed = 1 / ($baud / 8);
+if (scalar(@ARGV)) {
+	$baud = $ARGV[0];
+	if ($baud eq 'FULL') {
+		$speed = 0;
+	} else {
+		$baud = int($baud);
+		$speed = 1 / ($baud / 8);
+	}
+}
 
 $| = 1;                                 # Turn off buffering
 print "\e[2J\e[H\e[0m";
-baud_print("WOPR Retro-Terminal.  Hayes modem ready 8/N/1 $speed bps\n");
-sleep 0.25 unless ($speed eq '57600');
+
+baud_print("WOPR Retro-Terminal.  Hayes modem 8/N/1 $baud bps\n");
+sleep 0.25 if ($speed > 0);
+
 baud_print('> ');
-sleep 0.50 unless ($speed eq '57600');
+sleep 0.50 if ($speed > 0);
+
 baud_print("ATDT BBS::Universal\n\n");
-sleep 1 unless ($speed eq '57600');
+sleep 1 if ($speed > 0);
+
 baud_print('Connected ... ');
-sleep 0.25 unless ($speed eq '57600');
-baud_print("$speed baud...\n\n");
-sleep 0.5 unless ($speed eq '57600');
+sleep 0.25 if ($speed > 0);
+
+baud_print("$baud baud...\n\n");
+sleep 0.5 if ($speed > 0);
+
 baud_print("Welcome to...\n\n");
-sleep 0.5 unless ($speed eq '57600');
+sleep 0.5 if ($speed > 0);
+
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
 baud_print('        ____  ____ ____    _   _       _                          _' . "\n");
@@ -60,8 +64,6 @@ baud_print('TCP/IP ' . colored(['red'], 'R') . colored(['yellow'], 'e') . colore
 baud_print("Creating a proper Universal.pm ... ");
 merge();
 baud_print(colored(['green'], "Done\n\n"));
-
-#
 
 WriteMakefile(
 	NAME               => 'BBS::Universal',
@@ -111,13 +113,17 @@ WriteMakefile(
 );
 
 print chr(27) . '[0m', color('reset');
-sleep 0.50 unless ($speed eq '57600');
+sleep 0.50 if ($speed > 0);
 
 baud_print("\nProcess complete\n\n");
-sleep 0.50 unless ($speed eq '57600');
+sleep 0.50 if ($speed > 0);
+
+baud_print(color('on_blue') . color('bright_yellow') . ' INSTALLING' . ' ' x 69 . color('reset') . "\n");
+baud_print("       make\n       make test\n" . color('red') . "[sudo]" . color('reset') . " make install\n");
+baud_print(color('on_blue') . ' ' x 80 . color('reset') . "\n\n");
 
 baud_print("Disconnecting...");
-sleep 0.50 unless ($speed eq '57600');
+sleep 0.50 if ($speed > 0);
 
 print "\n\n";
 
@@ -125,13 +131,13 @@ exit(0);
 
 sub baud_print {
     my $text = shift;
-    if ($speed eq '57600') {
+    if ($speed == 0) {
         print $text;
     } else {
         my $l = length($text) - 1;
         foreach my $c (0 .. $l) {
             print substr($text, $c, 1);
-            sleep $Speed->{$speed};
+            sleep $speed;
         }
     } ## end else [ if ($speed eq '57600') ]
 } ## end sub baud_print

@@ -4,12 +4,13 @@ DROP DATABASE IF EXISTS BBSUniversal;
 CREATE DATABASE BBSUniversal CHARACTER SET utf8;
 USE BBSUniversal;
 
--- Type | Maximum length
+-- Type       | Maximum length
 -- -----------+-------------------------------------
 --   TINYTEXT |           255 bytes
 --       TEXT |        65,535 bytes = 64 KiB
 -- MEDIUMTEXT |    16,777,215 bytes = 16 MiB
 --   LONGTEXT | 4,294,967,295 bytes =  4 GiB
+-- -----------+-------------------------------------
 
 -- Tables
 
@@ -20,7 +21,7 @@ CREATE TABLE config (
 
 CREATE TABLE text_modes (
     id        TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    text_mode ENUM('ASCII','ATASCII','PETSCII','ANSI')
+    text_mode ENUM('ASCII', 'ANSI', 'ATASCII', 'PETSCII')
 );
 
 CREATE TABLE users (
@@ -67,7 +68,7 @@ CREATE TABLE permissions (
 
 CREATE TABLE message_categories (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
+    access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP', 'SYSOP') NOT NULL DEFAULT 'USER',
     name        VARCHAR(255) NOT NULL,
     description TEXT NOT NULL
 );
@@ -84,7 +85,7 @@ CREATE TABLE messages (
 
 CREATE TABLE rss_feed_categories (
     id           INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP','SYSOP') NOT NULL DEFAULT 'USER',
+    access_level ENUM('USER', 'VETERAN', 'JUNIOR SYSOP', 'SYSOP') NOT NULL DEFAULT 'USER',
     title        VARCHAR(255) NOT NULL,
     description  VARCHAR(255) NOT NULL
 );
