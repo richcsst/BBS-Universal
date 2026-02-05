@@ -22,16 +22,16 @@ sub sysop_initialize {
 
     # Default user capability flags
     $self->{'flags_default'} = {
-        'prefer_nickname' => 'Yes',
-        'view_files'      => 'Yes',
-        'upload_files'    => 'No',
-        'download_files'  => 'Yes',
-        'remove_files'    => 'No',
-        'read_message'    => 'Yes',
-        'post_message'    => 'Yes',
-        'remove_message'  => 'No',
-        'sysop'           => 'No',
-        'show_email'      => 'No',
+        'prefer_nickname' => 'ON',
+        'view_files'      => 'ON',
+        'upload_files'    => 'OFF',
+        'download_files'  => 'ON',
+        'remove_files'    => 'OFF',
+        'read_message'    => 'ON',
+        'post_message'    => 'ON',
+        'remove_message'  => 'OFF',
+        'sysop'           => 'OFF',
+        'show_email'      => 'OFF',
     };
 
     # Tokens (static + dynamic)
@@ -101,7 +101,7 @@ sub sysop_initialize {
         'location'        => { 'type' => STRING,  'max' => 120, 'min' => 40 },
         'date_format'     => { 'type' => RADIO,   'max' => 14,  'min' => 14, 'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY'], 'default' => 'DAY/MONTH/YEAR', },
         'access_level'    => { 'type' => RADIO,   'max' => 12,  'min' => 12, 'choices' => ['USER', 'VETERAN', 'JUNIOR SYSOP', 'SYSOP'], 'default' => 'USER', },
-        'baud_rate'       => { 'type' => RADIO,   'max' => 5,   'min' => 5, 'choices' => ['FULL', '19200', '9600', '4800', '2400', '1200', '600', '300'], 'default' => 'FULL', },
+        'baud_rate'       => { 'type' => RADIO,   'max' => 5,   'min' => 5,  'choices' => ['FULL', '115200', '57600', '38400', '19200', '9600', '4800', '2400', '1200', '600', '300'], 'default' => 'FULL', },
         'login_time'      => { 'type' => STRING,  'max' => 10,  'min' => 10 },
         'logout_time'     => { 'type' => STRING,  'max' => 10,  'min' => 10 },
         'text_mode'       => { 'type' => RADIO,   'max' => 7,   'min' => 9, 'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'], 'default' => 'ASCII', },
@@ -110,17 +110,17 @@ sub sysop_initialize {
         'timeout'         => { 'type' => NUMERIC, 'max' => 5,   'min' => 5, 'default' => 10 },
         'retro_systems'   => { 'type' => STRING,  'max' => 120, 'min' => 40 },
         'accomplishments' => { 'type' => STRING,  'max' => 120, 'min' => 40 },
-        'prefer_nickname' => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'view_files'      => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'YES' },
-        'banned'          => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'upload_files'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'download_files'  => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'remove_files'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'read_message'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'YES' },
-        'post_message'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'remove_message'  => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
-        'play_fortunes'   => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'YES' },
-        'sysop'           => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['TRUE', 'FALSE'], 'default' => 'NO' },
+        'prefer_nickname' => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'view_files'      => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'ON' },
+        'banned'          => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'upload_files'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'download_files'  => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'remove_files'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'read_message'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'ON' },
+        'post_message'    => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'remove_message'  => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
+        'play_fortunes'   => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'ON' },
+        'sysop'           => { 'type' => BOOLEAN, 'max' => 5,   'min' => 5, 'choices' => ['ON', 'OFF'], 'default' => 'OFF' },
         'password'        => { 'type' => STRING,  'max' => 64,  'min' => 32 },
     };
 
@@ -586,7 +586,7 @@ sub sysop_disk_free {    # Show the Disk Free portion of Statistics
 
     $self->{'debug'}->DEBUG(['Start SysOp Disk Free']);
     my $diskfree = '';
-    if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF') eq 'TRUE') {
+    if ((-e '/usr/bin/duf' || -e '/usr/local/bin/duf') && $self->configuration('USE DUF') =~ /^(TRUE|YES|OM)$/) {
         my ($wsize, $hsize, $wpixels, $hpixels) = GetTerminalSize();
         $diskfree = `duf -theme ansi -width $wsize`;
     } else {
@@ -830,7 +830,9 @@ sub sysop_true_false {
     if ($mode eq 'TF') {
         return (($boolean) ? 'TRUE' : 'FALSE');
     } elsif ($mode eq 'YN') {
-        return (($boolean) ? 'Yes' : 'No');
+        return (($boolean) ? 'YES' : 'NO');
+	} elsif ($mode eq 'OO') {
+		return(($boolean) ? 'ON' : 'OFF');
     }
     return ($boolean);
 } ## end sub sysop_true_false
@@ -1253,7 +1255,7 @@ sub sysop_view_configuration {
 
     # Get maximum widths
     my $name_width  = 6;
-    my $value_width = 60;
+    my $value_width = 80;
     foreach my $cnf (keys %{ $self->configuration() }) {
         if ($cnf eq 'STATIC') {
             foreach my $static (keys %{ $self->{'CONF'}->{$cnf} }) {
@@ -1293,7 +1295,7 @@ sub sysop_view_configuration {
         if ($conf eq 'DEFAULT TIMEOUT') {
             $c .= ' Minutes';
         } elsif ($conf eq 'DEFAULT BAUD RATE') {
-            $c .= ' bps - 300, 600, 1200, 2400, 4800, 9600, 19200, FULL';
+            $c .= ' bps - 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, FULL';
         } elsif ($conf eq 'THREAD MULTIPLIER') {
             $c .= ' x CPU Cores';
         } elsif ($conf eq 'DEFAULT TEXT MODE') {
@@ -1337,6 +1339,14 @@ sub sysop_view_configuration {
         $output =~ s/TRUE/$ch/gs;
         $ch = colored(['red'], 'FALSE');
         $output =~ s/FALSE/$ch/gs;
+        $ch = colored(['green'], 'ON');
+        $output =~ s/ ON / $ch /gs;
+        $ch = colored(['red'], 'OFF');
+        $output =~ s/ OFF / $ch /gs;
+        $ch = colored(['green'], 'YES');
+        $output =~ s/YES/$ch/gs;
+        $ch = colored(['red'], 'NO');
+        $output =~ s/ NO / $ch /gs;
     }
     my $response;
     if ("$view" eq 'string') {
@@ -1368,7 +1378,7 @@ sub sysop_edit_configuration {
         'HOST'                => { 'max' => 20, 'type' => HOST, },
         'THREAD MULTIPLIER'   => { 'max' => 2,  'type' => NUMERIC, },
         'PORT'                => { 'max' => 5,  'type' => NUMERIC, },
-        'DEFAULT BAUD RATE'   => { 'max' => 5,  'type' => RADIO, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', 'FULL'], },
+        'DEFAULT BAUD RATE'   => { 'max' => 5,  'type' => RADIO, 'choices' => ['300', '600', '1200', '2400', '4800', '9600', '19200', '38400', '57600', '115200', 'FULL'], },
         'DEFAULT TEXT MODE'   => { 'max' => 7,  'type' => RADIO, 'choices' => ['ANSI', 'ASCII', 'ATASCII', 'PETSCII'], },
         'DEFAULT TIMEOUT'     => { 'max' => 3,  'type' => NUMERIC, },
         'FILES PATH'          => { 'max' => 60, 'type' => STRING, },
@@ -1377,9 +1387,9 @@ sub sysop_edit_configuration {
         'MEMCACHED NAMESPACE' => { 'max' => 32, 'type' => STRING, },
         'MEMCACHED PORT'      => { 'max' => 5,  'type' => NUMERIC, },
         'DATE FORMAT'         => { 'max' => 14, 'type' => RADIO,   'choices' => ['MONTH/DAY/YEAR', 'DAY/MONTH/YEAR', 'YEAR/MONTH/DAY',], },
-        'SYSOP ANIMATED MENU' => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
-        'USE DUF'             => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
-        'PLAY SYSOP SOUNDS'   => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['TRUE', 'FALSE'], },
+        'SYSOP ANIMATED MENU' => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['ON', 'OFF'], },
+        'USE DUF'             => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['ON', 'OFF'], },
+        'PLAY SYSOP SOUNDS'   => { 'max' => 5,  'type' => BOOLEAN, 'choices' => ['ON', 'OFF'], },
     };
     my $choice;
     do {
@@ -1504,11 +1514,11 @@ sub sysop_get_line {
         do {
             $key = $self->sysop_get_key(SILENT, BLOCKING);
             if (uc($key) eq 'T') {
-                $line = 'TRUE';
-                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 5, 'TRUE', clline;
+                $line = 'ON';
+                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 5, 'ON', clline;
             } elsif (uc($key) eq 'F') {
-                $line = 'FALSE';
-                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 4, 'FALSE', clline;
+                $line = 'OFF';
+                print $self->{'ansi_meta'}->{'cursor'}->{'LEFT'}->{'out'} x 4, 'OFF', clline;
             } elsif ($key ne chr(13) && $key ne chr(3)) {
                 print chr(7);
             }
@@ -1711,7 +1721,7 @@ sub sysop_user_edit {
                     } elsif ($field eq 'date_format') {
                         $table->row($choices[$count], uc($field), $user_row->{$field} . ' - YEAR/MONTH/DAY, MONTH/DAY/YEAR, DAY/MONTH/YEAR');
                     } elsif ($field eq 'baud_rate') {
-                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - 300, 600, 1200, 2400, 4800, 9600, 19200, FULL');
+                        $table->row($choices[$count], uc($field), $user_row->{$field} . ' - 300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 57600, 115200, FULL');
                     } elsif ($field eq 'text_mode') {
                         $table->row($choices[$count], uc($field), $user_row->{$field} . ' - ASCII, ANSI, ATASCII, PETSCII');
                     } elsif ($field eq 'timeout') {
