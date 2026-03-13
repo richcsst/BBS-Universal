@@ -14,3 +14,6 @@ These sound files are played for specific events.  Note they only play if ```mpl
 
 **shutdown.mp3** - Plays when the BBS shuts down.
 
+## Boing
+
+**boing.mp3** - Plays SysOp menu sounds on menu choice.
