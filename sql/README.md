@@ -5,3 +5,7 @@
 ## SQL File
 
 Use this file to create the database template
+
+```bash
+sudo mysql -u root --skip-password < sql/database_setup.sql
+```
