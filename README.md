@@ -99,7 +99,7 @@ X|DISCONNECT|WHITE|USER|Disconnect
 
 ## LICENSE AND COPYRIGHT
 
-Copyright © 2023-2025 Richard Kelsch
+Copyright © 2023-2026 Richard Kelsch
 
 This program is free software; you can redistribute it and/or modify it under the terms of the Perl Artistic License.
 
