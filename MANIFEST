@@ -7,9 +7,9 @@ files/files/FreeBSD/freebsd.vt
 files/files/Linux/linux.vt
 files/files/Modern-Windows/windows.ans
 files/files/README.md
+files/files/TS-1000/timex-sinclair.ans
 files/files/TS-1000/timex-sinclair-1000.ans
 files/files/TS-1000/timex-sinclair-1500.ans
-files/files/TS-1000/timex-sinclair.ans
 files/files/TS-2048/timex-sinclair-2048.ans
 files/files/TS-2068/timex-sinclair-2068.ans
 files/files/ZX-Spectrum/sinclair.ans
@@ -62,13 +62,13 @@ files/sysop/commands_reference.ANSI
 files/sysop/edituser.ANSI
 files/sysop/environment.ANSI
 files/sysop/filemanager.ANSI
+files/sysop/manual.ANSI
 files/sysop/manual-introduction.ANSI
 files/sysop/manual-menus.ANSI
 files/sysop/manual-sysop-commands.ANSI
 files/sysop/manual-sysop-tokens.ANSI
 files/sysop/manual-user-commands.ANSI
 files/sysop/manual-user-tokens.ANSI
-files/sysop/manual.ANSI
 files/sysop/README.md
 files/sysop/settings.ANSI
 files/sysop/statistics.ANSI
