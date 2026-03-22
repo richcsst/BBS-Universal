@@ -26,22 +26,22 @@ $| = 1;                                 # Turn off buffering
 print "\e[2J\e[H\e[0m";
 
 baud_print("WOPR Retro-Terminal.  Hayes modem 8/N/1 $baud bps\n");
-sleep 0.25 if ($speed > 0);
+delay(0.25);
 
 baud_print('> ');
-sleep 0.50 if ($speed > 0);
+delay(0.50);
 
 baud_print("ATDT BBS::Universal\n\n");
-sleep 1 if ($speed > 0);
+delay(1);
 
 baud_print('Connected ... ');
-sleep 0.25 if ($speed > 0);
+delay(0.25);
 
 baud_print("$baud baud...\n\n");
-sleep 0.5 if ($speed > 0);
+delay(0.5);
 
 baud_print("Welcome to...\n\n");
-sleep 0.5 if ($speed > 0);
+delay(0.5);
 
 baud_print('==============================================================================' . "\n");
 baud_print(color('red'));
@@ -113,17 +113,17 @@ WriteMakefile(
 );
 
 print chr(27) . '[0m', color('reset');
-sleep 0.50 if ($speed > 0);
+delay(0.50);
 
 baud_print("\nProcess complete\n\n");
-sleep 0.50 if ($speed > 0);
+delay(0.50);
 
 baud_print(color('on_blue') . color('bright_yellow') . ' INSTALLING' . ' ' x 69 . color('reset') . "\n");
 baud_print("       make\n       make test\n" . color('red') . "[sudo]" . color('reset') . " make install\n");
 baud_print(color('on_blue') . ' ' x 80 . color('reset') . "\n\n");
 
 baud_print("Disconnecting...");
-sleep 0.50 if ($speed > 0);
+delay(0.50);
 
 print "\n\n";
 
@@ -182,6 +182,11 @@ sub merge {    # Perl sometimes is a pain in the ...
     print $OUT $master;
     close($OUT);
 } ## end sub merge
+
+sub delay {
+	my $d = shift;
+	sleep $d if ($speed > 0);
+}
 
 sub slurp_file {
     my $file = shift;
