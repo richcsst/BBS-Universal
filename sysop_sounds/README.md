@@ -8,12 +8,12 @@ These sound files are played for specific events.  Note they only play if ```mpl
 
 ## Startup
 
-**startup.mp3** - Plays when the BBS initializes
+```startup.mp3``` - Plays when the BBS initializes
 
 ## Shutdown
 
-**shutdown.mp3** - Plays when the BBS shuts down.
+```shutdown.mp3``` - Plays when the BBS shuts down.
 
 ## Boing
 
-**boing.mp3** - Plays SysOp menu sounds on menu choice.
+```boing.mp3``` - Plays SysOp menu sounds on menu choice.
