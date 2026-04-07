@@ -34,12 +34,12 @@ This is the actual menu text shown above the actual menu options when parsed and
 ## Sample
 
 ```
-[% CLS %][% BRIGHT RED %][% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT RED     %] [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %]  [% BRIGHT WHITE %] ____            _                   __  __[% RESET %]
-[% BRIGHT YELLOW       %] [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %] [% RESET %][% BRIGHT YELLOW  %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %] [% BRIGHT WHITE %]/ ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _[% RESET %]
-[% BRIGHT GREEN        %]  [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %] [% RESET %][% BRIGHT GREEN   %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% BRIGHT WHITE %]\___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |[% RESET %]
-[% BRIGHT MAGENTA      %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %] [% RESET %][% BRIGHT MAGENTA %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT WHITE %] ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |[% RESET %]
-[% BRIGHT BLUE         %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %] [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% BRIGHT WHITE %]|____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|[% RESET %]
-[% BRIGHT CYAN         %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT CYAN    %] [% RESET %][% BRIGHT CYAN    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  [% BRIGHT WHITE %]       |___/[% RESET %]
+[% CLS %][% BRIGHT CYAN %][% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT CYAN %] [% RESET %][% BRIGHT CYAN %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %]  [% BRIGHT WHITE %] ____            _                   __  __[% RESET %]
+[% BRIGHT RED     %] [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT RED     %] [% RESET %][% BRIGHT RED     %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %] [% BRIGHT WHITE %]/ ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _[% RESET %]
+[% BRIGHT YELLOW  %]  [% BLACK UPPER RIGHT TRIANGLE %][% B_BRIGHT YELLOW  %] [% RESET %][% BRIGHT YELLOW  %][% INVERT %][% BLACK UPPER RIGHT TRIANGLE %][% RESET %][% BRIGHT WHITE %]\___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |[% RESET %]
+[% BRIGHT GREEN   %]  [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT GREEN   %] [% RESET %][% BRIGHT GREEN   %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %][% BRIGHT WHITE %] ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |[% RESET %]
+[% BRIGHT MAGENTA %] [% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT MAGENTA %] [% RESET %][% BRIGHT MAGENTA %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %] [% BRIGHT WHITE %]|____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|[% RESET %]
+[% BRIGHT BLUE    %][% BLACK LOWER RIGHT TRIANGLE %][% B_BRIGHT BLUE    %] [% RESET %][% BRIGHT BLUE    %][% INVERT %][% BLACK LOWER RIGHT TRIANGLE %][% RESET %]  [% BRIGHT WHITE %]       |___/[% RESET %]
 ```
 
 ![BBS::Universal SysOp System Menu](SysOpSystemMenu.png?raw=true "BBS::Universal SysOp System Menu")
