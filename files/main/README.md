@@ -25,20 +25,20 @@ Custom menus follow a specific format
 
 ### Menu Descriptors
 
-* KEY          - A single key used to activate the feature.  It is case insensitive.
-* COMMAND      - The specific command token to activate the feature.  Use only the token name
-* COLOR        - The color of the menu choice.  This only works in ANSI and PETSCII text mode, but is still required for other modes.
-* ACCESS LEVEL - The access level of the command.  The menu option will only be showed and acted upon if the user's access level is equal to or above the specified access level.
-* DESCRIPTION  - The text to be displayed after the menu option
+* **KEY**          - A single key used to activate the feature.  It is case insensitive.
+* **COMMAND**      - The specific command token to activate the feature.  Use only the token name
+* **COLOR**        - The color of the menu choice.  This only works in ANSI and PETSCII text mode, but is still required for other modes.
+* **ACCESS LEVEL** - The access level of the command.  The menu option will only be showed and acted upon if the user's access level is equal to or above the specified access level.
+* **DESCRIPTION**  - The text to be displayed after the menu option
 
 Note: All menu keys will be sorted on output
 
 #### Access Levels
 
-* USER         - The access level for the average user.  The lowest level possible, the default.  It is recommended to use this as a read-only access level.
-* VETERAN      - Can be treated as a level for approved users, giving them normal access.
-* JUNIOR SYSOP - A higher level the SysOp can give a special user with mod level style access.
-* SYSOP        - Full access to everything.
+* **USER**         - The access level for the average user.  The lowest level possible, the default.  It is recommended to use this as a read-only access level.
+* **VETERAN**      - Can be treated as a level for approved users, giving them normal access.
+* **JUNIOR SYSOP** - A higher level the SysOp can give a special user with mod level style access.
+* **SYSOP**        - Full access to everything.
 
 ### Divider
 
