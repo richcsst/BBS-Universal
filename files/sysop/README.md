@@ -4,7 +4,7 @@
 
 # Creating Custom Menu Files
 
-The files in ```files/sysop/``` are specifically for the local SysOp mode.  ALL are in ANSI format and thus will always have the ```ANSI``` suffix.
+The files in ```files/sysop/``` are specifically for the local SysOp mode.  ALL are in ANSI format and thus will always have the ```ANSI``` suffix.  They are similar to the user menus, but the formatting is slightly different.
 
 ## Format
 
