@@ -735,7 +735,7 @@ sub logo {
     my $version = sprintf('Version %.03f', $BBS::Universal::VERSION);
     my $banner  = colored(['red','on_black'],         q{  ____  ____ ____    _   _       _                          _  } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' [% VERSION %]                            ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['yellow','on_black'],      q{ | __ )| __ ) ___|  | | | |_ __ (_)_   _____ _ __ ___  __ _| | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Written By Richard Kelsch                ') . colored(['blue'], '│') . "\n";
-    $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2025 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
+    $banner    .= colored(['green','on_black'],       q{ |  _ \|  _ \___ \  | | | | '_ \| \ \ / / _ \ '__/ __|/ _` | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Copyright © 2023-2026 Richard Kelsch     ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['magenta','on_black'],     q{ | |_) | |_) |__) | | |_| | | | | |\ V /  __/ |  \__ \ (_| | | } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' All Rights Reserved                      ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['bright_blue','on_black'], q{ |____/|____/____/   \___/|_| |_|_| \_/ \___|_|  |___/\__,_|_| } . clline) . colored(['blue'], '│') . colored(['yellow', 'on_ansi17'],' Licensed Under The Perl Artistic License ') . colored(['blue'], '│') . "\n";
     $banner    .= colored(['blue','on_black'], '━' x 63 . '┷' . '━' x 42 . '┷') . "\n";
@@ -803,6 +803,11 @@ ANSI encoded text
 It has color, graphics characters and cursor movement.  Typically used on Terminals and Unix/Linux/Windows/Mac consoles and terminal clients.
 
 =back
+
+=head1 COPYRIGHT
+
+Copyright 2023-2026 Richard Kelsch
+All Rights Reserved
 
 =head1 LICENSE
 
