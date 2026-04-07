@@ -51,52 +51,6 @@ DATABASE HOSTNAME = localhost
 DATABASE PORT     = 3306
 ```
 
-## SYSOP MENU FILE FORMAT
-
-Note:  All needed files are included in the distribution.  All you need to do is customize them for your BBS
-```
-# Key | Command | Color | Description
-1|SYSOP LOGIN SYSOP|WHITE|Connect as user SysOp
-2|SYSOP LOGIN USER|WHITE|Connect as another user
-B|SYSOP BBS LISTINGS MANAGER|BRIGHT BLUE|BBS Listings Manager
-D|SYSOP STATISTICS|MAGENTA|Display Statistics
-E|SYSOP SHOW ENVIRONMENT|GREEN|Show Environmental Variables
-F|SYSOP FILE MANAGER|YELLOW|File Manager
-L|SYSOP LIST COMMANDS|COLOR 202|Commands & Tokens Reference
-R|SYSOP RESTART|WHITE|Restart BBS
-S|SYSOP SETTINGS|COLOR 125|Change System Settings
-U|SYSOP USER MANAGER|CYAN|User Manager
-X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
----
-    ____            _                   __  __
-   / ___| _   _ ___| |_ ___ _ __ ___   |  \/  | ___ _ __  _   _
-   \___ \| | | / __| __/ _ \ '_ ` _ \  | |\/| |/ _ \ '_ \| | | |
-    ___) | |_| \__ \ ||  __/ | | | | | | |  | |  __/ | | | |_| |
-   |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|
-          |___/
-```
-
-## MAIN MENU FILE FORMAT
-
-Note:  All needed files are included in the distribution.  All you need to do is customize them for your BBS
-```
-# KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
-B|BBS LISTING|BLUE|USER|Show BBS List
-O|FORUMS|WHITE|USER|Go To Forums
-M|ACCOUNT MANAGER|WHITE|USER|Manage Your Account
-F|FILES|WHITE|USER|Go To Files
-N|NEWS|WHITE|USER|System News
-A|ABOUT|WHITE|USER|About This BBS
-U|LIST USERS|BRIGHT WHITE|USER|List Users
-R|RSS FEEDS|RED|USER|Read External News Feeds
-X|DISCONNECT|WHITE|USER|Disconnect
----
- __  __
-|  \/  |___ _ _ _  _
-| |\/| / -_) ' \ || |
-|_|  |_\___|_||_\_,_|
-```
-
 ## LICENSE AND COPYRIGHT
 
 Copyright © 2023-2026 Richard Kelsch
