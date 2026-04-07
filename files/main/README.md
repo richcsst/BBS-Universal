@@ -10,10 +10,10 @@ The files in "files/main/" are specifically for the server side of the software 
 
 The file must have the suffix that describes the text mode it will be used for processing.
 
-* ANSI - ANSI mode files
-* ASCII - ASCII mode files
-* ATASCII - ATASCII mode (Atari) files
-* PETSCII - PETSCII mode (Commodore) files
+* ```ANSI```    - ANSI mode files
+* ```ASCII```   - ASCII mode files
+* ```ATASCII``` - ATASCII mode (Atari) files
+* ```PETSCII``` - PETSCII mode (Commodore) files
 
 ## Format
 
