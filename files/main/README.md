@@ -91,6 +91,8 @@ X|DISCONNECT|WHITE|USER|Disconnect
 
 ## ATASCII Example
 
+* **NOTE**  The "COLOR" parameter only works with "WHITE", since Atari text mode is only global two color.
+
 ```
 # KEY|COMMAND|COLOR|ACCESS LEVEL|DESCRIPTION
 B|BBS LISTING|BLUE|USER|Show BBS List
