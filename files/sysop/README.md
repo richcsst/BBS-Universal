@@ -4,7 +4,7 @@
 
 # Creating Custom Menu Files
 
-The files in "files/sysop/" are specifically for the local SysOp mode.  ALL are in ANSI format and thus will always have the "ANS" suffix.
+The files in "files/sysop/" are specifically for the local SysOp mode.  ALL are in ANSI format and thus will always have the "ANSI" suffix.
 
 ## Format
 
@@ -16,10 +16,10 @@ Custom menus follow a specific format
 
 ### Menu Descriptors
 
-* KEY          - A single key used to activate the feature.  It is case insensitive.
-* COMMAND      - The specific command token to activate the feature.  Use only the token name
-* COLOR        - The color of the menu choice.
-* DESCRIPTION  - The text to be displayed after the menu option
+* **KEY**          - A single key used to activate the feature.  It is case insensitive.
+* **COMMAND**      - The specific command token to activate the feature.  Use only the token name
+* **COLOR**        - The color of the menu choice.
+* **DESCRIPTION**  - The text to be displayed after the menu option
 
 Note: All menu keys will be sorted on output
 
