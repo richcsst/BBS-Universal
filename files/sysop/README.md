@@ -54,3 +54,5 @@ X|SYSOP SHUTDOWN|WHITE|Shutdown BBS
 [% BLUE    %] #####[% BRIGHT WHITE %] |____/ \__, |___/\__\___|_| |_| |_| |_|  |_|\___|_| |_|\__,_|[% RESET %]
 [% CYAN    %]######[% BRIGHT WHITE %]        |___/[% RESET %]
 ```
+
+![BBS::Universal SysOp System Menu](SysOpSystemMenu.png?raw=true "BBS::Universal SysOp System Menu")

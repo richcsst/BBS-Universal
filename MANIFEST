@@ -74,6 +74,7 @@ files/sysop/settings.ANSI
 files/sysop/statistics.ANSI
 files/sysop/sysop.ANSI
 files/sysop/usermanager.ANSI
+files/sysop/SysOpSystemMenu.jpg
 ignore.txt
 lib/BBS/Universal.pm
 lib/BBS/Universal/ANSI.pm
