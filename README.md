@@ -28,7 +28,7 @@ Installing is at your own risk and likely will not be very useful to you at the 
 
    A 100% Perl BBS server.  It supports ASCII, ANSI, ATASCII and PETSCII text formats.
 
-   * NOTE:  This is still a work in progress.  The ASCII and ANSI features work fine.  ATASCII and PETSCII have not yet been refined and tested.  Also, file upload/download has not been tested.
+   \* *NOTE:  This is still a work in progress.  The ASCII and ANSI features work fine.  ATASCII and PETSCII have not yet been refined and tested.  Also, file upload/download has not been tested.*
 
 ## CONFIGURATION
 
